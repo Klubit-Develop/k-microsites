@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 interface OTPInputProps {
     length?: number;
@@ -8,20 +8,35 @@ interface OTPInputProps {
     value?: string;
 }
 
-const OTPInput = ({ length = 6, onChange, disabled = false, autoFocus = false }: OTPInputProps) => {
-    const [otp, setOtp] = useState(Array(length).fill(''));
+const OTPInput = ({ length = 6, onChange, disabled = false, autoFocus = false, value = '' }: OTPInputProps) => {
+    const [otp, setOtp] = useState<string[]>(Array(length).fill(''));
     const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
 
+    // Sincronizar con el valor externo (incluyendo cuando se limpia)
+    useEffect(() => {
+        if (value === '') {
+            // Limpiar todos los campos cuando el valor es vacío
+            setOtp(Array(length).fill(''));
+        } else {
+            const valueArray = value.split('').slice(0, length);
+            const newOtp = Array(length).fill('');
+            valueArray.forEach((char, index) => {
+                newOtp[index] = char;
+            });
+            setOtp(newOtp);
+        }
+    }, [value, length]);
+
     const handleChange = (element: HTMLInputElement, index: number) => {
-        const value = element.value;
-        if (/[^0-9]/.test(value)) return;
+        const inputValue = element.value;
+        if (/[^0-9]/.test(inputValue)) return;
 
         const newOtp = [...otp];
-        newOtp[index] = value;
+        newOtp[index] = inputValue;
         setOtp(newOtp);
         onChange(newOtp.join(''));
 
-        if (value && index < length - 1) {
+        if (inputValue && index < length - 1) {
             inputsRef.current[index + 1]?.focus();
         }
     };
@@ -32,17 +47,42 @@ const OTPInput = ({ length = 6, onChange, disabled = false, autoFocus = false }:
         }
     };
 
+    const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+        e.preventDefault();
+        const pastedData = e.clipboardData.getData('text');
+        
+        // Extraer solo los dígitos del texto pegado
+        const digits = pastedData.replace(/\D/g, '').slice(0, length);
+        
+        if (digits.length === 0) return;
+
+        const newOtp = Array(length).fill('');
+        digits.split('').forEach((digit, index) => {
+            if (index < length) {
+                newOtp[index] = digit;
+            }
+        });
+
+        setOtp(newOtp);
+        onChange(newOtp.join(''));
+
+        // Mover el foco al último campo completado o al siguiente vacío
+        const focusIndex = Math.min(digits.length, length - 1);
+        inputsRef.current[focusIndex]?.focus();
+    };
+
     return (
         <div className="flex justify-center gap-2 w-full">
-            {otp.map((_, index) => (
+            {otp.map((digit, index) => (
                 <input
                     key={index}
                     ref={(el) => { inputsRef.current[index] = el; }}
                     type="text"
                     inputMode="numeric"
-                    value={otp[index]}
+                    value={digit}
                     onChange={(e) => handleChange(e.target, index)}
                     onKeyUp={(e) => handleKeyUp(e, index)}
+                    onPaste={handlePaste}
                     disabled={disabled}
                     autoFocus={autoFocus && index === 0}
                     maxLength={1}

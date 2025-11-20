@@ -77,7 +77,7 @@ const Login = () => {
 
                     sendSMSMutation.mutate({
                         country,
-                        phone
+                        phone: phone.replace(/\s/g, '')
                     });
 
                     navigate({

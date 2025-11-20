@@ -8,13 +8,11 @@ import { Asterisk } from 'lucide-react';
 import axiosInstance from '@/config/axiosConfig';
 import OTPInput from '@/components/common/OTPInput';
 import { LogoCutIcon } from '@/components/icons';
-import { useAuthStore } from '@/stores/authStore';
 
 const Verify = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { i18n, t } = useTranslation();
-    const { user, logout } = useAuthStore();
 
     const [otpValue, setOtpValue] = useState('');
     const [countdown, setCountdown] = useState(0);
@@ -22,28 +20,26 @@ const Verify = () => {
     // Determinar método de verificación
     const verificationType = (location.state as { verification?: string })?.verification;
 
-    console.log('verificationType', verificationType);
-
     // Verificar OTP
     const verifyMutation = useMutation({
         mutationFn: async (code: string) => {
             const lang = i18n.language === 'en' ? 'en' : 'es';
 
             if (verificationType === 'email') {
-                return await axiosInstance.post(`/v1/auth/verify-email-otp?lang=${lang}`, {
-                    email: user?.email,
+                return await axiosInstance.post(`/v2/email/validate?lang=${lang}`, {
+                    email: (location.state as { email?: string })?.email,
                     code
                 });
             } else {
-                return await axiosInstance.post(`/v1/auth/verify-phone-otp?lang=${lang}`, {
-                    country: user?.country,
-                    phone: user?.phone,
+                return await axiosInstance.post(`/v2/sms/validate?lang=${lang}`, {
+                    country: (location.state as { country?: string })?.country,
+                    phone: (location.state as { phone?: string })?.phone?.replace(/\s/g, ''),
                     code
                 });
             }
         },
         onSuccess: (response) => {
-            console.log('Respuesta verify-email-otp o verify-phone-ot:', response);
+            console.log('Respuesta verify-email-otp o verify-phone-otp:', response);
 
             /*
             if (response.status === 'success') {
@@ -79,26 +75,23 @@ const Verify = () => {
             const lang = i18n.language === 'en' ? 'en' : 'es';
 
             if (verificationType === 'email') {
-                return await axiosInstance.post(`/v1/auth/resend-email-otp?lang=${lang}`, {
-                    email: user?.email
+                return await axiosInstance.post(`/v2/email/resend?lang=${lang}`, {
+                    email: (location.state as { email?: string })?.email
                 });
             } else {
-                return await axiosInstance.post(`/v1/auth/resend-phone-otp?lang=${lang}`, {
-                    country: user?.country,
-                    phone: user?.phone
+                return await axiosInstance.post(`/v2/sms/resend?lang=${lang}`, {
+                    country: (location.state as { country?: string })?.country,
+                    phone: (location.state as { phone?: string })?.phone?.replace(/\s/g, ''),
                 });
             }
         },
         onSuccess: (response) => {
-            console.log('response resend-email-otp o resend-phone-otp', response)
-            /*
-            if (response.status === 'success') {
-                toast.success(response.details);
-                setCountdown(120);
-            } else {
-                toast.error(response.details || t('verify.error_resend'));
-            }
-            */
+            console.log('response resend-email-otp o resend-phone-otp', response);
+            
+            // Limpiar el OTP al reenviar código exitosamente
+            setOtpValue('');
+            // Activar el contador
+            setCountdown(30);
         },
         onError: () => {
             toast.error(t('verify.error_connection'));
@@ -122,7 +115,6 @@ const Verify = () => {
     };
 
     const handleGoBack = () => {
-        logout();
         navigate({ to: '/' });
     };
 
