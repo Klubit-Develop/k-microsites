@@ -55,7 +55,7 @@ const ForgotPage = () => {
 
                     navigate({
                         to: '/verify',
-                        state: { verification: 'sms', country, phone } as any
+                        state: { verification: 'sms', forgot: true, country, phone } as any
                     });
                 } else {
                     navigate({ to: '/incident' });

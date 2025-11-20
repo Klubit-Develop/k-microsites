@@ -1,38 +1,13 @@
-import { toast } from 'sonner';
 import { useForm } from '@tanstack/react-form';
 import { useTranslation } from 'react-i18next';
 import { LogoCutIcon } from '@/components/icons';
-import { useNavigate } from '@tanstack/react-router';
-import { useMutation } from '@tanstack/react-query';
-
-import axiosInstance from '@/config/axiosConfig';
+import { useLocation, useNavigate } from '@tanstack/react-router';
 import { Input } from '@/components/common/ElementsForm';
 
 const ForgotChange = () => {
-    const { i18n, t } = useTranslation();
     const navigate = useNavigate();
-
-    const forgotChangeMutation = useMutation({
-        mutationFn: async (changeData: {
-            email: string;
-        }) => {
-            return await axiosInstance.post(`/v2/auth/forgot-change?lang=${i18n.language}`, changeData);
-        },
-        onSuccess: () => {
-            toast.success(t('forgot_change.success'));
-            // Redirigir al login después de 2 segundos
-            setTimeout(() => {
-                navigate({ to: '/' });
-            }, 2000);
-        },
-        onError: (error: any) => {
-            if (error.backendError) {
-                toast.error(error.backendError.message);
-            } else {
-                toast.error(t('common.error_connection'));
-            }
-        }
-    });
+    const location = useLocation();
+    const { t } = useTranslation();
 
     // Validations
     const validators = {
@@ -67,8 +42,15 @@ const ForgotChange = () => {
             }
         },
         onSubmit: async ({ value }) => {
-            await forgotChangeMutation.mutateAsync({
-                email: value.email
+            navigate({
+                to: '/verify',
+                state: {
+                    verification: 'email',
+                    forgot: true,
+                    id: (location.state as { id?: string })?.id,
+                    token: (location.state as { token?: string })?.token,
+                    email: value.email
+                } as any
             });
         }
     });

@@ -23,6 +23,9 @@ const Verify = () => {
     // Determinar método de verificación
     const verificationType = (location.state as { verification?: string })?.verification;
 
+    // Determinar si es recuperación de contraseña
+    const isForgot = (location.state as { forgot?: string })?.forgot || false;
+
     const loginMutation = useMutation({
         mutationFn: async (data: { country: string; phone: string }) => {
             const response = await axiosInstance.post('/v2/auth/login', data);
@@ -34,6 +37,61 @@ const Verify = () => {
                 setUser(response.data.user);
                 navigate({ to: '/manager/klaudia' });
             }
+        },
+        onError: (error: any) => {
+            if (error.backendError) {
+                toast.error(error.backendError.message);
+            } else {
+                toast.error(t('common.error_connection'));
+            }
+        }
+    });
+
+    const loginForgotMutation = useMutation({
+        mutationFn: async (data: { country: string; phone: string }) => {
+            const response = await axiosInstance.post('/v2/auth/login', data);
+            return response.data;
+        },
+        onSuccess: (response) => {
+            if (response.status === 'success' && response.data?.token && response.data?.user) {
+                navigate({
+                    to: '/forgot-change',
+                    state: {
+                        id: response.data.user.id,
+                        token: response.data.token
+                    } as any
+                });
+            }
+        },
+        onError: (error: any) => {
+            if (error.backendError) {
+                toast.error(error.backendError.message);
+            } else {
+                toast.error(t('common.error_connection'));
+            }
+        }
+    });
+
+    const forgotChangeMutation = useMutation({
+        mutationFn: async (data: { id: string; token: string, email: string }) => {
+            const response = await axiosInstance.post('/v2/auth/forgot-change', data.email,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${data.token}`
+                    }
+                }
+            );
+            return response.data;
+        },
+        onSuccess: (response) => {
+            console.log('response verify forgot', response);
+            /*
+            if (response.status === 'success' && response.data?.token && response.data?.user) {
+                setToken(response.data.token);
+                setUser(response.data.user);
+                navigate({ to: '/manager/klaudia' });
+            }
+            */
         },
         onError: (error: any) => {
             if (error.backendError) {
@@ -65,16 +123,34 @@ const Verify = () => {
         onSuccess: () => {
             if (verificationType === 'email') {
 
-                loginMutation.mutate({
-                    country: (location.state as { country?: string })?.country!,
-                    phone: (location.state as { phone?: string })?.phone?.replace(/\s/g, '')!,
-                });
+                if (isForgot) {
+                    forgotChangeMutation.mutate({
+                        id: (location.state as { id?: string })?.id!,
+                        token: (location.state as { token?: string })?.token!,
+                        email: (location.state as { email?: string })?.email!
+                    });
+                } else {
+                    loginMutation.mutate({
+                        country: (location.state as { country?: string })?.country!,
+                        phone: (location.state as { phone?: string })?.phone?.replace(/\s/g, '')!,
+                    });
+                }
 
             } else {
-                return navigate({
-                    to: '/register',
-                    state: { country: (location.state as { country?: string })?.country, phone: (location.state as { phone?: string })?.phone } as any
-                });
+
+                if (isForgot) {
+
+                    loginForgotMutation.mutate({
+                        country: (location.state as { country?: string })?.country!,
+                        phone: (location.state as { phone?: string })?.phone?.replace(/\s/g, '')!,
+                    });
+
+                } else {
+                    return navigate({
+                        to: '/register',
+                        state: { country: (location.state as { country?: string })?.country, phone: (location.state as { phone?: string })?.phone } as any
+                    });
+                }
             }
         },
         onError: () => {
