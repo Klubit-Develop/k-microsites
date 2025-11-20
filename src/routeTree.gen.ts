@@ -10,11 +10,23 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VerifyRouteImport } from './routes/verify'
+import { Route as RegisterRouteImport } from './routes/register'
+import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedManagerKlaudiaRouteImport } from './routes/_authenticated/manager/klaudia'
 
 const VerifyRoute = VerifyRouteImport.update({
   id: '/verify',
   path: '/verify',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RegisterRoute = RegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRoute = AuthenticatedRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -22,30 +34,51 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedManagerKlaudiaRoute =
+  AuthenticatedManagerKlaudiaRouteImport.update({
+    id: '/manager/klaudia',
+    path: '/manager/klaudia',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/register': typeof RegisterRoute
   '/verify': typeof VerifyRoute
+  '/manager/klaudia': typeof AuthenticatedManagerKlaudiaRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/register': typeof RegisterRoute
   '/verify': typeof VerifyRoute
+  '/manager/klaudia': typeof AuthenticatedManagerKlaudiaRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/register': typeof RegisterRoute
   '/verify': typeof VerifyRoute
+  '/_authenticated/manager/klaudia': typeof AuthenticatedManagerKlaudiaRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/verify'
+  fullPaths: '/' | '/register' | '/verify' | '/manager/klaudia'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/verify'
-  id: '__root__' | '/' | '/verify'
+  to: '/' | '/register' | '/verify' | '/manager/klaudia'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/register'
+    | '/verify'
+    | '/_authenticated/manager/klaudia'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  RegisterRoute: typeof RegisterRoute
   VerifyRoute: typeof VerifyRoute
 }
 
@@ -58,6 +91,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VerifyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/register': {
+      id: '/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof AuthenticatedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -65,11 +112,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/manager/klaudia': {
+      id: '/_authenticated/manager/klaudia'
+      path: '/manager/klaudia'
+      fullPath: '/manager/klaudia'
+      preLoaderRoute: typeof AuthenticatedManagerKlaudiaRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
   }
 }
 
+interface AuthenticatedRouteChildren {
+  AuthenticatedManagerKlaudiaRoute: typeof AuthenticatedManagerKlaudiaRoute
+}
+
+const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedManagerKlaudiaRoute: AuthenticatedManagerKlaudiaRoute,
+}
+
+const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
+  AuthenticatedRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  RegisterRoute: RegisterRoute,
   VerifyRoute: VerifyRoute,
 }
 export const routeTree = rootRouteImport

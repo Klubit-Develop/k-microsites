@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useMutation } from '@tanstack/react-query';
 import { useLocation, useNavigate } from '@tanstack/react-router';
 import { Asterisk } from 'lucide-react';
+import { useAuthStore } from '@/stores/authStore';
 
 import axiosInstance from '@/config/axiosConfig';
 import OTPInput from '@/components/common/OTPInput';
@@ -14,11 +15,33 @@ const Verify = () => {
     const location = useLocation();
     const { i18n, t } = useTranslation();
 
+    const { setUser, setToken } = useAuthStore();
+
     const [otpValue, setOtpValue] = useState('');
     const [countdown, setCountdown] = useState(0);
 
     // Determinar método de verificación
     const verificationType = (location.state as { verification?: string })?.verification;
+
+    const loginMutation = useMutation({
+        mutationFn: async (data: { country: string; phone: string }) => {
+            const response = await axiosInstance.post('/v2/auth/login', data);
+            return response.data;
+        },
+        onSuccess: (response) => {
+            if (response.status === 'success' && response.data?.token && response.data?.user) {
+                setToken(response.data.token);
+                setUser(response.data.user);
+            }
+        },
+        onError: (error: any) => {
+            if (error.backendError) {
+                toast.error(error.backendError.message);
+            } else {
+                toast.error(t('common.error_connection'));
+            }
+        }
+    });
 
     // Verificar OTP
     const verifyMutation = useMutation({
@@ -38,31 +61,21 @@ const Verify = () => {
                 });
             }
         },
-        onSuccess: (response) => {
-            console.log('Respuesta verify-email-otp o verify-phone-otp:', response);
+        onSuccess: () => {
+            if (verificationType === 'email') {
 
-            /*
-            if (response.status === 'success') {
-                toast.success(response.details);
+                loginMutation.mutate({
+                    country: (location.state as { country?: string })?.country!,
+                    phone: (location.state as { phone?: string })?.phone?.replace(/\s/g, '')!,
+                });
 
-                // Actualizar usuario
-                if (response.data) {
-                    setUser({
-                        ...user,
-                        ...response.data,
-                        isPhoneVerified: verificationType === 'sms' ? true : user?.isPhoneVerified,
-                        isEmailVerified: verificationType === 'email' ? true : user?.isEmailVerified,
-                    });
-                }
-
-                // Navegar al dashboard
-                setTimeout(() => {
-                    navigate({ to: '/manager/ia' as any });
-                }, 500);
+                return navigate({ to: '/manager/klaudia' });
             } else {
-                toast.error(response.details || t('verify.error_generic'));
+                return navigate({
+                    to: '/register',
+                    state: { country: (location.state as { country?: string })?.country, phone: (location.state as { phone?: string })?.phone } as any
+                });
             }
-            */
         },
         onError: () => {
             toast.error(t('verify.error_connection'));
@@ -85,9 +98,7 @@ const Verify = () => {
                 });
             }
         },
-        onSuccess: (response) => {
-            console.log('response resend-email-otp o resend-phone-otp', response);
-            
+        onSuccess: () => {
             // Limpiar el OTP al reenviar código exitosamente
             setOtpValue('');
             // Activar el contador
@@ -126,7 +137,6 @@ const Verify = () => {
         }
     };
 
-    // Countdown timer
     useEffect(() => {
         let timer: NodeJS.Timeout;
         if (countdown > 0) {

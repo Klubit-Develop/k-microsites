@@ -20,7 +20,6 @@ const Login = () => {
     const navigate = useNavigate();
     const { i18n, t } = useTranslation();
 
-
     const [country, setCountry] = useState('34');
     const [phone, setPhone] = useState('');
     const [error, setError] = useState('');
@@ -71,7 +70,7 @@ const Login = () => {
 
                     navigate({
                         to: '/verify',
-                        state: { verification: 'email', email: response.data.email }
+                        state: { verification: 'email', email: response.data.email, country, phone } as any
                     });
                 } else {
 
@@ -82,7 +81,7 @@ const Login = () => {
 
                     navigate({
                         to: '/verify',
-                        state: { verification: 'sms', country, phone }
+                        state: { verification: 'sms', country, phone } as any
                     });
                 }
             } else {
