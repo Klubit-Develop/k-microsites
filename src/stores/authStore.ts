@@ -2,11 +2,13 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 interface AuthState {
-    user: any;
+    user: any | null;
     token: string | null;
+    clubs: any[];
 
-    setUser: (user: any) => void;
-    setToken: (token: string) => void;
+    setUser: (user: any | null) => void;
+    setToken: (token: string | null) => void;
+    setClubs: (clubs: any[]) => void;
     logout: () => void;
 }
 
@@ -15,13 +17,15 @@ export const useAuthStore = create<AuthState>()(
         (set) => ({
             user: null,
             token: null,
+            clubs: [],
 
             setUser: (user) => set({ user }),
             setToken: (token) => set({ token }),
-            logout: () => set({ user: null, token: null }),
+            setClubs: (clubs) => set({ clubs }),
+            logout: () => set({ user: null, token: null, clubs: [] }),
         }),
         {
-            name: 'klubit-auth',
+            name: 'manager-klubit-auth',
         }
     )
 );

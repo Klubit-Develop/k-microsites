@@ -5,7 +5,7 @@ import { useMutation } from '@tanstack/react-query';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { ChevronDown } from 'lucide-react';
 
-import { LogoIcon, LogoCutIcon, GoogleIcon, AppleIcon } from '@/components/icons';
+import { LogoIcon, LogoCutIcon } from '@/components/icons';
 import axiosInstance from '@/config/axiosConfig';
 import { countries } from '@/utils/countries';
 
@@ -17,7 +17,7 @@ interface BackendResponse {
     details: string;
 }
 
-const RootPage = () => {
+const ForgotPage = () => {
     const navigate = useNavigate();
     const { i18n, t } = useTranslation();
 
@@ -25,20 +25,6 @@ const RootPage = () => {
     const [phone, setPhone] = useState('');
     const [error, setError] = useState('');
     const [isCountryOpen, setIsCountryOpen] = useState(false);
-
-    const sendEmailMutation = useMutation({
-        mutationFn: async (data: { email: string }) => {
-            const response = await axiosInstance.post<BackendResponse>('/v2/email/send', data);
-            return response.data;
-        },
-        onError: (error: any) => {
-            if (error.backendError) {
-                toast.error(error.backendError.message);
-            } else {
-                toast.error(t('common.error_connection'));
-            }
-        }
-    });
 
     const sendSMSMutation = useMutation({
         mutationFn: async (data: { country: string; phone: string }) => {
@@ -60,19 +46,8 @@ const RootPage = () => {
             return response.data;
         },
         onSuccess: (response: BackendResponse) => {
-            console.log('response backend', response);
-
             if (response.status === 'success') {
                 if (response.data?.exists) {
-                    sendEmailMutation.mutate({
-                        email: response.data.email,
-                    });
-
-                    navigate({
-                        to: '/verify',
-                        state: { verification: 'email', email: response.data.email, country, phone } as any
-                    });
-                } else {
                     sendSMSMutation.mutate({
                         country,
                         phone: phone.replace(/\s/g, '')
@@ -82,6 +57,8 @@ const RootPage = () => {
                         to: '/verify',
                         state: { verification: 'sms', country, phone } as any
                     });
+                } else {
+                    navigate({ to: '/incident' });
                 }
             } else {
                 toast.error(response.message || response.details);
@@ -132,12 +109,12 @@ const RootPage = () => {
         const phoneDigits = phone.replace(/\D/g, '');
 
         if (!phoneDigits) {
-            setError(t('login.phone_required'));
+            setError(t('forgot.phone_required'));
             return;
         }
 
         if (phoneDigits.length !== expectedLength) {
-            setError(t('login.phone_invalid_length', { length: expectedLength }));
+            setError(t('forgot.phone_invalid_length', { length: expectedLength }));
             return;
         }
 
@@ -145,16 +122,6 @@ const RootPage = () => {
             country,
             phone: phoneDigits
         });
-    };
-
-    const initiateGoogleLogin = () => {
-        const currentOrigin = window.location.origin;
-        window.location.href = `${import.meta.env.VITE_API_BASE_URL || 'https://api.klubit.io'}/v1/auth/google/microsites?origin=${encodeURIComponent(currentOrigin)}`;
-    };
-
-    const initiateAppleLogin = () => {
-        const currentOrigin = window.location.origin;
-        window.location.href = `${import.meta.env.VITE_API_BASE_URL || 'https://api.klubit.io'}/v1/auth/apple/microsites?origin=${encodeURIComponent(currentOrigin)}`;
     };
 
     const selectedCountry = countries.find((c: { phone: string; }) => c.phone === country);
@@ -182,18 +149,18 @@ const RootPage = () => {
 
                         {/* Title */}
                         <h1 className="text-[28px] md:text-[30px] font-medium font-n27 text-[#ff336d]">
-                            {t('login.title')}
+                            {t('forgot.title')}
                         </h1>
 
                         {/* Subtitle */}
                         <p className="text-[14px] md:text-[16px] font-normal font-helvetica text-[#98AAC0]">
-                            {t('login.subtitle')}
+                            {t('forgot.subtitle')}
                         </p>
 
                         {/* Form Section */}
                         <div className="flex flex-col gap-4 w-full">
                             <div className="flex flex-col gap-2">
-                                {/* Login Form */}
+                                {/* Forgot Form */}
                                 <div className="mt-2">
                                     <form onSubmit={handleSubmit}>
                                         <div className="flex flex-col gap-2">
@@ -202,7 +169,7 @@ const RootPage = () => {
                                                 <div className="col-span-3 md:col-span-2">
                                                     <div className="flex flex-col items-start gap-0">
                                                         <label className="text-[#98AAC0] text-[13px] font-helvetica font-medium mb-0 pl-[14.4px]">
-                                                            {t('login.country')}
+                                                            {t('forgot.country')}
                                                         </label>
                                                         <div className="relative w-[85px] -mt-[22.4px]">
                                                             <button
@@ -264,7 +231,7 @@ const RootPage = () => {
                                                 <div className="col-span-9 md:col-span-10">
                                                     <div className="flex flex-col items-start gap-0">
                                                         <label className="text-[#98AAC0] text-[13px] font-helvetica font-medium mb-0 pl-3">
-                                                            {t('login.phone')}
+                                                            {t('forgot.phone')}
                                                         </label>
                                                         <div className="w-full mt-5">
                                                             <input
@@ -289,7 +256,7 @@ const RootPage = () => {
                                                 disabled={loginMutation.isPending}
                                                 className="w-full bg-[#252E39] text-[#ECF0F5] text-[16px] font-helvetica font-medium py-4 rounded-[10px] hover:bg-[#1a2129] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                             >
-                                                {loginMutation.isPending ? t('login.loading') : t('login.continue')}
+                                                {loginMutation.isPending ? t('forgot.loading') : t('forgot.continue')}
                                             </button>
                                         </div>
                                     </form>
@@ -300,49 +267,18 @@ const RootPage = () => {
                                     <div className="border-t border-[#00000029] w-full max-w-[100px] mx-auto" />
                                 </div>
 
-                                {/* Google Login */}
-                                <button
-                                    onClick={initiateGoogleLogin}
-                                    className="flex items-center justify-center gap-2 w-full bg-[#F3F3F4] text-[#1A1F28] text-[16px] font-helvetica font-medium py-4 rounded-[10px] hover:bg-gray-200 transition-colors"
-                                >
-                                    <GoogleIcon />
-                                    {t('login.continueWithGoogle')}
-                                </button>
-
-                                {/* Apple Login */}
-                                <button
-                                    onClick={initiateAppleLogin}
-                                    className="flex items-center justify-center gap-2 w-full bg-[#F3F3F4] text-[#1A1F28] text-[16px] font-helvetica font-medium py-4 rounded-[10px] hover:bg-gray-200 transition-colors"
-                                >
-                                    <AppleIcon style={{ color: "#ECF0F5" }} />
-                                    {t('login.continueWithApple')}
-                                </button>
-
-                                {/* Forgot Password & Terms */}
+                                {/* Incidents */}
                                 <div className="flex flex-col gap-0">
                                     <div className="mt-1 flex items-center justify-center">
                                         <span className="text-[15px] md:text-[16px] font-helvetica font-normal text-[#98AAC0]">
-                                            {t('login.cantAccess')}
+                                            {t('forgot.incidents')}
                                             <Link
-                                                to="/forgot"
+                                                to="/incident"
                                                 className="pl-1.5 text-[#ff336d] no-underline font-medium hover:underline"
                                             >
-                                                {t('login.forgot_password')}
+                                                {t('forgot.incidentsLink')}
                                             </Link>
                                         </span>
-                                    </div>
-
-                                    {/* Terms */}
-                                    <div className="flex items-center justify-center flex-col md:flex-row mt-4 gap-0.5">
-                                        <p className="text-[14px] font-helvetica font-normal text-[#98AAC0]">
-                                            {t('login.termsText')}
-                                        </p>
-                                        <Link
-                                            to="/"
-                                            className="text-[14px] font-helvetica font-semibold text-[#98AAC0] underline hover:text-[#252E39] transition-colors"
-                                        >
-                                            {t('login.termsLink')}
-                                        </Link>
                                     </div>
                                 </div>
                             </div>
@@ -354,4 +290,4 @@ const RootPage = () => {
     );
 };
 
-export default RootPage;
+export default ForgotPage;

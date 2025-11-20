@@ -32,6 +32,7 @@ const Verify = () => {
             if (response.status === 'success' && response.data?.token && response.data?.user) {
                 setToken(response.data.token);
                 setUser(response.data.user);
+                navigate({ to: '/manager/klaudia' });
             }
         },
         onError: (error: any) => {
@@ -69,7 +70,6 @@ const Verify = () => {
                     phone: (location.state as { phone?: string })?.phone?.replace(/\s/g, '')!,
                 });
 
-                return navigate({ to: '/manager/klaudia' });
             } else {
                 return navigate({
                     to: '/register',
@@ -123,10 +123,6 @@ const Verify = () => {
     const handleResend = () => {
         if (countdown > 0) return;
         resendMutation.mutate();
-    };
-
-    const handleGoBack = () => {
-        navigate({ to: '/' });
     };
 
     const getContactDisplay = () => {
@@ -216,15 +212,6 @@ const Verify = () => {
                                     className="w-full bg-[#252E39] text-[#ECF0F5] text-base font-helvetica font-medium py-4 rounded-[10px] hover:bg-[#1a2129] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                 >
                                     {verifyMutation.isPending ? t('verify.verifying') : t('verify.continue')}
-                                </button>
-
-                                <button
-                                    type="button"
-                                    onClick={handleGoBack}
-                                    disabled={verifyMutation.isPending}
-                                    className="w-full bg-[#F3F3F4] text-[#252E39] border border-[#F3F3F4] text-base font-helvetica font-medium py-4 rounded-[10px] hover:bg-[#e5e5e6] transition-colors"
-                                >
-                                    {t('verify.go_back')}
                                 </button>
                             </div>
                         </div>

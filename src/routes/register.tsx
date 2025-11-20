@@ -1,7 +1,8 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
+import RegisterPage from '@/pages/Register';
 
 export const Route = createFileRoute('/register')({
-  component: RouteComponent,
+  component: RegisterPage,
   beforeLoad: async ({ location }) => {
     const state = location.state as { country?: string; phone?: string };
 
@@ -10,7 +11,3 @@ export const Route = createFileRoute('/register')({
     }
   }
 })
-
-function RouteComponent() {
-  return <div>Hello "/register"!</div>
-}

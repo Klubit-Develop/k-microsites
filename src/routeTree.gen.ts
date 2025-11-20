@@ -11,6 +11,9 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VerifyRouteImport } from './routes/verify'
 import { Route as RegisterRouteImport } from './routes/register'
+import { Route as IncidentRouteImport } from './routes/incident'
+import { Route as ForgotChangeRouteImport } from './routes/forgot-change'
+import { Route as ForgotRouteImport } from './routes/forgot'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedManagerKlaudiaRouteImport } from './routes/_authenticated/manager/klaudia'
@@ -23,6 +26,21 @@ const VerifyRoute = VerifyRouteImport.update({
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
   path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IncidentRoute = IncidentRouteImport.update({
+  id: '/incident',
+  path: '/incident',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForgotChangeRoute = ForgotChangeRouteImport.update({
+  id: '/forgot-change',
+  path: '/forgot-change',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForgotRoute = ForgotRouteImport.update({
+  id: '/forgot',
+  path: '/forgot',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
@@ -43,12 +61,18 @@ const AuthenticatedManagerKlaudiaRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/forgot': typeof ForgotRoute
+  '/forgot-change': typeof ForgotChangeRoute
+  '/incident': typeof IncidentRoute
   '/register': typeof RegisterRoute
   '/verify': typeof VerifyRoute
   '/manager/klaudia': typeof AuthenticatedManagerKlaudiaRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/forgot': typeof ForgotRoute
+  '/forgot-change': typeof ForgotChangeRoute
+  '/incident': typeof IncidentRoute
   '/register': typeof RegisterRoute
   '/verify': typeof VerifyRoute
   '/manager/klaudia': typeof AuthenticatedManagerKlaudiaRoute
@@ -57,19 +81,39 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/forgot': typeof ForgotRoute
+  '/forgot-change': typeof ForgotChangeRoute
+  '/incident': typeof IncidentRoute
   '/register': typeof RegisterRoute
   '/verify': typeof VerifyRoute
   '/_authenticated/manager/klaudia': typeof AuthenticatedManagerKlaudiaRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/register' | '/verify' | '/manager/klaudia'
+  fullPaths:
+    | '/'
+    | '/forgot'
+    | '/forgot-change'
+    | '/incident'
+    | '/register'
+    | '/verify'
+    | '/manager/klaudia'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/register' | '/verify' | '/manager/klaudia'
+  to:
+    | '/'
+    | '/forgot'
+    | '/forgot-change'
+    | '/incident'
+    | '/register'
+    | '/verify'
+    | '/manager/klaudia'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/forgot'
+    | '/forgot-change'
+    | '/incident'
     | '/register'
     | '/verify'
     | '/_authenticated/manager/klaudia'
@@ -78,6 +122,9 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  ForgotRoute: typeof ForgotRoute
+  ForgotChangeRoute: typeof ForgotChangeRoute
+  IncidentRoute: typeof IncidentRoute
   RegisterRoute: typeof RegisterRoute
   VerifyRoute: typeof VerifyRoute
 }
@@ -96,6 +143,27 @@ declare module '@tanstack/react-router' {
       path: '/register'
       fullPath: '/register'
       preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/incident': {
+      id: '/incident'
+      path: '/incident'
+      fullPath: '/incident'
+      preLoaderRoute: typeof IncidentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/forgot-change': {
+      id: '/forgot-change'
+      path: '/forgot-change'
+      fullPath: '/forgot-change'
+      preLoaderRoute: typeof ForgotChangeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/forgot': {
+      id: '/forgot'
+      path: '/forgot'
+      fullPath: '/forgot'
+      preLoaderRoute: typeof ForgotRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -137,6 +205,9 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  ForgotRoute: ForgotRoute,
+  ForgotChangeRoute: ForgotChangeRoute,
+  IncidentRoute: IncidentRoute,
   RegisterRoute: RegisterRoute,
   VerifyRoute: VerifyRoute,
 }

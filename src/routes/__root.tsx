@@ -7,6 +7,7 @@ import TanStackQueryDevtools from '../integrations/tanstack-query/devtools'
 import { useAuthStore } from '@/stores/authStore'
 
 import type { QueryClient } from '@tanstack/react-query'
+import Sidebar from '@/components/common/Sidebar'
 
 interface MyRouterContext {
   queryClient: QueryClient
@@ -15,8 +16,10 @@ interface MyRouterContext {
 // Rutas públicas que deben redirigir si ya está autenticado
 const publicRoutes = ['/', '/login', '/register', '/verify']
 
-export const Route = createRootRouteWithContext<MyRouterContext>()({
-  component: () => (
+const RootComponent = () => {
+  const { token } = useAuthStore();
+
+  return (
     <>
       <Toaster
         position="top-right"
@@ -25,7 +28,10 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
         closeButton
         duration={4000}
       />
+
+      {token && <Sidebar />}
       <Outlet />
+
       <TanStackDevtools
         config={{
           position: 'bottom-right',
@@ -39,10 +45,14 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
         ]}
       />
     </>
-  ),
+  );
+};
+
+export const Route = createRootRouteWithContext<MyRouterContext>()({
+  component: RootComponent,
   beforeLoad: async ({ location }) => {
     const { token } = useAuthStore.getState();
-    
+
     // Si tiene token y está en una ruta pública, redirigir al área autenticada
     if (token && publicRoutes.includes(location.pathname)) {
       throw redirect({ to: '/manager/klaudia' });
