@@ -1,0 +1,40 @@
+{
+    "common": {
+        "error_connection": "Error de conexión. Inténtalo de nuevo"
+    },
+    "login": {
+        "title": "Accede a tu cuenta",
+        "subtitle": "Ingresa tus datos para poder acceder a tu cuenta, si aún no tienes una cuenta, se creará una.",
+        "country": "País",
+        "phone": "Teléfono",
+        "phone_required": "El teléfono es obligatorio",
+        "phone_invalid_length": "El teléfono debe tener {{length}} dígitos",
+        "phone_invalid": "El teléfono solo puede contener números",
+        "continue": "Continuar",
+        "loading": "Cargando...",
+        "forgot_password": "Recuperar contraseña",
+        "error_generic": "Ha ocurrido un error inesperado",
+        "error_connection": "Error de conexión. Inténtalo de nuevo"
+    },
+    "verify": {
+        "account_verification": "Verificación de cuenta",
+        "code_sent_to_phone": "Código enviado al teléfono",
+        "code_sent_to_email": "Código enviado al email",
+        "enter_valid_code": "Ingresa un código válido de 6 dígitos",
+        "didnt_receive_code": "¿No recibiste el código?",
+        "resend_code": "Reenviar código",
+        "continue": "Continuar",
+        "verifying": "Verificando...",
+        "go_back": "Volver",
+        "error_generic": "Error al verificar el código",
+        "error_connection": "Error de conexión. Inténtalo de nuevo",
+        "error_resend": "Error al reenviar el código"
+    },
+    "welcome": {
+        "continueWithGoogle": "Continuar con Google",
+        "continueWithApple": "Continuar con Apple",
+        "termsText": "Al continuar, aceptas nuestros",
+        "termsLink": "Términos y Condiciones",
+        "cantAccess": "¿No puedes acceder?"
+    }
+}

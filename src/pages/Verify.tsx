@@ -1,0 +1,236 @@
+import { toast } from 'sonner';
+import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useMutation } from '@tanstack/react-query';
+import { useLocation, useNavigate } from '@tanstack/react-router';
+import { Asterisk } from 'lucide-react';
+
+import axiosInstance from '@/config/axiosConfig';
+import OTPInput from '@/components/common/OTPInput';
+import { LogoCutIcon } from '@/components/icons';
+import { useAuthStore } from '@/stores/authStore';
+
+const Verify = () => {
+    const navigate = useNavigate();
+    const location = useLocation();
+    const { i18n, t } = useTranslation();
+    const { user, logout } = useAuthStore();
+
+    const [otpValue, setOtpValue] = useState('');
+    const [countdown, setCountdown] = useState(0);
+
+    // Determinar método de verificación
+    const verificationType = (location.state as { verification?: string })?.verification;
+
+    console.log('verificationType', verificationType);
+
+    // Verificar OTP
+    const verifyMutation = useMutation({
+        mutationFn: async (code: string) => {
+            const lang = i18n.language === 'en' ? 'en' : 'es';
+
+            if (verificationType === 'email') {
+                return await axiosInstance.post(`/v1/auth/verify-email-otp?lang=${lang}`, {
+                    email: user?.email,
+                    code
+                });
+            } else {
+                return await axiosInstance.post(`/v1/auth/verify-phone-otp?lang=${lang}`, {
+                    country: user?.country,
+                    phone: user?.phone,
+                    code
+                });
+            }
+        },
+        onSuccess: (response) => {
+            console.log('Respuesta verify-email-otp o verify-phone-ot:', response);
+
+            /*
+            if (response.status === 'success') {
+                toast.success(response.details);
+
+                // Actualizar usuario
+                if (response.data) {
+                    setUser({
+                        ...user,
+                        ...response.data,
+                        isPhoneVerified: verificationType === 'sms' ? true : user?.isPhoneVerified,
+                        isEmailVerified: verificationType === 'email' ? true : user?.isEmailVerified,
+                    });
+                }
+
+                // Navegar al dashboard
+                setTimeout(() => {
+                    navigate({ to: '/manager/ia' as any });
+                }, 500);
+            } else {
+                toast.error(response.details || t('verify.error_generic'));
+            }
+            */
+        },
+        onError: () => {
+            toast.error(t('verify.error_connection'));
+        }
+    });
+
+    // Reenviar código
+    const resendMutation = useMutation({
+        mutationFn: async () => {
+            const lang = i18n.language === 'en' ? 'en' : 'es';
+
+            if (verificationType === 'email') {
+                return await axiosInstance.post(`/v1/auth/resend-email-otp?lang=${lang}`, {
+                    email: user?.email
+                });
+            } else {
+                return await axiosInstance.post(`/v1/auth/resend-phone-otp?lang=${lang}`, {
+                    country: user?.country,
+                    phone: user?.phone
+                });
+            }
+        },
+        onSuccess: (response) => {
+            console.log('response resend-email-otp o resend-phone-otp', response)
+            /*
+            if (response.status === 'success') {
+                toast.success(response.details);
+                setCountdown(120);
+            } else {
+                toast.error(response.details || t('verify.error_resend'));
+            }
+            */
+        },
+        onError: () => {
+            toast.error(t('verify.error_connection'));
+        }
+    });
+
+    const handleVerify = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        if (!otpValue || otpValue.length !== 6) {
+            toast.error(t('verify.enter_valid_code'));
+            return;
+        }
+
+        verifyMutation.mutate(otpValue);
+    };
+
+    const handleResend = () => {
+        if (countdown > 0) return;
+        resendMutation.mutate();
+    };
+
+    const handleGoBack = () => {
+        logout();
+        navigate({ to: '/' });
+    };
+
+    const getContactDisplay = () => {
+        if (verificationType === 'sms') {
+            return `+${(location.state as { country?: string })?.country} ${(location.state as { phone?: string })?.phone}`;
+        } else {
+            return (location.state as { email?: string })?.email;
+        }
+    };
+
+    // Countdown timer
+    useEffect(() => {
+        let timer: NodeJS.Timeout;
+        if (countdown > 0) {
+            timer = setInterval(() => {
+                setCountdown((prev) => prev - 1);
+            }, 1000);
+        }
+        return () => clearInterval(timer);
+    }, [countdown]);
+
+    return (
+        <div className="grid grid-cols-1 md:grid-cols-12 min-h-screen overflow-hidden">
+            {/* Left side - Logo (hidden on mobile) */}
+            <div className="hidden md:block md:col-span-8 bg-white">
+                <div className="flex items-center h-screen relative">
+                    <div className="h-full w-auto relative -translate-x-20 object-cover">
+                        <LogoCutIcon />
+                    </div>
+                </div>
+            </div>
+
+            {/* Right side - Form */}
+            <div className="col-span-1 md:col-span-4 min-h-screen md:min-h-0 flex flex-col justify-between md:justify-between overflow-auto py-4 md:py-0">
+                <div className="p-4 md:p-8 pt-0 md:pt-20 flex justify-center md:justify-start flex-col flex-1 bg-[#F9F9FA]">
+                    <div className="flex flex-col items-center md:items-start text-center md:text-left">
+                        <div className="flex flex-col items-center gap-2 w-full">
+                            <div className="flex items-center gap-0 mb-1">
+                                <Asterisk size={35} color="#252E39" />
+                                <Asterisk size={35} color="#252E39" />
+                                <Asterisk size={35} color="#252E39" />
+                                <Asterisk size={35} color="#252E39" />
+                            </div>
+
+                            <h1 className="text-2xl md:text-[28px] font-bold font-helvetica text-[#252E39]">
+                                {t('verify.account_verification')}
+                            </h1>
+
+                            <p className="text-base font-medium font-helvetica text-center leading-[1.8] text-[#252E39]">
+                                {verificationType === 'sms'
+                                    ? `${t('verify.code_sent_to_phone')} ${getContactDisplay()}`
+                                    : `${t('verify.code_sent_to_email')} ${getContactDisplay()}`
+                                }
+                            </p>
+
+                            <div>
+                                <OTPInput
+                                    length={6}
+                                    value={otpValue}
+                                    onChange={setOtpValue}
+                                    disabled={verifyMutation.isPending}
+                                    autoFocus={true}
+                                />
+                            </div>
+
+                            <p className="text-sm md:text-base font-medium font-helvetica text-[#252E39] mt-2">
+                                {t('verify.didnt_receive_code')}
+                                <button
+                                    onClick={handleResend}
+                                    disabled={countdown > 0 || resendMutation.isPending}
+                                    className={`ml-1 underline font-medium font-helvetica ${countdown > 0
+                                        ? 'text-gray-400 cursor-not-allowed'
+                                        : 'text-[#252E39] cursor-pointer hover:text-[#1a2129]'
+                                        }`}
+                                >
+                                    {countdown > 0
+                                        ? `${t('verify.resend_code')} (${countdown}s)`
+                                        : t('verify.resend_code')
+                                    }
+                                </button>
+                            </p>
+
+                            <div className="flex flex-col gap-3 w-full mt-4 px-4">
+                                <button
+                                    type="button"
+                                    onClick={handleVerify}
+                                    disabled={verifyMutation.isPending || otpValue.length !== 6}
+                                    className="w-full bg-[#252E39] text-[#ECF0F5] text-base font-helvetica font-medium py-4 rounded-[10px] hover:bg-[#1a2129] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                >
+                                    {verifyMutation.isPending ? t('verify.verifying') : t('verify.continue')}
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={handleGoBack}
+                                    disabled={verifyMutation.isPending}
+                                    className="w-full bg-[#F3F3F4] text-[#252E39] border border-[#F3F3F4] text-base font-helvetica font-medium py-4 rounded-[10px] hover:bg-[#e5e5e6] transition-colors"
+                                >
+                                    {t('verify.go_back')}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default Verify;

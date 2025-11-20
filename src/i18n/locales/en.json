@@ -1,0 +1,40 @@
+{
+    "common": {
+        "error_connection": "Connection error. Please try again"
+    },
+    "login": {
+        "title": "Welcome",
+        "subtitle": "Sign in to continue",
+        "country": "Country",
+        "phone": "Phone",
+        "phone_required": "Phone is required",
+        "phone_invalid_length": "Phone must be {{length}} digits",
+        "phone_invalid": "Phone can only contain numbers",
+        "continue": "Continue",
+        "loading": "Loading...",
+        "forgot_password": "Forgot password",
+        "error_generic": "An unexpected error occurred",
+        "error_connection": "Connection error. Please try again"
+    },
+    "verify": {
+        "account_verification": "Account Verification",
+        "code_sent_to_phone": "Code sent to phone",
+        "code_sent_to_email": "Code sent to email",
+        "enter_valid_code": "Enter a valid 6-digit code",
+        "didnt_receive_code": "Didn't receive the code?",
+        "resend_code": "Resend code",
+        "continue": "Continue",
+        "verifying": "Verifying...",
+        "go_back": "Go back",
+        "error_generic": "Error verifying code",
+        "error_connection": "Connection error. Please try again",
+        "error_resend": "Error resending code"
+    },
+    "welcome": {
+        "continueWithGoogle": "Continue with Google",
+        "continueWithApple": "Continue with Apple",
+        "termsText": "By continuing, you accept our",
+        "termsLink": "Terms and Conditions",
+        "cantAccess": "Can't access?"
+    }
+}
