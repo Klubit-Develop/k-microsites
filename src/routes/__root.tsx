@@ -14,7 +14,7 @@ interface MyRouterContext {
 }
 
 // Rutas públicas que deben redirigir si ya está autenticado
-const publicRoutes = ['/', '/login', '/register', '/verify']
+const publicRoutes = ['/', '/login', '/register', '/verify', '/incident', '/forgot', '/forgot-change'];
 
 const RootComponent = () => {
   const { token } = useAuthStore();
