@@ -58,7 +58,8 @@ const Verify = () => {
                     to: '/forgot-change',
                     state: {
                         id: response.data.user.id,
-                        token: response.data.token
+                        token: response.data.token,
+                        currentEmail: response.data.user.email
                     } as any
                 });
             }
@@ -74,7 +75,10 @@ const Verify = () => {
 
     const forgotChangeMutation = useMutation({
         mutationFn: async (data: { id: string; token: string, email: string }) => {
-            const response = await axiosInstance.post('/v2/auth/forgot-change', data.email,
+            const response = await axiosInstance.post('/v2/auth/forgot-change',
+                {
+                    email: data.email
+                },
                 {
                     headers: {
                         'Authorization': `Bearer ${data.token}`
@@ -84,14 +88,11 @@ const Verify = () => {
             return response.data;
         },
         onSuccess: (response) => {
-            console.log('response verify forgot', response);
-            /*
-            if (response.status === 'success' && response.data?.token && response.data?.user) {
-                setToken(response.data.token);
+            if (response.status === 'success' && (location.state as { token?: string })?.token && response.data?.user) {
+                setToken((location.state as { token?: string })?.token!);
                 setUser(response.data.user);
                 navigate({ to: '/manager/klaudia' });
             }
-            */
         },
         onError: (error: any) => {
             if (error.backendError) {
@@ -109,7 +110,9 @@ const Verify = () => {
 
             if (verificationType === 'email') {
                 return await axiosInstance.post(`/v2/email/validate?lang=${lang}`, {
-                    email: (location.state as { email?: string })?.email,
+                    email: isForgot ?
+                        (location.state as { currentEmail?: string })?.currentEmail :
+                        (location.state as { email?: string })?.email,
                     code
                 });
             } else {

@@ -1,8 +1,12 @@
+import { toast } from 'sonner';
 import { useForm } from '@tanstack/react-form';
 import { useTranslation } from 'react-i18next';
 import { LogoCutIcon } from '@/components/icons';
+import { useMutation } from '@tanstack/react-query';
 import { useLocation, useNavigate } from '@tanstack/react-router';
+
 import { Input } from '@/components/common/ElementsForm';
+import axiosInstance from '@/config/axiosConfig';
 
 const ForgotChange = () => {
     const navigate = useNavigate();
@@ -20,6 +24,33 @@ const ForgotChange = () => {
             if (email !== repeatEmail) return t('forgot_change.emails_not_match');
         }
     };
+
+    const sendEmailMutation = useMutation({
+        mutationFn: async (data: { currentEmail: string, email: string }) => {
+            const response = await axiosInstance.post('/v2/email/send', data);
+            return response.data;
+        },
+        onSuccess: (_data, variables) => {
+            navigate({
+                to: '/verify',
+                state: {
+                    verification: 'email',
+                    forgot: true,
+                    id: (location.state as { id?: string })?.id,
+                    token: (location.state as { token?: string })?.token,
+                    currentEmail: (location.state as { currentEmail?: string })?.currentEmail,
+                    email: variables.email
+                } as any
+            });
+        },
+        onError: (error: any) => {
+            if (error.backendError) {
+                toast.error(error.backendError.message);
+            } else {
+                toast.error(t('common.error_connection'));
+            }
+        }
+    });
 
     const form = useForm({
         defaultValues: {
@@ -42,15 +73,9 @@ const ForgotChange = () => {
             }
         },
         onSubmit: async ({ value }) => {
-            navigate({
-                to: '/verify',
-                state: {
-                    verification: 'email',
-                    forgot: true,
-                    id: (location.state as { id?: string })?.id,
-                    token: (location.state as { token?: string })?.token,
-                    email: value.email
-                } as any
+            sendEmailMutation.mutate({
+                currentEmail: (location.state as { currentEmail?: string })?.currentEmail!,
+                email: value.email,
             });
         }
     });
