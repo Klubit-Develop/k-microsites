@@ -60,8 +60,6 @@ const RootPage = () => {
             return response.data;
         },
         onSuccess: (response: BackendResponse) => {
-            console.log('response backend', response);
-
             if (response.status === 'success') {
                 if (response.data?.exists) {
                     sendEmailMutation.mutate({
@@ -80,7 +78,11 @@ const RootPage = () => {
 
                     navigate({
                         to: '/verify',
-                        state: { verification: 'sms', country, phone } as any
+                        state: { 
+                            verification: 'sms', 
+                            country, phone,
+                            oauthEmail: (location.search as { oauthEmail?: string })?.oauthEmail || ''
+                        } as any
                     });
                 }
             } else {
@@ -149,12 +151,12 @@ const RootPage = () => {
 
     const initiateGoogleLogin = () => {
         const currentOrigin = window.location.origin;
-        window.location.href = `${import.meta.env.VITE_API_BASE_URL || 'https://api.klubit.io'}/v1/auth/google/microsites?origin=${encodeURIComponent(currentOrigin)}`;
+        window.location.href = `${import.meta.env.VITE_API_BASE_URL || 'https://api.klubit.io'}/v2/oauth/google/microsites?origin=${encodeURIComponent(currentOrigin)}`;
     };
 
     const initiateAppleLogin = () => {
         const currentOrigin = window.location.origin;
-        window.location.href = `${import.meta.env.VITE_API_BASE_URL || 'https://api.klubit.io'}/v1/auth/apple/microsites?origin=${encodeURIComponent(currentOrigin)}`;
+        window.location.href = `${import.meta.env.VITE_API_BASE_URL || 'https://api.klubit.io'}/v2/oauth/apple/microsites?origin=${encodeURIComponent(currentOrigin)}`;
     };
 
     const selectedCountry = countries.find((c: { phone: string; }) => c.phone === country);

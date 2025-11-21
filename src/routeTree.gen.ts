@@ -14,6 +14,7 @@ import { Route as RegisterRouteImport } from './routes/register'
 import { Route as IncidentRouteImport } from './routes/incident'
 import { Route as ForgotChangeRouteImport } from './routes/forgot-change'
 import { Route as ForgotRouteImport } from './routes/forgot'
+import { Route as AuthSuccessRouteImport } from './routes/auth-success'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedManagerKlaudiaRouteImport } from './routes/_authenticated/manager/klaudia'
@@ -43,6 +44,11 @@ const ForgotRoute = ForgotRouteImport.update({
   path: '/forgot',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthSuccessRoute = AuthSuccessRouteImport.update({
+  id: '/auth-success',
+  path: '/auth-success',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
@@ -61,6 +67,7 @@ const AuthenticatedManagerKlaudiaRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth-success': typeof AuthSuccessRoute
   '/forgot': typeof ForgotRoute
   '/forgot-change': typeof ForgotChangeRoute
   '/incident': typeof IncidentRoute
@@ -70,6 +77,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth-success': typeof AuthSuccessRoute
   '/forgot': typeof ForgotRoute
   '/forgot-change': typeof ForgotChangeRoute
   '/incident': typeof IncidentRoute
@@ -81,6 +89,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/auth-success': typeof AuthSuccessRoute
   '/forgot': typeof ForgotRoute
   '/forgot-change': typeof ForgotChangeRoute
   '/incident': typeof IncidentRoute
@@ -92,6 +101,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/auth-success'
     | '/forgot'
     | '/forgot-change'
     | '/incident'
@@ -101,6 +111,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/auth-success'
     | '/forgot'
     | '/forgot-change'
     | '/incident'
@@ -111,6 +122,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/auth-success'
     | '/forgot'
     | '/forgot-change'
     | '/incident'
@@ -122,6 +134,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  AuthSuccessRoute: typeof AuthSuccessRoute
   ForgotRoute: typeof ForgotRoute
   ForgotChangeRoute: typeof ForgotChangeRoute
   IncidentRoute: typeof IncidentRoute
@@ -166,6 +179,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ForgotRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth-success': {
+      id: '/auth-success'
+      path: '/auth-success'
+      fullPath: '/auth-success'
+      preLoaderRoute: typeof AuthSuccessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated': {
       id: '/_authenticated'
       path: ''
@@ -205,6 +225,7 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  AuthSuccessRoute: AuthSuccessRoute,
   ForgotRoute: ForgotRoute,
   ForgotChangeRoute: ForgotChangeRoute,
   IncidentRoute: IncidentRoute,

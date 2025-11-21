@@ -151,7 +151,11 @@ const Verify = () => {
                 } else {
                     return navigate({
                         to: '/register',
-                        state: { country: (location.state as { country?: string })?.country, phone: (location.state as { phone?: string })?.phone } as any
+                        state: { 
+                            country: (location.state as { country?: string })?.country, 
+                            phone: (location.state as { phone?: string })?.phone,
+                            oauthEmail: (location.search as { oauthEmail?: string })?.oauthEmail || ''
+                        } as any
                     });
                 }
             }

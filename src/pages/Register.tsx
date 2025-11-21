@@ -1,8 +1,9 @@
 import dayjs from 'dayjs';
+import { toast } from 'sonner';
 import { useForm } from '@tanstack/react-form';
 import { useTranslation } from 'react-i18next';
 import { LogoCutIcon } from '@/components/icons';
-import { Link, useLocation } from '@tanstack/react-router';
+import { Link, useLocation, useNavigate } from '@tanstack/react-router';
 import { useMutation } from '@tanstack/react-query';
 
 import axiosInstance from '@/config/axiosConfig';
@@ -11,12 +12,26 @@ import { Input, Select } from '@/components/common/ElementsForm';
 import 'dayjs/locale/es';
 import 'dayjs/locale/en';
 
+interface BackendResponse {
+    status: 'success' | 'error';
+    code: string;
+    data: Record<string, any>;
+    message: string;
+    details: string;
+}
+
 const Register = () => {
-    const { i18n, t } = useTranslation();
+    const navigate = useNavigate();
     const location = useLocation();
+    const { i18n, t } = useTranslation();
 
     // Recibir country y phone del estado de navegación
     const { country, phone } = (location.state as { country?: string; phone?: string }) || {};
+
+    // Recibir email de Oauth
+    const { oauthEmail } = (location.search as { oauthEmail?: string }) || {};
+
+    console.log('oauthEmail', oauthEmail)
 
     const registerMutation = useMutation({
         mutationFn: async (userData: {
@@ -31,7 +46,28 @@ const Register = () => {
             language: string;
             roleIds: any[];
         }) => {
-            return await axiosInstance.post(`/v2/auth/register?lang=${i18n.language}`, userData);
+            const response = await axiosInstance.post<BackendResponse>(
+                `/v2/auth/register?lang=${i18n.language}`,
+                userData
+            );
+            return response.data;
+        },
+        onSuccess: (response: BackendResponse, variables) => {
+            if (response.status === 'success') {
+                navigate({
+                    to: '/verify',
+                    state: { verification: 'email', email: variables.email } as any
+                });
+            } else {
+                toast.error(response.message || response.details);
+            }
+        },
+        onError: (error: any) => {
+            if (error.backendError) {
+                toast.error(error.backendError.message);
+            } else {
+                toast.error(t('common.error_connection'));
+            }
         }
     });
 
@@ -100,10 +136,10 @@ const Register = () => {
         onSubmit: async ({ value }) => {
             // Generar username a partir del email (parte antes del @)
             const username = value.email.split('@')[0];
-            
+
             // Formatear fecha al formato ISO esperado por el backend
             const birthdateISO = value.birthdate ? dayjs(value.birthdate).toISOString() : null;
-            
+
             const userData = {
                 firstName: value.firstName,
                 lastName: value.lastName,
@@ -117,12 +153,7 @@ const Register = () => {
                 roleIds: []
             };
 
-
-            const response = await registerMutation.mutateAsync(userData);
-
-            console.log('response', response)
-
-
+            registerMutation.mutate(userData);
         }
     });
 
@@ -267,11 +298,11 @@ const Register = () => {
                                 {/* Submit Button */}
                                 <button
                                     type="submit"
-                                    disabled={form.state.isSubmitting}
+                                    disabled={registerMutation.isPending}
                                     className="w-full bg-[#252E39] text-[#ECF0F5] text-[16px] font-helvetica font-medium py-4 rounded-[10px] 
                                         hover:bg-[#1a2129] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                 >
-                                    {form.state.isSubmitting ? t('register.saving') : t('register.continue')}
+                                    {registerMutation.isPending ? t('register.saving') : t('register.continue')}
                                 </button>
 
                                 {/* Terms */}
