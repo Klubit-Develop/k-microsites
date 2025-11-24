@@ -2,6 +2,11 @@
     "common": {
         "error_connection": "Connection error. Please try again"
     },
+    "auth_success": {
+        "authenticating": "Authenticating...",
+        "login_success": "Login successful. Redirecting...",
+        "authentication_error": "Authentication error. Redirecting to login..."
+    },
     "menu": {
         "ia": "AI Assistant",
         "dashboard": "Dashboard",
@@ -126,7 +131,7 @@
         "message_required": "Message is required",
         "message_min_length": "Message must be at least 10 characters",
         "message_max_length": "Message must not exceed 1000 characters",
-        "submit": "Send Report",
+        "submit": "Send",
         "submitting": "Sending...",
         "success": "Your incident has been reported successfully",
         "back_to_login": "Back to login"

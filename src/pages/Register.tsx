@@ -2,7 +2,7 @@ import dayjs from 'dayjs';
 import { toast } from 'sonner';
 import { useForm } from '@tanstack/react-form';
 import { useTranslation } from 'react-i18next';
-import { LogoCutIcon } from '@/components/icons';
+import { LogoIcon, LogoCutIcon } from '@/components/icons';
 import { Link, useLocation, useNavigate } from '@tanstack/react-router';
 import { useMutation } from '@tanstack/react-query';
 
@@ -25,10 +25,8 @@ const Register = () => {
     const location = useLocation();
     const { i18n, t } = useTranslation();
 
-    // Recibir country y phone del estado de navegación
     const { country, phone } = (location.state as { country?: string; phone?: string }) || {};
 
-    // Recibir email de Oauth
     const { oauthEmail } = (location.search as { oauthEmail?: string }) || {};
 
     console.log('oauthEmail', oauthEmail)
@@ -71,7 +69,6 @@ const Register = () => {
         }
     });
 
-    // Validations
     const validators = {
         firstName: (value: string | any[]) => {
             if (!value) return t('register.name_required');
@@ -134,10 +131,8 @@ const Register = () => {
             }
         },
         onSubmit: async ({ value }) => {
-            // Generar username a partir del email (parte antes del @)
             const username = value.email.split('@')[0];
 
-            // Formatear fecha al formato ISO esperado por el backend
             const birthdateISO = value.birthdate ? dayjs(value.birthdate).toISOString() : null;
 
             const userData = {
@@ -157,7 +152,6 @@ const Register = () => {
         }
     });
 
-    // Gender options
     const genderOptions = [
         { value: 'male', label: t('register.male') },
         { value: 'female', label: t('register.female') },
@@ -171,154 +165,151 @@ const Register = () => {
     };
 
     return (
-        <div className="min-h-screen overflow-hidden md:grid md:grid-cols-12 md:gap-2">
-            {/* Left Panel - Logo */}
-            <div className="hidden md:flex md:col-span-8 bg-white items-center h-screen relative">
+        <div className="min-h-screen overflow-hidden lg:grid lg:grid-cols-12 lg:gap-2">
+            <div className="hidden lg:flex lg:col-span-8 bg-white items-center h-screen relative">
                 <div className="h-full w-auto relative -translate-x-20">
                     <LogoCutIcon style={{ height: '100%', width: 'auto', objectFit: 'cover' }} />
                 </div>
+                <div className="absolute bottom-[50px] left-20 z-10">
+                    <LogoIcon />
+                </div>
             </div>
 
-            {/* Right Panel - Form */}
-            <div className="col-span-12 md:col-span-4 min-h-screen md:min-h-auto flex flex-col justify-between overflow-auto md:bg-[#F9F9FA]">
-                <div className="m-2 md:m-2 p-2 md:p-4 flex flex-col flex-1 rounded-[10px]">
-                    <div className="flex flex-col gap-1 md:gap-3 items-center md:items-start text-center md:text-left">
-                        {/* Title */}
-                        <h1 className="text-[28px] md:text-[30px] font-medium font-n27 text-[#ff336d]">
-                            {t('register.title')}
-                        </h1>
+            <div className="col-span-12 lg:col-span-4 min-h-screen flex items-center justify-center lg:bg-[#F9F9FA] px-4 sm:px-6 md:px-8 py-8">
+                <div className="w-full max-w-[500px]">
+                    <div className="flex flex-col gap-6 items-center lg:items-start text-center lg:text-left">
+                        <div className="lg:hidden">
+                            <LogoIcon width={160} height={90} />
+                        </div>
 
-                        {/* Form */}
-                        <form onSubmit={(e) => { e.preventDefault(); form.handleSubmit(); }} className="w-full">
-                            <div className="flex flex-col gap-4 mt-1">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {/* First Name */}
-                                    <form.Field name="firstName">
-                                        {(field) => (
-                                            <Input
-                                                label={t('register.first_name')}
-                                                value={field.state.value || ''}
-                                                onChange={field.handleChange}
-                                                error={field.state.meta.errors?.[0]}
-                                                maxLength={40}
-                                                onKeyPress={onlyLetters}
-                                            />
-                                        )}
-                                    </form.Field>
+                        <div className="flex flex-col gap-3 w-full">
+                            <h1 className="text-[28px] md:text-[30px] font-medium font-n27 text-[#ff336d]">
+                                {t('register.title')}
+                            </h1>
+                        </div>
 
-                                    {/* Last Name */}
-                                    <form.Field name="lastName">
-                                        {(field) => (
-                                            <Input
-                                                label={t('register.last_name')}
-                                                value={field.state.value || ''}
-                                                onChange={field.handleChange}
-                                                error={field.state.meta.errors?.[0]}
-                                                maxLength={40}
-                                                onKeyPress={onlyLetters}
-                                            />
-                                        )}
-                                    </form.Field>
+                        <div className="flex flex-col gap-6 w-full">
+                            <form onSubmit={(e) => { e.preventDefault(); form.handleSubmit(); }} className="w-full">
+                                <div className="flex flex-col gap-5">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <form.Field name="firstName">
+                                            {(field) => (
+                                                <Input
+                                                    label={t('register.first_name')}
+                                                    value={field.state.value || ''}
+                                                    onChange={field.handleChange}
+                                                    error={field.state.meta.errors?.[0]}
+                                                    maxLength={40}
+                                                    onKeyPress={onlyLetters}
+                                                />
+                                            )}
+                                        </form.Field>
 
-                                    {/* Birthdate */}
-                                    <form.Field name="birthdate">
-                                        {(field) => (
-                                            <Input
-                                                type="date"
-                                                label={t('register.birthdate')}
-                                                value={field.state.value || ''}
-                                                onChange={field.handleChange}
-                                                error={field.state.meta.errors?.[0]}
-                                                max={dayjs().subtract(14, 'years').format('YYYY-MM-DD')}
-                                                min={dayjs().subtract(120, 'years').format('YYYY-MM-DD')}
-                                            />
-                                        )}
-                                    </form.Field>
+                                        <form.Field name="lastName">
+                                            {(field) => (
+                                                <Input
+                                                    label={t('register.last_name')}
+                                                    value={field.state.value || ''}
+                                                    onChange={field.handleChange}
+                                                    error={field.state.meta.errors?.[0]}
+                                                    maxLength={40}
+                                                    onKeyPress={onlyLetters}
+                                                />
+                                            )}
+                                        </form.Field>
 
-                                    {/* Gender */}
-                                    <form.Field name="gender">
-                                        {(field) => (
-                                            <Select
-                                                label={t('register.gender')}
-                                                value={field.state.value || ''}
-                                                onChange={field.handleChange}
-                                                options={genderOptions}
-                                                error={field.state.meta.errors?.[0]}
-                                                placeholder={t('register.select_gender')}
-                                            />
-                                        )}
-                                    </form.Field>
+                                        <form.Field name="birthdate">
+                                            {(field) => (
+                                                <Input
+                                                    type="date"
+                                                    label={t('register.birthdate')}
+                                                    value={field.state.value || ''}
+                                                    onChange={field.handleChange}
+                                                    error={field.state.meta.errors?.[0]}
+                                                    max={dayjs().subtract(14, 'years').format('YYYY-MM-DD')}
+                                                    min={dayjs().subtract(120, 'years').format('YYYY-MM-DD')}
+                                                />
+                                            )}
+                                        </form.Field>
 
-                                    {/* Email */}
-                                    <form.Field name="email">
-                                        {(field) => (
-                                            <Input
-                                                type="email"
-                                                label={t('register.email')}
-                                                value={field.state.value || ''}
-                                                onChange={field.handleChange}
-                                                error={field.state.meta.errors?.[0]}
-                                                maxLength={80}
-                                                inputMode="email"
-                                            />
-                                        )}
-                                    </form.Field>
+                                        <form.Field name="gender">
+                                            {(field) => (
+                                                <Select
+                                                    label={t('register.gender')}
+                                                    value={field.state.value || ''}
+                                                    onChange={field.handleChange}
+                                                    options={genderOptions}
+                                                    error={field.state.meta.errors?.[0]}
+                                                    placeholder={t('register.select_gender')}
+                                                />
+                                            )}
+                                        </form.Field>
 
-                                    {/* Repeat Email */}
-                                    <form.Field name="repeatEmail">
-                                        {(field) => (
-                                            <Input
-                                                type="email"
-                                                label={t('register.repeat_email')}
-                                                value={field.state.value || ''}
-                                                onChange={field.handleChange}
-                                                error={field.state.meta.errors?.[0]}
-                                                maxLength={80}
-                                                inputMode="email"
-                                            />
-                                        )}
-                                    </form.Field>
+                                        <form.Field name="email">
+                                            {(field) => (
+                                                <Input
+                                                    type="email"
+                                                    label={t('register.email')}
+                                                    value={field.state.value || ''}
+                                                    onChange={field.handleChange}
+                                                    error={field.state.meta.errors?.[0]}
+                                                    maxLength={80}
+                                                    inputMode="email"
+                                                />
+                                            )}
+                                        </form.Field>
 
-                                    {/* Login Link */}
-                                    <div className="col-span-1 md:col-span-2">
-                                        <div className="mt-1 flex items-center justify-center md:justify-start">
-                                            <span className="text-[15px] md:text-[16px] font-helvetica font-normal text-[#98AAC0]">
-                                                {t('register.already_account')}
-                                                <Link
-                                                    to="/"
-                                                    className="pl-1.5 text-[#ff336d] no-underline font-medium hover:underline"
-                                                >
-                                                    {t('register.log_in')}
-                                                </Link>
-                                            </span>
+                                        <form.Field name="repeatEmail">
+                                            {(field) => (
+                                                <Input
+                                                    type="email"
+                                                    label={t('register.repeat_email')}
+                                                    value={field.state.value || ''}
+                                                    onChange={field.handleChange}
+                                                    error={field.state.meta.errors?.[0]}
+                                                    maxLength={80}
+                                                    inputMode="email"
+                                                />
+                                            )}
+                                        </form.Field>
+
+                                        <div className="col-span-1 md:col-span-2">
+                                            <div className="flex items-center justify-center md:justify-start">
+                                                <span className="text-[15px] md:text-[16px] font-helvetica font-normal text-[#98AAC0]">
+                                                    {t('register.already_account')}
+                                                    <Link
+                                                        to="/"
+                                                        className="pl-1.5 text-[#ff336d] no-underline font-medium hover:underline"
+                                                    >
+                                                        {t('register.log_in')}
+                                                    </Link>
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
 
-                                {/* Submit Button */}
-                                <button
-                                    type="submit"
-                                    disabled={registerMutation.isPending}
-                                    className="w-full bg-[#252E39] text-[#ECF0F5] text-[16px] font-helvetica font-medium py-4 rounded-[10px] 
-                                        hover:bg-[#1a2129] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                                >
-                                    {registerMutation.isPending ? t('register.saving') : t('register.continue')}
-                                </button>
-
-                                {/* Terms */}
-                                <div className="flex items-center justify-center flex-col md:flex-row mt-2 gap-0.5">
-                                    <p className="text-[14px] font-helvetica font-normal text-[#98AAC0]">
-                                        {t('register.termsText')}
-                                    </p>
-                                    <Link
-                                        to="/"
-                                        className="text-[14px] font-helvetica font-semibold text-[#98AAC0] underline hover:text-[#252E39] transition-colors"
+                                    <button
+                                        type="submit"
+                                        disabled={registerMutation.isPending}
+                                        className="w-full bg-[#252E39] text-[#ECF0F5] text-[16px] font-helvetica font-medium py-4 rounded-[10px] hover:bg-[#1a2129] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                     >
-                                        {t('register.termsLink')}
-                                    </Link>
+                                        {registerMutation.isPending ? t('register.saving') : t('register.continue')}
+                                    </button>
+
+                                    <div className="flex items-center justify-center flex-col sm:flex-row gap-1">
+                                        <p className="text-[14px] font-helvetica font-normal text-[#98AAC0]">
+                                            {t('register.termsText')}
+                                        </p>
+                                        <Link
+                                            to="/"
+                                            className="text-[14px] font-helvetica font-semibold text-[#98AAC0] underline hover:text-[#252E39] transition-colors"
+                                        >
+                                            {t('register.termsLink')}
+                                        </Link>
+                                    </div>
                                 </div>
-                            </div>
-                        </form>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>

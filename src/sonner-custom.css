@@ -1,0 +1,157 @@
+/* Base toast styles */
+[data-sonner-toast] {
+    font-family: Helvetica, Arial, sans-serif !important;
+    border-radius: 10px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Success toast */
+[data-sonner-toast][data-type="success"] {
+    background-color: #252E39 !important;
+    border: 1px solid #252E39 !important;
+}
+
+[data-sonner-toast][data-type="success"] [data-title] {
+    color: #ECF0F5 !important;
+    font-weight: 500 !important;
+    font-size: 14px !important;
+}
+
+[data-sonner-toast][data-type="success"] [data-description] {
+    color: #ECF0F5 !important;
+    opacity: 0.9;
+    font-size: 13px !important;
+}
+
+[data-sonner-toast][data-type="success"] [data-icon] {
+    color: #4ade80 !important;
+}
+
+/* Error toast */
+[data-sonner-toast][data-type="error"] {
+    background-color: #252E39 !important;
+    border: 1px solid #252E39 !important;
+}
+
+[data-sonner-toast][data-type="error"] [data-title] {
+    color: #ECF0F5 !important;
+    font-weight: 500 !important;
+    font-size: 14px !important;
+}
+
+[data-sonner-toast][data-type="error"] [data-description] {
+    color: #ECF0F5 !important;
+    opacity: 0.9;
+    font-size: 13px !important;
+}
+
+[data-sonner-toast][data-type="error"] [data-icon] {
+    color: #ff336d !important;
+}
+
+/* Warning toast */
+[data-sonner-toast][data-type="warning"] {
+    background-color: #252E39 !important;
+    border: 1px solid #252E39 !important;
+}
+
+[data-sonner-toast][data-type="warning"] [data-title] {
+    color: #ECF0F5 !important;
+    font-weight: 500 !important;
+    font-size: 14px !important;
+}
+
+[data-sonner-toast][data-type="warning"] [data-description] {
+    color: #ECF0F5 !important;
+    opacity: 0.9;
+    font-size: 13px !important;
+}
+
+[data-sonner-toast][data-type="warning"] [data-icon] {
+    color: #fbbf24 !important;
+}
+
+/* Info toast */
+[data-sonner-toast][data-type="info"] {
+    background-color: #252E39 !important;
+    border: 1px solid #252E39 !important;
+}
+
+[data-sonner-toast][data-type="info"] [data-title] {
+    color: #ECF0F5 !important;
+    font-weight: 500 !important;
+    font-size: 14px !important;
+}
+
+[data-sonner-toast][data-type="info"] [data-description] {
+    color: #ECF0F5 !important;
+    opacity: 0.9;
+    font-size: 13px !important;
+}
+
+[data-sonner-toast][data-type="info"] [data-icon] {
+    color: #60a5fa !important;
+}
+
+/* Close button */
+[data-sonner-toast] [data-close-button] {
+    background-color: rgba(236, 240, 245, 0.1) !important;
+    border: none !important;
+    color: #ECF0F5 !important;
+    border-radius: 6px !important;
+    transition: background-color 0.2s !important;
+}
+
+[data-sonner-toast] [data-close-button]:hover {
+    background-color: rgba(236, 240, 245, 0.2) !important;
+}
+
+/* Loading toast */
+[data-sonner-toast][data-type="loading"] {
+    background-color: #252E39 !important;
+    border: 1px solid #252E39 !important;
+}
+
+[data-sonner-toast][data-type="loading"] [data-title] {
+    color: #ECF0F5 !important;
+    font-weight: 500 !important;
+    font-size: 14px !important;
+}
+
+[data-sonner-toast][data-type="loading"] [data-description] {
+    color: #ECF0F5 !important;
+    opacity: 0.9;
+    font-size: 13px !important;
+}
+
+/* Action button */
+[data-sonner-toast] [data-button] {
+    background-color: #ff336d !important;
+    color: #ECF0F5 !important;
+    border-radius: 6px !important;
+    padding: 8px 16px !important;
+    font-weight: 500 !important;
+    font-size: 13px !important;
+    border: none !important;
+    transition: background-color 0.2s !important;
+}
+
+[data-sonner-toast] [data-button]:hover {
+    background-color: #e62e63 !important;
+}
+
+/* Cancel button */
+[data-sonner-toast] [data-cancel] {
+    background-color: rgba(236, 240, 245, 0.1) !important;
+    color: #ECF0F5 !important;
+    border-radius: 6px !important;
+    padding: 8px 16px !important;
+    font-weight: 500 !important;
+    font-size: 13px !important;
+    border: none !important;
+    transition: background-color 0.2s !important;
+}
+
+[data-sonner-toast] [data-cancel]:hover {
+    background-color: rgba(236, 240, 245, 0.2) !important;
+}

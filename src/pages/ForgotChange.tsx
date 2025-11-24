@@ -1,7 +1,7 @@
 import { toast } from 'sonner';
 import { useForm } from '@tanstack/react-form';
 import { useTranslation } from 'react-i18next';
-import { LogoCutIcon } from '@/components/icons';
+import { LogoIcon, LogoCutIcon } from '@/components/icons';
 import { useMutation } from '@tanstack/react-query';
 import { useLocation, useNavigate } from '@tanstack/react-router';
 
@@ -13,7 +13,6 @@ const ForgotChange = () => {
     const location = useLocation();
     const { t } = useTranslation();
 
-    // Validations
     const validators = {
         email: (value: string) => {
             if (!value) return t('forgot_change.email_required');
@@ -81,74 +80,76 @@ const ForgotChange = () => {
     });
 
     return (
-        <div className="min-h-screen overflow-hidden md:grid md:grid-cols-12 md:gap-2">
-            {/* Left Panel - Logo */}
-            <div className="hidden md:flex md:col-span-8 bg-white items-center h-screen relative">
+        <div className="min-h-screen overflow-hidden lg:grid lg:grid-cols-12 lg:gap-2">
+            <div className="hidden lg:flex lg:col-span-8 bg-white items-center h-screen relative">
                 <div className="h-full w-auto relative -translate-x-20">
                     <LogoCutIcon style={{ height: '100%', width: 'auto', objectFit: 'cover' }} />
                 </div>
+                <div className="absolute bottom-[50px] left-20 z-10">
+                    <LogoIcon />
+                </div>
             </div>
 
-            {/* Right Panel - Form */}
-            <div className="col-span-12 md:col-span-4 min-h-screen md:min-h-auto flex flex-col justify-between overflow-auto md:bg-[#F9F9FA]">
-                <div className="m-2 md:m-2 p-2 md:p-4 flex flex-col flex-1 rounded-[10px]">
-                    <div className="flex flex-col gap-1 md:gap-3 items-center md:items-start text-center md:text-left">
-                        {/* Title */}
-                        <h1 className="text-[28px] md:text-[30px] font-medium font-n27 text-[#ff336d]">
-                            {t('forgot_change.title')}
-                        </h1>
+            <div className="col-span-12 lg:col-span-4 min-h-screen flex items-center justify-center lg:bg-[#F9F9FA] px-4 sm:px-6 md:px-8 py-8">
+                <div className="w-full max-w-[500px]">
+                    <div className="flex flex-col gap-6 items-center lg:items-start text-center lg:text-left">
+                        <div className="lg:hidden">
+                            <LogoIcon width={160} height={90} />
+                        </div>
 
-                        {/* Subtitle */}
-                        <p className="text-[15px] md:text-[16px] font-helvetica font-normal text-[#98AAC0] mb-1">
-                            {t('forgot_change.subtitle')}
-                        </p>
+                        <div className="flex flex-col gap-3 w-full">
+                            <h1 className="text-[28px] md:text-[30px] font-medium font-n27 text-[#ff336d]">
+                                {t('forgot_change.title')}
+                            </h1>
 
-                        {/* Form */}
-                        <form onSubmit={(e) => { e.preventDefault(); form.handleSubmit(); }} className="w-full">
-                            <div className="flex flex-col gap-4 mt-1">
-                                <div className="grid grid-cols-1 gap-4">
-                                    {/* Email */}
-                                    <form.Field name="email">
-                                        {(field) => (
-                                            <Input
-                                                type="email"
-                                                label={t('forgot_change.email')}
-                                                value={field.state.value || ''}
-                                                onChange={field.handleChange}
-                                                error={field.state.meta.errors?.[0]}
-                                                maxLength={80}
-                                                inputMode="email"
-                                            />
-                                        )}
-                                    </form.Field>
+                            <p className="text-[14px] md:text-[16px] font-normal font-helvetica text-[#98AAC0]">
+                                {t('forgot_change.subtitle')}
+                            </p>
+                        </div>
 
-                                    {/* Repeat Email */}
-                                    <form.Field name="repeatEmail">
-                                        {(field) => (
-                                            <Input
-                                                type="email"
-                                                label={t('forgot_change.repeat_email')}
-                                                value={field.state.value || ''}
-                                                onChange={field.handleChange}
-                                                error={field.state.meta.errors?.[0]}
-                                                maxLength={80}
-                                                inputMode="email"
-                                            />
-                                        )}
-                                    </form.Field>
+                        <div className="flex flex-col gap-10 w-full">
+                            <form onSubmit={(e) => { e.preventDefault(); form.handleSubmit(); }} className="w-full">
+                                <div className="flex flex-col gap-5">
+                                    <div className="flex flex-col gap-4">
+                                        <form.Field name="email">
+                                            {(field) => (
+                                                <Input
+                                                    type="email"
+                                                    label={t('forgot_change.email')}
+                                                    value={field.state.value || ''}
+                                                    onChange={field.handleChange}
+                                                    error={field.state.meta.errors?.[0]}
+                                                    maxLength={80}
+                                                    inputMode="email"
+                                                />
+                                            )}
+                                        </form.Field>
+
+                                        <form.Field name="repeatEmail">
+                                            {(field) => (
+                                                <Input
+                                                    type="email"
+                                                    label={t('forgot_change.repeat_email')}
+                                                    value={field.state.value || ''}
+                                                    onChange={field.handleChange}
+                                                    error={field.state.meta.errors?.[0]}
+                                                    maxLength={80}
+                                                    inputMode="email"
+                                                />
+                                            )}
+                                        </form.Field>
+                                    </div>
+
+                                    <button
+                                        type="submit"
+                                        disabled={form.state.isSubmitting}
+                                        className="w-full bg-[#252E39] text-[#ECF0F5] text-[16px] font-helvetica font-medium py-4 rounded-[10px] hover:bg-[#1a2129] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                    >
+                                        {form.state.isSubmitting ? t('forgot_change.submitting') : t('forgot_change.continue')}
+                                    </button>
                                 </div>
-
-                                {/* Submit Button */}
-                                <button
-                                    type="submit"
-                                    disabled={form.state.isSubmitting}
-                                    className="w-full bg-[#252E39] text-[#ECF0F5] text-[16px] font-helvetica font-medium py-4 rounded-[10px] 
-                                        hover:bg-[#1a2129] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                                >
-                                    {form.state.isSubmitting ? t('forgot_change.submitting') : t('forgot_change.continue')}
-                                </button>
-                            </div>
-                        </form>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>

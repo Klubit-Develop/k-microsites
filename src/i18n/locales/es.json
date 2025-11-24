@@ -2,6 +2,11 @@
     "common": {
         "error_connection": "Error de conexión. Inténtalo de nuevo"
     },
+    "auth_success": {
+        "authenticating": "Autenticando...",
+        "login_success": "Inicio de sesión exitoso. Redirigiendo...",
+        "authentication_error": "Error de autenticación. Redirigiendo al inicio..."
+    },
     "menu": {
         "ia": "Asistente IA",
         "dashboard": "Panel de Control",
@@ -126,7 +131,7 @@
         "message_required": "El mensaje es obligatorio",
         "message_min_length": "El mensaje debe tener al menos 10 caracteres",
         "message_max_length": "El mensaje no debe superar los 1000 caracteres",
-        "submit": "Enviar Reporte",
+        "submit": "Enviar",
         "submitting": "Enviando...",
         "success": "Tu incidencia ha sido reportada exitosamente",
         "back_to_login": "Volver al inicio"

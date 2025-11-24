@@ -127,9 +127,8 @@ const ForgotPage = () => {
     const selectedCountry = countries.find((c: { phone: string; }) => c.phone === country);
 
     return (
-        <div className="min-h-screen overflow-hidden md:grid md:grid-cols-12 md:gap-2">
-            {/* Left Panel - Logo */}
-            <div className="hidden md:flex md:col-span-8 bg-white items-center h-screen relative">
+        <div className="min-h-screen overflow-hidden lg:grid lg:grid-cols-12 lg:gap-2">
+            <div className="hidden lg:flex lg:col-span-8 bg-white items-center h-screen relative">
                 <div className="h-full w-auto relative -translate-x-20">
                     <LogoCutIcon style={{ height: '100%', width: 'auto', objectFit: 'cover' }} />
                 </div>
@@ -138,55 +137,61 @@ const ForgotPage = () => {
                 </div>
             </div>
 
-            {/* Right Panel - Login Form */}
-            <div className="col-span-12 md:col-span-4 min-h-screen md:min-h-auto flex flex-col justify-between overflow-auto md:bg-[#F9F9FA]">
-                <div className="m-2 md:m-2 p-2 md:p-4 flex flex-col flex-1 rounded-[10px]">
-                    <div className="flex flex-col gap-1 md:gap-3 items-center md:items-start text-center md:text-left">
-                        {/* Mobile Logo */}
-                        <div className="md:hidden">
+            <div className="col-span-12 lg:col-span-4 min-h-screen flex items-center justify-center lg:bg-[#F9F9FA] px-4 sm:px-6 md:px-8 py-8">
+                <div className="w-full max-w-[500px]">
+                    <div className="flex flex-col gap-6 items-center lg:items-start text-center lg:text-left">
+                        <div className="lg:hidden">
                             <LogoIcon width={160} height={90} />
                         </div>
 
-                        {/* Title */}
-                        <h1 className="text-[28px] md:text-[30px] font-medium font-n27 text-[#ff336d]">
-                            {t('forgot.title')}
-                        </h1>
+                        <div className="flex flex-col gap-3 w-full">
+                            <h1 className="text-[28px] md:text-[30px] font-medium font-n27 text-[#ff336d]">
+                                {t('forgot.title')}
+                            </h1>
 
-                        {/* Subtitle */}
-                        <p className="text-[14px] md:text-[16px] font-normal font-helvetica text-[#98AAC0]">
-                            {t('forgot.subtitle')}
-                        </p>
+                            <p className="text-[14px] md:text-[16px] font-normal font-helvetica text-[#98AAC0]">
+                                {t('forgot.subtitle')}
+                            </p>
+                        </div>
 
-                        {/* Form Section */}
-                        <div className="flex flex-col gap-4 w-full">
-                            <div className="flex flex-col gap-2">
-                                {/* Forgot Form */}
-                                <div className="mt-2">
+                        <div className="flex flex-col gap-6 w-full">
+                            <div className="flex flex-col gap-5">
+                                <div>
                                     <form onSubmit={handleSubmit}>
-                                        <div className="flex flex-col gap-2">
-                                            <div className="grid grid-cols-12 gap-2 items-end">
-                                                {/* Country Selector */}
-                                                <div className="col-span-3 md:col-span-2">
-                                                    <div className="flex flex-col items-start gap-0">
-                                                        <label className="text-[#98AAC0] text-[13px] font-helvetica font-medium mb-0 pl-[14.4px]">
+                                        <div className="flex flex-col gap-6">
+                                            <div className="flex flex-col gap-0.5 px-2">
+                                                <div className="grid grid-cols-12 gap-3">
+                                                    <div className="col-span-2 sm:col-span-2">
+                                                        <label className="text-[#98AAC0] text-[13px] font-helvetica font-medium pl-1 block text-left">
                                                             {t('forgot.country')}
                                                         </label>
-                                                        <div className="relative w-[85px] -mt-[22.4px]">
+                                                    </div>
+                                                    <div className="col-span-10 sm:col-span-10">
+                                                        <label className="text-[#98AAC0] text-[13px] font-helvetica font-medium pl-1 block text-left">
+                                                            {t('forgot.phone')}
+                                                        </label>
+                                                    </div>
+                                                </div>
+
+                                                <div className="grid grid-cols-12 gap-3 items-end">
+                                                    <div className="col-span-2 sm:col-span-2">
+                                                        <div className="relative w-full">
                                                             <button
                                                                 type="button"
                                                                 onClick={() => setIsCountryOpen(!isCountryOpen)}
-                                                                className="w-full flex items-center justify-between px-3 py-2.5 bg-transparent border-b border-[#CCCCCC] hover:border-[#252E39] focus:border-[#252E39] focus:outline-none transition-colors"
+                                                                className="w-full h-[42px] flex items-center justify-between px-1 bg-transparent border-b border-[#CCCCCC] hover:border-[#252E39] focus:border-[#252E39] focus:outline-none transition-colors"
                                                             >
                                                                 {selectedCountry && (
                                                                     <img
                                                                         loading="lazy"
-                                                                        width="25"
+                                                                        width="20"
                                                                         srcSet={`https://flagcdn.com/w40/${selectedCountry.code.toLowerCase()}.png 2x`}
                                                                         src={`https://flagcdn.com/w20/${selectedCountry.code.toLowerCase()}.png`}
                                                                         alt=""
+                                                                        className="flex-shrink-0"
                                                                     />
                                                                 )}
-                                                                <ChevronDown className="w-4 h-4 text-gray-500" />
+                                                                <ChevronDown className="w-3 h-3 text-gray-500 flex-shrink-0" />
                                                             </button>
 
                                                             {isCountryOpen && (
@@ -225,32 +230,26 @@ const ForgotPage = () => {
                                                             )}
                                                         </div>
                                                     </div>
-                                                </div>
 
-                                                {/* Phone Input */}
-                                                <div className="col-span-9 md:col-span-10">
-                                                    <div className="flex flex-col items-start gap-0">
-                                                        <label className="text-[#98AAC0] text-[13px] font-helvetica font-medium mb-0 pl-3">
-                                                            {t('forgot.phone')}
-                                                        </label>
-                                                        <div className="w-full mt-5">
+                                                    <div className="col-span-10 sm:col-span-10">
+                                                        <div className="w-full">
                                                             <input
                                                                 type="text"
                                                                 inputMode="numeric"
                                                                 value={phone}
                                                                 onChange={(e) => handlePhoneChange(e.target.value)}
-                                                                className={`w-full px-3 py-2.5 bg-transparent border-b ${error ? 'border-red-500' : 'border-[#CCCCCC]'
+                                                                className={`w-full h-[42px] px-1 bg-transparent border-b ${error ? 'border-red-500' : 'border-[#CCCCCC]'
                                                                     } hover:border-[#252E39] focus:border-[#252E39] focus:outline-none text-[#252E39] text-lg font-helvetica transition-colors`}
                                                             />
-                                                            {error && (
-                                                                <p className="text-red-500 text-xs mt-1 pl-3 font-helvetica">{error}</p>
-                                                            )}
                                                         </div>
                                                     </div>
                                                 </div>
+
+                                                {error && (
+                                                    <p className="text-red-500 text-xs mt-1 pl-3 font-helvetica">{error}</p>
+                                                )}
                                             </div>
 
-                                            {/* Submit Button */}
                                             <button
                                                 type="submit"
                                                 disabled={loginMutation.isPending}
@@ -262,14 +261,12 @@ const ForgotPage = () => {
                                     </form>
                                 </div>
 
-                                {/* Divider */}
-                                <div className="my-1 flex items-center justify-center">
-                                    <div className="border-t border-[#00000029] w-full max-w-[100px] mx-auto" />
+                                <div className="flex items-center justify-center">
+                                    <div className="border-t border-[#00000029] w-full max-w-[100px]" />
                                 </div>
 
-                                {/* Incidents */}
-                                <div className="flex flex-col gap-0">
-                                    <div className="mt-1 flex items-center justify-center">
+                                <div className="flex flex-col gap-4 mt-2">
+                                    <div className="flex items-center justify-center">
                                         <span className="text-[15px] md:text-[16px] font-helvetica font-normal text-[#98AAC0]">
                                             {t('forgot.incidents')}
                                             <Link

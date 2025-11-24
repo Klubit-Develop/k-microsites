@@ -8,7 +8,7 @@ import { useAuthStore } from '@/stores/authStore';
 
 import axiosInstance from '@/config/axiosConfig';
 import OTPInput from '@/components/common/OTPInput';
-import { LogoCutIcon } from '@/components/icons';
+import { LogoIcon, LogoCutIcon } from '@/components/icons';
 
 const Verify = () => {
     const navigate = useNavigate();
@@ -20,10 +20,8 @@ const Verify = () => {
     const [otpValue, setOtpValue] = useState('');
     const [countdown, setCountdown] = useState(0);
 
-    // Determinar método de verificación
     const verificationType = (location.state as { verification?: string })?.verification;
 
-    // Determinar si es recuperación de contraseña
     const isForgot = (location.state as { forgot?: string })?.forgot || false;
 
     const loginMutation = useMutation({
@@ -103,7 +101,6 @@ const Verify = () => {
         }
     });
 
-    // Verificar OTP
     const verifyMutation = useMutation({
         mutationFn: async (code: string) => {
             const lang = i18n.language === 'en' ? 'en' : 'es';
@@ -165,7 +162,6 @@ const Verify = () => {
         }
     });
 
-    // Reenviar código
     const resendMutation = useMutation({
         mutationFn: async () => {
             const lang = i18n.language === 'en' ? 'en' : 'es';
@@ -182,9 +178,7 @@ const Verify = () => {
             }
         },
         onSuccess: () => {
-            // Limpiar el OTP al reenviar código exitosamente
             setOtpValue('');
-            // Activar el contador
             setCountdown(30);
         },
         onError: () => {
@@ -227,33 +221,36 @@ const Verify = () => {
     }, [countdown]);
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-12 min-h-screen overflow-hidden">
-            {/* Left side - Logo (hidden on mobile) */}
-            <div className="hidden md:block md:col-span-8 bg-white">
-                <div className="flex items-center h-screen relative">
-                    <div className="h-full w-auto relative -translate-x-20 object-cover">
-                        <LogoCutIcon />
-                    </div>
+        <div className="min-h-screen overflow-hidden lg:grid lg:grid-cols-12 lg:gap-2">
+            <div className="hidden lg:flex lg:col-span-8 bg-white items-center h-screen relative">
+                <div className="h-full w-auto relative -translate-x-20">
+                    <LogoCutIcon style={{ height: '100%', width: 'auto', objectFit: 'cover' }} />
+                </div>
+                <div className="absolute bottom-[50px] left-20 z-10">
+                    <LogoIcon />
                 </div>
             </div>
 
-            {/* Right side - Form */}
-            <div className="col-span-1 md:col-span-4 min-h-screen md:min-h-0 flex flex-col justify-between md:justify-between overflow-auto py-4 md:py-0">
-                <div className="p-4 md:p-8 pt-0 md:pt-20 flex justify-center md:justify-start flex-col flex-1 bg-[#F9F9FA]">
-                    <div className="flex flex-col items-center md:items-start text-center md:text-left">
-                        <div className="flex flex-col items-center gap-2 w-full">
-                            <div className="flex items-center gap-0 mb-1">
+            <div className="col-span-12 lg:col-span-4 min-h-screen flex items-center justify-center lg:bg-[#F9F9FA] px-4 sm:px-6 md:px-8 py-8">
+                <div className="w-full max-w-[500px]">
+                    <div className="flex flex-col gap-6 items-center lg:items-start text-center lg:text-left">
+                        <div className="lg:hidden">
+                            <LogoIcon width={160} height={90} />
+                        </div>
+
+                        <div className="flex flex-col gap-6 w-full items-center">
+                            <div className="flex items-center gap-0">
                                 <Asterisk size={35} color="#252E39" />
                                 <Asterisk size={35} color="#252E39" />
                                 <Asterisk size={35} color="#252E39" />
                                 <Asterisk size={35} color="#252E39" />
                             </div>
 
-                            <h1 className="text-2xl md:text-[28px] font-bold font-helvetica text-[#252E39]">
+                            <h1 className="text-[28px] md:text-[30px] font-bold font-helvetica text-[#252E39]">
                                 {t('verify.account_verification')}
                             </h1>
 
-                            <p className="text-base font-medium font-helvetica text-center leading-[1.8] text-[#252E39]">
+                            <p className="text-[14px] md:text-[16px] font-medium font-helvetica text-center leading-[1.8] text-[#252E39]">
                                 {verificationType === 'sms'
                                     ? `${t('verify.code_sent_to_phone')} ${getContactDisplay()}`
                                     : `${t('verify.code_sent_to_email')} ${getContactDisplay()}`
@@ -270,7 +267,7 @@ const Verify = () => {
                                 />
                             </div>
 
-                            <p className="text-sm md:text-base font-medium font-helvetica text-[#252E39] mt-2">
+                            <p className="text-[14px] md:text-[16px] font-medium font-helvetica text-[#252E39]">
                                 {t('verify.didnt_receive_code')}
                                 <button
                                     onClick={handleResend}
@@ -287,12 +284,12 @@ const Verify = () => {
                                 </button>
                             </p>
 
-                            <div className="flex flex-col gap-3 w-full mt-4 px-4">
+                            <div className="flex flex-col gap-3 w-full">
                                 <button
                                     type="button"
                                     onClick={handleVerify}
                                     disabled={verifyMutation.isPending || otpValue.length !== 6}
-                                    className="w-full bg-[#252E39] text-[#ECF0F5] text-base font-helvetica font-medium py-4 rounded-[10px] hover:bg-[#1a2129] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                    className="w-full bg-[#252E39] text-[#ECF0F5] text-[16px] font-helvetica font-medium py-4 rounded-[10px] hover:bg-[#1a2129] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                 >
                                     {verifyMutation.isPending ? t('verify.verifying') : t('verify.continue')}
                                 </button>

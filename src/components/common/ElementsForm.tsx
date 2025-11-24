@@ -30,8 +30,8 @@ export const Input = ({
     const id = label.toLowerCase().replace(/\s+/g, '-');
 
     return (
-        <div className="flex flex-col items-start gap-0">
-            <label className="text-[#98AAC0] text-[13px] font-helvetica font-medium mb-0 pl-3">
+        <div className="flex flex-col gap-0.5">
+            <label className="text-[#98AAC0] text-[13px] font-helvetica font-medium pl-1 block text-left">
                 {label}
             </label>
             <div className="w-full">
@@ -47,7 +47,7 @@ export const Input = ({
                     max={max}
                     min={min}
                     className={`
-                        w-full px-3 py-2.5 bg-transparent 
+                        w-full px-1 py-2.5 bg-transparent 
                         border-b ${error ? 'border-red-500' : 'border-[#CCCCCC]'}
                         hover:border-[#252E39] focus:border-[#252E39] focus:outline-none 
                         text-[#252E39] text-lg font-helvetica transition-colors
@@ -80,8 +80,8 @@ export const Select = ({
     const id = label.toLowerCase().replace(/\s+/g, '-');
 
     return (
-        <div className="flex flex-col items-start gap-0">
-            <label className="text-[#98AAC0] text-[13px] font-helvetica font-medium mb-0 pl-3">
+        <div className="flex flex-col gap-0.5">
+            <label className="text-[#98AAC0] text-[13px] font-helvetica font-medium pl-1 block text-left">
                 {label}
             </label>
             <div className="w-full">
@@ -90,7 +90,7 @@ export const Select = ({
                     value={value}
                     onChange={(e) => onChange(e.target.value)}
                     className={`
-                        w-full px-3 py-2.5 bg-transparent 
+                        w-full px-1 py-2.5 bg-transparent 
                         border-b ${error ? 'border-red-500' : 'border-[#CCCCCC]'}
                         hover:border-[#252E39] focus:border-[#252E39] focus:outline-none 
                         text-[#252E39] text-lg font-helvetica transition-colors 

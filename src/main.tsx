@@ -9,6 +9,7 @@ import { routeTree } from './routeTree.gen'
 
 import './i18n/config';
 import './styles.css'
+import './sonner-custom.css'
 import reportWebVitals from './reportWebVitals.ts'
 
 // Create a new router instance

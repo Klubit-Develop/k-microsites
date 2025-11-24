@@ -1,6 +1,4 @@
-import AppleIcon from './AppleIcon';
 import MailIcon from './MailIcon';
-import GoogleIcon from './GoogleIcon';
 import LogoIcon from './LogoIcon';
 import LogoMinIcon from './LogoMinIcon';
 import LogoCutIcon from './LogoCutIcon';
@@ -19,6 +17,9 @@ import RRPPIcon from './RRPPIcon';
 import ClientKardIcon from './ClientKardIcon';
 import ArrowLeftIcon from './ArrowLeftIcon';
 import BellIcons from './BellIcons';
+
+import GoogleIcon from './GoogleIcon';
+import AppleIcon from './AppleIcon';
 
 import KlaudiaMenuIcon from './KlaudiaMenuIcon';
 import DashboardMenuIcon from './DashboardMenuIcon';
