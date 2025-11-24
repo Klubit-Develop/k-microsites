@@ -29,7 +29,19 @@ const Register = () => {
 
     const { oauthEmail } = (location.search as { oauthEmail?: string }) || {};
 
-    console.log('oauthEmail', oauthEmail)
+    const sendEmailMutation = useMutation({
+        mutationFn: async (data: { email: string }) => {
+            const response = await axiosInstance.post<BackendResponse>('/v2/email/send', data);
+            return response.data;
+        },
+        onError: (error: any) => {
+            if (error.backendError) {
+                toast.error(error.backendError.message);
+            } else {
+                toast.error(t('common.error_connection'));
+            }
+        }
+    });
 
     const registerMutation = useMutation({
         mutationFn: async (userData: {
@@ -52,9 +64,19 @@ const Register = () => {
         },
         onSuccess: (response: BackendResponse, variables) => {
             if (response.status === 'success') {
+
+                sendEmailMutation.mutate({
+                    email: variables.email,
+                });
+
                 navigate({
                     to: '/verify',
-                    state: { verification: 'email', email: variables.email } as any
+                    state: {
+                        verification: 'email',
+                        email: variables.email,
+                        country,
+                        phone: phone?.replace(/\s/g, ''),
+                    } as any
                 });
             } else {
                 toast.error(response.message || response.details);
@@ -96,7 +118,7 @@ const Register = () => {
         defaultValues: {
             firstName: '',
             lastName: '',
-            email: '',
+            email: oauthEmail || '',
             repeatEmail: '',
             country: country || '34',
             phone: phone || '',
