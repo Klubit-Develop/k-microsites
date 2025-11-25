@@ -188,10 +188,10 @@ const ForgotPage = () => {
                                                                         srcSet={`https://flagcdn.com/w40/${selectedCountry.code.toLowerCase()}.png 2x`}
                                                                         src={`https://flagcdn.com/w20/${selectedCountry.code.toLowerCase()}.png`}
                                                                         alt=""
-                                                                        className="flex-shrink-0"
+                                                                        className="shrink-0"
                                                                     />
                                                                 )}
-                                                                <ChevronDown className="w-3 h-3 text-gray-500 flex-shrink-0" />
+                                                                <ChevronDown className="w-3 h-3 text-gray-500 shrink-0" />
                                                             </button>
 
                                                             {isCountryOpen && (

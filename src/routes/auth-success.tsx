@@ -71,7 +71,7 @@ const AuthSuccessComponent = () => {
                 if (!verifyResponse.data.data.exists) {
                     navigate({
                         to: '/',
-                        search: { oauthEmail: email }
+                        state: { oauthEmail: email } as any
                     });
                     return;
                 }
@@ -82,7 +82,10 @@ const AuthSuccessComponent = () => {
                     console.error('Missing country or phone in verify response');
                     toast.error(t('auth_success.authentication_error'));
                     setTimeout(() => {
-                        navigate({ to: '/' });
+                        navigate({ 
+                            to: '/',
+                            state: { oauthEmail: email } as any
+                        });
                     }, 2000);
                     return;
                 }
@@ -110,14 +113,20 @@ const AuthSuccessComponent = () => {
                         console.error('Missing token or user in login response');
                         toast.error(t('auth_success.authentication_error'));
                         setTimeout(() => {
-                            navigate({ to: '/' });
+                            navigate({ 
+                                to: '/',
+                                state: { oauthEmail: email } as any
+                            });
                         }, 2000);
                     }
                 } else {
                     console.error('Login failed:', loginResponse.data.message);
                     toast.error(t('auth_success.authentication_error'));
                     setTimeout(() => {
-                        navigate({ to: '/' });
+                        navigate({ 
+                            to: '/',
+                            state: { oauthEmail: email } as any
+                        });
                     }, 2000);
                 }
 
@@ -130,7 +139,10 @@ const AuthSuccessComponent = () => {
 
                 toast.error(t('auth_success.authentication_error'));
                 setTimeout(() => {
-                    navigate({ to: '/' });
+                    navigate({ 
+                        to: '/',
+                        state: { oauthEmail: email } as any
+                    });
                 }, 2000);
             }
         };
