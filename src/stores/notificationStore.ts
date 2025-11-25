@@ -3,7 +3,7 @@ import { io, type Socket } from 'socket.io-client';
 
 const TOKEN_KEY = 'SACAR ESTO';
 
-const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 interface Notification {
     id: string;

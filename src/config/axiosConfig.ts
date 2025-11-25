@@ -3,7 +3,7 @@ import { useAuthStore } from '@/stores/authStore';
 import i18n from '@/i18n/config';
 
 const axiosInstance = axios.create({
-    baseURL: import.meta.env.VITE_API_BASE_URL || 'https://api.klubit.io',
+    baseURL: import.meta.env.VITE_API_URL || 'https://api.klubit.io',
     timeout: 10000,
     headers: {
         'Content-Type': 'application/json',

@@ -151,12 +151,12 @@ const RootPage = () => {
 
     const initiateGoogleLogin = () => {
         const currentOrigin = window.location.origin;
-        window.location.href = `${import.meta.env.VITE_API_BASE_URL || 'https://api.klubit.io'}/v2/oauth/google/microsites?origin=${encodeURIComponent(currentOrigin)}`;
+        window.location.href = `${import.meta.env.VITE_API_URL || 'https://api.klubit.io'}/v2/oauth/google/microsites?origin=${encodeURIComponent(currentOrigin)}`;
     };
 
     const initiateAppleLogin = () => {
         const currentOrigin = window.location.origin;
-        window.location.href = `${import.meta.env.VITE_API_BASE_URL || 'https://api.klubit.io'}/v2/oauth/apple/microsites?origin=${encodeURIComponent(currentOrigin)}`;
+        window.location.href = `${import.meta.env.VITE_API_URL || 'https://api.klubit.io'}/v2/oauth/apple/microsites?origin=${encodeURIComponent(currentOrigin)}`;
     };
 
     const selectedCountry = countries.find((c: { phone: string; }) => c.phone === country);
