@@ -88,8 +88,8 @@
         "termsLink": "términos y condiciones"
     },
     "verify": {
-        "sms": "Teléfono",
-        "email": "Correo electrónico",
+        "sms": "teléfono",
+        "email": "correo electrónico",
         "account_verification": "Verificación de",
         "code_sent_to_phone": "Código enviado al número",
         "code_sent_to_email": "Código enviado al correo electrónico",
@@ -140,11 +140,11 @@
     },
     "forgot_change": {
         "title": "Cambiar correo electrónico",
-        "subtitle": "Ingresa tu nuevo correo para actualizar tu cuenta.",
-        "email": "Correo electrónico",
+        "subtitle": "Ingresa tu nuevo correo electrónico para actualizarlo en tu cuenta.",
+        "email": "Nuevo correo electrónico",
         "email_required": "El correo electrónico es obligatorio",
         "email_invalid": "Por favor ingresa un correo electrónico válido",
-        "repeat_email": "Repetir correo electrónico",
+        "repeat_email": "Repetir nuevo correo electrónico",
         "repeat_email_required": "Por favor repite tu correo electrónico",
         "emails_not_match": "Los correos electrónicos no coinciden",
         "continue": "Continuar",
