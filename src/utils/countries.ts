@@ -1,5 +1,5 @@
 export const countries = [
-    { code: 'ES', label_en: 'Spain', label_es: 'España', phone: '34', suggested: true , phoneFormat: [3, 3, 3], phoneLength: 9 },
+    { code: 'ES', label_en: 'Spain', label_es: 'España', phone: '34', suggested: true , phoneFormat: [3, 2, 2, 2], phoneLength: 9 },
     { code: 'AF', label_en: 'Afghanistan', label_es: 'Afganistán', phone: '93' , phoneFormat: [3, 3, 3], phoneLength: 9 },
     { code: 'AL', label_en: 'Albania', label_es: 'Albania', phone: '355' , phoneFormat: [3, 3, 3], phoneLength: 9 },
     { code: 'DZ', label_en: 'Algeria', label_es: 'Argelia', phone: '213' , phoneFormat: [3, 3, 3], phoneLength: 9 },

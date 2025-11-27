@@ -199,21 +199,21 @@ const Register = () => {
 
             <div className="col-span-12 lg:col-span-4 min-h-screen flex items-center justify-center lg:bg-[#F9F9FA] px-4 sm:px-6 md:px-8 py-8">
                 <div className="w-full max-w-[500px]">
-                    <div className="flex flex-col gap-6 items-center lg:items-start text-center lg:text-left">
+                    <div className="flex flex-col gap-12 items-center text-center lg:text-left">
                         <div className="lg:hidden">
                             <LogoIcon width={160} height={90} />
                         </div>
 
-                        <div className="flex flex-col gap-3 w-full">
-                            <h1 className="text-[28px] md:text-[30px] font-medium font-n27 text-[#ff336d]">
+                        <div className="flex flex-col gap-4 w-full">
+                            <h1 className="text-[28px] md:text-[30px] font-medium font-n27 text-center text-[#ff336d]">
                                 {t('register.title')}
                             </h1>
                         </div>
 
                         <div className="flex flex-col gap-6 w-full">
                             <form onSubmit={(e) => { e.preventDefault(); form.handleSubmit(); }} className="w-full">
-                                <div className="flex flex-col gap-5">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="flex flex-col gap-8">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                         <form.Field name="firstName">
                                             {(field) => (
                                                 <Input
@@ -267,41 +267,44 @@ const Register = () => {
                                             )}
                                         </form.Field>
 
-                                        <form.Field name="email">
-                                            {(field) => (
-                                                <Input
-                                                    type="email"
-                                                    label={t('register.email')}
-                                                    value={field.state.value || ''}
-                                                    onChange={field.handleChange}
-                                                    error={field.state.meta.errors?.[0]}
-                                                    maxLength={80}
-                                                    inputMode="email"
-                                                />
-                                            )}
-                                        </form.Field>
+                                        <div className="col-span-2 flex flex-col gap-8">
 
-                                        <form.Field name="repeatEmail">
-                                            {(field) => (
-                                                <Input
-                                                    type="email"
-                                                    label={t('register.repeat_email')}
-                                                    value={field.state.value || ''}
-                                                    onChange={field.handleChange}
-                                                    error={field.state.meta.errors?.[0]}
-                                                    maxLength={80}
-                                                    inputMode="email"
-                                                />
-                                            )}
-                                        </form.Field>
+                                            <form.Field name="email">
+                                                {(field) => (
+                                                    <Input
+                                                        type="email"
+                                                        label={t('register.email')}
+                                                        value={field.state.value || ''}
+                                                        onChange={field.handleChange}
+                                                        error={field.state.meta.errors?.[0]}
+                                                        maxLength={80}
+                                                        inputMode="email"
+                                                    />
+                                                )}
+                                            </form.Field>
 
-                                        <div className="col-span-1 md:col-span-2">
-                                            <div className="flex items-center justify-center md:justify-start">
-                                                <span className="text-[15px] md:text-[16px] font-helvetica font-normal text-[#98AAC0]">
+                                            <form.Field name="repeatEmail">
+                                                {(field) => (
+                                                    <Input
+                                                        type="email"
+                                                        label={t('register.repeat_email')}
+                                                        value={field.state.value || ''}
+                                                        onChange={field.handleChange}
+                                                        error={field.state.meta.errors?.[0]}
+                                                        maxLength={80}
+                                                        inputMode="email"
+                                                    />
+                                                )}
+                                            </form.Field>
+                                        </div>
+
+                                        <div className="col-span-1 md:col-span-2 my-2">
+                                            <div className="flex items-center justify-center">
+                                                <span className="text-[15px] md:text-[16px] font-helvetica font-normal text-center text-[#98AAC0]">
                                                     {t('register.already_account')}
                                                     <Link
                                                         to="/"
-                                                        className="pl-1.5 text-[#ff336d] no-underline font-medium hover:underline"
+                                                        className="pl-1.5 text-[#ff336d] no-underline font-medium hover:underline cursor-pointer"
                                                     >
                                                         {t('register.log_in')}
                                                     </Link>
@@ -313,7 +316,7 @@ const Register = () => {
                                     <button
                                         type="submit"
                                         disabled={registerMutation.isPending}
-                                        className="w-full bg-[#252E39] text-[#ECF0F5] text-[16px] font-helvetica font-medium py-4 rounded-[10px] hover:bg-[#1a2129] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                        className="w-full bg-[#252E39] text-[#ECF0F5] text-[16px] font-helvetica font-medium py-3.5 rounded-[10px] hover:bg-[#1a2129] disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
                                     >
                                         {registerMutation.isPending ? t('register.saving') : t('register.continue')}
                                     </button>
@@ -324,7 +327,7 @@ const Register = () => {
                                         </p>
                                         <Link
                                             to="/"
-                                            className="text-[14px] font-helvetica font-semibold text-[#98AAC0] underline hover:text-[#252E39] transition-colors"
+                                            className="text-[14px] font-helvetica font-semibold text-[#98AAC0] underline hover:text-[#252E39] transition-colors cursor-pointer"
                                         >
                                             {t('register.termsLink')}
                                         </Link>

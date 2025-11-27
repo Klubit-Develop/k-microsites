@@ -148,8 +148,8 @@ const Verify = () => {
                 } else {
                     return navigate({
                         to: '/register',
-                        state: { 
-                            country: (location.state as { country?: string })?.country, 
+                        state: {
+                            country: (location.state as { country?: string })?.country,
                             phone: (location.state as { phone?: string })?.phone,
                             oauthEmail: (location.search as { oauthEmail?: string })?.oauthEmail || ''
                         } as any
@@ -233,29 +233,25 @@ const Verify = () => {
 
             <div className="col-span-12 lg:col-span-4 min-h-screen flex items-center justify-center lg:bg-[#F9F9FA] px-4 sm:px-6 md:px-8 py-8">
                 <div className="w-full max-w-[500px]">
-                    <div className="flex flex-col gap-6 items-center lg:items-start text-center lg:text-left">
+                    <div className="flex flex-col gap-12 items-center">
                         <div className="lg:hidden">
                             <LogoIcon width={160} height={90} />
                         </div>
 
-                        <div className="flex flex-col gap-6 w-full items-center">
-                            <div className="flex items-center gap-0">
-                                <Asterisk size={35} color="#252E39" />
-                                <Asterisk size={35} color="#252E39" />
-                                <Asterisk size={35} color="#252E39" />
-                                <Asterisk size={35} color="#252E39" />
+                        <div className="flex flex-col gap-10 w-full items-center">
+
+                            <div className="flex flex-col gap-4 w-full">
+                                <h1 className="text-[28px] md:text-[30px] text-center font-medium font-n27 text-[#ff336d]">
+                                    {t('verify.account_verification')} {verificationType === 'sms' ? t('verify.sms') : t('verify.email')}
+                                </h1>
+
+                                <p className="text-[14px] md:text-[16px] text-center font-normal font-helvetica text-[#98AAC0]">
+                                    {verificationType === 'sms'
+                                        ? `${t('verify.code_sent_to_phone')} ${getContactDisplay()}`
+                                        : `${t('verify.code_sent_to_email')} ${getContactDisplay()}`
+                                    }
+                                </p>
                             </div>
-
-                            <h1 className="text-[28px] md:text-[30px] font-bold font-helvetica text-[#252E39]">
-                                {t('verify.account_verification')}
-                            </h1>
-
-                            <p className="text-[14px] md:text-[16px] font-medium font-helvetica text-center leading-[1.8] text-[#252E39]">
-                                {verificationType === 'sms'
-                                    ? `${t('verify.code_sent_to_phone')} ${getContactDisplay()}`
-                                    : `${t('verify.code_sent_to_email')} ${getContactDisplay()}`
-                                }
-                            </p>
 
                             <div>
                                 <OTPInput
@@ -267,14 +263,14 @@ const Verify = () => {
                                 />
                             </div>
 
-                            <p className="text-[14px] md:text-[16px] font-medium font-helvetica text-[#252E39]">
+                            <p className="text-[14px] md:text-[16px] font-medium font-helvetica text-[#98AAC0]">
                                 {t('verify.didnt_receive_code')}
                                 <button
                                     onClick={handleResend}
                                     disabled={countdown > 0 || resendMutation.isPending}
-                                    className={`ml-1 underline font-medium font-helvetica ${countdown > 0
-                                        ? 'text-gray-400 cursor-not-allowed'
-                                        : 'text-[#252E39] cursor-pointer hover:text-[#1a2129]'
+                                    className={`ml-1 no-underline hover:underline font-medium font-helvetica ${countdown > 0
+                                        ? 'text-gray-400 cursor-not-allowed no-underline hover:underline'
+                                        : 'text-[#ff336d] cursor-pointer no-underline hover:underline'
                                         }`}
                                 >
                                     {countdown > 0
@@ -289,7 +285,7 @@ const Verify = () => {
                                     type="button"
                                     onClick={handleVerify}
                                     disabled={verifyMutation.isPending || otpValue.length !== 6}
-                                    className="w-full bg-[#252E39] text-[#ECF0F5] text-[16px] font-helvetica font-medium py-4 rounded-[10px] hover:bg-[#1a2129] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                    className="w-full bg-[#252E39] text-[#ECF0F5] text-[16px] font-helvetica font-medium py-3.5 rounded-[10px] hover:bg-[#1a2129] disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer flex items-center justify-center"
                                 >
                                     {verifyMutation.isPending ? t('verify.verifying') : t('verify.continue')}
                                 </button>

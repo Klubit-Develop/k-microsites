@@ -154,17 +154,17 @@ const Incident = () => {
 
             <div className="col-span-12 lg:col-span-4 min-h-screen flex items-center justify-center lg:bg-[#F9F9FA] px-4 sm:px-6 md:px-8 py-8">
                 <div className="w-full max-w-[500px]">
-                    <div className="flex flex-col gap-6 items-center lg:items-start text-center lg:text-left">
+                    <div className="flex flex-col gap-12 items-center text-center lg:text-left">
                         <div className="lg:hidden">
                             <LogoIcon width={160} height={90} />
                         </div>
 
-                        <div className="flex flex-col gap-3 w-full">
-                            <h1 className="text-[28px] md:text-[30px] font-medium font-n27 text-[#ff336d]">
+                        <div className="flex flex-col gap-4 w-full">
+                            <h1 className="text-[28px] md:text-[30px] font-medium font-n27 text-center text-[#ff336d]">
                                 {t('incident.title')}
                             </h1>
 
-                            <p className="text-[14px] md:text-[16px] font-normal font-helvetica text-[#98AAC0]">
+                            <p className="text-[14px] md:text-[16px] font-normal font-helvetica text-center text-[#98AAC0]">
                                 {t('incident.subtitle')}
                             </p>
                         </div>
@@ -214,11 +214,11 @@ const Incident = () => {
                                         <form.Field name="message">
                                             {(field) => (
                                                 <Textarea
-                                                    label={t('incident.message')}
+                                                    label={t('incident.message') + " (" + t('incident.message_max_length', { maxLength: 500 }) + ")"} 
                                                     value={field.state.value || ''}
                                                     onChange={field.handleChange}
                                                     error={field.state.meta.errors?.[0]}
-                                                    maxLength={1000}
+                                                    maxLength={500}
                                                     rows={3}
                                                 />
                                             )}
@@ -228,7 +228,7 @@ const Incident = () => {
                                     <button
                                         type="submit"
                                         disabled={form.state.isSubmitting}
-                                        className="w-full bg-[#252E39] text-[#ECF0F5] text-[16px] font-helvetica font-medium py-4 rounded-[10px] hover:bg-[#1a2129] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                        className="mt-4 w-full bg-[#252E39] text-[#ECF0F5] text-[16px] font-helvetica font-medium py-3.5 rounded-[10px] hover:bg-[#1a2129] disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
                                     >
                                         {form.state.isSubmitting ? t('incident.submitting') : t('incident.submit')}
                                     </button>
