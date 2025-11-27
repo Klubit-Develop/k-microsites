@@ -39,23 +39,39 @@ interface LoginResponse extends BackendResponse {
 }
 
 interface SearchParams {
+    status?: string;
     provider?: string;
     email?: string;
+    exists?: string;
+    user?: string;
+    profile?: string;
     redirectTo?: string;
-    [key: string]: any;
+}
+
+interface OAuthProfile {
+    email: string;
+    firstName?: string;
+    lastName?: string;
+    googleId?: string;
+    appleId?: string;
 }
 
 const AuthSuccessComponent = () => {
     const navigate = useNavigate();
     const { t } = useTranslation();
     const { setUser, setToken } = useAuthStore();
-    const { email } = Route.useSearch();
+    const searchParams = Route.useSearch();
+
+    const { status, provider, email, exists, profile } = searchParams;
+
+    console.log('OAuth Response:', searchParams);
 
     useEffect(() => {
         const authenticateUser = async () => {
             try {
-                if (!email) {
-                    console.error('No email provided in search params');
+                // Validar que tengamos los datos básicos
+                if (status !== 'success' || !email) {
+                    console.error('OAuth failed or no email provided');
                     toast.error(t('auth_success.authentication_error'));
                     setTimeout(() => {
                         navigate({ to: '/' });
@@ -63,92 +79,101 @@ const AuthSuccessComponent = () => {
                     return;
                 }
 
-                const verifyResponse = await axiosInstance.post<VerifyResponse>(
-                    '/v2/auth/verify',
-                    { email }
-                );
+                // Usuario NO existe → redirigir a registro con los datos del profile
+                if (exists === 'false') {
+                    const profileData: OAuthProfile | null = profile ? JSON.parse(profile) : null;
 
-                if (!verifyResponse.data.data.exists) {
-                    navigate({
-                        to: '/',
-                        state: { oauthEmail: email } as any
-                    });
-                    return;
-                }
-
-                const { country, phone } = verifyResponse.data.data;
-
-                if (!country || !phone) {
-                    console.error('Missing country or phone in verify response');
-                    toast.error(t('auth_success.authentication_error'));
+                    toast.info(t('auth_success.user_not_registered'));
                     setTimeout(() => {
-                        navigate({ 
-                            to: '/',
-                            state: { oauthEmail: email } as any
+                        navigate({
+                            to: '/oauth',
+                            state: {
+                                oauthEmail: email,
+                                provider,
+                                profile: profileData
+                            } as any
                         });
-                    }, 2000);
+                    }, 1500);
                     return;
                 }
 
-                const loginResponse = await axiosInstance.post<LoginResponse>(
-                    '/v2/auth/login',
-                    {
-                        country,
-                        phone
+                // Usuario EXISTE → verificar y hacer login
+                if (exists === 'true') {
+                    // 1. Verificar el email para obtener country y phone
+                    const verifyResponse = await axiosInstance.post<VerifyResponse>(
+                        '/v2/auth/verify',
+                        { email }
+                    );
+
+                    if (!verifyResponse.data.data.exists) {
+                        // El usuario no existe en verify (caso raro, pero por seguridad)
+                        navigate({
+                            to: '/oauth',
+                            state: { oauthEmail: email, provider } as any
+                        });
+                        return;
                     }
-                );
 
-                if (loginResponse.data.status === 'success' && loginResponse.data.data) {
-                    const { token, user } = loginResponse.data.data;
+                    const { country, phone } = verifyResponse.data.data;
 
-                    if (token && user) {
-                        setToken(token);
-                        setUser(user);
-
-                        toast.success(t('auth_success.login_success'));
-                        setTimeout(() => {
-                            navigate({ to: '/manager/klaudia' });
-                        }, 1500);
-                    } else {
-                        console.error('Missing token or user in login response');
+                    if (!country || !phone) {
+                        console.error('Missing country or phone in verify response');
                         toast.error(t('auth_success.authentication_error'));
                         setTimeout(() => {
-                            navigate({ 
-                                to: '/',
-                                state: { oauthEmail: email } as any
+                            navigate({
+                                to: '/oauth',
+                                state: { oauthEmail: email, provider } as any
                             });
                         }, 2000);
+                        return;
+                    }
+
+                    // 2. Hacer login con country y phone
+                    const loginResponse = await axiosInstance.post<LoginResponse>(
+                        '/v2/auth/login',
+                        { country, phone }
+                    );
+
+                    if (loginResponse.data.status === 'success' && loginResponse.data.data) {
+                        const { token, user } = loginResponse.data.data;
+
+                        if (token && user) {
+                            setToken(token);
+                            setUser(user);
+
+                            toast.success(t('auth_success.login_success'));
+                            setTimeout(() => {
+                                navigate({ to: '/manager/klaudia' });
+                            }, 1500);
+                        } else {
+                            throw new Error('Missing token or user in login response');
+                        }
+                    } else {
+                        throw new Error(loginResponse.data.message || 'Login failed');
                     }
                 } else {
-                    console.error('Login failed:', loginResponse.data.message);
+                    console.error('Invalid OAuth response state');
                     toast.error(t('auth_success.authentication_error'));
                     setTimeout(() => {
-                        navigate({ 
-                            to: '/',
-                            state: { oauthEmail: email } as any
-                        });
+                        navigate({ to: '/' });
                     }, 2000);
                 }
 
             } catch (error: any) {
                 console.error('Error in auth-success:', error);
 
-                if (error.backendError) {
-                    console.error('Backend error:', error.backendError.message);
-                }
+                const errorMessage = error.backendError?.message || error.message || 'Unknown error';
+                console.error('Error details:', errorMessage);
 
                 toast.error(t('auth_success.authentication_error'));
                 setTimeout(() => {
-                    navigate({ 
-                        to: '/',
-                        state: { oauthEmail: email } as any
-                    });
+                    navigate({ to: '/' });
                 }, 2000);
             }
         };
 
         authenticateUser();
-    }, [email, navigate, setToken, setUser, t]);
+    }, [status, provider, email, exists, profile, navigate, setToken, setUser, t]);
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -162,10 +187,13 @@ const AuthSuccessComponent = () => {
 
 export const Route = createFileRoute('/auth-success')({
     validateSearch: (search: Record<string, any>): SearchParams => ({
+        status: search.status || '',
         provider: search.provider || '',
         email: search.email || '',
-        redirectTo: search.redirectTo || '',
-        ...search
+        exists: search.exists || '',
+        user: search.user || '',
+        profile: search.profile || '',
+        redirectTo: search.redirectTo || ''
     }),
     component: AuthSuccessComponent
 });

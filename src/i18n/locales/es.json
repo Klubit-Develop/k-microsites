@@ -3,7 +3,7 @@
         "error_connection": "Error de conexión. Inténtalo de nuevo"
     },
     "auth_success": {
-        "authenticating": "Autenticando...",
+        "authenticating": "Verificando autenticación",
         "login_success": "Inicio de sesión exitoso. Redirigiendo...",
         "authentication_error": "Error de autenticación. Redirigiendo al inicio..."
     },

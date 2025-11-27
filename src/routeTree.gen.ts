@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VerifyRouteImport } from './routes/verify'
 import { Route as RegisterRouteImport } from './routes/register'
+import { Route as OauthRouteImport } from './routes/oauth'
 import { Route as IncidentRouteImport } from './routes/incident'
 import { Route as ForgotChangeRouteImport } from './routes/forgot-change'
 import { Route as ForgotRouteImport } from './routes/forgot'
@@ -27,6 +28,11 @@ const VerifyRoute = VerifyRouteImport.update({
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
   path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OauthRoute = OauthRouteImport.update({
+  id: '/oauth',
+  path: '/oauth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IncidentRoute = IncidentRouteImport.update({
@@ -71,6 +77,7 @@ export interface FileRoutesByFullPath {
   '/forgot': typeof ForgotRoute
   '/forgot-change': typeof ForgotChangeRoute
   '/incident': typeof IncidentRoute
+  '/oauth': typeof OauthRoute
   '/register': typeof RegisterRoute
   '/verify': typeof VerifyRoute
   '/manager/klaudia': typeof AuthenticatedManagerKlaudiaRoute
@@ -81,6 +88,7 @@ export interface FileRoutesByTo {
   '/forgot': typeof ForgotRoute
   '/forgot-change': typeof ForgotChangeRoute
   '/incident': typeof IncidentRoute
+  '/oauth': typeof OauthRoute
   '/register': typeof RegisterRoute
   '/verify': typeof VerifyRoute
   '/manager/klaudia': typeof AuthenticatedManagerKlaudiaRoute
@@ -93,6 +101,7 @@ export interface FileRoutesById {
   '/forgot': typeof ForgotRoute
   '/forgot-change': typeof ForgotChangeRoute
   '/incident': typeof IncidentRoute
+  '/oauth': typeof OauthRoute
   '/register': typeof RegisterRoute
   '/verify': typeof VerifyRoute
   '/_authenticated/manager/klaudia': typeof AuthenticatedManagerKlaudiaRoute
@@ -105,6 +114,7 @@ export interface FileRouteTypes {
     | '/forgot'
     | '/forgot-change'
     | '/incident'
+    | '/oauth'
     | '/register'
     | '/verify'
     | '/manager/klaudia'
@@ -115,6 +125,7 @@ export interface FileRouteTypes {
     | '/forgot'
     | '/forgot-change'
     | '/incident'
+    | '/oauth'
     | '/register'
     | '/verify'
     | '/manager/klaudia'
@@ -126,6 +137,7 @@ export interface FileRouteTypes {
     | '/forgot'
     | '/forgot-change'
     | '/incident'
+    | '/oauth'
     | '/register'
     | '/verify'
     | '/_authenticated/manager/klaudia'
@@ -138,6 +150,7 @@ export interface RootRouteChildren {
   ForgotRoute: typeof ForgotRoute
   ForgotChangeRoute: typeof ForgotChangeRoute
   IncidentRoute: typeof IncidentRoute
+  OauthRoute: typeof OauthRoute
   RegisterRoute: typeof RegisterRoute
   VerifyRoute: typeof VerifyRoute
 }
@@ -156,6 +169,13 @@ declare module '@tanstack/react-router' {
       path: '/register'
       fullPath: '/register'
       preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/oauth': {
+      id: '/oauth'
+      path: '/oauth'
+      fullPath: '/oauth'
+      preLoaderRoute: typeof OauthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/incident': {
@@ -229,6 +249,7 @@ const rootRouteChildren: RootRouteChildren = {
   ForgotRoute: ForgotRoute,
   ForgotChangeRoute: ForgotChangeRoute,
   IncidentRoute: IncidentRoute,
+  OauthRoute: OauthRoute,
   RegisterRoute: RegisterRoute,
   VerifyRoute: VerifyRoute,
 }
