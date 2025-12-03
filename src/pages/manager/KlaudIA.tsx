@@ -2,7 +2,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useNavigate } from '@tanstack/react-router';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useChat } from '@/hooks/useChat';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/es';
@@ -18,6 +18,9 @@ const KlaudIA = () => {
     const [activeTab, setActiveTab] = useState<'notifications' | 'chats'>('chats');
     const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
     const [messageInput, setMessageInput] = useState('');
+
+    // Ref para el timeout del typing (debounce)
+    const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     // Notificaciones
     const { 
@@ -36,13 +39,47 @@ const KlaudIA = () => {
     // Chat - con chatId para la conversación
     const chatConversation = useChat(selectedChatId || undefined);
 
+    // Limpiar timeout al desmontar o cambiar de chat
+    useEffect(() => {
+        return () => {
+            if (typingTimeoutRef.current) {
+                clearTimeout(typingTimeoutRef.current);
+            }
+        };
+    }, [selectedChatId]);
+
     const handleLogout = () => {
         logout();
         navigate({ to: '/' });
     };
 
+    // Handler mejorado para el input con debounce
+    const handleMessageInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setMessageInput(value);
+        
+        // Enviar que está escribiendo
+        chatConversation.sendTyping(true);
+        
+        // Limpiar timeout anterior
+        if (typingTimeoutRef.current) {
+            clearTimeout(typingTimeoutRef.current);
+        }
+        
+        // Después de 2 segundos sin escribir, enviar false
+        typingTimeoutRef.current = setTimeout(() => {
+            chatConversation.sendTyping(false);
+        }, 2000);
+    };
+
     const handleSendMessage = async () => {
         if (!messageInput.trim() || !selectedChatId) return;
+        
+        // Limpiar typing al enviar
+        if (typingTimeoutRef.current) {
+            clearTimeout(typingTimeoutRef.current);
+        }
+        chatConversation.sendTyping(false);
         
         await chatConversation.sendMessage(messageInput);
         setMessageInput('');
@@ -53,6 +90,13 @@ const KlaudIA = () => {
     };
 
     const handleBackToList = () => {
+        // Limpiar typing al volver
+        if (typingTimeoutRef.current) {
+            clearTimeout(typingTimeoutRef.current);
+        }
+        if (selectedChatId) {
+            chatConversation.sendTyping(false);
+        }
         setSelectedChatId(null);
     };
 
@@ -180,10 +224,11 @@ const KlaudIA = () => {
                         ) : (
                             <div className="space-y-2">
                                 {chatList.chats.map((chat) => {
-                                    const otherUser = chat.creatorId === user?.id 
-                                        ? chat.recipient 
-                                        : chat.creator;
+                                    const otherUser = chat.recipientId === user?.id 
+                                        ? chat.creator 
+                                        : chat.recipient;
                                     const isClubChat = !!chat.club;
+                                    const chatTypingUsers = chatList.allTypingUsers[chat.id] || [];
 
                                     return (
                                         <div 
@@ -209,9 +254,18 @@ const KlaudIA = () => {
                                                             : `${otherUser?.firstName} ${otherUser?.lastName}`
                                                         }
                                                     </p>
-                                                    <p className="text-sm text-gray-600 truncate">
-                                                        {chat.lastMessage?.content || 'Sin mensajes'}
-                                                    </p>
+                                                    {chatTypingUsers.length > 0 ? (
+                                                        <p className="text-sm text-green-600 italic truncate">
+                                                            {chatTypingUsers.length === 1
+                                                                ? `${chatTypingUsers[0]} está escribiendo...`
+                                                                : `${chatTypingUsers.join(', ')} están escribiendo...`
+                                                            }
+                                                        </p>
+                                                    ) : (
+                                                        <p className="text-sm text-gray-600 truncate">
+                                                            {chat.lastMessage?.content || 'Sin mensajes'}
+                                                        </p>
+                                                    )}
                                                 </div>
                                                 <div className="flex flex-col items-end gap-1">
                                                     {chat.lastMessage && (
@@ -247,10 +301,13 @@ const KlaudIA = () => {
                             <h2 className="text-xl font-semibold">Conversación</h2>
                         </div>
 
-                        {/* Typing indicator */}
+                        {/* Typing indicator - Muestra el nombre del usuario */}
                         {chatConversation.typingUsers.length > 0 && (
-                            <div className="text-sm text-gray-500 italic">
-                                Escribiendo...
+                            <div className="text-sm text-gray-500 italic px-2 py-1 bg-gray-100 rounded-lg inline-block">
+                                {chatConversation.typingUsers.length === 1
+                                    ? `${chatConversation.typingUsers[0]} está escribiendo...`
+                                    : `${chatConversation.typingUsers.join(', ')} están escribiendo...`
+                                }
                             </div>
                         )}
 
@@ -298,16 +355,12 @@ const KlaudIA = () => {
                             )}
                         </div>
 
-                        {/* Input */}
+                        {/* Input con debounce para typing */}
                         <div className="flex gap-2">
                             <input
                                 type="text"
                                 value={messageInput}
-                                onChange={(e) => {
-                                    setMessageInput(e.target.value);
-                                    chatConversation.sendTyping(true);
-                                }}
-                                onBlur={() => chatConversation.sendTyping(false)}
+                                onChange={handleMessageInputChange}
                                 onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
                                 placeholder="Escribe un mensaje..."
                                 className="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"

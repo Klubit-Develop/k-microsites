@@ -50,7 +50,7 @@ interface ChatStore {
     loading: boolean;
     messagesLoading: boolean;
     hasMoreMessages: boolean;
-    typingUsers: Record<string, string[]>;
+    typingUsers: Record<string, string[]>; // chatId -> nombres de usuarios escribiendo
     isConnected: boolean;
 
     // Socket
@@ -187,25 +187,30 @@ export const useChatStore = create<ChatStore>((set, get) => ({
             }
         });
 
-        // Typing
-        socket.on('chat:typing', (data: { chatId: string; userId: string; isTyping: boolean }) => {
+        // Typing - usa el nombre del usuario para mostrar en UI
+        socket.on('chat:typing', (data: { chatId: string; userId: string; username?: string; isTyping: boolean }) => {
+            // Ignorar si soy yo mismo
             if (data.userId === userId) return;
+            
+            const displayName = data.username || 'Alguien';
             
             set((state) => {
                 const chatTyping = state.typingUsers[data.chatId] || [];
 
-                if (data.isTyping && !chatTyping.includes(data.userId)) {
+                if (data.isTyping && !chatTyping.includes(displayName)) {
+                    // Añadir usuario a la lista de typing
                     return {
                         typingUsers: {
                             ...state.typingUsers,
-                            [data.chatId]: [...chatTyping, data.userId],
+                            [data.chatId]: [...chatTyping, displayName],
                         },
                     };
                 } else if (!data.isTyping) {
+                    // Quitar usuario de la lista de typing
                     return {
                         typingUsers: {
                             ...state.typingUsers,
-                            [data.chatId]: chatTyping.filter((id) => id !== data.userId),
+                            [data.chatId]: chatTyping.filter((name) => name !== displayName),
                         },
                     };
                 }
@@ -244,6 +249,12 @@ export const useChatStore = create<ChatStore>((set, get) => ({
         if (socket?.connected) {
             console.log('Leaving chat room:', chatId);
             socket.emit('chat:leave', chatId);
+            
+            // Limpiar typing users de este chat
+            set((state) => {
+                const { [chatId]: _, ...rest } = state.typingUsers;
+                return { typingUsers: rest };
+            });
         }
     },
 

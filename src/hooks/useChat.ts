@@ -64,6 +64,7 @@ export const useChat = (chatId?: string) => {
         hasMoreMessages,
         isConnected,
         typingUsers: chatId ? typingUsers[chatId] || [] : [],
+        allTypingUsers: typingUsers, // Objeto completo para usar en la lista de chats
         totalUnread,
         
         createChat: (recipientId?: string, clubId?: string) => 
