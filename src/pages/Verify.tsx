@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMutation } from '@tanstack/react-query';
 import { useLocation, useNavigate } from '@tanstack/react-router';
-import { Asterisk } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 
 import axiosInstance from '@/config/axiosConfig';
@@ -21,29 +20,7 @@ const Verify = () => {
     const [countdown, setCountdown] = useState(0);
 
     const verificationType = (location.state as { verification?: string })?.verification;
-
     const isForgot = (location.state as { forgot?: string })?.forgot || false;
-
-    const loginMutation = useMutation({
-        mutationFn: async (data: { country: string; phone: string }) => {
-            const response = await axiosInstance.post('/v2/auth/login', data);
-            return response.data;
-        },
-        onSuccess: (response) => {
-            if (response.status === 'success' && response.data?.token && response.data?.user) {
-                setToken(response.data.token);
-                setUser(response.data.user);
-                navigate({ to: '/manager/klaudia' });
-            }
-        },
-        onError: (error: any) => {
-            if (error.backendError) {
-                toast.error(error.backendError.message);
-            } else {
-                toast.error(t('common.error_connection'));
-            }
-        }
-    });
 
     const loginForgotMutation = useMutation({
         mutationFn: async (data: { country: string; phone: string }) => {
@@ -120,9 +97,8 @@ const Verify = () => {
                 });
             }
         },
-        onSuccess: () => {
+        onSuccess: (response) => {
             if (verificationType === 'email') {
-
                 if (isForgot) {
                     forgotChangeMutation.mutate({
                         id: (location.state as { id?: string })?.id!,
@@ -130,21 +106,18 @@ const Verify = () => {
                         email: (location.state as { email?: string })?.email!
                     });
                 } else {
-                    loginMutation.mutate({
-                        country: (location.state as { country?: string })?.country!,
-                        phone: (location.state as { phone?: string })?.phone?.replace(/\s/g, '')!,
-                    });
+                    if (response.data?.token && response.data?.user) {
+                        setToken(response.data.token);
+                        setUser(response.data.user);
+                        navigate({ to: '/manager/klaudia' });
+                    }
                 }
-
             } else {
-
                 if (isForgot) {
-
                     loginForgotMutation.mutate({
                         country: (location.state as { country?: string })?.country!,
                         phone: (location.state as { phone?: string })?.phone?.replace(/\s/g, '')!,
                     });
-
                 } else {
                     return navigate({
                         to: '/register',

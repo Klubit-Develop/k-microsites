@@ -68,7 +68,12 @@ const RootPage = () => {
 
                     navigate({
                         to: '/verify',
-                        state: { verification: 'email', email: response.data.email, country, phone } as any
+                        state: {
+                            verification: 'email',
+                            email: response.data.email,
+                            country,
+                            phone
+                        } as any
                     });
                 } else {
                     sendSMSMutation.mutate({
@@ -80,8 +85,8 @@ const RootPage = () => {
                         to: '/verify',
                         state: {
                             verification: 'sms',
-                            country, phone,
-                            oauthEmail: (location.search as { oauthEmail?: string })?.oauthEmail || ''
+                            country,
+                            phone,
                         } as any
                     });
                 }
