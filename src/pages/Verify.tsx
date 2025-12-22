@@ -82,49 +82,83 @@ const Verify = () => {
     const verifyMutation = useMutation({
         mutationFn: async (code: string) => {
             const lang = i18n.language === 'en' ? 'en' : 'es';
+            const state = location.state as {
+                email?: string;
+                currentEmail?: string;
+                country?: string;
+                phone?: string;
+            };
 
             if (verificationType === 'email') {
+                const email = isForgot ? state.currentEmail : state.email;
                 return await axiosInstance.post(`/v2/email/validate?lang=${lang}`, {
-                    email: isForgot ?
-                        (location.state as { currentEmail?: string })?.currentEmail :
-                        (location.state as { email?: string })?.email,
+                    email,
                     code
                 });
             } else {
                 return await axiosInstance.post(`/v2/sms/validate?lang=${lang}`, {
-                    country: (location.state as { country?: string })?.country,
-                    phone: (location.state as { phone?: string })?.phone?.replace(/\s/g, ''),
-                    code
+                    country: state.country,
+                    phone: state.phone?.replace(/\s/g, ''),
+                    code,
+                    isForgot
                 });
             }
         },
         onSuccess: (response) => {
+            console.log('=== DEBUG VERIFY ===');
+            console.log('Full response:', response);
+            console.log('response.data:', response.data);
+            console.log('verificationType:', verificationType);
+            console.log('isForgot:', isForgot);
+            console.log('====================');
+
+            const state = location.state as {
+                id?: string;
+                token?: string;
+                email?: string;
+                country?: string;
+                phone?: string;
+            };
+
+            const responseData = response.data;
+            const { token, user } = responseData.data || {};
+
+            console.log('Extracted token:', token);
+            console.log('Extracted user:', user);
+
             if (verificationType === 'email') {
                 if (isForgot) {
                     forgotChangeMutation.mutate({
-                        id: (location.state as { id?: string })?.id!,
-                        token: (location.state as { token?: string })?.token!,
-                        email: (location.state as { email?: string })?.email!
+                        id: state.id!,
+                        token: state.token!,
+                        email: state.email!
                     });
                 } else {
-                    if (response.data?.token && response.data?.user) {
-                        setToken(response.data.token);
-                        setUser(response.data.user);
+                    if (token && user) {
+                        console.log('Setting token and user, navigating...');
+                        setToken(token);
+                        setUser(user);
                         navigate({ to: '/manager/klaudia' });
+                    } else {
+                        console.log('Token or user missing!');
                     }
                 }
             } else {
                 if (isForgot) {
-                    loginForgotMutation.mutate({
-                        country: (location.state as { country?: string })?.country!,
-                        phone: (location.state as { phone?: string })?.phone?.replace(/\s/g, '')!,
+                    navigate({
+                        to: '/forgot-change',
+                        state: {
+                            id: user.id,
+                            token: token,
+                            currentEmail: user.email
+                        } as any
                     });
                 } else {
-                    return navigate({
+                    navigate({
                         to: '/register',
                         state: {
-                            country: (location.state as { country?: string })?.country,
-                            phone: (location.state as { phone?: string })?.phone,
+                            country: state.country,
+                            phone: state.phone,
                             oauthEmail: (location.search as { oauthEmail?: string })?.oauthEmail || ''
                         } as any
                     });
