@@ -65,7 +65,7 @@
         "male": "Masculino",
         "female": "Femenino",
         "other": "Otro",
-        "select_gender": "Selecciona tu género",
+        "select_gender": "",
         "already_account": "¿Ya tienes cuenta?",
         "log_in": "Iniciar sesión",
         "continue": "Continuar",
@@ -85,7 +85,12 @@
         "birthdate_required": "La fecha de nacimiento es obligatoria",
         "gender_required": "El género es obligatorio",
         "termsText": "Al continuar, aceptas nuestros",
-        "termsLink": "términos y condiciones"
+        "termsLink": "términos y condiciones",
+        "first_name_placeholder": "",
+        "last_name_placeholder": "",
+        "email_placeholder": "@email.com",
+        "birthdate_too_young": "Debes tener al menos 14 años",
+        "birthdate_too_old": "La fecha es demasiado antigua"
     },
     "verify": {
         "sms": "teléfono",

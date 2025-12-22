@@ -6,52 +6,9 @@ import { useNavigate } from '@tanstack/react-router';
 import { useMutation } from '@tanstack/react-query';
 
 import axiosInstance from '@/config/axiosConfig';
-import { Input } from '@/components/common/ElementsForm';
-
-interface TextareaProps {
-    label: string;
-    value: string;
-    onChange: (value: string) => void;
-    error?: string;
-    maxLength?: number;
-    rows?: number;
-}
-
-const Textarea = ({
-    label,
-    value,
-    onChange,
-    error,
-    maxLength,
-    rows = 3
-}: TextareaProps) => {
-    const id = label.toLowerCase().replace(/\s+/g, '-');
-
-    return (
-        <div className="flex flex-col gap-0.5">
-            <label className="text-[#98AAC0] text-[13px] font-helvetica font-medium pl-1 block text-left">
-                {label}
-            </label>
-            <div className="w-full">
-                <textarea
-                    id={id}
-                    value={value}
-                    onChange={(e) => onChange(e.target.value)}
-                    maxLength={maxLength}
-                    rows={rows}
-                    className={`
-                        w-full px-1 py-2.5 bg-transparent 
-                        border-b ${error ? 'border-red-500' : 'border-[#CCCCCC]'}
-                        hover:border-[#252E39] focus:border-[#252E39] focus:outline-none 
-                        text-[#252E39] text-lg font-helvetica transition-colors
-                        resize-none
-                    `}
-                />
-                {error && <p className="text-red-500 text-xs mt-1 pl-3 font-helvetica">{error}</p>}
-            </div>
-        </div>
-    );
-};
+import InputText from '@/components/ui/InputText';
+import InputTextArea from '@/components/ui/InputTextArea';
+import Button from '@/components/ui/Button';
 
 const Incident = () => {
     const { i18n, t } = useTranslation();
@@ -175,8 +132,8 @@ const Incident = () => {
                                     <div className="flex flex-col gap-4">
                                         <form.Field name="name">
                                             {(field) => (
-                                                <Input
-                                                    label={t('incident.name')}
+                                                <InputText
+                                                    label={`${t('incident.name')}*`}
                                                     value={field.state.value || ''}
                                                     onChange={field.handleChange}
                                                     error={field.state.meta.errors?.[0]}
@@ -187,9 +144,9 @@ const Incident = () => {
 
                                         <form.Field name="email">
                                             {(field) => (
-                                                <Input
+                                                <InputText
                                                     type="email"
-                                                    label={t('incident.email')}
+                                                    label={`${t('incident.email')}*`}
                                                     value={field.state.value || ''}
                                                     onChange={field.handleChange}
                                                     error={field.state.meta.errors?.[0]}
@@ -201,8 +158,8 @@ const Incident = () => {
 
                                         <form.Field name="subject">
                                             {(field) => (
-                                                <Input
-                                                    label={t('incident.subject')}
+                                                <InputText
+                                                    label={`${t('incident.subject')}*`}
                                                     value={field.state.value || ''}
                                                     onChange={field.handleChange}
                                                     error={field.state.meta.errors?.[0]}
@@ -213,25 +170,25 @@ const Incident = () => {
 
                                         <form.Field name="message">
                                             {(field) => (
-                                                <Textarea
-                                                    label={t('incident.message') + " (" + t('incident.message_max_length', { maxLength: 500 }) + ")"} 
+                                                <InputTextArea
+                                                    label={`${t('incident.message')}* (${t('incident.message_max_length')})`}
                                                     value={field.state.value || ''}
                                                     onChange={field.handleChange}
                                                     error={field.state.meta.errors?.[0]}
                                                     maxLength={500}
-                                                    rows={3}
                                                 />
                                             )}
                                         </form.Field>
                                     </div>
 
-                                    <button
+                                    <Button
                                         type="submit"
+                                        variant="primary"
                                         disabled={form.state.isSubmitting}
-                                        className="mt-4 w-full bg-[#252E39] text-[#ECF0F5] text-[16px] font-helvetica font-medium py-3.5 rounded-[10px] hover:bg-[#1a2129] disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                                        isLoading={form.state.isSubmitting}
                                     >
-                                        {form.state.isSubmitting ? t('incident.submitting') : t('incident.submit')}
-                                    </button>
+                                        {t('incident.submit')}
+                                    </Button>
                                 </div>
                             </form>
                         </div>

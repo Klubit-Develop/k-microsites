@@ -7,7 +7,10 @@ import { Link, useLocation, useNavigate } from '@tanstack/react-router';
 import { useMutation } from '@tanstack/react-query';
 
 import axiosInstance from '@/config/axiosConfig';
-import { Input, Select } from '@/components/common/ElementsForm';
+import InputText from '@/components/ui/InputText';
+import InputDate from '@/components/ui/InputDate';
+import Select from '@/components/ui/Select';
+import Button from '@/components/ui/Button';
 
 import 'dayjs/locale/es';
 import 'dayjs/locale/en';
@@ -216,8 +219,8 @@ const Register = () => {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                         <form.Field name="firstName">
                                             {(field) => (
-                                                <Input
-                                                    label={t('register.first_name')}
+                                                <InputText
+                                                    label={`${t('register.first_name')}*`}
                                                     value={field.state.value || ''}
                                                     onChange={field.handleChange}
                                                     error={field.state.meta.errors?.[0]}
@@ -229,8 +232,8 @@ const Register = () => {
 
                                         <form.Field name="lastName">
                                             {(field) => (
-                                                <Input
-                                                    label={t('register.last_name')}
+                                                <InputText
+                                                    label={`${t('register.last_name')}*`}
                                                     value={field.state.value || ''}
                                                     onChange={field.handleChange}
                                                     error={field.state.meta.errors?.[0]}
@@ -242,14 +245,15 @@ const Register = () => {
 
                                         <form.Field name="birthdate">
                                             {(field) => (
-                                                <Input
-                                                    type="date"
-                                                    label={t('register.birthdate')}
+                                                <InputDate
+                                                    label={`${t('register.birthdate')}*`}
                                                     value={field.state.value || ''}
                                                     onChange={field.handleChange}
                                                     error={field.state.meta.errors?.[0]}
                                                     max={dayjs().subtract(14, 'years').format('YYYY-MM-DD')}
                                                     min={dayjs().subtract(120, 'years').format('YYYY-MM-DD')}
+                                                    maxErrorMessage={t('register.birthdate_too_young', 'Debes tener al menos 14 años')}
+                                                    minErrorMessage={t('register.birthdate_too_old', 'La fecha es demasiado antigua')}
                                                 />
                                             )}
                                         </form.Field>
@@ -257,7 +261,7 @@ const Register = () => {
                                         <form.Field name="gender">
                                             {(field) => (
                                                 <Select
-                                                    label={t('register.gender')}
+                                                    label={`${t('register.gender')}*`}
                                                     value={field.state.value || ''}
                                                     onChange={field.handleChange}
                                                     options={genderOptions}
@@ -267,13 +271,13 @@ const Register = () => {
                                             )}
                                         </form.Field>
 
-                                        <div className="col-span-2 flex flex-col gap-8">
+                                        <div className="col-span-1 md:col-span-2 flex flex-col gap-8">
 
                                             <form.Field name="email">
                                                 {(field) => (
-                                                    <Input
+                                                    <InputText
                                                         type="email"
-                                                        label={t('register.email')}
+                                                        label={`${t('register.email')}*`}
                                                         value={field.state.value || ''}
                                                         onChange={field.handleChange}
                                                         error={field.state.meta.errors?.[0]}
@@ -285,9 +289,9 @@ const Register = () => {
 
                                             <form.Field name="repeatEmail">
                                                 {(field) => (
-                                                    <Input
+                                                    <InputText
                                                         type="email"
-                                                        label={t('register.repeat_email')}
+                                                        label={`${t('register.repeat_email')}*`}
                                                         value={field.state.value || ''}
                                                         onChange={field.handleChange}
                                                         error={field.state.meta.errors?.[0]}
@@ -313,13 +317,14 @@ const Register = () => {
                                         </div>
                                     </div>
 
-                                    <button
+                                    <Button
                                         type="submit"
+                                        variant="primary"
                                         disabled={registerMutation.isPending}
-                                        className="w-full bg-[#252E39] text-[#ECF0F5] text-[16px] font-helvetica font-medium py-3.5 rounded-[10px] hover:bg-[#1a2129] disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                                        isLoading={registerMutation.isPending}
                                     >
-                                        {registerMutation.isPending ? t('register.saving') : t('register.continue')}
-                                    </button>
+                                        {t('register.continue')}
+                                    </Button>
 
                                     <div className="flex items-center justify-center flex-col sm:flex-row gap-1">
                                         <p className="text-[14px] font-helvetica font-normal text-[#98AAC0]">

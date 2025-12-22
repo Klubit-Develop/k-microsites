@@ -6,7 +6,8 @@ import { useLocation, useNavigate } from '@tanstack/react-router';
 import { useAuthStore } from '@/stores/authStore';
 
 import axiosInstance from '@/config/axiosConfig';
-import OTPInput from '@/components/common/OTPInput';
+import OTPInput from '@/components/ui/OTPInput';
+import Button from '@/components/ui/Button';
 import { LogoIcon, LogoCutIcon } from '@/components/icons';
 
 const Verify = () => {
@@ -226,7 +227,7 @@ const Verify = () => {
                                 </p>
                             </div>
 
-                            <div>
+                            <div className="w-full max-w-[365px]">
                                 <OTPInput
                                     length={6}
                                     value={otpValue}
@@ -254,14 +255,15 @@ const Verify = () => {
                             </p>
 
                             <div className="flex flex-col gap-3 w-full">
-                                <button
+                                <Button
                                     type="button"
+                                    variant="primary"
                                     onClick={handleVerify}
-                                    disabled={verifyMutation.isPending || otpValue.length !== 6}
-                                    className="w-full bg-[#252E39] text-[#ECF0F5] text-[16px] font-helvetica font-medium py-3.5 rounded-[10px] hover:bg-[#1a2129] disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer flex items-center justify-center"
+                                    disabled={otpValue.length !== 6}
+                                    isLoading={verifyMutation.isPending}
                                 >
-                                    {verifyMutation.isPending ? t('verify.verifying') : t('verify.continue')}
-                                </button>
+                                    {t('verify.continue')}
+                                </Button>
                             </div>
                         </div>
                     </div>

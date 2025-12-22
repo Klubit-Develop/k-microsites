@@ -5,8 +5,9 @@ import { LogoIcon, LogoCutIcon } from '@/components/icons';
 import { useMutation } from '@tanstack/react-query';
 import { useLocation, useNavigate } from '@tanstack/react-router';
 
-import { Input } from '@/components/common/ElementsForm';
 import axiosInstance from '@/config/axiosConfig';
+import InputText from '@/components/ui/InputText';
+import Button from '@/components/ui/Button';
 
 const ForgotChange = () => {
     const navigate = useNavigate();
@@ -113,9 +114,9 @@ const ForgotChange = () => {
                                     <div className="flex flex-col gap-8">
                                         <form.Field name="email">
                                             {(field) => (
-                                                <Input
+                                                <InputText
                                                     type="email"
-                                                    label={t('forgot_change.email')}
+                                                    label={`${t('forgot_change.email')}*`}
                                                     value={field.state.value || ''}
                                                     onChange={field.handleChange}
                                                     error={field.state.meta.errors?.[0]}
@@ -127,9 +128,9 @@ const ForgotChange = () => {
 
                                         <form.Field name="repeatEmail">
                                             {(field) => (
-                                                <Input
+                                                <InputText
                                                     type="email"
-                                                    label={t('forgot_change.repeat_email')}
+                                                    label={`${t('forgot_change.repeat_email')}*`}
                                                     value={field.state.value || ''}
                                                     onChange={field.handleChange}
                                                     error={field.state.meta.errors?.[0]}
@@ -140,13 +141,14 @@ const ForgotChange = () => {
                                         </form.Field>
                                     </div>
 
-                                    <button
+                                    <Button
                                         type="submit"
+                                        variant="primary"
                                         disabled={form.state.isSubmitting}
-                                        className="mt-4 w-full bg-[#252E39] text-[#ECF0F5] text-[16px] font-helvetica font-medium py-3.5 rounded-[10px] hover:bg-[#1a2129] disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                                        isLoading={form.state.isSubmitting}
                                     >
-                                        {form.state.isSubmitting ? t('forgot_change.submitting') : t('forgot_change.continue')}
-                                    </button>
+                                        {t('forgot_change.continue')}
+                                    </Button>
                                 </div>
                             </form>
                         </div>
