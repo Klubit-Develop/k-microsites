@@ -23,43 +23,11 @@ const Verify = () => {
     const verificationType = (location.state as { verification?: string })?.verification;
     const isForgot = (location.state as { forgot?: string })?.forgot || false;
 
-    const loginForgotMutation = useMutation({
-        mutationFn: async (data: { country: string; phone: string }) => {
-            const response = await axiosInstance.post('/v2/auth/login', data);
-            return response.data;
-        },
-        onSuccess: (response) => {
-            if (response.status === 'success' && response.data?.token && response.data?.user) {
-                navigate({
-                    to: '/forgot-change',
-                    state: {
-                        id: response.data.user.id,
-                        token: response.data.token,
-                        currentEmail: response.data.user.email
-                    } as any
-                });
-            }
-        },
-        onError: (error: any) => {
-            if (error.backendError) {
-                toast.error(error.backendError.message);
-            } else {
-                toast.error(t('common.error_connection'));
-            }
-        }
-    });
-
     const forgotChangeMutation = useMutation({
         mutationFn: async (data: { id: string; token: string, email: string }) => {
             const response = await axiosInstance.post('/v2/auth/forgot-change',
-                {
-                    email: data.email
-                },
-                {
-                    headers: {
-                        'Authorization': `Bearer ${data.token}`
-                    }
-                }
+                { email: data.email },
+                { headers: { 'Authorization': `Bearer ${data.token}` } }
             );
             return response.data;
         },
@@ -91,10 +59,7 @@ const Verify = () => {
 
             if (verificationType === 'email') {
                 const email = isForgot ? state.currentEmail : state.email;
-                return await axiosInstance.post(`/v2/email/validate?lang=${lang}`, {
-                    email,
-                    code
-                });
+                return await axiosInstance.post(`/v2/email/validate?lang=${lang}`, { email, code });
             } else {
                 return await axiosInstance.post(`/v2/sms/validate?lang=${lang}`, {
                     country: state.country,
@@ -105,13 +70,6 @@ const Verify = () => {
             }
         },
         onSuccess: (response) => {
-            console.log('=== DEBUG VERIFY ===');
-            console.log('Full response:', response);
-            console.log('response.data:', response.data);
-            console.log('verificationType:', verificationType);
-            console.log('isForgot:', isForgot);
-            console.log('====================');
-
             const state = location.state as {
                 id?: string;
                 token?: string;
@@ -120,11 +78,7 @@ const Verify = () => {
                 phone?: string;
             };
 
-            const responseData = response.data;
-            const { token, user } = responseData.data || {};
-
-            console.log('Extracted token:', token);
-            console.log('Extracted user:', user);
+            const { token, user } = response.data.data || {};
 
             if (verificationType === 'email') {
                 if (isForgot) {
@@ -133,15 +87,10 @@ const Verify = () => {
                         token: state.token!,
                         email: state.email!
                     });
-                } else {
-                    if (token && user) {
-                        console.log('Setting token and user, navigating...');
-                        setToken(token);
-                        setUser(user);
-                        navigate({ to: '/manager/klaudia' });
-                    } else {
-                        console.log('Token or user missing!');
-                    }
+                } else if (token && user) {
+                    setToken(token);
+                    setUser(user);
+                    navigate({ to: '/manager/klaudia' });
                 }
             } else {
                 if (isForgot) {
@@ -194,14 +143,12 @@ const Verify = () => {
         }
     });
 
-    const handleVerify = async (e: React.FormEvent) => {
+    const handleVerify = (e: React.FormEvent) => {
         e.preventDefault();
-
         if (!otpValue || otpValue.length !== 6) {
             toast.error(t('verify.enter_valid_code'));
             return;
         }
-
         verifyMutation.mutate(otpValue);
     };
 
@@ -213,9 +160,8 @@ const Verify = () => {
     const getContactDisplay = () => {
         if (verificationType === 'sms') {
             return `+${(location.state as { country?: string })?.country} ${(location.state as { phone?: string })?.phone}`;
-        } else {
-            return (location.state as { email?: string })?.email;
         }
+        return (location.state as { email?: string })?.email;
     };
 
     useEffect(() => {
@@ -247,7 +193,6 @@ const Verify = () => {
                         </div>
 
                         <div className="flex flex-col gap-10 w-full items-center">
-
                             <div className="flex flex-col gap-4 w-full">
                                 <h1 className="text-[28px] md:text-[30px] text-center font-medium font-n27 text-[#ff336d]">
                                     {t('verify.account_verification')} {verificationType === 'sms' ? t('verify.sms') : t('verify.email')}
