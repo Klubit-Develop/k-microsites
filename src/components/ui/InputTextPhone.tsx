@@ -40,14 +40,12 @@ const InputTextPhone = ({
 
     const selectedCountry = countries.find((c) => c.phone === country);
 
-    // Determinar variante basada en estado
     const variant: 'empty' | 'filled' | 'error' = error
         ? 'error'
         : value
             ? 'filled'
             : 'empty';
 
-    // Cerrar dropdown al hacer click fuera
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -61,7 +59,7 @@ const InputTextPhone = ({
 
     const getBorderColor = () => {
         if (variant === 'error') return 'border-[#FF2323]';
-        return 'border-[#E7E7E7]';
+        return 'border-[#232323]';
     };
 
     const getInputBgColor = () => {
@@ -73,7 +71,7 @@ const InputTextPhone = ({
         <div className="flex flex-col gap-1 w-full">
             {/* Label */}
             <div className="flex items-center px-1.5">
-                <span className="font-helvetica text-sm font-normal text-[#141414] leading-none">
+                <span className="font-helvetica text-sm font-normal text-[#939393] leading-none">
                     {label}
                 </span>
             </div>
@@ -107,7 +105,7 @@ const InputTextPhone = ({
                             />
                         )}
                         <ChevronDown
-                            className="w-5 h-5 text-[#98AAC0] shrink-0"
+                            className="w-5 h-5 text-[#939393] shrink-0"
                             strokeWidth={1.5}
                         />
                     </button>
@@ -119,7 +117,7 @@ const InputTextPhone = ({
                                 className="fixed inset-0 z-10"
                                 onClick={() => setIsCountryOpen(false)}
                             />
-                            <div className="absolute z-20 w-[280px] mt-1 bg-white rounded-xl shadow-lg max-h-60 overflow-auto border border-[#E7E7E7]">
+                            <div className="absolute z-20 w-[280px] mt-1 bg-[#1A1A1A] rounded-xl shadow-lg max-h-60 overflow-auto border border-[#232323]">
                                 {countries.map((c) => {
                                     const label = language === 'en' ? c.label_en : c.label_es;
                                     return (
@@ -130,7 +128,7 @@ const InputTextPhone = ({
                                                 onCountryChange(c.phone);
                                                 setIsCountryOpen(false);
                                             }}
-                                            className="w-full flex items-center gap-2 px-4 py-2.5 hover:bg-[#F9F9FA] text-left font-helvetica transition-colors"
+                                            className="w-full flex items-center gap-2 px-4 py-2.5 hover:bg-[#232323] text-left font-helvetica transition-colors"
                                         >
                                             <img
                                                 loading="lazy"
@@ -140,7 +138,7 @@ const InputTextPhone = ({
                                                 alt=""
                                                 className="shrink-0"
                                             />
-                                            <span className="text-sm text-[#141414]">
+                                            <span className="text-sm text-[#F6F6F6]">
                                                 (+{c.phone}) {label}
                                             </span>
                                         </button>
@@ -166,8 +164,8 @@ const InputTextPhone = ({
                             ${getBorderColor()}
                             bg-transparent
                             font-helvetica font-medium text-base
-                            ${variant === 'filled' ? 'text-[#141414]' : 'text-[#141414]'}
-                            placeholder:text-[#98AAC0] placeholder:font-medium
+                            text-[#F6F6F6]
+                            placeholder:text-[#939393] placeholder:font-medium
                             focus:outline-none
                             transition-colors
                             ${disabled ? 'cursor-not-allowed opacity-50' : ''}

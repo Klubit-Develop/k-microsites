@@ -23,11 +23,9 @@ const InputText = ({
     const isPassword = type === 'password';
     const inputType = isPassword ? (showPassword ? 'text' : 'password') : type;
 
-    const hasValue = value !== undefined && value !== '';
-
     const getBorderColor = () => {
         if (error) return 'border-[#FF2323]';
-        return 'border-[#E7E7E7]';
+        return 'border-[#232323]';
     };
 
     const getInputBgColor = () => {
@@ -44,7 +42,7 @@ const InputText = ({
             {/* Label */}
             {label && (
                 <div className="flex items-center px-1.5">
-                    <span className="font-helvetica text-sm font-normal text-[#141414] leading-none">
+                    <span className="font-helvetica text-sm font-normal text-[#939393] leading-none">
                         {label}
                     </span>
                 </div>
@@ -70,8 +68,8 @@ const InputText = ({
                         flex-1 min-w-0
                         bg-transparent
                         font-helvetica font-medium text-base
-                        ${hasValue ? 'text-[#141414]' : 'text-[#141414]'}
-                        placeholder:text-[#98AAC0] placeholder:font-medium
+                        text-[#F6F6F6]
+                        placeholder:text-[#939393] placeholder:font-medium
                         focus:outline-none
                         disabled:opacity-50 disabled:cursor-not-allowed
                         overflow-ellipsis overflow-hidden whitespace-nowrap
@@ -84,7 +82,7 @@ const InputText = ({
                     <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="shrink-0 size-5 flex items-center justify-center text-[#98AAC0] hover:text-[#141414] transition-colors"
+                        className="shrink-0 size-5 flex items-center justify-center text-[#939393] hover:text-[#F6F6F6] transition-colors"
                     >
                         {showPassword ? (
                             <Eye className="size-5" strokeWidth={1.5} />

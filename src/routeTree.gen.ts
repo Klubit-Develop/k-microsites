@@ -18,7 +18,6 @@ import { Route as ForgotRouteImport } from './routes/forgot'
 import { Route as AuthSuccessRouteImport } from './routes/auth-success'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AuthenticatedManagerKlaudiaRouteImport } from './routes/_authenticated/manager/klaudia'
 
 const VerifyRoute = VerifyRouteImport.update({
   id: '/verify',
@@ -64,12 +63,6 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedManagerKlaudiaRoute =
-  AuthenticatedManagerKlaudiaRouteImport.update({
-    id: '/manager/klaudia',
-    path: '/manager/klaudia',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -80,7 +73,6 @@ export interface FileRoutesByFullPath {
   '/oauth': typeof OauthRoute
   '/register': typeof RegisterRoute
   '/verify': typeof VerifyRoute
-  '/manager/klaudia': typeof AuthenticatedManagerKlaudiaRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -91,12 +83,11 @@ export interface FileRoutesByTo {
   '/oauth': typeof OauthRoute
   '/register': typeof RegisterRoute
   '/verify': typeof VerifyRoute
-  '/manager/klaudia': typeof AuthenticatedManagerKlaudiaRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/_authenticated': typeof AuthenticatedRoute
   '/auth-success': typeof AuthSuccessRoute
   '/forgot': typeof ForgotRoute
   '/forgot-change': typeof ForgotChangeRoute
@@ -104,7 +95,6 @@ export interface FileRoutesById {
   '/oauth': typeof OauthRoute
   '/register': typeof RegisterRoute
   '/verify': typeof VerifyRoute
-  '/_authenticated/manager/klaudia': typeof AuthenticatedManagerKlaudiaRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -117,7 +107,6 @@ export interface FileRouteTypes {
     | '/oauth'
     | '/register'
     | '/verify'
-    | '/manager/klaudia'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -128,7 +117,6 @@ export interface FileRouteTypes {
     | '/oauth'
     | '/register'
     | '/verify'
-    | '/manager/klaudia'
   id:
     | '__root__'
     | '/'
@@ -140,12 +128,11 @@ export interface FileRouteTypes {
     | '/oauth'
     | '/register'
     | '/verify'
-    | '/_authenticated/manager/klaudia'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  AuthenticatedRoute: typeof AuthenticatedRoute
   AuthSuccessRoute: typeof AuthSuccessRoute
   ForgotRoute: typeof ForgotRoute
   ForgotChangeRoute: typeof ForgotChangeRoute
@@ -220,31 +207,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/manager/klaudia': {
-      id: '/_authenticated/manager/klaudia'
-      path: '/manager/klaudia'
-      fullPath: '/manager/klaudia'
-      preLoaderRoute: typeof AuthenticatedManagerKlaudiaRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
   }
 }
 
-interface AuthenticatedRouteChildren {
-  AuthenticatedManagerKlaudiaRoute: typeof AuthenticatedManagerKlaudiaRoute
-}
-
-const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
-  AuthenticatedManagerKlaudiaRoute: AuthenticatedManagerKlaudiaRoute,
-}
-
-const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
-  AuthenticatedRouteChildren,
-)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  AuthenticatedRoute: AuthenticatedRoute,
   AuthSuccessRoute: AuthSuccessRoute,
   ForgotRoute: ForgotRoute,
   ForgotChangeRoute: ForgotChangeRoute,

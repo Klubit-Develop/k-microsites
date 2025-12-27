@@ -4,8 +4,8 @@
     },
     "auth_success": {
         "authenticating": "Verificando autenticación",
-        "login_success": "Inicio de sesión exitoso. Redirigiendo...",
-        "authentication_error": "Error de autenticación. Redirigiendo al inicio..."
+        "login_success": "Inicio de sesión exitoso. Redirigiendo",
+        "authentication_error": "Error de autenticación. Redirigiendo al inicio"
     },
     "menu": {
         "ia": "Asistente IA",
@@ -34,22 +34,21 @@
         "sales_channels": "Canales de Venta"
     },
     "login": {
-        "title": "Accede a tu cuenta",
-        "subtitle": "Ingresa tus datos para poder acceder a tu cuenta, si aún no tienes una cuenta, se creará una.",
+        "title": "Inicia sesión o regístrate ",
         "country": "País",
         "phone": "Teléfono",
         "phone_required": "El teléfono es obligatorio",
         "phone_invalid_length": "El teléfono debe tener {{length}} dígitos",
         "phone_invalid": "El teléfono solo puede contener números",
         "continue": "Continuar",
-        "loading": "Cargando...",
+        "loading": "Cargando",
         "forgot_password": "Recuperar cuenta",
         "error_generic": "Ha ocurrido un error inesperado",
         "error_connection": "Error de conexión. Inténtalo de nuevo",
         "continueWithGoogle": "Continuar con Google",
         "continueWithApple": "Continuar con Apple",
-        "termsText": "Al continuar, aceptas nuestros",
-        "termsLink": "términos y condiciones",
+        "termsText": "Al continuar, aceptas los",
+        "termsLink": "Términos y condiciones y la Política de privacidad",
         "cantAccess": "¿No puedes acceder?"
     },
     "register": {
@@ -69,7 +68,7 @@
         "already_account": "¿Ya tienes cuenta?",
         "log_in": "Iniciar sesión",
         "continue": "Continuar",
-        "saving": "Guardando...",
+        "saving": "Guardando",
         "name_required": "El nombre es obligatorio",
         "name_min_length": "El nombre debe tener al menos 2 caracteres",
         "name_max_length": "El nombre no debe superar los 40 caracteres",
@@ -95,34 +94,35 @@
     "verify": {
         "sms": "teléfono",
         "email": "correo electrónico",
-        "account_verification": "Verificación de",
-        "code_sent_to_phone": "Código enviado al número",
-        "code_sent_to_email": "Código enviado al correo electrónico",
+        "account_verification": "Necesitamos verificar tu ",
+        "code_sent_to_phone": "Hemos enviado un SMS al",
+        "code_sent_to_email": "Hemos enviado un código a",
         "enter_valid_code": "Ingresa un código válido de 6 dígitos",
-        "didnt_receive_code": "¿No recibiste el código?",
-        "resend_code": "Reenviar código",
+        "didnt_receive_code": "¿No has recibido el código?",
+        "resend_code": "Reenviar",
         "continue": "Continuar",
-        "verifying": "Verificando...",
+        "verifying": "Verificando",
         "go_back": "Volver",
         "error_generic": "Error al verificar el código",
         "error_connection": "Error de conexión. Inténtalo de nuevo",
-        "error_resend": "Error al reenviar el código"
+        "error_resend": "Error al reenviar el código",
+        "can_request_new_code": "Podrás solicitar un nuevo código en"
     },
     "forgot": {
-        "title": "Recuperar cuenta",
-        "subtitle": "Ingresa tu número de teléfono para recuperar tu acceso.",
+        "title": "Introduce tu número de teléfono",
+        "subtitle": "Verificaremos tu identidad para recuperar tu cuenta",
         "country": "País",
         "phone": "Teléfono",
         "phone_required": "El teléfono es obligatorio",
         "phone_invalid_length": "El teléfono debe tener {{length}} dígitos",
         "continue": "Continuar",
-        "loading": "Cargando...",
+        "loading": "Cargando",
         "incidents": "¿No puedes acceder a tu número de teléfono?",
         "incidentsLink": "Reportar incidencia"
     },
     "incident": {
         "title": "Reportar Incidencia",
-        "subtitle": "Completa el formulario y te ayudaremos a resolver tu problema.",
+        "subtitle": "Completa el formulario y nos pondremos en contacto contigo",
         "name": "Nombre completo",
         "name_required": "El nombre es obligatorio",
         "name_min_length": "El nombre debe tener al menos 2 caracteres",
@@ -139,7 +139,7 @@
         "message_min_length": "El mensaje debe tener al menos 10 caracteres",
         "message_max_length": "Máx. 500 caracteres",
         "submit": "Enviar",
-        "submitting": "Enviando...",
+        "submitting": "Enviando",
         "success": "Tu incidencia ha sido reportada exitosamente",
         "back_to_login": "Volver al inicio"
     },
@@ -153,7 +153,18 @@
         "repeat_email_required": "Por favor repite tu correo electrónico",
         "emails_not_match": "Los correos electrónicos no coinciden",
         "continue": "Continuar",
-        "submitting": "Procesando...",
+        "submitting": "Procesando",
         "success": "Solicitud de cambio de correo electrónico enviada exitosamente"
+    },
+    "oauth": {
+        "title": "Introduce tu número de teléfono",
+        "phone": "Teléfono",
+        "phone_required": "El teléfono es obligatorio",
+        "phone_invalid_length": "El teléfono debe tener {{length}} dígitos",
+        "continue": "Continuar",
+        "cantAccess": "¿No puedes acceder?",
+        "forgot_password": "Recuperar cuenta",
+        "termsText": "Al continuar, aceptas nuestros",
+        "termsLink": "términos y condiciones"
     }
 }

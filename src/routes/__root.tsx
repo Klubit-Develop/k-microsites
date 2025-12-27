@@ -8,6 +8,7 @@ import { useAuthStore } from '@/stores/authStore'
 
 import type { QueryClient } from '@tanstack/react-query'
 import Sidebar from '@/components/common/Sidebar'
+import Footer from '@/components/common/Footer'
 
 interface MyRouterContext {
   queryClient: QueryClient
@@ -47,6 +48,7 @@ const RootComponent = () => {
 
       {token && <Sidebar />}
       <Outlet />
+      <Footer />
 
       <TanStackDevtools
         config={{
@@ -70,7 +72,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
     const { token } = useAuthStore.getState();
 
     if (token && publicRoutes.includes(location.pathname)) {
-      throw redirect({ to: '/manager/klaudia' });
+      throw redirect({ to: '/' });
     }
   }
 })

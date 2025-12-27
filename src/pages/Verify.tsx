@@ -35,7 +35,7 @@ const Verify = () => {
             if (response.status === 'success' && (location.state as { token?: string })?.token && response.data?.user) {
                 setToken((location.state as { token?: string })?.token!);
                 setUser(response.data.user);
-                navigate({ to: '/manager/klaudia' });
+                navigate({ to: '/' });
             }
         },
         onError: (error: any) => {
@@ -90,7 +90,7 @@ const Verify = () => {
                 } else if (token && user) {
                     setToken(token);
                     setUser(user);
-                    navigate({ to: '/manager/klaudia' });
+                    navigate({ to: '/' });
                 }
             } else {
                 if (isForgot) {
@@ -216,22 +216,22 @@ const Verify = () => {
                                 />
                             </div>
 
-                            <p className="text-[14px] md:text-[16px] font-medium font-helvetica text-[#98AAC0]">
-                                {t('verify.didnt_receive_code')}
-                                <button
-                                    onClick={handleResend}
-                                    disabled={countdown > 0 || resendMutation.isPending}
-                                    className={`ml-1 no-underline hover:underline font-medium font-helvetica ${countdown > 0
-                                        ? 'text-gray-400 cursor-not-allowed no-underline hover:underline'
-                                        : 'text-[#ff336d] cursor-pointer no-underline hover:underline'
-                                        }`}
-                                >
-                                    {countdown > 0
-                                        ? `${t('verify.resend_code')} (${countdown}s)`
-                                        : t('verify.resend_code')
-                                    }
-                                </button>
-                            </p>
+                            {countdown > 0 ? (
+                                <p className="text-[14px] md:text-[16px] font-medium font-helvetica text-[#98AAC0]">
+                                    {t('verify.can_request_new_code')} {countdown}s
+                                </p>
+                            ) : (
+                                <p className="text-[14px] md:text-[16px] font-medium font-helvetica text-[#98AAC0]">
+                                    {t('verify.didnt_receive_code')}
+                                    <button
+                                        onClick={handleResend}
+                                        disabled={resendMutation.isPending}
+                                        className="ml-1 text-[#ff336d] cursor-pointer no-underline hover:underline font-medium font-helvetica"
+                                    >
+                                        {t('verify.resend_code')}
+                                    </button>
+                                </p>
+                            )}
 
                             <div className="flex flex-col gap-3 w-full">
                                 <Button

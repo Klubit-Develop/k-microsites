@@ -1,42 +1,8 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { toast } from 'sonner';
 import { useEffect } from 'react';
-import axiosInstance from '@/config/axiosConfig';
 import { useAuthStore } from '@/stores/authStore';
 import { useTranslation } from 'react-i18next';
-
-interface BackendResponse {
-    status: 'success' | 'error';
-    code: string;
-    data: Record<string, any>;
-    message: string;
-    details: string;
-}
-
-interface VerifyResponse extends BackendResponse {
-    data: {
-        exists: boolean;
-        email?: string;
-        country?: string;
-        phone?: string;
-    };
-}
-
-interface LoginResponse extends BackendResponse {
-    data: {
-        token?: string;
-        user?: {
-            id: string;
-            firstName: string;
-            lastName: string;
-            email: string;
-            phone: string;
-            username: string;
-            country: string;
-            roles: any[];
-        };
-    };
-}
 
 interface SearchParams {
     status?: string;
@@ -46,6 +12,7 @@ interface SearchParams {
     user?: string;
     profile?: string;
     redirectTo?: string;
+    token?: string;
 }
 
 interface OAuthProfile {
@@ -56,22 +23,36 @@ interface OAuthProfile {
     appleId?: string;
 }
 
+interface OAuthUser {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+    username: string;
+    avatar: string;
+    country: string;
+    language: string;
+    isOnboardingComplete: boolean;
+    clubRoles: any[];
+}
+
 const AuthSuccessComponent = () => {
     const navigate = useNavigate();
     const { t } = useTranslation();
     const { setUser, setToken } = useAuthStore();
     const searchParams = Route.useSearch();
 
-    const { status, provider, email, exists, profile } = searchParams;
+    const { status, provider, email, user, profile, token } = searchParams;
 
     console.log('OAuth Response:', searchParams);
 
     useEffect(() => {
         const authenticateUser = async () => {
             try {
-                // Validar que tengamos los datos básicos
-                if (status !== 'success' || !email) {
-                    console.error('OAuth failed or no email provided');
+                // Validar status
+                if (status !== 'success') {
+                    console.error('OAuth failed');
                     toast.error(t('auth_success.authentication_error'));
                     setTimeout(() => {
                         navigate({ to: '/' });
@@ -79,16 +60,61 @@ const AuthSuccessComponent = () => {
                     return;
                 }
 
-                // Usuario NO existe → redirigir a registro con los datos del profile
-                if (exists === 'false') {
-                    const profileData: OAuthProfile | null = profile ? JSON.parse(profile) : null;
+                // Parsear user - puede venir como string JSON o ya como objeto
+                let userData: OAuthUser | null = null;
 
+                if (user) {
+                    // Si es string, intentar parsear
+                    if (typeof user === 'string') {
+                        const trimmed = user.trim();
+                        if (trimmed !== '' && trimmed !== '{}') {
+                            try {
+                                userData = JSON.parse(trimmed);
+                            } catch (e) {
+                                console.error('Error parsing user data:', e);
+                            }
+                        }
+                    } else if (typeof user === 'object' && user !== null) {
+                        // Ya viene como objeto
+                        userData = user as unknown as OAuthUser;
+                    }
+                }
+
+                // Validar que userData tenga un id válido
+                const hasValidUser = userData && userData.id && userData.id.trim() !== '';
+                const hasValidToken = token && token.trim() !== '';
+
+                console.log('Parsed userData:', userData);
+                console.log('Has valid user:', hasValidUser);
+                console.log('Has valid token:', hasValidToken);
+
+                // Si NO hay user válido → redirigir a /oauth con el profile
+                if (!hasValidUser) {
+                    let profileData: OAuthProfile | null = null;
+
+                    if (profile) {
+                        if (typeof profile === 'string') {
+                            const trimmed = profile.trim();
+                            if (trimmed !== '' && trimmed !== '{}') {
+                                try {
+                                    profileData = JSON.parse(trimmed);
+                                } catch (e) {
+                                    console.error('Error parsing profile data:', e);
+                                }
+                            }
+                        } else if (typeof profile === 'object' && profile !== null) {
+                            profileData = profile as unknown as OAuthProfile;
+                        }
+                    }
+
+                    console.log('User not found, redirecting to /oauth');
                     toast.info(t('auth_success.user_not_registered'));
+                    
                     setTimeout(() => {
                         navigate({
                             to: '/oauth',
                             state: {
-                                oauthEmail: email,
+                                oauthEmail: email || profileData?.email,
                                 provider,
                                 profile: profileData
                             } as any
@@ -97,74 +123,30 @@ const AuthSuccessComponent = () => {
                     return;
                 }
 
-                // Usuario EXISTE → verificar y hacer login
-                if (exists === 'true') {
-                    // 1. Verificar el email para obtener country y phone
-                    const verifyResponse = await axiosInstance.post<VerifyResponse>(
-                        '/v2/auth/verify',
-                        { email }
-                    );
+                // Si HAY user válido y token → hacer login directo
+                if (hasValidUser && hasValidToken) {
+                    console.log('User found, setting token and user...');
+                    
+                    setToken(token!);
+                    setUser(userData!);
 
-                    if (!verifyResponse.data.data.exists) {
-                        // El usuario no existe en verify (caso raro, pero por seguridad)
-                        navigate({
-                            to: '/oauth',
-                            state: { oauthEmail: email, provider } as any
-                        });
-                        return;
-                    }
-
-                    const { country, phone } = verifyResponse.data.data;
-
-                    if (!country || !phone) {
-                        console.error('Missing country or phone in verify response');
-                        toast.error(t('auth_success.authentication_error'));
-                        setTimeout(() => {
-                            navigate({
-                                to: '/oauth',
-                                state: { oauthEmail: email, provider } as any
-                            });
-                        }, 2000);
-                        return;
-                    }
-
-                    // 2. Hacer login con country y phone
-                    const loginResponse = await axiosInstance.post<LoginResponse>(
-                        '/v2/auth/login',
-                        { country, phone }
-                    );
-
-                    if (loginResponse.data.status === 'success' && loginResponse.data.data) {
-                        const { token, user } = loginResponse.data.data;
-
-                        if (token && user) {
-                            setToken(token);
-                            setUser(user);
-
-                            toast.success(t('auth_success.login_success'));
-                            setTimeout(() => {
-                                navigate({ to: '/manager/klaudia' });
-                            }, 1500);
-                        } else {
-                            throw new Error('Missing token or user in login response');
-                        }
-                    } else {
-                        throw new Error(loginResponse.data.message || 'Login failed');
-                    }
-                } else {
-                    console.error('Invalid OAuth response state');
-                    toast.error(t('auth_success.authentication_error'));
+                    toast.success(t('auth_success.login_success'));
+                    
                     setTimeout(() => {
                         navigate({ to: '/' });
-                    }, 2000);
+                    }, 1500);
+                    return;
                 }
+
+                // Caso edge: hay user pero no token
+                console.error('User exists but no token provided');
+                toast.error(t('auth_success.authentication_error'));
+                setTimeout(() => {
+                    navigate({ to: '/' });
+                }, 2000);
 
             } catch (error: any) {
                 console.error('Error in auth-success:', error);
-
-                const errorMessage = error.backendError?.message || error.message || 'Unknown error';
-                console.error('Error details:', errorMessage);
-
                 toast.error(t('auth_success.authentication_error'));
                 setTimeout(() => {
                     navigate({ to: '/' });
@@ -173,7 +155,7 @@ const AuthSuccessComponent = () => {
         };
 
         authenticateUser();
-    }, [status, provider, email, exists, profile, navigate, setToken, setUser, t]);
+    }, [status, provider, email, user, profile, token, navigate, setToken, setUser, t]);
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -193,7 +175,8 @@ export const Route = createFileRoute('/auth-success')({
         exists: search.exists || '',
         user: search.user || '',
         profile: search.profile || '',
-        redirectTo: search.redirectTo || ''
+        redirectTo: search.redirectTo || '',
+        token: search.token || ''
     }),
     component: AuthSuccessComponent
 });

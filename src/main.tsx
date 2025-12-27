@@ -3,7 +3,6 @@ import ReactDOM from 'react-dom/client'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
 
 import * as TanStackQueryProvider from '@/integrations/tanstack-query/root-provider.tsx'
-import { SocketProvider } from '@/integrations/socket/socket-provider.tsx'
 
 import { routeTree } from './routeTree.gen'
 
@@ -36,9 +35,7 @@ if (rootElement && !rootElement.innerHTML) {
   root.render(
     <StrictMode>
       <TanStackQueryProvider.Provider {...TanStackQueryProviderContext}>
-        <SocketProvider>
           <RouterProvider router={router} />
-        </SocketProvider>
       </TanStackQueryProvider.Provider>
     </StrictMode>,
   )

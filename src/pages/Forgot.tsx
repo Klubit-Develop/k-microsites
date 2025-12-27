@@ -132,7 +132,7 @@ const ForgotPage = () => {
 
     return (
         <div className="min-h-screen overflow-hidden lg:grid lg:grid-cols-12 lg:gap-2">
-            <div className="hidden lg:flex lg:col-span-8 bg-white items-center h-screen relative">
+            <div className="hidden lg:flex lg:col-span-8 bg-black items-center h-screen relative">
                 <div className="h-full w-auto relative -translate-x-20">
                     <LogoCutIcon style={{ height: '100%', width: 'auto', objectFit: 'cover' }} />
                 </div>
@@ -141,7 +141,7 @@ const ForgotPage = () => {
                 </div>
             </div>
 
-            <div className="col-span-12 lg:col-span-4 min-h-screen flex items-center justify-center lg:bg-[#F9F9FA] px-4 sm:px-6 md:px-8 py-8">
+            <div className="col-span-12 lg:col-span-4 min-h-screen flex items-center justify-center lg:bg-[#050505] px-4 sm:px-6 md:px-8 py-8">
                 <div className="w-full max-w-[500px]">
                     <div className="flex flex-col gap-12 items-center text-center lg:text-left">
                         <div className="lg:hidden">
@@ -153,7 +153,7 @@ const ForgotPage = () => {
                                 {t('forgot.title')}
                             </h1>
 
-                            <p className="text-[14px] md:text-[16px] font-normal font-helvetica text-center text-[#98AAC0]">
+                            <p className="text-[14px] md:text-[16px] font-normal font-helvetica text-center text-[#F6F6F6]">
                                 {t('forgot.subtitle')}
                             </p>
                         </div>
@@ -178,7 +178,7 @@ const ForgotPage = () => {
 
                                             <Button
                                                 type="submit"
-                                                variant="primary"
+                                                variant="cta"
                                                 disabled={loginMutation.isPending}
                                                 isLoading={loginMutation.isPending}
                                             >
@@ -190,7 +190,7 @@ const ForgotPage = () => {
 
                                 <div className="flex flex-col gap-4 mt-3">
                                     <div className="flex items-center justify-center">
-                                        <span className="text-[15px] md:text-[16px] font-helvetica font-normal text-[#98AAC0]">
+                                        <span className="text-[15px] md:text-[16px] font-helvetica font-normal text-[#F6F6F6]">
                                             {t('forgot.incidents')}
                                             <Link
                                                 to="/incident"

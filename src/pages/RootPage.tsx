@@ -170,9 +170,11 @@ const RootPage = () => {
         window.location.href = `${import.meta.env.VITE_API_URL || 'https://api.klubit.io'}/v2/oauth/apple/microsites?origin=${encodeURIComponent(currentOrigin)}`;
     };
 
+    // Footer height: pt-6(24) + pb-8(32) + gap-6(24) + row1(~20) + border(2) + row2-pt(24) + row2-content(48) + border-top(2) = ~176px
     return (
-        <div className="min-h-screen overflow-hidden lg:grid lg:grid-cols-12 lg:gap-2">
-            <div className="hidden lg:flex lg:col-span-8 bg-white items-center h-screen relative">
+        <div className="h-[calc(100vh-176px)] lg:grid lg:grid-cols-12 lg:gap-2">
+            {/* Left Section - Logo */}
+            <div className="hidden lg:flex lg:col-span-8 bg-black items-center h-full relative">
                 <div className="h-full w-auto relative -translate-x-20">
                     <LogoCutIcon style={{ height: '100%', width: 'auto', objectFit: 'cover' }} />
                 </div>
@@ -181,61 +183,54 @@ const RootPage = () => {
                 </div>
             </div>
 
-            <div className="col-span-12 lg:col-span-4 min-h-screen flex items-center justify-center lg:bg-[#F9F9FA] px-4 sm:px-6 md:px-8 py-8">
+            {/* Right Section - Form */}
+            <div className="col-span-12 lg:col-span-4 h-full flex items-center justify-center bg-[#050505] px-4 sm:px-6 md:px-8">
                 <div className="w-full max-w-[500px]">
-                    <div className="flex flex-col gap-12 items-center text-center lg:text-left">
+                    <div className="flex flex-col gap-8 items-center text-center lg:text-left">
                         <div className="lg:hidden">
-                            <LogoIcon width={160} height={90} />
+                            <LogoIcon width={140} height={80} />
                         </div>
 
-                        <div className="flex flex-col gap-4 w-full">
-                            <h1 className="text-[28px] md:text-[30px] font-medium font-n27 text-center text-[#ff336d]">
+                        <div className="flex flex-col gap-3 w-full">
+                            <h1 className="text-[26px] md:text-[28px] font-medium font-n27 text-center text-[#ff336d]">
                                 {t('login.title')}
                             </h1>
-
-                            <p className="text-[14px] md:text-[16px] font-normal font-helvetica text-center text-[#98AAC0]">
-                                {t('login.subtitle')}
-                            </p>
                         </div>
 
-                        <div className="flex flex-col gap-6 w-full">
-                            <div className="flex flex-col gap-6">
-                                <div>
-                                    <form onSubmit={handleSubmit}>
-                                        <div className="flex flex-col gap-6">
-                                            {/* Input Phone Component */}
-                                            <InputTextPhone
-                                                label={`${t('login.phone')}*`}
-                                                placeholder={t('login.phone')}
-                                                value={phone}
-                                                onChange={handlePhoneChange}
-                                                error={error}
-                                                country={country}
-                                                onCountryChange={handleCountryChange}
-                                                countries={countries}
-                                                language={i18n.language as 'es' | 'en'}
-                                                disabled={loginMutation.isPending}
-                                            />
+                        <div className="flex flex-col gap-5 w-full">
+                            <div className="flex flex-col gap-5">
+                                <form onSubmit={handleSubmit}>
+                                    <div className="flex flex-col gap-5">
+                                        <InputTextPhone
+                                            label={`${t('login.phone')}*`}
+                                            placeholder={t('login.phone')}
+                                            value={phone}
+                                            onChange={handlePhoneChange}
+                                            error={error}
+                                            country={country}
+                                            onCountryChange={handleCountryChange}
+                                            countries={countries}
+                                            language={i18n.language as 'es' | 'en'}
+                                            disabled={loginMutation.isPending}
+                                        />
 
-                                            <Button
-                                                type="submit"
-                                                variant="primary"
-                                                disabled={loginMutation.isPending}
-                                                isLoading={loginMutation.isPending}
-                                            >
-                                                {t('login.continue')}
-                                            </Button>
-                                        </div>
-                                    </form>
-                                </div>
+                                        <Button
+                                            type="submit"
+                                            variant="cta"
+                                            disabled={loginMutation.isPending}
+                                            isLoading={loginMutation.isPending}
+                                        >
+                                            {t('login.continue')}
+                                        </Button>
+                                    </div>
+                                </form>
 
                                 <div className="flex items-center justify-center">
                                     <div className="border-t border-[#00000029] w-full max-w-[100px]" />
                                 </div>
 
-                                <div className="flex flex-col gap-4">
+                                <div className="flex flex-col gap-3">
                                     <Button
-                                        variant="secondary"
                                         onClick={initiateGoogleLogin}
                                         icon={<GoogleIcon />}
                                     >
@@ -243,7 +238,6 @@ const RootPage = () => {
                                     </Button>
 
                                     <Button
-                                        variant="secondary"
                                         onClick={initiateAppleLogin}
                                         icon={<AppleIcon />}
                                     >
@@ -251,9 +245,9 @@ const RootPage = () => {
                                     </Button>
                                 </div>
 
-                                <div className="flex flex-col gap-4 mt-2">
+                                <div className="flex flex-col gap-3">
                                     <div className="flex items-center justify-center">
-                                        <span className="text-[15px] md:text-[16px] font-helvetica font-normal text-[#98AAC0]">
+                                        <span className="text-[14px] md:text-[15px] font-helvetica font-normal text-[#F6F6F6]">
                                             {t('login.cantAccess')}
                                             <Link
                                                 to="/forgot"
@@ -265,12 +259,12 @@ const RootPage = () => {
                                     </div>
 
                                     <div className="flex items-center justify-center flex-col sm:flex-row gap-1">
-                                        <p className="text-[14px] font-helvetica font-normal text-[#98AAC0]">
+                                        <p className="text-[13px] font-helvetica font-normal text-[#F6F6F6]">
                                             {t('login.termsText')}
                                         </p>
                                         <Link
                                             to="/"
-                                            className="text-[14px] font-helvetica font-semibold text-[#98AAC0] underline hover:text-[#252E39] transition-colors cursor-pointer"
+                                            className="text-[13px] font-helvetica font-semibold text-[#F6F6F6] underline hover:text-[#98AAC0] transition-colors cursor-pointer"
                                         >
                                             {t('login.termsLink')}
                                         </Link>

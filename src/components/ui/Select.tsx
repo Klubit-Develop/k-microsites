@@ -32,7 +32,6 @@ const Select = ({
 
     const selectedOption = options.find((opt) => opt.value === value);
 
-    // Cerrar dropdown al hacer click fuera
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (selectRef.current && !selectRef.current.contains(event.target as Node)) {
@@ -46,7 +45,7 @@ const Select = ({
 
     const getBorderColor = () => {
         if (error) return 'border-[#FF2323]';
-        return 'border-[#E7E7E7]';
+        return 'border-[#232323]';
     };
 
     const getContainerBgColor = () => {
@@ -59,7 +58,7 @@ const Select = ({
             {/* Label */}
             {label && (
                 <div className="flex items-center px-1.5">
-                    <span className="font-helvetica text-sm font-normal text-[#141414] leading-none">
+                    <span className="font-helvetica text-sm font-normal text-[#939393] leading-none">
                         {label}
                     </span>
                 </div>
@@ -85,7 +84,7 @@ const Select = ({
                         className={`
                             flex-1 text-left
                             font-helvetica font-medium text-base
-                            ${selectedOption ? 'text-[#141414]' : 'text-[#98AAC0]'}
+                            ${selectedOption ? 'text-[#F6F6F6]' : 'text-[#939393]'}
                             overflow-ellipsis overflow-hidden whitespace-nowrap
                         `}
                     >
@@ -94,7 +93,7 @@ const Select = ({
 
                     <ChevronDown
                         className={`
-                            shrink-0 size-5 text-[#98AAC0]
+                            shrink-0 size-5 text-[#939393]
                             transition-transform duration-200
                             ${isOpen ? 'rotate-180' : ''}
                         `}
@@ -104,7 +103,7 @@ const Select = ({
 
                 {/* Dropdown */}
                 {isOpen && (
-                    <div className="absolute z-20 w-full mt-1 bg-white rounded-xl shadow-lg max-h-60 overflow-auto border border-[#E7E7E7]">
+                    <div className="absolute z-20 w-full mt-1 bg-[#1A1A1A] rounded-xl shadow-lg max-h-60 overflow-auto border border-[#232323]">
                         {options.map((option) => (
                             <button
                                 key={option.value}
@@ -116,8 +115,8 @@ const Select = ({
                                 className={`
                                     w-full flex items-center px-4 py-3
                                     font-helvetica font-medium text-base text-left
-                                    hover:bg-[#F9F9FA] transition-colors
-                                    ${option.value === value ? 'text-[#FF336D] bg-[#FFF5F8]' : 'text-[#141414]'}
+                                    hover:bg-[#232323] transition-colors
+                                    ${option.value === value ? 'text-[#FF336D] bg-[#2A1A1F]' : 'text-[#F6F6F6]'}
                                 `}
                             >
                                 {option.label}
