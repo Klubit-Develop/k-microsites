@@ -107,9 +107,6 @@ const AuthSuccessComponent = () => {
                         }
                     }
 
-                    console.log('User not found, redirecting to /oauth');
-                    toast.info(t('auth_success.user_not_registered'));
-                    
                     setTimeout(() => {
                         navigate({
                             to: '/oauth',
@@ -125,13 +122,11 @@ const AuthSuccessComponent = () => {
 
                 // Si HAY user válido y token → hacer login directo
                 if (hasValidUser && hasValidToken) {
-                    console.log('User found, setting token and user...');
-                    
                     setToken(token!);
                     setUser(userData!);
 
                     toast.success(t('auth_success.login_success'));
-                    
+
                     setTimeout(() => {
                         navigate({ to: '/' });
                     }, 1500);
