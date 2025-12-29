@@ -170,9 +170,8 @@ const RootPage = () => {
         window.location.href = `${import.meta.env.VITE_API_URL || 'https://api.klubit.io'}/v2/oauth/apple/microsites?origin=${encodeURIComponent(currentOrigin)}`;
     };
 
-    // Footer height: pt-6(24) + pb-8(32) + gap-6(24) + row1(~20) + border(2) + row2-pt(24) + row2-content(48) + border-top(2) = ~176px
     return (
-        <div className="h-[calc(100vh-176px)] lg:grid lg:grid-cols-12 lg:gap-2">
+        <div className="min-h-screen overflow-hidden lg:grid lg:grid-cols-12 lg:gap-2">
             {/* Left Section - Logo */}
             <div className="hidden lg:flex lg:col-span-8 bg-black items-center h-full relative">
                 <div className="h-full w-auto relative -translate-x-20">
