@@ -22,7 +22,6 @@ const OTPInput = ({
     const [otp, setOtp] = useState<string[]>(Array(length).fill(''));
     const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
 
-    // Sincronizar con el valor externo (incluyendo cuando se limpia)
     useEffect(() => {
         if (value === '') {
             setOtp(Array(length).fill(''));
@@ -60,7 +59,6 @@ const OTPInput = ({
         e.preventDefault();
         const pastedData = e.clipboardData.getData('text');
 
-        // Extraer solo los dígitos del texto pegado
         const digits = pastedData.replace(/\D/g, '').slice(0, length);
 
         if (digits.length === 0) return;
@@ -75,14 +73,13 @@ const OTPInput = ({
         setOtp(newOtp);
         onChange(newOtp.join(''));
 
-        // Mover el foco al último campo completado o al siguiente vacío
         const focusIndex = Math.min(digits.length, length - 1);
         inputsRef.current[focusIndex]?.focus();
     };
 
-    const getBorderColor = (_hasValue: boolean) => {
+    const getBorderColor = () => {
         if (error) return 'border-[#FF2323]';
-        return 'border-[#E7E7E7]';
+        return 'border-[#232323]';
     };
 
     const getContainerBg = () => {
@@ -95,7 +92,7 @@ const OTPInput = ({
             {/* Label */}
             {label && (
                 <div className="flex items-center px-1.5">
-                    <span className="font-helvetica text-sm font-normal text-[#141414] leading-none">
+                    <span className="font-helvetica text-sm font-normal text-[#939393] leading-none">
                         {label}
                     </span>
                 </div>
@@ -119,10 +116,11 @@ const OTPInput = ({
                         className={`
                             size-12
                             border-[1.5px] border-solid rounded-xl
-                            ${getBorderColor(!!digit)}
+                            ${getBorderColor()}
                             bg-transparent
                             font-helvetica font-medium text-base text-center
-                            ${digit ? 'text-[#141414]' : 'text-[#98AAC0]'}
+                            text-[#F6F6F6]
+                            placeholder:text-[#939393]
                             focus:outline-none
                             disabled:opacity-50 disabled:cursor-not-allowed
                             transition-colors

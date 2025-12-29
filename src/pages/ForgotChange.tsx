@@ -82,7 +82,7 @@ const ForgotChange = () => {
 
     return (
         <div className="min-h-screen overflow-hidden lg:grid lg:grid-cols-12 lg:gap-2">
-            <div className="hidden lg:flex lg:col-span-8 bg-white items-center h-screen relative">
+            <div className="hidden lg:flex lg:col-span-8 bg-black items-center h-screen relative">
                 <div className="h-full w-auto relative -translate-x-20">
                     <LogoCutIcon style={{ height: '100%', width: 'auto', objectFit: 'cover' }} />
                 </div>
@@ -91,7 +91,7 @@ const ForgotChange = () => {
                 </div>
             </div>
 
-            <div className="col-span-12 lg:col-span-4 min-h-screen flex items-center justify-center lg:bg-[#F9F9FA] px-4 sm:px-6 md:px-8 py-8">
+            <div className="col-span-12 lg:col-span-4 min-h-screen flex items-center justify-center lg:bg-[#050505] px-4 sm:px-6 md:px-8 py-8">
                 <div className="w-full max-w-[500px]">
                     <div className="flex flex-col gap-12 items-center text-center lg:text-left">
                         <div className="lg:hidden">
@@ -103,7 +103,7 @@ const ForgotChange = () => {
                                 {t('forgot_change.title')}
                             </h1>
 
-                            <p className="text-[14px] md:text-[16px] font-normal text-center font-helvetica text-[#98AAC0]">
+                            <p className="text-[14px] md:text-[16px] font-normal text-center font-helvetica text-[#F6F6F6]">
                                 {t('forgot_change.subtitle')}
                             </p>
                         </div>
@@ -143,7 +143,7 @@ const ForgotChange = () => {
 
                                     <Button
                                         type="submit"
-                                        variant="primary"
+                                        variant="cta"
                                         disabled={form.state.isSubmitting}
                                         isLoading={form.state.isSubmitting}
                                     >
