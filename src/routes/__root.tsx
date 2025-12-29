@@ -7,20 +7,20 @@ import TanStackQueryDevtools from '../integrations/tanstack-query/devtools'
 import { useAuthStore } from '@/stores/authStore'
 
 import type { QueryClient } from '@tanstack/react-query'
-import Sidebar from '@/components/common/Sidebar'
+import Header from '@/components/common/Header'
 import Footer from '@/components/common/Footer'
 
 interface MyRouterContext {
   queryClient: QueryClient
 }
 
-const publicRoutes = ['/', '/login', '/register', '/verify', '/incident', '/forgot', '/forgot-change'];
+const authRoutes = ['/auth', '/login', '/register', '/verify', '/incident', '/forgot', '/forgot-change', '/oauth'];
 
 const RootComponent = () => {
-  const { token } = useAuthStore();
+  const { user } = useAuthStore();
 
   return (
-    <>
+    <div className="flex min-h-screen flex-col">
       <Toaster
         position="bottom-right"
         expand={false}
@@ -46,8 +46,12 @@ const RootComponent = () => {
         }}
       />
 
-      {token && <Sidebar />}
-      <Outlet />
+      {!authRoutes.includes(location.pathname) && <Header user={user} />}
+      
+      <main className="flex flex-1 flex-col">
+        <Outlet />
+      </main>
+      
       <Footer />
 
       <TanStackDevtools
@@ -62,7 +66,7 @@ const RootComponent = () => {
           TanStackQueryDevtools,
         ]}
       />
-    </>
+    </div>
   );
 };
 
@@ -71,7 +75,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
   beforeLoad: async ({ location }) => {
     const { token } = useAuthStore.getState();
 
-    if (token && publicRoutes.includes(location.pathname)) {
+    if (token && authRoutes.includes(location.pathname)) {
       throw redirect({ to: '/' });
     }
   }

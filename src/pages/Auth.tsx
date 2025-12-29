@@ -18,7 +18,7 @@ interface BackendResponse {
     details: string;
 }
 
-const RootPage = () => {
+const Auth = () => {
     const navigate = useNavigate();
     const { i18n, t } = useTranslation();
 
@@ -171,20 +171,20 @@ const RootPage = () => {
     };
 
     return (
-        <div className="min-h-screen overflow-hidden lg:grid lg:grid-cols-12 lg:gap-2">
+        <div className="min-h-screen overflow-hidden lg:grid lg:grid-cols-12 lg:gap-2 px-34">
             {/* Left Section - Logo */}
             <div className="hidden lg:flex lg:col-span-8 bg-black items-center h-full relative">
                 <div className="h-full w-auto relative -translate-x-20">
                     <LogoCutIcon style={{ height: '100%', width: 'auto', objectFit: 'cover' }} />
                 </div>
-                <div className="absolute bottom-[50px] left-20 z-10">
+                <div className="absolute bottom-[50px] left-7 z-10">
                     <LogoIcon />
                 </div>
             </div>
 
             {/* Right Section - Form */}
-            <div className="col-span-12 lg:col-span-4 h-full flex items-center justify-center bg-[#050505] px-4 sm:px-6 md:px-8">
-                <div className="w-full max-w-[500px]">
+            <div className="col-span-12 lg:col-span-4 h-full flex items-center justify-center bg-[#050505]">
+                <div className="w-full max-w-[500px] pl-18">
                     <div className="flex flex-col gap-8 items-center text-center lg:text-left">
                         <div className="lg:hidden">
                             <LogoIcon width={140} height={80} />
@@ -257,16 +257,16 @@ const RootPage = () => {
                                         </span>
                                     </div>
 
-                                    <div className="flex items-center justify-center flex-col sm:flex-row gap-1">
+                                    <div className="flex items-center justify-center flex-col sm:flex-row gap-1 mt-4">
                                         <p className="text-[13px] font-helvetica font-normal text-[#F6F6F6]">
-                                            {t('login.termsText')}
+                                            {t('login.termsText')} {' '}
+                                            <Link
+                                                to="/"
+                                                className="text-[13px] font-helvetica font-semibold text-[#F6F6F6] underline hover:text-[#98AAC0] transition-colors cursor-pointer"
+                                            >
+                                                {t('login.termsLink')}
+                                            </Link>
                                         </p>
-                                        <Link
-                                            to="/"
-                                            className="text-[13px] font-helvetica font-semibold text-[#F6F6F6] underline hover:text-[#98AAC0] transition-colors cursor-pointer"
-                                        >
-                                            {t('login.termsLink')}
-                                        </Link>
                                     </div>
                                 </div>
                             </div>
@@ -278,4 +278,4 @@ const RootPage = () => {
     );
 };
 
-export default RootPage;
+export default Auth;

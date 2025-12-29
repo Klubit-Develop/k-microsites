@@ -15,9 +15,13 @@ import { Route as OauthRouteImport } from './routes/oauth'
 import { Route as IncidentRouteImport } from './routes/incident'
 import { Route as ForgotChangeRouteImport } from './routes/forgot-change'
 import { Route as ForgotRouteImport } from './routes/forgot'
+import { Route as EventsRouteImport } from './routes/events'
 import { Route as AuthSuccessRouteImport } from './routes/auth-success'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedWalletRouteImport } from './routes/_authenticated/wallet'
+import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 
 const VerifyRoute = VerifyRouteImport.update({
   id: '/verify',
@@ -49,9 +53,19 @@ const ForgotRoute = ForgotRouteImport.update({
   path: '/forgot',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EventsRoute = EventsRouteImport.update({
+  id: '/events',
+  path: '/events',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthSuccessRoute = AuthSuccessRouteImport.update({
   id: '/auth-success',
   path: '/auth-success',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
@@ -63,77 +77,113 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedWalletRoute = AuthenticatedWalletRouteImport.update({
+  id: '/wallet',
+  path: '/wallet',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/auth-success': typeof AuthSuccessRoute
+  '/events': typeof EventsRoute
   '/forgot': typeof ForgotRoute
   '/forgot-change': typeof ForgotChangeRoute
   '/incident': typeof IncidentRoute
   '/oauth': typeof OauthRoute
   '/register': typeof RegisterRoute
   '/verify': typeof VerifyRoute
+  '/profile': typeof AuthenticatedProfileRoute
+  '/wallet': typeof AuthenticatedWalletRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/auth-success': typeof AuthSuccessRoute
+  '/events': typeof EventsRoute
   '/forgot': typeof ForgotRoute
   '/forgot-change': typeof ForgotChangeRoute
   '/incident': typeof IncidentRoute
   '/oauth': typeof OauthRoute
   '/register': typeof RegisterRoute
   '/verify': typeof VerifyRoute
+  '/profile': typeof AuthenticatedProfileRoute
+  '/wallet': typeof AuthenticatedWalletRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/_authenticated': typeof AuthenticatedRoute
+  '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/auth': typeof AuthRoute
   '/auth-success': typeof AuthSuccessRoute
+  '/events': typeof EventsRoute
   '/forgot': typeof ForgotRoute
   '/forgot-change': typeof ForgotChangeRoute
   '/incident': typeof IncidentRoute
   '/oauth': typeof OauthRoute
   '/register': typeof RegisterRoute
   '/verify': typeof VerifyRoute
+  '/_authenticated/profile': typeof AuthenticatedProfileRoute
+  '/_authenticated/wallet': typeof AuthenticatedWalletRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/auth'
     | '/auth-success'
+    | '/events'
     | '/forgot'
     | '/forgot-change'
     | '/incident'
     | '/oauth'
     | '/register'
     | '/verify'
+    | '/profile'
+    | '/wallet'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/auth'
     | '/auth-success'
+    | '/events'
     | '/forgot'
     | '/forgot-change'
     | '/incident'
     | '/oauth'
     | '/register'
     | '/verify'
+    | '/profile'
+    | '/wallet'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/auth'
     | '/auth-success'
+    | '/events'
     | '/forgot'
     | '/forgot-change'
     | '/incident'
     | '/oauth'
     | '/register'
     | '/verify'
+    | '/_authenticated/profile'
+    | '/_authenticated/wallet'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AuthenticatedRoute: typeof AuthenticatedRoute
+  AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  AuthRoute: typeof AuthRoute
   AuthSuccessRoute: typeof AuthSuccessRoute
+  EventsRoute: typeof EventsRoute
   ForgotRoute: typeof ForgotRoute
   ForgotChangeRoute: typeof ForgotChangeRoute
   IncidentRoute: typeof IncidentRoute
@@ -186,11 +236,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ForgotRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/events': {
+      id: '/events'
+      path: '/events'
+      fullPath: '/events'
+      preLoaderRoute: typeof EventsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth-success': {
       id: '/auth-success'
       path: '/auth-success'
       fullPath: '/auth-success'
       preLoaderRoute: typeof AuthSuccessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -207,13 +271,43 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/wallet': {
+      id: '/_authenticated/wallet'
+      path: '/wallet'
+      fullPath: '/wallet'
+      preLoaderRoute: typeof AuthenticatedWalletRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/profile': {
+      id: '/_authenticated/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof AuthenticatedProfileRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
   }
 }
 
+interface AuthenticatedRouteChildren {
+  AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
+  AuthenticatedWalletRoute: typeof AuthenticatedWalletRoute
+}
+
+const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedProfileRoute: AuthenticatedProfileRoute,
+  AuthenticatedWalletRoute: AuthenticatedWalletRoute,
+}
+
+const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
+  AuthenticatedRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AuthenticatedRoute: AuthenticatedRoute,
+  AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  AuthRoute: AuthRoute,
   AuthSuccessRoute: AuthSuccessRoute,
+  EventsRoute: EventsRoute,
   ForgotRoute: ForgotRoute,
   ForgotChangeRoute: ForgotChangeRoute,
   IncidentRoute: IncidentRoute,

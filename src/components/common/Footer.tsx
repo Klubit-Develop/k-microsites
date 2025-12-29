@@ -1,13 +1,8 @@
 import type { FC } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from '@tanstack/react-router';
 
-interface FooterLink {
-    label: string;
-    href: string;
-}
-
 interface FooterProps {
-    legalLinks?: FooterLink[];
     copyrightYear?: number;
     appStoreUrl?: string;
     googlePlayUrl?: string;
@@ -15,19 +10,24 @@ interface FooterProps {
 }
 
 const Footer: FC<FooterProps> = ({
-    legalLinks = [
-        { label: 'Aviso legal', href: '/aviso-legal' },
-        { label: 'Términos y condiciones', href: '/terminos-condiciones' },
-        { label: 'Política de Cookies', href: '/politica-cookies' },
-        { label: 'Política de Privacidad', href: '/politica-privacidad' },
-    ],
     copyrightYear = 2026,
     appStoreUrl = 'https://apps.apple.com',
     googlePlayUrl = 'https://play.google.com',
     logoSrc = '/assets/images/logo-footer.png',
 }) => {
+    const { t, i18n } = useTranslation();
+
+    const lang = i18n.language === 'en' ? 'en' : 'es';
+
+    const legalLinks = [
+        { label: t('footer.legal_notice'), href: '/aviso-legal' },
+        { label: t('footer.terms_conditions'), href: '/terminos-condiciones' },
+        { label: t('footer.cookie_policy'), href: '/politica-cookies' },
+        { label: t('footer.privacy_policy'), href: '/politica-privacidad' },
+    ];
+
     return (
-        <footer className="bg-[#141414] border-t-2 border-[#232323] flex flex-col gap-6 pt-6 pb-8 px-[160px] w-full">
+        <footer className="bg-[#141414] border-t-2 border-[#232323] flex flex-col gap-6 pt-6 pb-8 px-40 w-full">
             {/* Top Section - Legal Links & Copyright */}
             <div className="flex items-center justify-between w-full">
                 {/* Legal Links */}
@@ -51,7 +51,7 @@ const Footer: FC<FooterProps> = ({
 
                 {/* Copyright */}
                 <span className="font-helvetica text-sm font-normal text-[#F6F6F6] whitespace-nowrap">
-                    © {copyrightYear} Klubit
+                    {t('footer.copyright', { year: copyrightYear })}
                 </span>
             </div>
 
@@ -60,7 +60,7 @@ const Footer: FC<FooterProps> = ({
                 {/* App Info */}
                 <div className="flex items-center gap-[15px]">
                     {/* App Logo */}
-                    <div className="w-[48px] h-[48px] rounded-xl overflow-hidden shrink-0">
+                    <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0">
                         <img
                             src={logoSrc}
                             alt="Klubit App"
@@ -70,16 +70,16 @@ const Footer: FC<FooterProps> = ({
 
                     {/* Text Content */}
                     <div className="flex flex-col justify-center py-1">
-                        <span className="font-helvetica text-base font-medium text-[#ECF0F5]">
-                            Descarga la app
+                        <span className="font-helvetica text-base font-medium text-[#F6F6F6]">
+                            {t('footer.download_app')}
                         </span>
                         <span className="font-helvetica text-sm font-normal text-[#F6F6F6]/50">
-                            Descubre todas las ventajas y beneficios de Klubit.
+                            {t('footer.download_app_description')}
                         </span>
                     </div>
                 </div>
 
-                {/* Download Badges - Enlaces externos, mantienen <a> */}
+                {/* Download Badges */}
                 <div className="flex items-center gap-6">
                     <a
                         href={appStoreUrl}
@@ -88,7 +88,7 @@ const Footer: FC<FooterProps> = ({
                         className="h-10 hover:opacity-80 transition-opacity"
                     >
                         <img
-                            src="/assets/images/apple-store.png"
+                            src={`/assets/images/apple-store-${lang}.png`}
                             alt="Download on the App Store"
                             className="h-full w-auto object-contain"
                         />
@@ -100,7 +100,7 @@ const Footer: FC<FooterProps> = ({
                         className="h-10 hover:opacity-80 transition-opacity"
                     >
                         <img
-                            src="/assets/images/google-store.png"
+                            src={`/assets/images/google-store-${lang}.png`}
                             alt="Get it on Google Play"
                             className="h-full w-auto object-contain"
                         />

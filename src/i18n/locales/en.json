@@ -1,37 +1,32 @@
 {
     "common": {
-        "error_connection": "Connection error. Please try again"
+        "error_connection": "Connection error. Please try again",
+        "retry": "Retry"
+    },
+    "club": {
+        "phone": "Phone",
+        "email": "Email",
+        "like": "Like",
+        "likes": "Likes",
+        "favorite_error": "Error updating favorite"
+    },
+    "header": {
+        "my_wallet": "My wallet",
+        "access_account": "Access your account"
+    },
+    "footer": {
+        "legal_notice": "Legal Notice",
+        "terms_conditions": "Terms and Conditions",
+        "cookie_policy": "Cookie Policy",
+        "privacy_policy": "Privacy Policy",
+        "copyright": "© {{year}} Klubit",
+        "download_app": "Download the app",
+        "download_app_description": "Discover all the advantages and benefits of Klubit."
     },
     "auth_success": {
         "authenticating": "Verifying authentication",
         "login_success": "Login successful. Redirecting",
         "authentication_error": "Authentication error. Redirecting to home"
-    },
-    "menu": {
-        "ia": "AI Assistant",
-        "dashboard": "Dashboard",
-        "calendar": "Calendar",
-        "events": "Events",
-        "rates": "Rates",
-        "products": "Products",
-        "challenges_and_promotions": "Challenges and Promotions",
-        "client_kards": "Client Cards",
-        "users_and_permissions": "Users and Permissions",
-        "rrpp": "Public Relations",
-        "crm": "CRM",
-        "accounting": "Accounting",
-        "settings": "Settings",
-        "templates": "Templates",
-        "collaborators": "Collaborators",
-        "organization": "Organization Chart",
-        "kard": "Card",
-        "configuration_kpi": "KPI Configuration",
-        "clients": "Clients",
-        "marketing": "Marketing",
-        "shipping": "Shipping",
-        "club_settings": "Club Settings",
-        "zones": "Zones and Terminals",
-        "sales_channels": "Sales Channels"
     },
     "login": {
         "title": "Log in or sign up",

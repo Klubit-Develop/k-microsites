@@ -1,37 +1,32 @@
 {
     "common": {
-        "error_connection": "Error de conexión. Inténtalo de nuevo"
+        "error_connection": "Error de conexión. Inténtalo de nuevo",
+        "retry": "Reintentar"
+    },
+    "club": {
+        "phone": "Teléfono",
+        "email": "Email",
+        "like": "Like",
+        "likes": "Likes",
+        "favorite_error": "Error al actualizar favorito"
+    },
+    "header": {
+        "my_wallet": "Mi wallet",
+        "access_account": "Acceder a tu cuenta"
+    },
+    "footer": {
+        "legal_notice": "Aviso legal",
+        "terms_conditions": "Términos y condiciones",
+        "cookie_policy": "Política de Cookies",
+        "privacy_policy": "Política de Privacidad",
+        "copyright": "© {{year}} Klubit",
+        "download_app": "Descarga la app",
+        "download_app_description": "Descubre todas las ventajas y beneficios de Klubit."
     },
     "auth_success": {
         "authenticating": "Verificando autenticación",
         "login_success": "Inicio de sesión exitoso. Redirigiendo",
         "authentication_error": "Error de autenticación. Redirigiendo al inicio"
-    },
-    "menu": {
-        "ia": "Asistente IA",
-        "dashboard": "Panel de Control",
-        "calendar": "Calendario",
-        "events": "Eventos",
-        "rates": "Tarifas",
-        "products": "Productos",
-        "challenges_and_promotions": "Retos y Promociones",
-        "client_kards": "Tarjetas de Cliente",
-        "users_and_permissions": "Usuarios y Permisos",
-        "rrpp": "Relaciones Públicas",
-        "crm": "CRM",
-        "accounting": "Contabilidad",
-        "settings": "Configuración",
-        "templates": "Plantillas",
-        "collaborators": "Colaboradores",
-        "organization": "Organigrama",
-        "kard": "Tarjeta",
-        "configuration_kpi": "Configuración KPI",
-        "clients": "Clientes",
-        "marketing": "Marketing",
-        "shipping": "Envíos",
-        "club_settings": "Configuración del Club",
-        "zones": "Zonas y Terminales",
-        "sales_channels": "Canales de Venta"
     },
     "login": {
         "title": "Inicia sesión o regístrate ",

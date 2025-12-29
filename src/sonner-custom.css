@@ -12,13 +12,13 @@
 }
 
 [data-sonner-toast][data-type="success"] [data-title] {
-    color: #ECF0F5 !important;
+    color: #F6F6F6 !important;
     font-weight: 500 !important;
     font-size: 14px !important;
 }
 
 [data-sonner-toast][data-type="success"] [data-description] {
-    color: #ECF0F5 !important;
+    color: #F6F6F6 !important;
     opacity: 0.9;
     font-size: 13px !important;
 }
@@ -34,13 +34,13 @@
 }
 
 [data-sonner-toast][data-type="error"] [data-title] {
-    color: #ECF0F5 !important;
+    color: #F6F6F6 !important;
     font-weight: 500 !important;
     font-size: 14px !important;
 }
 
 [data-sonner-toast][data-type="error"] [data-description] {
-    color: #ECF0F5 !important;
+    color: #F6F6F6 !important;
     opacity: 0.9;
     font-size: 13px !important;
 }
@@ -56,13 +56,13 @@
 }
 
 [data-sonner-toast][data-type="warning"] [data-title] {
-    color: #ECF0F5 !important;
+    color: #F6F6F6 !important;
     font-weight: 500 !important;
     font-size: 14px !important;
 }
 
 [data-sonner-toast][data-type="warning"] [data-description] {
-    color: #ECF0F5 !important;
+    color: #F6F6F6 !important;
     opacity: 0.9;
     font-size: 13px !important;
 }
@@ -78,13 +78,13 @@
 }
 
 [data-sonner-toast][data-type="info"] [data-title] {
-    color: #ECF0F5 !important;
+    color: #F6F6F6 !important;
     font-weight: 500 !important;
     font-size: 14px !important;
 }
 
 [data-sonner-toast][data-type="info"] [data-description] {
-    color: #ECF0F5 !important;
+    color: #F6F6F6 !important;
     opacity: 0.9;
     font-size: 13px !important;
 }
@@ -97,7 +97,7 @@
 [data-sonner-toast] [data-close-button] {
     background-color: rgba(236, 240, 245, 0.1) !important;
     border: none !important;
-    color: #ECF0F5 !important;
+    color: #F6F6F6 !important;
     border-radius: 6px !important;
     transition: background-color 0.2s !important;
 }
@@ -113,13 +113,13 @@
 }
 
 [data-sonner-toast][data-type="loading"] [data-title] {
-    color: #ECF0F5 !important;
+    color: #F6F6F6 !important;
     font-weight: 500 !important;
     font-size: 14px !important;
 }
 
 [data-sonner-toast][data-type="loading"] [data-description] {
-    color: #ECF0F5 !important;
+    color: #F6F6F6 !important;
     opacity: 0.9;
     font-size: 13px !important;
 }
@@ -127,7 +127,7 @@
 /* Action button */
 [data-sonner-toast] [data-button] {
     background-color: #ff336d !important;
-    color: #ECF0F5 !important;
+    color: #F6F6F6 !important;
     border-radius: 6px !important;
     padding: 8px 16px !important;
     font-weight: 500 !important;
@@ -143,7 +143,7 @@
 /* Cancel button */
 [data-sonner-toast] [data-cancel] {
     background-color: rgba(236, 240, 245, 0.1) !important;
-    color: #ECF0F5 !important;
+    color: #F6F6F6 !important;
     border-radius: 6px !important;
     padding: 8px 16px !important;
     font-weight: 500 !important;

@@ -20,6 +20,8 @@ import BellIcons from './BellIcons';
 
 import GoogleIcon from './GoogleIcon';
 import AppleIcon from './AppleIcon';
+import DislikeIcon from './DislikeIcon';
+import ChevronRightIcon from './ChevronRightIcon';
 
 import KlaudiaMenuIcon from './KlaudiaMenuIcon';
 import DashboardMenuIcon from './DashboardMenuIcon';
@@ -36,9 +38,8 @@ import AccountingMenuIcon from './AccountingMenuIcon';
 import SettingMenuIcon from './SettingMenuIcon';
 
 export {
-    AppleIcon,
+
     MailIcon,
-    GoogleIcon,
     LogoIcon,
     LogoMinIcon,
     LogoCutIcon,
@@ -63,7 +64,7 @@ export {
     ClientKardIcon,
     ArrowLeftIcon,
     BellIcons,
-    
+
     KlaudiaMenuIcon,
     DashboardMenuIcon,
     CalendarMenuIcon,
@@ -76,5 +77,10 @@ export {
     RRPPMenuIcon,
     CRMMenuIcon,
     AccountingMenuIcon,
-    SettingMenuIcon
+    SettingMenuIcon,
+
+    AppleIcon,
+    GoogleIcon,
+    DislikeIcon,
+    ChevronRightIcon,
 };

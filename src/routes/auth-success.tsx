@@ -45,8 +45,6 @@ const AuthSuccessComponent = () => {
 
     const { status, provider, email, user, profile, token } = searchParams;
 
-    console.log('OAuth Response:', searchParams);
-
     useEffect(() => {
         const authenticateUser = async () => {
             try {
