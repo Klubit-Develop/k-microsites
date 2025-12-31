@@ -9,6 +9,7 @@ interface Step {
 interface EventStepperProps {
     currentStep: number;
     steps?: Step[];
+    onStepClick?: (step: number) => void;
     isLoading?: boolean;
     className?: string;
 }
@@ -21,10 +22,17 @@ const defaultSteps: Step[] = [
 const EventStepper = ({
     currentStep,
     steps = defaultSteps,
+    onStepClick,
     isLoading = false,
     className = '',
 }: EventStepperProps) => {
     const { t } = useTranslation();
+
+    const handleStepClick = (stepNumber: number) => {
+        if (onStepClick && stepNumber <= currentStep) {
+            onStepClick(stepNumber);
+        }
+    };
 
     if (isLoading) {
         return (
@@ -50,15 +58,29 @@ const EventStepper = ({
                 const stepNumber = index + 1;
                 const isActive = stepNumber <= currentStep;
                 const isCompleted = stepNumber < currentStep;
+                const isClickable = onStepClick && stepNumber <= currentStep;
 
                 return (
                     <div key={step.key} className="contents">
-                        <div className="flex items-center gap-[7px] px-6">
-                            <div 
+                        <button
+                            type="button"
+                            onClick={() => handleStepClick(stepNumber)}
+                            disabled={!isClickable}
+                            className={`
+                                flex items-center gap-[7px] px-6
+                                bg-transparent border-none outline-none
+                                ${isClickable
+                                    ? 'cursor-pointer hover:opacity-80 transition-opacity'
+                                    : 'cursor-default'
+                                }
+                            `}
+                        >
+                            <div
                                 className={`
                                     flex items-center justify-center w-[23px] h-[23px] border rounded-full
-                                    ${isActive 
-                                        ? 'bg-[#e5ff88] border-[#e5ff88]' 
+                                    transition-colors
+                                    ${isActive
+                                        ? 'bg-[#e5ff88] border-[#e5ff88]'
                                         : 'bg-[#939393] border-[#939393]'
                                     }
                                 `}
@@ -67,17 +89,22 @@ const EventStepper = ({
                                     {isCompleted ? '✓' : stepNumber}
                                 </span>
                             </div>
-                            <span 
+                            <span
                                 className={`
-                                    text-[14px] font-normal font-helvetica
+                                    text-[14px] font-normal font-helvetica transition-colors
                                     ${isActive ? 'text-[#e5ff88]' : 'text-[#939393]'}
                                 `}
                             >
                                 {t(step.labelKey, step.defaultLabel)}
                             </span>
-                        </div>
+                        </button>
                         {index < steps.length - 1 && (
-                            <div className="flex-1 h-px bg-[#939393]" />
+                            <div
+                                className={`
+                                    flex-1 h-px transition-colors
+                                    ${isCompleted ? 'bg-[#e5ff88]' : 'bg-[#939393]'}
+                                `}
+                            />
                         )}
                     </div>
                 );
