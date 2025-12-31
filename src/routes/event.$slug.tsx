@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { z } from 'zod';
-import EventPage from '@/pages/EventPage';
+import EventPage from '@/pages/Event';
 
 const eventSearchSchema = z.object({
     step: z.coerce.number().int().min(1).max(10).optional().catch(undefined),

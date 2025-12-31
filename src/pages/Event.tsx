@@ -27,6 +27,7 @@ interface Artist {
     firstName: string;
     lastName: string;
     avatar: string;
+    slug: string;
 }
 
 interface Vibe {
@@ -206,7 +207,7 @@ const serializeQuantitiesToUrl = (quantities: Record<string, number>): string | 
     return pairs.length > 0 ? pairs.join(',') : undefined;
 };
 
-const EventPage = () => {
+const Event = () => {
     const { slug } = useParams({ strict: false });
     const { i18n, t } = useTranslation();
     const { token } = useAuthStore();
@@ -624,4 +625,4 @@ const EventPage = () => {
     );
 };
 
-export default EventPage;
+export default Event;

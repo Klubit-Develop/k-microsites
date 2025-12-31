@@ -19,7 +19,9 @@ import { Route as AuthSuccessRouteImport } from './routes/auth-success'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as RrrppSlugRouteImport } from './routes/rrrpp.$slug'
 import { Route as EventSlugRouteImport } from './routes/event.$slug'
+import { Route as ArtistSlugRouteImport } from './routes/artist.$slug'
 import { Route as AuthenticatedWalletRouteImport } from './routes/_authenticated/wallet'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 
@@ -72,9 +74,19 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RrrppSlugRoute = RrrppSlugRouteImport.update({
+  id: '/rrrpp/$slug',
+  path: '/rrrpp/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EventSlugRoute = EventSlugRouteImport.update({
   id: '/event/$slug',
   path: '/event/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ArtistSlugRoute = ArtistSlugRouteImport.update({
+  id: '/artist/$slug',
+  path: '/artist/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedWalletRoute = AuthenticatedWalletRouteImport.update({
@@ -100,7 +112,9 @@ export interface FileRoutesByFullPath {
   '/verify': typeof VerifyRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/wallet': typeof AuthenticatedWalletRoute
+  '/artist/$slug': typeof ArtistSlugRoute
   '/event/$slug': typeof EventSlugRoute
+  '/rrrpp/$slug': typeof RrrppSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -114,7 +128,9 @@ export interface FileRoutesByTo {
   '/verify': typeof VerifyRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/wallet': typeof AuthenticatedWalletRoute
+  '/artist/$slug': typeof ArtistSlugRoute
   '/event/$slug': typeof EventSlugRoute
+  '/rrrpp/$slug': typeof RrrppSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -130,7 +146,9 @@ export interface FileRoutesById {
   '/verify': typeof VerifyRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/wallet': typeof AuthenticatedWalletRoute
+  '/artist/$slug': typeof ArtistSlugRoute
   '/event/$slug': typeof EventSlugRoute
+  '/rrrpp/$slug': typeof RrrppSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -146,7 +164,9 @@ export interface FileRouteTypes {
     | '/verify'
     | '/profile'
     | '/wallet'
+    | '/artist/$slug'
     | '/event/$slug'
+    | '/rrrpp/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -160,7 +180,9 @@ export interface FileRouteTypes {
     | '/verify'
     | '/profile'
     | '/wallet'
+    | '/artist/$slug'
     | '/event/$slug'
+    | '/rrrpp/$slug'
   id:
     | '__root__'
     | '/'
@@ -175,7 +197,9 @@ export interface FileRouteTypes {
     | '/verify'
     | '/_authenticated/profile'
     | '/_authenticated/wallet'
+    | '/artist/$slug'
     | '/event/$slug'
+    | '/rrrpp/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -189,7 +213,9 @@ export interface RootRouteChildren {
   OauthRoute: typeof OauthRoute
   RegisterRoute: typeof RegisterRoute
   VerifyRoute: typeof VerifyRoute
+  ArtistSlugRoute: typeof ArtistSlugRoute
   EventSlugRoute: typeof EventSlugRoute
+  RrrppSlugRoute: typeof RrrppSlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -264,11 +290,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/rrrpp/$slug': {
+      id: '/rrrpp/$slug'
+      path: '/rrrpp/$slug'
+      fullPath: '/rrrpp/$slug'
+      preLoaderRoute: typeof RrrppSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/event/$slug': {
       id: '/event/$slug'
       path: '/event/$slug'
       fullPath: '/event/$slug'
       preLoaderRoute: typeof EventSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/artist/$slug': {
+      id: '/artist/$slug'
+      path: '/artist/$slug'
+      fullPath: '/artist/$slug'
+      preLoaderRoute: typeof ArtistSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/wallet': {
@@ -313,7 +353,9 @@ const rootRouteChildren: RootRouteChildren = {
   OauthRoute: OauthRoute,
   RegisterRoute: RegisterRoute,
   VerifyRoute: VerifyRoute,
+  ArtistSlugRoute: ArtistSlugRoute,
   EventSlugRoute: EventSlugRoute,
+  RrrppSlugRoute: RrrppSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

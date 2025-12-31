@@ -1,23 +1,38 @@
+import { useNavigate } from '@tanstack/react-router';
+
 interface Artist {
     id: string;
     artisticName: string;
     firstName: string;
     lastName: string;
     avatar: string;
+    slug?: string;
     role?: string;
 }
 
 interface ArtistCardProps {
     artist: Artist;
     isLoading?: boolean;
+    onClick?: () => void;
     className?: string;
 }
 
 const ArtistCard = ({
     artist,
     isLoading = false,
+    onClick,
     className = '',
 }: ArtistCardProps) => {
+    const navigate = useNavigate();
+
+    const handleClick = () => {
+        if (onClick) {
+            onClick();
+        } else if (artist.slug) {
+            navigate({ to: `/artist/${artist.slug}` });
+        }
+    };
+
     if (isLoading) {
         return (
             <div className={`flex gap-[12px] items-center p-[12px] bg-[#141414] border-2 border-[#232323] rounded-2xl shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)] w-full animate-pulse ${className}`}>
@@ -30,8 +45,17 @@ const ArtistCard = ({
         );
     }
 
+    const isClickable = !!onClick || !!artist.slug;
+
     return (
-        <div className={`flex gap-[12px] items-center p-[12px] bg-[#141414] border-2 border-[#232323] rounded-2xl shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)] w-full ${className}`}>
+        <div
+            onClick={isClickable ? handleClick : undefined}
+            className={`
+                flex gap-[12px] items-center p-[12px] bg-[#141414] border-2 border-[#232323] rounded-2xl shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)] w-full
+                ${isClickable ? 'cursor-pointer transition-colors hover:bg-[#1a1a1a]' : ''}
+                ${className}
+            `}
+        >
             <div className="relative w-[54px] h-[54px] shrink-0">
                 <img
                     src={artist.avatar || '/placeholder-avatar.jpg'}
