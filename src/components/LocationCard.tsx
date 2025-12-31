@@ -101,10 +101,10 @@ const darkMapStyles = [
 ];
 
 export const LocationCard: React.FC<LocationCardProps> = ({
-  title = 'Ubicación',
+  title,
   address,
   coordinates,
-  legalText = 'Leer los términos legales del klub',
+  legalText,
   onLegalClick,
   className = '',
 }) => {
@@ -200,7 +200,7 @@ export const LocationCard: React.FC<LocationCardProps> = ({
         <button
           onClick={onLegalClick}
           className="
-            text-[#939393] text-[12px] font-medium leading-[100%]
+            text-[#939393] text-[14px] font-normal leading-[100%]
             flex-1 text-left
             hover:text-[#b0b0b0] transition-colors
             cursor-pointer bg-transparent border-none p-0

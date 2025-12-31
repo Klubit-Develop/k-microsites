@@ -10,6 +10,10 @@
         "likes": "Likes",
         "favorite_error": "Error al actualizar favorito"
     },
+    "events": {
+        "today": "Hoy",
+        "upcoming": "Próximos eventos"
+    },
     "header": {
         "my_wallet": "Mi wallet",
         "access_account": "Acceder a tu cuenta"
@@ -161,5 +165,28 @@
         "forgot_password": "Recuperar cuenta",
         "termsText": "Al continuar, aceptas nuestros",
         "termsLink": "términos y condiciones"
+    },
+    "event": {
+        "stepper": {
+            "rates": "Tarifas",
+            "payment": "Pago"
+        },
+        "tabs": {
+            "tickets": "Entradas",
+            "guestlists": "Guestlists",
+            "reservations": "Reservados",
+            "products": "Productos",
+            "promotions": "Promociones"
+        },
+        "about": "Sobre el evento",
+        "read_more": "Leer más",
+        "read_less": "Leer menos",
+        "artists": "Artistas",
+        "organizer": "Organizador",
+        "location": "Ubicación",
+        "read_terms": "Leer los términos legales del klub",
+        "more_info": "Más información",
+        "continue": "Continuar",
+        "legal_text": "Comprando esta entrada, abrirás una cuenta y aceptarás nuestras Condiciones de Uso generales, la Política de Privacidad y las Condiciones de Compra de entradas. Procesamos tus datos personales de acuerdo con nuestra Política de Privacidad."
     }
 }

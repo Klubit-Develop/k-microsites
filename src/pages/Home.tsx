@@ -1,7 +1,9 @@
 import { toast } from 'sonner';
+import dayjs from 'dayjs';
+import 'dayjs/locale/es';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useNavigate } from '@tanstack/react-router';
+import { useSearch, useNavigate } from '@tanstack/react-router';
 
 import axiosInstance from '@/config/axiosConfig';
 import { useAuthStore } from '@/stores/authStore';
@@ -11,8 +13,9 @@ import PhotoCarousel from '@/components/PhotoCarousel';
 import ContactButtons from '@/components/ContactButtons';
 import LocationCard from '@/components/LocationCard';
 import PageError from '@/components/common/PageError';
-import EventCardHz from '@/components/EventCardHz';
 import EventSection from '@/components/EventSection';
+import EventCardHz from '@/components/EventCardHz';
+import UpcomingEventsPanel from '@/components/UpcomingEventsPanel';
 
 interface Club {
     id: string;
@@ -27,10 +30,35 @@ interface Club {
     email: string;
 }
 
+interface Event {
+    id: string;
+    name: string;
+    slug: string;
+    flyer: string;
+    startDate: string;
+    startTime: string;
+    endTime: string;
+    club: {
+        id: string;
+        name: string;
+    };
+}
+
 interface ClubResponse {
     status: 'success' | 'error';
     code: string;
     data: { club: Club };
+    message: string;
+    details: string;
+}
+
+interface EventsResponse {
+    status: 'success' | 'error';
+    code: string;
+    data: {
+        data: Event[];
+        meta: { total: number };
+    };
     message: string;
     details: string;
 }
@@ -74,12 +102,15 @@ const DAY_MAP: Record<string, { es: string; en: string; order: number }> = {
 };
 
 const Home = () => {
-    const navigate = useNavigate();
     const { i18n, t } = useTranslation();
     const { token } = useAuthStore();
     const queryClient = useQueryClient();
+    const navigate = useNavigate();
+    const { view } = useSearch({ strict: false }) as { view?: string };
 
     const isAuthenticated = !!token;
+    const locale = i18n.language === 'en' ? 'en' : 'es';
+    const showUpcomingEvents = view === 'events';
 
     const clubQuery = useQuery({
         queryKey: ['club', 'localhost'],
@@ -90,6 +121,8 @@ const Home = () => {
             );
             return response.data.data.club;
         },
+        staleTime: 1000 * 60 * 5,
+        refetchOnWindowFocus: false,
     });
 
     const clubId = clubQuery.data?.id;
@@ -103,6 +136,8 @@ const Home = () => {
             return response.data.data.count;
         },
         enabled: !!clubId,
+        staleTime: 1000 * 60 * 5,
+        refetchOnWindowFocus: false,
     });
 
     const userFavoriteQuery = useQuery({
@@ -114,6 +149,41 @@ const Home = () => {
             return response.data.data.favorites.data.length > 0;
         },
         enabled: !!clubId && isAuthenticated,
+        staleTime: 1000 * 60 * 5,
+        refetchOnWindowFocus: false,
+    });
+
+    const todayEventsQuery = useQuery({
+        queryKey: ['events', 'today', clubId],
+        queryFn: async (): Promise<Event[]> => {
+            const startOfDay = dayjs().startOf('day').toISOString();
+            const endOfDay = dayjs().endOf('day').toISOString();
+
+            const fields = 'id,name,slug,flyer,startDate,startTime,endTime,club';
+            const response = await axiosInstance.get<EventsResponse>(
+                `/v2/events/club/${clubId}?startDateFrom=${startOfDay}&startDateTo=${endOfDay}&fields=${fields}`
+            );
+            return response.data.data.data;
+        },
+        enabled: !!clubId,
+        staleTime: 1000 * 60 * 5,
+        refetchOnWindowFocus: false,
+    });
+
+    const upcomingEventsQuery = useQuery({
+        queryKey: ['events', 'upcoming', clubId],
+        queryFn: async (): Promise<Event[]> => {
+            const startOfTomorrow = dayjs().add(1, 'day').startOf('day').toISOString();
+
+            const fields = 'id,name,slug,flyer,startDate,startTime,endTime,club';
+            const response = await axiosInstance.get<EventsResponse>(
+                `/v2/events/club/${clubId}?startDateFrom=${startOfTomorrow}&fields=${fields}`
+            );
+            return response.data.data.data;
+        },
+        enabled: !!clubId,
+        staleTime: 1000 * 60 * 5,
+        refetchOnWindowFocus: false,
     });
 
     const toggleFavoriteMutation = useMutation({
@@ -162,6 +232,15 @@ const Home = () => {
         return `${openingTime} - ${closingTime}`;
     };
 
+    const formatEventDate = (dateString: string): string => {
+        return dayjs(dateString).locale(locale).format('ddd, D MMMM');
+    };
+
+    const formatEventTime = (startTime: string, endTime: string): string => {
+        if (!startTime || !endTime) return '';
+        return `${startTime} - ${endTime}`;
+    };
+
     const handleLike = () => {
         if (!clubId) return;
         toggleFavoriteMutation.mutate(clubId);
@@ -179,6 +258,14 @@ const Home = () => {
         }
     };
 
+    const handleEventClick = (slug: string) => {
+        navigate({ to: '/event/$slug', params: { slug } });
+    };
+
+    const handleUpcomingEventsClick = () => {
+        navigate({ to: '.', search: { view: 'events' } });
+    };
+
     if (clubQuery.isError) {
         return <PageError />;
     }
@@ -187,6 +274,8 @@ const Home = () => {
     const isLikesLoading = favoritesCountQuery.isLoading || (isAuthenticated && userFavoriteQuery.isLoading);
     const likesCount = favoritesCountQuery.data ?? 0;
     const isLiked = userFavoriteQuery.data ?? false;
+    const todayEvents = todayEventsQuery.data ?? [];
+    const upcomingEvents = upcomingEventsQuery.data ?? [];
 
     return (
         <div className="flex gap-8 px-34 my-10">
@@ -207,7 +296,7 @@ const Home = () => {
                         isLikeDisabled={toggleFavoriteMutation.isPending}
                     />
 
-                    {club && club.images && club.images.length > 0 && (
+                    {club?.images && club.images.length > 0 && (
                         <PhotoCarousel
                             photos={club.images.map((url, index) => ({
                                 id: `photo-${index}`,
@@ -234,40 +323,50 @@ const Home = () => {
                 />
             </div>
 
-            <div className="flex-1 flex flex-col gap-6 px-4 py-6">
+            <div className="flex-1 flex flex-col gap-9 px-4 py-6">
+                {showUpcomingEvents ? (
+                    <UpcomingEventsPanel
+                        clubId={clubId || ''}
+                        onEventClick={handleEventClick}
+                    />
+                ) : (
+                    <>
+                        {todayEvents.length > 0 && (
+                            <EventSection title={t('events.today')}>
+                                {todayEvents.map((event) => (
+                                    <EventCardHz
+                                        key={event.id}
+                                        title={event.name}
+                                        date={formatEventDate(event.startDate)}
+                                        time={formatEventTime(event.startTime, event.endTime)}
+                                        location={event.club?.name || ''}
+                                        imageUrl={event.flyer}
+                                        onClick={() => handleEventClick(event.slug)}
+                                    />
+                                ))}
+                            </EventSection>
+                        )}
 
-                <div className="flex-1 flex flex-col gap-6 px-4 py-6">
-                    <EventSection title="Hoy">
-                        <EventCardHz
-                            title="Padana XXL"
-                            date="jue, 25 noviembre"
-                            time="00:00 - 06:00"
-                            location="Sala Fortuny"
-                            imageUrl="https://example.com/event-image.jpg"
-                            onClick={() => console.log('Event clicked')}
-                        />
-                    </EventSection>
-
-                    <EventSection
-                        title="Próximos eventos"
-                        onHeaderClick={() => navigate({ to: '/events' })}
-                    >
-                        <EventCardHz
-                            title="Otro Evento"
-                            date="sáb, 27 noviembre"
-                            time="23:00 - 05:00"
-                            location="Sala Principal"
-                            imageUrl="https://example.com/event2.jpg"
-                        />
-                        <EventCardHz
-                            title="Evento 3"
-                            date="dom, 28 noviembre"
-                            time="22:00 - 04:00"
-                            location="Terraza"
-                            imageUrl="https://example.com/event3.jpg"
-                        />
-                    </EventSection>
-                </div>
+                        {upcomingEvents.length > 0 && (
+                            <EventSection
+                                title={t('events.upcoming')}
+                                onHeaderClick={handleUpcomingEventsClick}
+                            >
+                                {upcomingEvents.map((event) => (
+                                    <EventCardHz
+                                        key={event.id}
+                                        title={event.name}
+                                        date={formatEventDate(event.startDate)}
+                                        time={formatEventTime(event.startTime, event.endTime)}
+                                        location={event.club?.name || ''}
+                                        imageUrl={event.flyer}
+                                        onClick={() => handleEventClick(event.slug)}
+                                    />
+                                ))}
+                            </EventSection>
+                        )}
+                    </>
+                )}
             </div>
         </div>
     );

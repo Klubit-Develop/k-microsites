@@ -22,6 +22,7 @@ import GoogleIcon from './GoogleIcon';
 import AppleIcon from './AppleIcon';
 import DislikeIcon from './DislikeIcon';
 import ChevronRightIcon from './ChevronRightIcon';
+import ChevronLeftIcon from './ChevronLeftIcon';
 
 import KlaudiaMenuIcon from './KlaudiaMenuIcon';
 import DashboardMenuIcon from './DashboardMenuIcon';
@@ -83,4 +84,5 @@ export {
     GoogleIcon,
     DislikeIcon,
     ChevronRightIcon,
+    ChevronLeftIcon,
 };

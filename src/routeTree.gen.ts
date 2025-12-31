@@ -15,11 +15,11 @@ import { Route as OauthRouteImport } from './routes/oauth'
 import { Route as IncidentRouteImport } from './routes/incident'
 import { Route as ForgotChangeRouteImport } from './routes/forgot-change'
 import { Route as ForgotRouteImport } from './routes/forgot'
-import { Route as EventsRouteImport } from './routes/events'
 import { Route as AuthSuccessRouteImport } from './routes/auth-success'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as EventSlugRouteImport } from './routes/event.$slug'
 import { Route as AuthenticatedWalletRouteImport } from './routes/_authenticated/wallet'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 
@@ -53,11 +53,6 @@ const ForgotRoute = ForgotRouteImport.update({
   path: '/forgot',
   getParentRoute: () => rootRouteImport,
 } as any)
-const EventsRoute = EventsRouteImport.update({
-  id: '/events',
-  path: '/events',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AuthSuccessRoute = AuthSuccessRouteImport.update({
   id: '/auth-success',
   path: '/auth-success',
@@ -77,6 +72,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EventSlugRoute = EventSlugRouteImport.update({
+  id: '/event/$slug',
+  path: '/event/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedWalletRoute = AuthenticatedWalletRouteImport.update({
   id: '/wallet',
   path: '/wallet',
@@ -92,7 +92,6 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/auth-success': typeof AuthSuccessRoute
-  '/events': typeof EventsRoute
   '/forgot': typeof ForgotRoute
   '/forgot-change': typeof ForgotChangeRoute
   '/incident': typeof IncidentRoute
@@ -101,12 +100,12 @@ export interface FileRoutesByFullPath {
   '/verify': typeof VerifyRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/wallet': typeof AuthenticatedWalletRoute
+  '/event/$slug': typeof EventSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/auth-success': typeof AuthSuccessRoute
-  '/events': typeof EventsRoute
   '/forgot': typeof ForgotRoute
   '/forgot-change': typeof ForgotChangeRoute
   '/incident': typeof IncidentRoute
@@ -115,6 +114,7 @@ export interface FileRoutesByTo {
   '/verify': typeof VerifyRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/wallet': typeof AuthenticatedWalletRoute
+  '/event/$slug': typeof EventSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -122,7 +122,6 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/auth': typeof AuthRoute
   '/auth-success': typeof AuthSuccessRoute
-  '/events': typeof EventsRoute
   '/forgot': typeof ForgotRoute
   '/forgot-change': typeof ForgotChangeRoute
   '/incident': typeof IncidentRoute
@@ -131,6 +130,7 @@ export interface FileRoutesById {
   '/verify': typeof VerifyRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/wallet': typeof AuthenticatedWalletRoute
+  '/event/$slug': typeof EventSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -138,7 +138,6 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/auth-success'
-    | '/events'
     | '/forgot'
     | '/forgot-change'
     | '/incident'
@@ -147,12 +146,12 @@ export interface FileRouteTypes {
     | '/verify'
     | '/profile'
     | '/wallet'
+    | '/event/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
     | '/auth-success'
-    | '/events'
     | '/forgot'
     | '/forgot-change'
     | '/incident'
@@ -161,13 +160,13 @@ export interface FileRouteTypes {
     | '/verify'
     | '/profile'
     | '/wallet'
+    | '/event/$slug'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
     | '/auth-success'
-    | '/events'
     | '/forgot'
     | '/forgot-change'
     | '/incident'
@@ -176,6 +175,7 @@ export interface FileRouteTypes {
     | '/verify'
     | '/_authenticated/profile'
     | '/_authenticated/wallet'
+    | '/event/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -183,13 +183,13 @@ export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   AuthRoute: typeof AuthRoute
   AuthSuccessRoute: typeof AuthSuccessRoute
-  EventsRoute: typeof EventsRoute
   ForgotRoute: typeof ForgotRoute
   ForgotChangeRoute: typeof ForgotChangeRoute
   IncidentRoute: typeof IncidentRoute
   OauthRoute: typeof OauthRoute
   RegisterRoute: typeof RegisterRoute
   VerifyRoute: typeof VerifyRoute
+  EventSlugRoute: typeof EventSlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -236,13 +236,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ForgotRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/events': {
-      id: '/events'
-      path: '/events'
-      fullPath: '/events'
-      preLoaderRoute: typeof EventsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/auth-success': {
       id: '/auth-success'
       path: '/auth-success'
@@ -269,6 +262,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/event/$slug': {
+      id: '/event/$slug'
+      path: '/event/$slug'
+      fullPath: '/event/$slug'
+      preLoaderRoute: typeof EventSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/wallet': {
@@ -307,13 +307,13 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   AuthRoute: AuthRoute,
   AuthSuccessRoute: AuthSuccessRoute,
-  EventsRoute: EventsRoute,
   ForgotRoute: ForgotRoute,
   ForgotChangeRoute: ForgotChangeRoute,
   IncidentRoute: IncidentRoute,
   OauthRoute: OauthRoute,
   RegisterRoute: RegisterRoute,
   VerifyRoute: VerifyRoute,
+  EventSlugRoute: EventSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
