@@ -32,8 +32,13 @@ axiosInstance.interceptors.response.use(
     },
     (error) => {
         if (error.response?.status === 401) {
-            useAuthStore.getState().logout();
-            window.location.href = '/';
+            const { token, logout } = useAuthStore.getState();
+            
+            // Solo limpiar sesión si HABÍA un token (token expirado)
+            // No redirigir - la app es mayormente pública
+            if (token) {
+                logout();
+            }
         }
         
         // Info del backend para fácil acceso en catch blocks

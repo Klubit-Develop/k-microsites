@@ -128,6 +128,7 @@ const Home = () => {
         refetchOnWindowFocus: false,
         refetchOnMount: false,
         refetchOnReconnect: false,
+        retry: false,
     });
 
     const clubId = clubQuery.data?.id;
@@ -144,6 +145,7 @@ const Home = () => {
         staleTime: 1000 * 60 * 5,
         refetchOnWindowFocus: false,
         refetchOnMount: false,
+        retry: false,
     });
 
     const userFavoriteQuery = useQuery({
@@ -154,10 +156,11 @@ const Home = () => {
             );
             return response.data.data.favorites.data.length > 0;
         },
-        enabled: !!clubId && isAuthenticated,
+        enabled: !!clubId && isAuthenticated, // Solo si está logueado
         staleTime: 1000 * 60 * 5,
         refetchOnWindowFocus: false,
         refetchOnMount: false,
+        retry: false,
     });
 
     const todayEventsQuery = useQuery({
@@ -176,6 +179,7 @@ const Home = () => {
         staleTime: 1000 * 60 * 5,
         refetchOnWindowFocus: false,
         refetchOnMount: false,
+        retry: false,
     });
 
     const upcomingEventsQuery = useQuery({
@@ -193,6 +197,7 @@ const Home = () => {
         staleTime: 1000 * 60 * 5,
         refetchOnWindowFocus: false,
         refetchOnMount: false,
+        retry: false,
     });
 
     const toggleFavoriteMutation = useMutation({
