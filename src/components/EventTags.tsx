@@ -27,7 +27,7 @@ const EventTags = ({
     }
 
     return (
-        <div className={`flex flex-wrap gap-[8px] items-center justify-center w-full mt-8 ${className}`}>
+        <div className={`flex flex-wrap gap-[8px] items-center justify-center w-full mt-2 ${className}`}>
             {tags.map((tag, index) => (
                 <div
                     key={index}

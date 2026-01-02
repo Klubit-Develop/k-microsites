@@ -82,7 +82,7 @@ const EventHeader = ({
                     />
 
                     {/* Content */}
-                    <div className="flex flex-col gap-[2px] items-center justify-center w-full px-[24px] py-[4px] shadow-[0px_0px_30px_0px_black]">
+                    <div className="flex flex-col gap-[5px] items-center justify-center w-full px-[10px] py-[5px]">
                         <h1
                             className="text-[#f6f6f6] text-[24px] font-semibold text-center leading-normal"
                             style={{ fontFamily: "'Borna', sans-serif" }}

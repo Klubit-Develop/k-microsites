@@ -1,11 +1,11 @@
 interface RRPPProfileProps {
-    name: string;
+    firstName: string;
+    lastName: string;
     username: string;
-    avatar: string;
+    avatar: string | null;
     isLoading?: boolean;
 }
 
-// RRPP Badge SVG - hexagonal badge with gradient
 const RRPPBadge = () => (
     <svg width="30" height="28" viewBox="0 0 30 28" fill="none" xmlns="http://www.w3.org/2000/svg">
         <defs>
@@ -15,14 +15,12 @@ const RRPPBadge = () => (
                 <stop offset="100%" stopColor="#4a5568" />
             </linearGradient>
         </defs>
-        {/* Hexagon shape */}
         <path
             d="M15 0L28 7V21L15 28L2 21V7L15 0Z"
             fill="url(#rrppBadgeGradient)"
             stroke="#3d4852"
             strokeWidth="1"
         />
-        {/* Star/badge icon in center */}
         <path
             d="M15 6L16.5 11.5H22L17.5 14.5L19 20L15 17L11 20L12.5 14.5L8 11.5H13.5L15 6Z"
             fill="#a0aec0"
@@ -31,12 +29,33 @@ const RRPPBadge = () => (
     </svg>
 );
 
+const InitialsAvatar = ({ firstName, lastName }: { firstName: string; lastName: string }) => {
+    const firstInitial = firstName?.charAt(0) || '';
+    const lastInitial = lastName?.charAt(0) || '';
+    const initials = `${firstInitial}${lastInitial}`.toUpperCase();
+
+    return (
+        <div className="w-full h-full rounded-full border-[3px] border-[#5b6779] shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)] bg-gradient-to-b from-[#2a2a2a] to-[#1a1a1a] flex items-center justify-center">
+            <span
+                className="text-[#f6f6f6] text-[48px] font-semibold select-none"
+                style={{ fontFamily: "'Borna', sans-serif" }}
+            >
+                {initials}
+            </span>
+        </div>
+    );
+};
+
 const RrppProfile = ({
-    name,
+    firstName,
+    lastName,
     username,
     avatar,
     isLoading = false,
 }: RRPPProfileProps) => {
+    const fullName = `${firstName} ${lastName}`;
+    const hasAvatar = avatar && avatar.trim() !== '';
+
     if (isLoading) {
         return (
             <div className="flex flex-col gap-[8px] items-center justify-center px-[24px] py-0 rounded-[10px] w-full">
@@ -58,12 +77,15 @@ const RrppProfile = ({
             {/* Avatar with RRPP badge */}
             <div className="relative px-[6px] w-[152px]">
                 <div className="relative w-[140px] h-[140px] mx-auto">
-                    {/* Avatar image */}
-                    <img
-                        src={avatar || '/placeholder-avatar.jpg'}
-                        alt={name}
-                        className="w-full h-full object-cover rounded-full border-[3px] border-[#5b6779] shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)] opacity-90"
-                    />
+                    {hasAvatar ? (
+                        <img
+                            src={avatar}
+                            alt={fullName}
+                            className="w-full h-full object-cover rounded-full border-[3px] border-[#5b6779] shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)] opacity-90"
+                        />
+                    ) : (
+                        <InitialsAvatar firstName={firstName} lastName={lastName} />
+                    )}
                 </div>
                 {/* RRPP Badge - positioned top right */}
                 <div className="absolute right-[15px] top-[8px] w-[30px] h-[28px] shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)]">
@@ -77,7 +99,7 @@ const RrppProfile = ({
                     className="text-[#f6f6f6] text-[24px] font-semibold text-center w-full leading-normal"
                     style={{ fontFamily: "'Borna', sans-serif" }}
                 >
-                    {name}
+                    {fullName}
                 </h1>
                 <div className="flex gap-[4px] items-center justify-center w-full">
                     <span className="text-[#939393] text-[14px] font-normal font-helvetica truncate">

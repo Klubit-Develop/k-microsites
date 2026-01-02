@@ -73,7 +73,7 @@ interface EventsResponse {
 }
 
 const Rrpp = () => {
-    const { slug } = useParams({ from: '/rrrpp/$slug' });
+    const { slug } = useParams({ from: '/rrpp/$slug' });
     const { i18n, t } = useTranslation();
     const navigate = useNavigate();
 
@@ -112,16 +112,14 @@ const Rrpp = () => {
         }
     }, [rrppClubs, selectedClub]);
 
-    // Today's Events Query
-    // GET /v2/events/rrpp/:rrppId?startDateFrom={startOfToday}&startDateTo={endOfToday}
     const todayEventsQuery = useQuery({
         queryKey: ['rrpp-events-today', userId],
         queryFn: async (): Promise<Event[]> => {
             const startDateFrom = dayjs().startOf('day').toISOString();
             const startDateTo = dayjs().endOf('day').toISOString();
-
+            const fields = 'id,name,slug,flyer,startDate,startTime,endTime,club';
             const response = await axiosInstance.get<EventsResponse>(
-                `/v2/events/rrpp/${userId}?startDateFrom=${startDateFrom}&startDateTo=${startDateTo}`
+                `/v2/events/rrpp/${userId}?startDateFrom=${startDateFrom}&startDateTo=${startDateTo}&fields=${fields}`
             );
             return response.data.data.data;
         },
@@ -130,15 +128,13 @@ const Rrpp = () => {
         refetchOnWindowFocus: false,
     });
 
-    // Upcoming Events Query (from tomorrow onwards)
-    // GET /v2/events/rrpp/:rrppId?startDateFrom={startOfTomorrow}
     const upcomingEventsQuery = useQuery({
         queryKey: ['rrpp-events-upcoming', userId],
         queryFn: async (): Promise<Event[]> => {
             const startDateFrom = dayjs().add(1, 'day').startOf('day').toISOString();
-
+            const fields = 'id,name,slug,flyer,startDate,startTime,endTime,club';
             const response = await axiosInstance.get<EventsResponse>(
-                `/v2/events/rrpp/${userId}?startDateFrom=${startDateFrom}`
+                `/v2/events/rrpp/${userId}?startDateFrom=${startDateFrom}&fields=${fields}`
             );
             return response.data.data.data;
         },
@@ -222,9 +218,10 @@ const Rrpp = () => {
             <div className="flex flex-col gap-[36px] w-full max-w-[500px] px-6">
                 {/* RRPP Profile */}
                 <RRPPProfile
-                    name={user ? `${user.firstName} ${user.lastName}` : ''}
+                    firstName={user?.firstName || ''}
+                    lastName={user?.lastName || ''}
                     username={user?.username ? `@${user.username}` : ''}
-                    avatar={user?.avatar || ''}
+                    avatar={user?.avatar || null}
                     isLoading={isLoading}
                 />
 

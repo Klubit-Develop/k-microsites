@@ -98,16 +98,14 @@ const Artist = () => {
 
     const artistId = artistQuery.data?.id;
 
-    // Today's Events Query
-    // GET /v2/events/artist/:artistId?startDateFrom={startOfToday}&startDateTo={endOfToday}
     const todayEventsQuery = useQuery({
         queryKey: ['artist-events-today', artistId],
         queryFn: async (): Promise<Event[]> => {
             const startDateFrom = dayjs().startOf('day').toISOString();
             const startDateTo = dayjs().endOf('day').toISOString();
-
+            const fields = 'id,name,slug,flyer,startDate,startTime,endTime,club';
             const response = await axiosInstance.get<EventsResponse>(
-                `/v2/events/artist/${artistId}?startDateFrom=${startDateFrom}&startDateTo=${startDateTo}`
+                `/v2/events/artist/${artistId}?startDateFrom=${startDateFrom}&startDateTo=${startDateTo}&fields=${fields}`
             );
             return response.data.data.data;
         },
@@ -116,15 +114,13 @@ const Artist = () => {
         refetchOnWindowFocus: false,
     });
 
-    // Upcoming Events Query (from tomorrow onwards)
-    // GET /v2/events/artist/:artistId?startDateFrom={startOfTomorrow}
     const upcomingEventsQuery = useQuery({
         queryKey: ['artist-events-upcoming', artistId],
         queryFn: async (): Promise<Event[]> => {
             const startDateFrom = dayjs().add(1, 'day').startOf('day').toISOString();
-
+            const fields = 'id,name,slug,flyer,startDate,startTime,endTime,club';
             const response = await axiosInstance.get<EventsResponse>(
-                `/v2/events/artist/${artistId}?startDateFrom=${startDateFrom}`
+                `/v2/events/artist/${artistId}?startDateFrom=${startDateFrom}&fields=${fields}`
             );
             return response.data.data.data;
         },

@@ -543,7 +543,7 @@ const Event = () => {
                 isLoading={isLoading}
             />
 
-            <div className="flex items-start justify-between w-full px-72 gap-8">
+            <div className="flex items-start justify-between w-full px-96 gap-8">
                 <div className="flex flex-col gap-[36px] w-[500px] rounded-[10px]">
                     <EventHeader
                         name={event?.name || ''}

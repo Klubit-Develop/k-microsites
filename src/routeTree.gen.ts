@@ -19,7 +19,7 @@ import { Route as AuthSuccessRouteImport } from './routes/auth-success'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as RrrppSlugRouteImport } from './routes/rrrpp.$slug'
+import { Route as RrppSlugRouteImport } from './routes/rrpp.$slug'
 import { Route as EventSlugRouteImport } from './routes/event.$slug'
 import { Route as ArtistSlugRouteImport } from './routes/artist.$slug'
 import { Route as AuthenticatedWalletRouteImport } from './routes/_authenticated/wallet'
@@ -74,9 +74,9 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const RrrppSlugRoute = RrrppSlugRouteImport.update({
-  id: '/rrrpp/$slug',
-  path: '/rrrpp/$slug',
+const RrppSlugRoute = RrppSlugRouteImport.update({
+  id: '/rrpp/$slug',
+  path: '/rrpp/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EventSlugRoute = EventSlugRouteImport.update({
@@ -114,7 +114,7 @@ export interface FileRoutesByFullPath {
   '/wallet': typeof AuthenticatedWalletRoute
   '/artist/$slug': typeof ArtistSlugRoute
   '/event/$slug': typeof EventSlugRoute
-  '/rrrpp/$slug': typeof RrrppSlugRoute
+  '/rrpp/$slug': typeof RrppSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -130,7 +130,7 @@ export interface FileRoutesByTo {
   '/wallet': typeof AuthenticatedWalletRoute
   '/artist/$slug': typeof ArtistSlugRoute
   '/event/$slug': typeof EventSlugRoute
-  '/rrrpp/$slug': typeof RrrppSlugRoute
+  '/rrpp/$slug': typeof RrppSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -148,7 +148,7 @@ export interface FileRoutesById {
   '/_authenticated/wallet': typeof AuthenticatedWalletRoute
   '/artist/$slug': typeof ArtistSlugRoute
   '/event/$slug': typeof EventSlugRoute
-  '/rrrpp/$slug': typeof RrrppSlugRoute
+  '/rrpp/$slug': typeof RrppSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -166,7 +166,7 @@ export interface FileRouteTypes {
     | '/wallet'
     | '/artist/$slug'
     | '/event/$slug'
-    | '/rrrpp/$slug'
+    | '/rrpp/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -182,7 +182,7 @@ export interface FileRouteTypes {
     | '/wallet'
     | '/artist/$slug'
     | '/event/$slug'
-    | '/rrrpp/$slug'
+    | '/rrpp/$slug'
   id:
     | '__root__'
     | '/'
@@ -199,7 +199,7 @@ export interface FileRouteTypes {
     | '/_authenticated/wallet'
     | '/artist/$slug'
     | '/event/$slug'
-    | '/rrrpp/$slug'
+    | '/rrpp/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -215,7 +215,7 @@ export interface RootRouteChildren {
   VerifyRoute: typeof VerifyRoute
   ArtistSlugRoute: typeof ArtistSlugRoute
   EventSlugRoute: typeof EventSlugRoute
-  RrrppSlugRoute: typeof RrrppSlugRoute
+  RrppSlugRoute: typeof RrppSlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -290,11 +290,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/rrrpp/$slug': {
-      id: '/rrrpp/$slug'
-      path: '/rrrpp/$slug'
-      fullPath: '/rrrpp/$slug'
-      preLoaderRoute: typeof RrrppSlugRouteImport
+    '/rrpp/$slug': {
+      id: '/rrpp/$slug'
+      path: '/rrpp/$slug'
+      fullPath: '/rrpp/$slug'
+      preLoaderRoute: typeof RrppSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/event/$slug': {
@@ -355,7 +355,7 @@ const rootRouteChildren: RootRouteChildren = {
   VerifyRoute: VerifyRoute,
   ArtistSlugRoute: ArtistSlugRoute,
   EventSlugRoute: EventSlugRoute,
-  RrrppSlugRoute: RrrppSlugRoute,
+  RrppSlugRoute: RrppSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
