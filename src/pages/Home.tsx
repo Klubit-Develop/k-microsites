@@ -103,10 +103,12 @@ const DAY_MAP: Record<string, { es: string; en: string; order: number }> = {
 
 const Home = () => {
     const { i18n, t } = useTranslation();
-    const { token } = useAuthStore();
     const queryClient = useQueryClient();
     const navigate = useNavigate();
-    const { view } = useSearch({ strict: false }) as { view?: string };
+    const { view } = useSearch({ from: '/' });
+    
+    // Selector específico para evitar re-renders innecesarios
+    const token = useAuthStore((state) => state.token);
 
     const isAuthenticated = !!token;
     const locale = i18n.language === 'en' ? 'en' : 'es';
@@ -122,7 +124,10 @@ const Home = () => {
             return response.data.data.club;
         },
         staleTime: 1000 * 60 * 5,
+        gcTime: 1000 * 60 * 10,
         refetchOnWindowFocus: false,
+        refetchOnMount: false,
+        refetchOnReconnect: false,
     });
 
     const clubId = clubQuery.data?.id;
@@ -138,6 +143,7 @@ const Home = () => {
         enabled: !!clubId,
         staleTime: 1000 * 60 * 5,
         refetchOnWindowFocus: false,
+        refetchOnMount: false,
     });
 
     const userFavoriteQuery = useQuery({
@@ -151,6 +157,7 @@ const Home = () => {
         enabled: !!clubId && isAuthenticated,
         staleTime: 1000 * 60 * 5,
         refetchOnWindowFocus: false,
+        refetchOnMount: false,
     });
 
     const todayEventsQuery = useQuery({
@@ -168,6 +175,7 @@ const Home = () => {
         enabled: !!clubId,
         staleTime: 1000 * 60 * 5,
         refetchOnWindowFocus: false,
+        refetchOnMount: false,
     });
 
     const upcomingEventsQuery = useQuery({
@@ -184,6 +192,7 @@ const Home = () => {
         enabled: !!clubId,
         staleTime: 1000 * 60 * 5,
         refetchOnWindowFocus: false,
+        refetchOnMount: false,
     });
 
     const toggleFavoriteMutation = useMutation({
@@ -263,7 +272,7 @@ const Home = () => {
     };
 
     const handleUpcomingEventsClick = () => {
-        navigate({ to: '.', search: { view: 'events' } });
+        navigate({ to: '/', search: { view: 'events' } });
     };
 
     if (clubQuery.isError) {

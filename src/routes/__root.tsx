@@ -1,4 +1,4 @@
-import { Outlet, createRootRouteWithContext, redirect } from '@tanstack/react-router'
+import { Outlet, createRootRouteWithContext, redirect, useLocation } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 import { Toaster } from 'sonner'
@@ -17,7 +17,11 @@ interface MyRouterContext {
 const authRoutes = ['/auth', '/login', '/register', '/verify', '/incident', '/forgot', '/forgot-change', '/oauth'];
 
 const RootComponent = () => {
-  const { user } = useAuthStore();
+  // Selector específico para evitar re-renders cuando otras propiedades del store cambian
+  const user = useAuthStore((state) => state.user);
+  const location = useLocation();
+
+  const isAuthRoute = authRoutes.some(route => location.pathname.startsWith(route));
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -46,7 +50,7 @@ const RootComponent = () => {
         }}
       />
 
-      {!authRoutes.includes(location.pathname) && <Header user={user} />}
+      {!isAuthRoute && <Header user={user} />}
       
       <main className="flex flex-1 flex-col">
         <Outlet />
@@ -75,7 +79,9 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
   beforeLoad: async ({ location }) => {
     const { token } = useAuthStore.getState();
 
-    if (token && authRoutes.includes(location.pathname)) {
+    const isAuthRoute = authRoutes.some(route => location.pathname.startsWith(route));
+
+    if (token && isAuthRoute) {
       throw redirect({ to: '/' });
     }
   }
