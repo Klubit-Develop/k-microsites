@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
-interface TicketPrice {
+interface GuestlistPrice {
     id: string;
     name: string;
     netPrice: number;
@@ -12,27 +12,29 @@ interface TicketPrice {
     isSoldOut: boolean;
 }
 
-interface Ticket {
+interface Guestlist {
     id: string;
     name: string;
+    startTime: string;
+    endTime: string;
+    maxPerUser: number;
+    maxPersonsPerGuestlist: number;
     ageRequired: string;
-    termsAndConditions: string;
-    maxPurchasePerUser: number;
-    isNominative: boolean;
+    termsAndConditions: string | null;
     isTransferable: boolean;
     isActive: boolean;
     gendersRequired?: string[];
     accessLevel?: string;
-    prices: TicketPrice[];
+    prices: GuestlistPrice[];
     zones?: Array<{ id: string; name: string }>;
     benefits?: Array<{ id: string; name: string; type?: string }>;
 }
 
-interface TicketCardProps {
-    ticket: Ticket;
+interface GuestlistCardProps {
+    guestlist: Guestlist;
     selectedQuantities: Record<string, number>;
     onQuantityChange: (priceId: string, delta: number) => void;
-    onMoreInfo?: (ticket: Ticket, price: TicketPrice) => void;
+    onMoreInfo?: (guestlist: Guestlist, price: GuestlistPrice) => void;
     isLoading?: boolean;
     className?: string;
 }
@@ -57,15 +59,18 @@ const PlusIcon = () => (
     </svg>
 );
 
-const TicketCard = ({
-    ticket,
+const GuestlistCard = ({
+    guestlist,
     selectedQuantities,
     onQuantityChange,
     onMoreInfo,
     isLoading = false,
     className = '',
-}: TicketCardProps) => {
+}: GuestlistCardProps) => {
     const { t } = useTranslation();
+
+    // Color amarillo para guestlists
+    const GUESTLIST_COLOR = '#ffce1f';
 
     if (isLoading) {
         return (
@@ -115,10 +120,13 @@ const TicketCard = ({
         );
     }
 
-    const hasSelectedQuantity = ticket.prices?.some(
+    const hasSelectedQuantity = guestlist.prices?.some(
         price => (selectedQuantities[price.id] || 0) > 0
     );
     const borderColor = hasSelectedQuantity ? '#e5ff88' : '#232323';
+
+    // Format time range
+    const timeRange = `${guestlist.startTime} - ${guestlist.endTime}`;
 
     return (
         <div
@@ -151,30 +159,40 @@ const TicketCard = ({
             {/* Dashed vertical line */}
             <div className="absolute right-[160px] top-[8px] bottom-[8px] w-0 border-l-[1.5px] border-dashed border-[#232323] z-0" />
 
-            {/* Ticket Header */}
+            {/* Guestlist Header */}
             <div className="flex items-center justify-between h-[56px] px-[16px] border-b-[1.5px] border-[#232323]">
-                {/* Left: Name */}
-                <div className="flex items-center gap-[6px]">
-                    <div className="w-[6px] h-[6px] bg-[#d591ff] rounded-full shrink-0" />
-                    <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica">
-                        {ticket.name}
+                {/* Left: Name with yellow indicator */}
+                <div className="flex flex-col gap-[2px]">
+                    <div className="flex items-center gap-[6px]">
+                        <div
+                            className="w-[6px] h-[6px] rounded-full shrink-0"
+                            style={{ backgroundColor: GUESTLIST_COLOR }}
+                        />
+                        <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica">
+                            {guestlist.name}
+                        </span>
+                    </div>
+                    {/* Time range */}
+                    <span className="text-[#939393] text-[12px] font-normal font-helvetica ml-[12px]">
+                        {timeRange}
                     </span>
                 </div>
 
                 {/* Right: Capacity pill */}
                 <div className="flex items-center gap-[4px] px-[10px] py-[4px] bg-[#232323] rounded-[25px] shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]">
                     <span className="text-[#939393] text-[16px] font-medium font-helvetica">
-                        {ticket.maxPurchasePerUser}
+                        {guestlist.maxPersonsPerGuestlist}
                     </span>
                     <PersonIcon />
                 </div>
             </div>
 
             {/* Prices */}
-            {ticket.prices?.map((price, priceIndex) => {
+            {guestlist.prices?.map((price, priceIndex) => {
                 const quantity = selectedQuantities[price.id] || 0;
-                const isLast = priceIndex === (ticket.prices?.length ?? 0) - 1;
-                const showPriceName = ticket.prices.length > 1;
+                const isLast = priceIndex === (guestlist.prices?.length ?? 0) - 1;
+                const showPriceName = guestlist.prices.length > 1;
+                const isFree = price.finalPrice === 0;
 
                 return (
                     <div
@@ -195,7 +213,10 @@ const TicketCard = ({
                                 )}
                                 <div className="flex items-center gap-[8px]">
                                     <span className="text-[#f6f6f6] text-[16px] font-bold font-helvetica">
-                                        {(price.finalPrice ?? 0).toFixed(2).replace('.', ',')}€
+                                        {isFree
+                                            ? t('event.free', 'Gratis')
+                                            : `${(price.finalPrice ?? 0).toFixed(2).replace('.', ',')}€`
+                                        }
                                     </span>
                                     {price.maxQuantity && (price.maxQuantity - price.soldQuantity) < 20 && !price.isSoldOut && (
                                         <div className="flex items-center px-[8px] py-[2px] bg-[#232323] rounded-[25px] shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]">
@@ -206,9 +227,9 @@ const TicketCard = ({
                                     )}
                                 </div>
                             </div>
-                            <span 
+                            <span
                                 className="text-[#939393] text-[12px] font-medium font-helvetica cursor-pointer hover:text-[#f6f6f6] transition-colors"
-                                onClick={() => onMoreInfo?.(ticket, price)}
+                                onClick={() => onMoreInfo?.(guestlist, price)}
                             >
                                 {t('event.more_info', 'Más información')}
                             </span>
@@ -246,5 +267,5 @@ const TicketCard = ({
     );
 };
 
-export default TicketCard;
-export type { Ticket, TicketPrice };
+export default GuestlistCard;
+export type { Guestlist, GuestlistPrice };

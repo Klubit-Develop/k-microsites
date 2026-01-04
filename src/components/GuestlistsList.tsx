@@ -1,29 +1,29 @@
-import TicketCard, { type Ticket, type TicketPrice } from '@/components/TicketCard';
+import GuestlistCard, { type Guestlist, type GuestlistPrice } from '@/components/GuestlistCard';
 
-interface TicketsListProps {
-    tickets: Ticket[];
+interface GuestlistsListProps {
+    guestlists: Guestlist[];
     selectedQuantities: Record<string, number>;
     onQuantityChange: (priceId: string, delta: number) => void;
-    onMoreInfo?: (ticket: Ticket, price: TicketPrice) => void;
+    onMoreInfo?: (guestlist: Guestlist, price: GuestlistPrice) => void;
     isLoading?: boolean;
     className?: string;
 }
 
-const TicketsList = ({
-    tickets,
+const GuestlistsList = ({
+    guestlists,
     selectedQuantities,
     onQuantityChange,
     onMoreInfo,
     isLoading = false,
     className = '',
-}: TicketsListProps) => {
+}: GuestlistsListProps) => {
     if (isLoading) {
         return (
             <div className={`flex flex-col gap-[16px] w-full ${className}`}>
                 {[1, 2].map((index) => (
-                    <TicketCard
+                    <GuestlistCard
                         key={index}
-                        ticket={{} as Ticket}
+                        guestlist={{} as Guestlist}
                         selectedQuantities={{}}
                         onQuantityChange={() => { }}
                         isLoading={true}
@@ -33,16 +33,16 @@ const TicketsList = ({
         );
     }
 
-    if (tickets.length === 0) {
+    if (guestlists.length === 0) {
         return null;
     }
 
     return (
         <div className={`flex flex-col gap-[16px] w-full ${className}`}>
-            {tickets.map(ticket => (
-                <TicketCard
-                    key={ticket.id}
-                    ticket={ticket}
+            {guestlists.map(guestlist => (
+                <GuestlistCard
+                    key={guestlist.id}
+                    guestlist={guestlist}
                     selectedQuantities={selectedQuantities}
                     onQuantityChange={onQuantityChange}
                     onMoreInfo={onMoreInfo}
@@ -52,5 +52,4 @@ const TicketsList = ({
     );
 };
 
-export default TicketsList;
-export type { TicketsListProps };
+export default GuestlistsList;

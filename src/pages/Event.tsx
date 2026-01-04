@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { toast } from 'sonner';
 import dayjs from 'dayjs';
 import 'dayjs/locale/es';
@@ -18,8 +18,17 @@ import ArtistsList from '@/components/ArtistsList';
 import OrganizerCard from '@/components/OrganizerCard';
 import TabSelector from '@/components/TabSelector';
 import TicketsList from '@/components/TicketsList';
+import GuestlistsList from '@/components/GuestlistsList';
+import ReservationsFlow from '@/components/ReservationsFlow';
+import PromotionsList from '@/components/PromotionsList';
+import ProductsList from '@/components/ProductsList';
 import EventStepper from '@/components/EventStepper';
 import CheckoutFooter from '@/components/CheckoutFooter';
+import ItemInfoModal, { type ItemInfoData, type ModalVariant } from '@/components/ItemInfoModal';
+
+// ============================================
+// TYPES
+// ============================================
 
 interface Artist {
     id: string;
@@ -52,6 +61,21 @@ interface TicketPrice {
     isSoldOut: boolean;
 }
 
+interface Zone {
+    id: string;
+    name: string;
+    description?: string | null;
+    coverImage?: string | null;
+    floorPlan?: string | null;
+    isActive?: boolean;
+}
+
+interface Benefit {
+    id: string;
+    name: string;
+    type?: string;
+}
+
 interface Ticket {
     id: string;
     name: string;
@@ -61,7 +85,11 @@ interface Ticket {
     isNominative: boolean;
     isTransferable: boolean;
     isActive: boolean;
+    gendersRequired?: string[];
+    accessLevel?: string;
     prices: TicketPrice[];
+    zones?: Zone[];
+    benefits?: Benefit[];
 }
 
 interface Guestlist {
@@ -71,7 +99,15 @@ interface Guestlist {
     endTime: string;
     maxPerUser: number;
     maxPersonsPerGuestlist: number;
+    ageRequired: string;
+    termsAndConditions: string | null;
+    isTransferable: boolean;
+    isActive: boolean;
+    gendersRequired?: string[];
+    accessLevel?: string;
     prices: TicketPrice[];
+    zones?: Zone[];
+    benefits?: Benefit[];
 }
 
 interface Reservation {
@@ -79,17 +115,49 @@ interface Reservation {
     name: string;
     maxPerUser: number;
     maxPersonsPerReservation: number;
-    termsAndConditions: string;
+    ageRequired: string;
+    termsAndConditions: string | null;
+    isTransferable: boolean;
+    isActive: boolean;
+    gendersRequired?: string[];
+    accessLevel?: string;
     prices: TicketPrice[];
+    zones?: Zone[];
+    benefits?: Benefit[];
+}
+
+interface PromotionProduct {
+    product: {
+        id: string;
+        name: string;
+        description: string | null;
+        price: number;
+        iconName: string | null;
+    };
 }
 
 interface Promotion {
     id: string;
     name: string;
-    description: string;
-    type: string;
+    description: string | null;
+    type: 'PERCENTAGE' | 'FIXED_PRICE' | 'FIXED_AMOUNT';
     value: number;
-    termsAndConditions: string;
+    maxPurchasePerUser: number;
+    geolocation: boolean;
+    termsAndConditions: string | null;
+    isActive: boolean;
+    accessLevel: string;
+    products: PromotionProduct[];
+}
+
+interface Product {
+    id: string;
+    name: string;
+    description: string | null;
+    sku: string | null;
+    iconName: string | null;
+    price: number;
+    isActive: boolean;
 }
 
 interface Club {
@@ -125,6 +193,7 @@ interface Event {
     guestlists: Guestlist[];
     reservations: Reservation[];
     promotions: Promotion[];
+    products: Product[];
     _count: {
         favorites: number;
     };
@@ -184,6 +253,10 @@ interface SelectedQuantities {
     promotions: Record<string, number>;
 }
 
+// ============================================
+// URL SERIALIZATION HELPERS
+// ============================================
+
 const parseQuantitiesFromUrl = (urlString: string | undefined): Record<string, number> => {
     if (!urlString) return {};
     const quantities: Record<string, number> = {};
@@ -207,6 +280,10 @@ const serializeQuantitiesToUrl = (quantities: Record<string, number>): string | 
     return pairs.length > 0 ? pairs.join(',') : undefined;
 };
 
+// ============================================
+// MAIN COMPONENT
+// ============================================
+
 const Event = () => {
     const { slug } = useParams({ strict: false });
     const { i18n, t } = useTranslation();
@@ -222,6 +299,16 @@ const Event = () => {
     const currentStep = searchParams.step ?? 1;
     const activeTab: TabKey = searchParams.tab ?? 'tickets';
 
+    // Estado para el modal de información de ticket/guestlist/reservation
+    const [infoModalOpen, setInfoModalOpen] = useState(false);
+    const [infoModalData, setInfoModalData] = useState<ItemInfoData | null>(null);
+    const [infoModalPriceId, setInfoModalPriceId] = useState<string | null>(null);
+    const [infoModalVariant, setInfoModalVariant] = useState<ModalVariant>('ticket');
+
+    // ============================================
+    // SELECTED QUANTITIES FROM URL
+    // ============================================
+
     const selectedQuantities = useMemo<SelectedQuantities>(() => ({
         tickets: parseQuantitiesFromUrl(searchParams.tickets),
         guestlists: parseQuantitiesFromUrl(searchParams.guestlists),
@@ -230,9 +317,9 @@ const Event = () => {
         promotions: parseQuantitiesFromUrl(searchParams.promotions),
     }), [searchParams.tickets, searchParams.guestlists, searchParams.reservations, searchParams.products, searchParams.promotions]);
 
-    const currentTabQuantities = useMemo(() => {
-        return selectedQuantities[activeTab] || {};
-    }, [selectedQuantities, activeTab]);
+    // ============================================
+    // URL NAVIGATION
+    // ============================================
 
     const updateSearchParams = useCallback((updates: Partial<EventSearchParams>, addToHistory = false) => {
         const currentParams = searchParams;
@@ -244,6 +331,7 @@ const Event = () => {
             }
         });
 
+        // Clean default values
         if (newParams.step === 1) delete newParams.step;
         if (newParams.tab === 'tickets') delete newParams.tab;
 
@@ -253,6 +341,10 @@ const Event = () => {
             replace: !addToHistory,
         } as const);
     }, [navigate, searchParams]);
+
+    // ============================================
+    // QUERIES
+    // ============================================
 
     const eventQuery = useQuery({
         queryKey: ['event', slug],
@@ -306,6 +398,10 @@ const Event = () => {
         },
     });
 
+    // ============================================
+    // FORMATTERS
+    // ============================================
+
     const formatEventDate = (dateString: string): string => {
         const formatted = dayjs(dateString).locale(locale).format('ddd, D MMMM');
         return formatted.charAt(0).toLowerCase() + formatted.slice(1);
@@ -315,6 +411,10 @@ const Event = () => {
         return `${startTime} - ${endTime}`;
     };
 
+    // ============================================
+    // HANDLERS
+    // ============================================
+
     const handleStepChange = useCallback((step: number) => {
         updateSearchParams({ step }, true);
     }, [updateSearchParams]);
@@ -323,27 +423,157 @@ const Event = () => {
         updateSearchParams({ tab: tab as TabKey });
     }, [updateSearchParams]);
 
-    const handleQuantityChange = useCallback((priceId: string, delta: number) => {
-        const currentQuantities = selectedQuantities[activeTab] || {};
-        const current = currentQuantities[priceId] || 0;
+    const handleQuantityChange = useCallback((itemId: string, delta: number, type?: TabKey) => {
+        const tabKey = type || activeTab;
+        const currentQuantities = selectedQuantities[tabKey] || {};
+        const current = currentQuantities[itemId] || 0;
         const newValue = Math.max(0, current + delta);
 
         const updatedQuantities = { ...currentQuantities };
         if (newValue > 0) {
-            updatedQuantities[priceId] = newValue;
+            updatedQuantities[itemId] = newValue;
         } else {
-            delete updatedQuantities[priceId];
+            delete updatedQuantities[itemId];
         }
 
         const serialized = serializeQuantitiesToUrl(updatedQuantities);
-        updateSearchParams({ [activeTab]: serialized });
+        updateSearchParams({ [tabKey]: serialized });
     }, [selectedQuantities, activeTab, updateSearchParams]);
+
+    // ============================================
+    // INFO MODAL HANDLERS
+    // ============================================
+
+    const handleOpenInfoModal = useCallback((
+        item: Ticket | Guestlist | Promotion,
+        price: TicketPrice | null,
+        type: 'ticket' | 'guestlist' | 'promotion'
+    ) => {
+        const indicatorColors: Record<string, string> = {
+            ticket: '#D591FF',
+            guestlist: '#FFCE1F',
+            promotion: '#FF336D',
+        };
+        const indicatorColor = indicatorColors[type];
+        
+        // Handle promotion variant
+        if (type === 'promotion') {
+            const promo = item as Promotion;
+            const infoData: ItemInfoData = {
+                id: promo.id,
+                name: promo.name,
+                indicatorColor,
+                maxPersons: 1,
+                finalPrice: promo.type === 'FIXED_PRICE' ? promo.value : 0,
+                description: promo.description || undefined,
+            };
+            setInfoModalData(infoData);
+            setInfoModalPriceId(promo.id);
+            setInfoModalVariant('promotion');
+            setInfoModalOpen(true);
+            return;
+        }
+
+        // Handle ticket/guestlist variants
+        if (!price) return;
+
+        // Cast to the correct type (we know it's not Promotion at this point)
+        const ticketOrGuestlist = item as Ticket | Guestlist;
+
+        // Calculate low stock
+        const isLowStock = price.maxQuantity 
+            ? (price.maxQuantity - price.soldQuantity) <= 5 
+            : false;
+
+        // Check if guestlist is free
+        const isFree = type === 'guestlist' && price.finalPrice === 0;
+
+        // For guestlist, check if there's a precompra price option available
+        const hasPrecompra = type === 'guestlist' && (ticketOrGuestlist as Guestlist).prices?.length > 1;
+        
+        // Get precompra data if available (the non-free price option)
+        let precompraData = undefined;
+        if (hasPrecompra && type === 'guestlist') {
+            const guestlist = ticketOrGuestlist as Guestlist;
+            const precompraPrice = guestlist.prices.find(p => p.finalPrice > 0 && p.id !== price.id);
+            if (precompraPrice) {
+                precompraData = {
+                    products: [{ name: 'Consumición', quantity: 1 }],
+                    startTime: '00:00',
+                    endTime: '06:00',
+                    price: precompraPrice.finalPrice,
+                };
+            }
+        }
+
+        const infoData: ItemInfoData = {
+            id: price.id,
+            name: ticketOrGuestlist.name,
+            priceName: price.name !== ticketOrGuestlist.name ? price.name : undefined,
+            indicatorColor,
+            maxPersons: type === 'ticket' 
+                ? 1 
+                : (ticketOrGuestlist as Guestlist).maxPersonsPerGuestlist || 1,
+            products: ticketOrGuestlist.benefits
+                ?.filter(b => b.type === 'PRODUCT')
+                .map(b => ({ name: b.name, quantity: 1 })) || [],
+            zones: ticketOrGuestlist.zones?.map(z => z.name) || [],
+            benefits: ticketOrGuestlist.benefits
+                ?.filter(b => b.type !== 'PRODUCT')
+                .map(b => b.name) || [],
+            startTime: type === 'guestlist' ? (ticketOrGuestlist as Guestlist).startTime : undefined,
+            endTime: type === 'guestlist' ? (ticketOrGuestlist as Guestlist).endTime : undefined,
+            finalPrice: price.finalPrice,
+            currency: price.currency || 'EUR',
+            isLowStock,
+            lowStockLabel: isLowStock ? 'Últimas 💣' : undefined,
+            isFree,
+            hasPrecompra,
+            precompraData,
+        };
+
+        setInfoModalData(infoData);
+        setInfoModalPriceId(price.id);
+        setInfoModalVariant(type === 'ticket' ? 'ticket' : 'guestlist');
+        setInfoModalOpen(true);
+    }, []);
+
+    const handleCloseInfoModal = useCallback(() => {
+        setInfoModalOpen(false);
+        // Limpiar datos después de la animación
+        setTimeout(() => {
+            setInfoModalData(null);
+            setInfoModalPriceId(null);
+            setInfoModalVariant('ticket');
+        }, 300);
+    }, []);
+
+    const handleInfoModalQuantityChange = useCallback((delta: number) => {
+        if (!infoModalPriceId) return;
+        handleQuantityChange(infoModalPriceId, delta, activeTab);
+    }, [infoModalPriceId, handleQuantityChange, activeTab]);
+
+    const handleInfoModalConfirm = useCallback(() => {
+        handleCloseInfoModal();
+        // TODO: Navegar al checkout step 2
+    }, [handleCloseInfoModal]);
+
+    // Obtener cantidad actual del item del modal
+    const infoModalQuantity = useMemo(() => {
+        if (!infoModalPriceId) return 0;
+        return selectedQuantities[activeTab]?.[infoModalPriceId] || 0;
+    }, [infoModalPriceId, selectedQuantities, activeTab]);
+
+    // ============================================
+    // CALCULATIONS
+    // ============================================
 
     const calculateTotal = useCallback((): number => {
         if (!eventQuery.data) return 0;
 
         let total = 0;
 
+        // Tickets
         eventQuery.data.tickets?.forEach(ticket => {
             ticket.prices?.forEach(price => {
                 const quantity = selectedQuantities.tickets[price.id] || 0;
@@ -351,6 +581,7 @@ const Event = () => {
             });
         });
 
+        // Guestlists
         eventQuery.data.guestlists?.forEach(guestlist => {
             guestlist.prices?.forEach(price => {
                 const quantity = selectedQuantities.guestlists[price.id] || 0;
@@ -358,11 +589,26 @@ const Event = () => {
             });
         });
 
+        // Reservations
         eventQuery.data.reservations?.forEach(reservation => {
             reservation.prices?.forEach(price => {
                 const quantity = selectedQuantities.reservations[price.id] || 0;
                 total += (price.finalPrice ?? 0) * quantity;
             });
+        });
+
+        // Products
+        eventQuery.data.products?.forEach(product => {
+            const quantity = selectedQuantities.products[product.id] || 0;
+            total += (product.price ?? 0) * quantity;
+        });
+
+        // Promotions (solo FIXED_PRICE tiene costo directo)
+        eventQuery.data.promotions?.forEach(promotion => {
+            const quantity = selectedQuantities.promotions[promotion.id] || 0;
+            if (promotion.type === 'FIXED_PRICE') {
+                total += (promotion.value ?? 0) * quantity;
+            }
         });
 
         return total;
@@ -383,9 +629,17 @@ const Event = () => {
         handleStepChange(2);
     };
 
+    // ============================================
+    // ERROR STATE
+    // ============================================
+
     if (eventQuery.isError) {
         return <PageError />;
     }
+
+    // ============================================
+    // DERIVED STATE
+    // ============================================
 
     const isLoading = eventQuery.isLoading;
     const event = eventQuery.data;
@@ -396,13 +650,50 @@ const Event = () => {
     const likesCount = favoritesCountQuery.data ?? event?._count?.favorites ?? 0;
     const isLiked = userFavoriteQuery.data ?? false;
 
-    const tabs = [
-        { key: 'tickets', label: t('event.tabs.tickets', 'Entradas') },
-        { key: 'guestlists', label: t('event.tabs.guestlists', 'Guestlists') },
-        { key: 'reservations', label: t('event.tabs.reservations', 'Reservados') },
-        { key: 'products', label: t('event.tabs.products', 'Productos') },
-        { key: 'promotions', label: t('event.tabs.promotions', 'Promociones') },
-    ];
+    // ============================================
+    // DYNAMIC TABS (solo mostrar tabs con contenido)
+    // ============================================
+
+    const availableTabs = useMemo(() => {
+        if (isLoading) {
+            // Durante loading, mostrar todos los tabs
+            return [
+                { key: 'tickets', label: t('event.tabs.tickets', 'Entradas') },
+                { key: 'guestlists', label: t('event.tabs.guestlists', 'Guestlists') },
+                { key: 'reservations', label: t('event.tabs.reservations', 'Reservados') },
+                { key: 'promotions', label: t('event.tabs.promotions', 'Promociones') },
+                { key: 'products', label: t('event.tabs.products', 'Productos') },
+            ];
+        }
+
+        const tabs: { key: string; label: string }[] = [];
+
+        if (event?.tickets && event.tickets.length > 0) {
+            tabs.push({ key: 'tickets', label: t('event.tabs.tickets', 'Entradas') });
+        }
+        if (event?.guestlists && event.guestlists.length > 0) {
+            tabs.push({ key: 'guestlists', label: t('event.tabs.guestlists', 'Guestlists') });
+        }
+        if (event?.reservations && event.reservations.length > 0) {
+            tabs.push({ key: 'reservations', label: t('event.tabs.reservations', 'Reservados') });
+        }
+        if (event?.promotions && event.promotions.length > 0) {
+            tabs.push({ key: 'promotions', label: t('event.tabs.promotions', 'Promociones') });
+        }
+        if (event?.products && event.products.length > 0) {
+            tabs.push({ key: 'products', label: t('event.tabs.products', 'Productos') });
+        }
+
+        return tabs;
+    }, [isLoading, event, t]);
+
+    // Si el tab activo no está disponible, usar el primero
+    const effectiveActiveTab = useMemo(() => {
+        if (availableTabs.find(tab => tab.key === activeTab)) {
+            return activeTab;
+        }
+        return (availableTabs[0]?.key as TabKey) || 'tickets';
+    }, [availableTabs, activeTab]);
 
     const allTags = event ? [
         ...(event.minimumAge ? [`+${event.minimumAge}`] : []),
@@ -411,44 +702,34 @@ const Event = () => {
         ...event.musics.map(m => m.name),
     ] : [];
 
-    const guestlistsAsTickets: Ticket[] = (event?.guestlists || []).map(gl => ({
-        id: gl.id,
-        name: gl.name,
-        ageRequired: '',
-        termsAndConditions: '',
-        maxPurchasePerUser: gl.maxPerUser,
-        isNominative: false,
-        isTransferable: false,
-        isActive: true,
-        prices: gl.prices,
-    }));
-
-    const reservationsAsTickets: Ticket[] = (event?.reservations || []).map(res => ({
-        id: res.id,
-        name: res.name,
-        ageRequired: '',
-        termsAndConditions: res.termsAndConditions,
-        maxPurchasePerUser: res.maxPerUser,
-        isNominative: false,
-        isTransferable: false,
-        isActive: true,
-        prices: res.prices,
-    }));
+    // ============================================
+    // RENDER TAB CONTENT
+    // ============================================
 
     const renderTabContent = () => {
-        switch (activeTab) {
+        switch (effectiveActiveTab) {
             case 'tickets':
+                if (!isLoading && (!event?.tickets || event.tickets.length === 0)) {
+                    return (
+                        <div className="flex items-center justify-center py-12">
+                            <p className="text-[#939393] text-[14px] font-helvetica">
+                                {t('event.no_tickets', 'No hay entradas disponibles')}
+                            </p>
+                        </div>
+                    );
+                }
                 return (
                     <TicketsList
                         tickets={event?.tickets || []}
-                        selectedQuantities={currentTabQuantities}
-                        onQuantityChange={handleQuantityChange}
+                        selectedQuantities={selectedQuantities.tickets}
+                        onQuantityChange={(priceId, delta) => handleQuantityChange(priceId, delta, 'tickets')}
+                        onMoreInfo={(ticket, price) => handleOpenInfoModal(ticket, price, 'ticket')}
                         isLoading={isLoading}
                     />
                 );
 
             case 'guestlists':
-                if (!isLoading && guestlistsAsTickets.length === 0) {
+                if (!isLoading && (!event?.guestlists || event.guestlists.length === 0)) {
                     return (
                         <div className="flex items-center justify-center py-12">
                             <p className="text-[#939393] text-[14px] font-helvetica">
@@ -458,40 +739,25 @@ const Event = () => {
                     );
                 }
                 return (
-                    <TicketsList
-                        tickets={guestlistsAsTickets}
-                        selectedQuantities={currentTabQuantities}
-                        onQuantityChange={handleQuantityChange}
+                    <GuestlistsList
+                        guestlists={event?.guestlists || []}
+                        selectedQuantities={selectedQuantities.guestlists}
+                        onQuantityChange={(priceId, delta) => handleQuantityChange(priceId, delta, 'guestlists')}
+                        onMoreInfo={(guestlist, price) => handleOpenInfoModal(guestlist, price, 'guestlist')}
                         isLoading={isLoading}
                     />
                 );
 
             case 'reservations':
-                if (!isLoading && reservationsAsTickets.length === 0) {
-                    return (
-                        <div className="flex items-center justify-center py-12">
-                            <p className="text-[#939393] text-[14px] font-helvetica">
-                                {t('event.no_reservations', 'No hay reservados disponibles')}
-                            </p>
-                        </div>
-                    );
-                }
                 return (
-                    <TicketsList
-                        tickets={reservationsAsTickets}
-                        selectedQuantities={currentTabQuantities}
-                        onQuantityChange={handleQuantityChange}
+                    <ReservationsFlow
+                        reservations={event?.reservations || []}
+                        selectedQuantities={selectedQuantities.reservations}
+                        onQuantityChange={(priceId, delta) => handleQuantityChange(priceId, delta, 'reservations')}
+                        onContinue={handleCheckout}
+                        total={total}
                         isLoading={isLoading}
                     />
-                );
-
-            case 'products':
-                return (
-                    <div className="flex items-center justify-center py-12">
-                        <p className="text-[#939393] text-[14px] font-helvetica">
-                            {t('event.no_products', 'No hay productos disponibles')}
-                        </p>
-                    </div>
                 );
 
             case 'promotions':
@@ -505,35 +771,42 @@ const Event = () => {
                     );
                 }
                 return (
-                    <div className="flex flex-col gap-4">
-                        {event?.promotions.map(promo => (
-                            <div
-                                key={promo.id}
-                                className="flex flex-col gap-2 p-4 bg-[#141414] border-2 border-[#232323] rounded-2xl"
-                            >
-                                <div className="flex items-center gap-2">
-                                    <div className="w-[6px] h-[6px] bg-[#e5ff88] rounded-full" />
-                                    <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica">
-                                        {promo.name}
-                                    </span>
-                                </div>
-                                <p className="text-[#939393] text-[14px] font-helvetica">
-                                    {promo.description}
-                                </p>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-[#e5ff88] text-[14px] font-bold font-helvetica">
-                                        {promo.type === 'PERCENTAGE' ? `-${promo.value}%` : `-${promo.value}€`}
-                                    </span>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+                    <PromotionsList
+                        promotions={event?.promotions || []}
+                        selectedQuantities={selectedQuantities.promotions}
+                        onQuantityChange={(promotionId, delta) => handleQuantityChange(promotionId, delta, 'promotions')}
+                        onMoreInfo={(promotion) => handleOpenInfoModal(promotion, null, 'promotion')}
+                        isLoading={isLoading}
+                    />
+                );
+
+            case 'products':
+                if (!isLoading && (!event?.products || event.products.length === 0)) {
+                    return (
+                        <div className="flex items-center justify-center py-12">
+                            <p className="text-[#939393] text-[14px] font-helvetica">
+                                {t('event.no_products', 'No hay productos disponibles')}
+                            </p>
+                        </div>
+                    );
+                }
+                return (
+                    <ProductsList
+                        products={event?.products || []}
+                        selectedQuantities={selectedQuantities.products}
+                        onQuantityChange={(productId, delta) => handleQuantityChange(productId, delta, 'products')}
+                        isLoading={isLoading}
+                    />
                 );
 
             default:
                 return null;
         }
     };
+
+    // ============================================
+    // RENDER
+    // ============================================
 
     return (
         <div className="bg-[#050505] min-h-screen flex flex-col gap-[60px] items-center py-24">
@@ -544,6 +817,7 @@ const Event = () => {
             />
 
             <div className="flex items-start justify-between w-full px-96 gap-8">
+                {/* LEFT COLUMN - Event Info */}
                 <div className="flex flex-col gap-[36px] w-[500px] rounded-[10px]">
                     <EventHeader
                         name={event?.name || ''}
@@ -603,24 +877,45 @@ const Event = () => {
                     ) : null}
                 </div>
 
+                {/* RIGHT COLUMN - Rates & Checkout */}
                 <div className="flex flex-col gap-[36px] w-[500px] rounded-[10px]">
-                    <TabSelector
-                        tabs={tabs}
-                        activeTab={activeTab}
-                        onTabChange={handleTabChange}
-                        isLoading={isLoading}
-                    />
+                    {/* Tab Selector con scroll horizontal */}
+                    <div className="overflow-x-auto overflow-y-hidden">
+                        <div className="min-w-[500px]">
+                            <TabSelector
+                                tabs={availableTabs}
+                                activeTab={effectiveActiveTab}
+                                onTabChange={handleTabChange}
+                                isLoading={isLoading}
+                            />
+                        </div>
+                    </div>
 
+                    {/* Tab Content */}
                     {renderTabContent()}
 
-                    <CheckoutFooter
-                        total={total}
-                        totalQuantity={totalQuantity}
-                        onCheckout={handleCheckout}
-                        isLoading={isLoading}
-                    />
+                    {/* Checkout Footer - oculto en tab de reservas porque tiene su propio flujo */}
+                    {activeTab !== 'reservations' && (
+                        <CheckoutFooter
+                            total={total}
+                            totalQuantity={totalQuantity}
+                            onCheckout={handleCheckout}
+                            isLoading={isLoading}
+                        />
+                    )}
                 </div>
             </div>
+
+            {/* Ticket/Guestlist/Promotion Info Modal */}
+            <ItemInfoModal
+                isOpen={infoModalOpen}
+                onClose={handleCloseInfoModal}
+                data={infoModalData}
+                variant={infoModalVariant}
+                quantity={infoModalQuantity}
+                onQuantityChange={handleInfoModalQuantityChange}
+                onConfirm={handleInfoModalConfirm}
+            />
         </div>
     );
 };
