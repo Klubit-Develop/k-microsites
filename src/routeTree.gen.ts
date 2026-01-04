@@ -10,11 +10,15 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VerifyRouteImport } from './routes/verify'
+import { Route as TermsAndConditionsRouteImport } from './routes/terms-and-conditions'
 import { Route as RegisterRouteImport } from './routes/register'
+import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
 import { Route as OauthRouteImport } from './routes/oauth'
+import { Route as LegalNoticeRouteImport } from './routes/legal-notice'
 import { Route as IncidentRouteImport } from './routes/incident'
 import { Route as ForgotChangeRouteImport } from './routes/forgot-change'
 import { Route as ForgotRouteImport } from './routes/forgot'
+import { Route as CookiePolicyRouteImport } from './routes/cookie-policy'
 import { Route as AuthSuccessRouteImport } from './routes/auth-success'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
@@ -30,14 +34,29 @@ const VerifyRoute = VerifyRouteImport.update({
   path: '/verify',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TermsAndConditionsRoute = TermsAndConditionsRouteImport.update({
+  id: '/terms-and-conditions',
+  path: '/terms-and-conditions',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
   path: '/register',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrivacyPolicyRoute = PrivacyPolicyRouteImport.update({
+  id: '/privacy-policy',
+  path: '/privacy-policy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OauthRoute = OauthRouteImport.update({
   id: '/oauth',
   path: '/oauth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalNoticeRoute = LegalNoticeRouteImport.update({
+  id: '/legal-notice',
+  path: '/legal-notice',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IncidentRoute = IncidentRouteImport.update({
@@ -53,6 +72,11 @@ const ForgotChangeRoute = ForgotChangeRouteImport.update({
 const ForgotRoute = ForgotRouteImport.update({
   id: '/forgot',
   path: '/forgot',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CookiePolicyRoute = CookiePolicyRouteImport.update({
+  id: '/cookie-policy',
+  path: '/cookie-policy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthSuccessRoute = AuthSuccessRouteImport.update({
@@ -104,11 +128,15 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/auth-success': typeof AuthSuccessRoute
+  '/cookie-policy': typeof CookiePolicyRoute
   '/forgot': typeof ForgotRoute
   '/forgot-change': typeof ForgotChangeRoute
   '/incident': typeof IncidentRoute
+  '/legal-notice': typeof LegalNoticeRoute
   '/oauth': typeof OauthRoute
+  '/privacy-policy': typeof PrivacyPolicyRoute
   '/register': typeof RegisterRoute
+  '/terms-and-conditions': typeof TermsAndConditionsRoute
   '/verify': typeof VerifyRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/wallet': typeof AuthenticatedWalletRoute
@@ -120,11 +148,15 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/auth-success': typeof AuthSuccessRoute
+  '/cookie-policy': typeof CookiePolicyRoute
   '/forgot': typeof ForgotRoute
   '/forgot-change': typeof ForgotChangeRoute
   '/incident': typeof IncidentRoute
+  '/legal-notice': typeof LegalNoticeRoute
   '/oauth': typeof OauthRoute
+  '/privacy-policy': typeof PrivacyPolicyRoute
   '/register': typeof RegisterRoute
+  '/terms-and-conditions': typeof TermsAndConditionsRoute
   '/verify': typeof VerifyRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/wallet': typeof AuthenticatedWalletRoute
@@ -138,11 +170,15 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/auth': typeof AuthRoute
   '/auth-success': typeof AuthSuccessRoute
+  '/cookie-policy': typeof CookiePolicyRoute
   '/forgot': typeof ForgotRoute
   '/forgot-change': typeof ForgotChangeRoute
   '/incident': typeof IncidentRoute
+  '/legal-notice': typeof LegalNoticeRoute
   '/oauth': typeof OauthRoute
+  '/privacy-policy': typeof PrivacyPolicyRoute
   '/register': typeof RegisterRoute
+  '/terms-and-conditions': typeof TermsAndConditionsRoute
   '/verify': typeof VerifyRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/wallet': typeof AuthenticatedWalletRoute
@@ -156,11 +192,15 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/auth-success'
+    | '/cookie-policy'
     | '/forgot'
     | '/forgot-change'
     | '/incident'
+    | '/legal-notice'
     | '/oauth'
+    | '/privacy-policy'
     | '/register'
+    | '/terms-and-conditions'
     | '/verify'
     | '/profile'
     | '/wallet'
@@ -172,11 +212,15 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/auth-success'
+    | '/cookie-policy'
     | '/forgot'
     | '/forgot-change'
     | '/incident'
+    | '/legal-notice'
     | '/oauth'
+    | '/privacy-policy'
     | '/register'
+    | '/terms-and-conditions'
     | '/verify'
     | '/profile'
     | '/wallet'
@@ -189,11 +233,15 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/auth-success'
+    | '/cookie-policy'
     | '/forgot'
     | '/forgot-change'
     | '/incident'
+    | '/legal-notice'
     | '/oauth'
+    | '/privacy-policy'
     | '/register'
+    | '/terms-and-conditions'
     | '/verify'
     | '/_authenticated/profile'
     | '/_authenticated/wallet'
@@ -207,11 +255,15 @@ export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   AuthRoute: typeof AuthRoute
   AuthSuccessRoute: typeof AuthSuccessRoute
+  CookiePolicyRoute: typeof CookiePolicyRoute
   ForgotRoute: typeof ForgotRoute
   ForgotChangeRoute: typeof ForgotChangeRoute
   IncidentRoute: typeof IncidentRoute
+  LegalNoticeRoute: typeof LegalNoticeRoute
   OauthRoute: typeof OauthRoute
+  PrivacyPolicyRoute: typeof PrivacyPolicyRoute
   RegisterRoute: typeof RegisterRoute
+  TermsAndConditionsRoute: typeof TermsAndConditionsRoute
   VerifyRoute: typeof VerifyRoute
   ArtistSlugRoute: typeof ArtistSlugRoute
   EventSlugRoute: typeof EventSlugRoute
@@ -227,6 +279,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VerifyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/terms-and-conditions': {
+      id: '/terms-and-conditions'
+      path: '/terms-and-conditions'
+      fullPath: '/terms-and-conditions'
+      preLoaderRoute: typeof TermsAndConditionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/register': {
       id: '/register'
       path: '/register'
@@ -234,11 +293,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RegisterRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/privacy-policy': {
+      id: '/privacy-policy'
+      path: '/privacy-policy'
+      fullPath: '/privacy-policy'
+      preLoaderRoute: typeof PrivacyPolicyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/oauth': {
       id: '/oauth'
       path: '/oauth'
       fullPath: '/oauth'
       preLoaderRoute: typeof OauthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal-notice': {
+      id: '/legal-notice'
+      path: '/legal-notice'
+      fullPath: '/legal-notice'
+      preLoaderRoute: typeof LegalNoticeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/incident': {
@@ -260,6 +333,13 @@ declare module '@tanstack/react-router' {
       path: '/forgot'
       fullPath: '/forgot'
       preLoaderRoute: typeof ForgotRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cookie-policy': {
+      id: '/cookie-policy'
+      path: '/cookie-policy'
+      fullPath: '/cookie-policy'
+      preLoaderRoute: typeof CookiePolicyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth-success': {
@@ -347,11 +427,15 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   AuthRoute: AuthRoute,
   AuthSuccessRoute: AuthSuccessRoute,
+  CookiePolicyRoute: CookiePolicyRoute,
   ForgotRoute: ForgotRoute,
   ForgotChangeRoute: ForgotChangeRoute,
   IncidentRoute: IncidentRoute,
+  LegalNoticeRoute: LegalNoticeRoute,
   OauthRoute: OauthRoute,
+  PrivacyPolicyRoute: PrivacyPolicyRoute,
   RegisterRoute: RegisterRoute,
+  TermsAndConditionsRoute: TermsAndConditionsRoute,
   VerifyRoute: VerifyRoute,
   ArtistSlugRoute: ArtistSlugRoute,
   EventSlugRoute: EventSlugRoute,

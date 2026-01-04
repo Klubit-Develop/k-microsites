@@ -32,6 +32,7 @@ const InputDate = ({
     maxErrorMessage = 'La fecha no puede ser superior'
 }: InputDateProps) => {
     const inputRef = useRef<HTMLInputElement>(null);
+    const isEditingRef = useRef(false);
     const [internalError, setInternalError] = useState<string | null>(null);
     
     const isoToDisplay = (isoDate: string): string => {
@@ -49,8 +50,11 @@ const InputDate = ({
 
     const [displayValue, setDisplayValue] = useState(isoToDisplay(value));
 
+    // Solo sincronizar con value externo cuando NO estamos editando
     useEffect(() => {
-        setDisplayValue(isoToDisplay(value));
+        if (!isEditingRef.current) {
+            setDisplayValue(isoToDisplay(value));
+        }
     }, [value]);
 
     const formatDateInput = (input: string): string => {
@@ -96,54 +100,44 @@ const InputDate = ({
         const inputValue = e.target.value;
         const cursorPosition = e.target.selectionStart || 0;
         
+        isEditingRef.current = true;
         setInternalError(null);
-        
-        if (inputValue.length < displayValue.length) {
-            const formatted = formatDateInput(inputValue);
-            setDisplayValue(formatted);
-            
-            if (formatted.length === 10) {
-                const validation = validateDate(formatted);
-                if (validation.valid) {
-                    onChange(displayToIso(formatted));
-                } else {
-                    setInternalError(validation.error);
-                    onChange('');
-                }
-            } else {
-                onChange('');
-            }
-            return;
-        }
 
         const formatted = formatDateInput(inputValue);
         setDisplayValue(formatted);
 
+        // Manejar posición del cursor
         setTimeout(() => {
             if (inputRef.current) {
                 let newPosition = cursorPosition;
                 
-                if (formatted.length > displayValue.length) {
-                    const addedChars = formatted.length - displayValue.length;
-                    if (addedChars > 1) {
-                        newPosition = cursorPosition + (addedChars - 1);
-                    }
+                // Ajustar cursor si se agregaron barras automáticamente
+                const inputNumbers = inputValue.replace(/\D/g, '').length;
+                const formattedNumbers = formatted.replace(/\D/g, '').length;
+                
+                if (inputNumbers === formattedNumbers) {
+                    // Calcular posición correcta considerando las barras
+                    const numbersBeforeCursor = inputValue.slice(0, cursorPosition).replace(/\D/g, '').length;
+                    newPosition = numbersBeforeCursor;
+                    if (numbersBeforeCursor > 2) newPosition++;
+                    if (numbersBeforeCursor > 4) newPosition++;
                 }
                 
                 inputRef.current.setSelectionRange(newPosition, newPosition);
             }
+            
+            // Reset editing flag después de actualizar
+            isEditingRef.current = false;
         }, 0);
 
+        // Solo llamar onChange con fecha válida completa
         if (formatted.length === 10) {
             const validation = validateDate(formatted);
             if (validation.valid) {
                 onChange(displayToIso(formatted));
             } else {
                 setInternalError(validation.error);
-                onChange('');
             }
-        } else {
-            onChange('');
         }
     };
 
@@ -168,6 +162,8 @@ const InputDate = ({
         const pastedText = e.clipboardData.getData('text');
         const numbers = pastedText.replace(/\D/g, '').slice(0, 8);
         const formatted = formatDateInput(numbers);
+        
+        isEditingRef.current = true;
         setDisplayValue(formatted);
 
         if (formatted.length === 10) {
@@ -176,8 +172,20 @@ const InputDate = ({
                 onChange(displayToIso(formatted));
             } else {
                 setInternalError(validation.error);
-                onChange('');
             }
+        }
+        
+        setTimeout(() => {
+            isEditingRef.current = false;
+        }, 0);
+    };
+
+    const handleBlur = () => {
+        isEditingRef.current = false;
+        
+        // Al perder foco, validar si hay fecha incompleta
+        if (displayValue && displayValue.length < 10) {
+            setInternalError('Fecha incompleta');
         }
     };
 
@@ -222,6 +230,7 @@ const InputDate = ({
                     onChange={handleChange}
                     onKeyDown={handleKeyDown}
                     onPaste={handlePaste}
+                    onBlur={handleBlur}
                     placeholder={placeholder}
                     disabled={disabled}
                     className={`

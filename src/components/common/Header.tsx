@@ -20,7 +20,6 @@ interface Language {
 
 interface HeaderProps {
     user?: User | null;
-    onLogin?: () => void;
     onLanguageChange?: (lang: string) => void;
 }
 
@@ -31,7 +30,6 @@ const LANGUAGES: Language[] = [
 
 const Header = ({
     user,
-    onLogin,
     onLanguageChange,
 }: HeaderProps) => {
     const { t, i18n } = useTranslation();
@@ -62,6 +60,13 @@ const Header = ({
         return `${user.firstName} ${user.lastName}`;
     };
 
+    const getInitials = () => {
+        if (!user) return '';
+        const firstInitial = user.firstName?.charAt(0) || '';
+        const lastInitial = user.lastName?.charAt(0) || '';
+        return `${firstInitial}${lastInitial}`.toUpperCase();
+    };
+
     return (
         <header className="bg-[#141414] border-b-2 border-[#232323] h-[68px] w-full">
             <div className="flex items-center justify-between h-full px-4 sm:px-6 lg:px-34">
@@ -77,14 +82,14 @@ const Header = ({
                         <>
                             <Link
                                 to="/wallet"
-                                className="font-helvetica font-medium text-base text-[#F6F6F6] transition-colors"
+                                className="font-helvetica font-medium text-base text-[#F6F6F6] hover:opacity-80 transition-opacity"
                             >
-                                {t('header.my_wallet')}
+                                {t('header.my_wallet', 'Mi wallet')}
                             </Link>
 
                             <Link
                                 to="/profile"
-                                className="flex items-center gap-3 group"
+                                className="flex items-center gap-3 group hover:opacity-80 transition-opacity"
                             >
                                 <div className="relative size-[30px] rounded-full overflow-hidden border border-[#232323] shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]">
                                     {user.avatar ? (
@@ -96,23 +101,23 @@ const Header = ({
                                     ) : (
                                         <div className="size-full bg-[#232323] flex items-center justify-center">
                                             <span className="text-[#F6F6F6] text-xs font-medium">
-                                                {user.firstName.charAt(0)}{user.lastName.charAt(0)}
+                                                {getInitials()}
                                             </span>
                                         </div>
                                     )}
                                 </div>
-                                <span className="font-helvetica font-medium text-base text-[#F6F6F6] transition-colors truncate max-w-[150px]">
+                                <span className="font-helvetica font-medium text-base text-[#F6F6F6] truncate max-w-[150px]">
                                     {getUserDisplayName()}
                                 </span>
                             </Link>
                         </>
                     ) : (
-                        <button
-                            onClick={onLogin}
-                            className="font-helvetica font-medium text-base text-[#F6F6F6] transition-colors cursor-pointer"
+                        <Link
+                            to="/auth"
+                            className="font-helvetica font-medium text-base text-[#F6F6F6] hover:opacity-80 transition-opacity"
                         >
-                            {t('header.access_account')}
-                        </button>
+                            {t('header.access_account', 'Acceder a mi cuenta')}
+                        </Link>
                     )}
 
                     <div ref={langRef} className="relative">

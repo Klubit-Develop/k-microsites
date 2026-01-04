@@ -25,7 +25,7 @@ const Button = ({
             case 'cta':
                 return 'bg-[#FF336D] text-[#F6F6F6] h-12';
             case 'delete':
-                return 'bg-[rgba(255,35,35,0.25)] text-[#FF2323] h-[42px]';
+                return 'bg-[rgba(255,35,35,0.25)] text-[#FF2323] h-12';
             case 'secondary':
                 return 'bg-[#EBEBEC] text-[#232323] h-12';
             case 'primary':

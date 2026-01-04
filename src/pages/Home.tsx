@@ -107,7 +107,6 @@ const Home = () => {
     const navigate = useNavigate();
     const { view } = useSearch({ from: '/' });
     
-    // Selector específico para evitar re-renders innecesarios
     const token = useAuthStore((state) => state.token);
 
     const isAuthenticated = !!token;
