@@ -1,278 +1,317 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { useEffect, useState } from 'react';
 
-// ============================================
-// TYPES
-// ============================================
+type CheckoutStep = 'selection' | 'summary' | 'payment';
 
-interface CartItem {
+interface CheckoutItem {
     id: string;
     priceId: string;
-    type: 'ticket' | 'guestlist' | 'reservation' | 'promotion' | 'product';
+    type: 'ticket' | 'guestlist' | 'reservation' | 'product' | 'promotion';
     name: string;
     priceName?: string;
     unitPrice: number;
     quantity: number;
+    isNominative?: boolean;
     maxPersons?: number;
 }
 
-interface ReservationData {
-    zoneId: string;
-    zoneName: string;
-    persons: number;
-    name: string;
-    time: string;
-    observations?: string;
-    minPrice: number;
+interface NominativeAssignment {
+    itemIndex: number;
+    assignmentType: 'me' | 'send' | 'fill';
+    phone?: string;
+    phoneCountry?: string;
+    firstName?: string;
+    lastName?: string;
 }
 
-type CheckoutStep = 'selection' | 'summary' | 'payment' | 'confirmation';
+interface Fee {
+    id: string;
+    type: 'PERCENTAGE' | 'FIXED_AMOUNT';
+    percentage: number | null;
+    fixedAmount: number | null;
+    currency: string;
+    isActive: boolean;
+}
+
+interface Coupon {
+    id: string;
+    code: string;
+    type: 'PERCENTAGE' | 'FIXED_AMOUNT';
+    value: number;
+}
+
+interface EventDisplayInfo {
+    coverImage?: string;
+    date?: string;
+}
 
 interface CheckoutState {
-    // Event context
-    eventId: string | null;
-    eventName: string | null;
-    eventSlug: string | null;
-
-    // Cart items
-    items: CartItem[];
-
-    // Reservation (special flow)
-    reservation: ReservationData | null;
-
-    // Checkout flow
+    // Step management
     step: CheckoutStep;
-
-    // Timer (10 minutes countdown)
-    timerStartedAt: number | null;
-    timerDuration: number; // in seconds (default 600 = 10 min)
-    isTimerExpired: boolean;
-
-    // Actions
-    setEvent: (eventId: string, eventName: string, eventSlug: string) => void;
-    addItem: (item: Omit<CartItem, 'quantity'> & { quantity?: number }) => void;
-    removeItem: (priceId: string) => void;
-    updateQuantity: (priceId: string, quantity: number) => void;
-    clearCart: () => void;
-
-    setReservation: (data: ReservationData | null) => void;
-
     setStep: (step: CheckoutStep) => void;
     goToSummary: () => void;
     goToPayment: () => void;
     goBack: () => void;
 
+    // Event info
+    eventId: string | null;
+    eventName: string | null;
+    eventSlug: string | null;
+    eventDisplayInfo: EventDisplayInfo | null;
+    setEvent: (id: string, name: string, slug: string, displayInfo?: EventDisplayInfo) => void;
+
+    // Cart items
+    items: CheckoutItem[];
+    addItem: (item: CheckoutItem) => void;
+    removeItem: (priceId: string) => void;
+    updateItemQuantity: (priceId: string, quantity: number) => void;
+    clearCart: () => void;
+    hasItems: () => boolean;
+
+    // Transaction (for Stripe Elements)
+    transactionId: string | null;
+    transactionAmount: number | null;
+    transactionCurrency: string | null;
+    setTransaction: (id: string, amount: number, currency: string) => void;
+    clearTransaction: () => void;
+
+    // Coupon
+    coupon: Coupon | null;
+    setCoupon: (coupon: Coupon | null) => void;
+
+    // Nominative assignments
+    nominativeAssignments: NominativeAssignment[];
+    setNominativeAssignments: (assignments: NominativeAssignment[]) => void;
+
+    // Fee
+    fee: Fee | null;
+    setFee: (fee: Fee | null) => void;
+    getServiceFee: () => number;
+
+    // Timer
+    timerStartedAt: number | null;
+    timerDuration: number; // in seconds
+    isTimerExpired: boolean;
     startTimer: () => void;
     resetTimer: () => void;
     expireTimer: () => void;
 
-    // Computed
+    // Totals
+    getSubtotal: () => number;
+    getDiscount: () => number;
     getTotal: () => number;
-    getItemCount: () => number;
-    hasItems: () => boolean;
 }
 
-// ============================================
-// STORE
-// ============================================
+const TIMER_DURATION = 10 * 60; // 10 minutes in seconds
 
 export const useCheckoutStore = create<CheckoutState>()(
     persist(
         (set, get) => ({
-            // Initial state
+            // Step management
+            step: 'selection',
+            setStep: (step) => set({ step }),
+            goToSummary: () => {
+                const state = get();
+                if (!state.timerStartedAt) {
+                    set({ step: 'summary', timerStartedAt: Date.now(), isTimerExpired: false });
+                } else {
+                    set({ step: 'summary' });
+                }
+            },
+            goToPayment: () => set({ step: 'payment' }),
+            goBack: () => {
+                const currentStep = get().step;
+                if (currentStep === 'payment') {
+                    set({ step: 'summary' });
+                } else if (currentStep === 'summary') {
+                    set({ step: 'selection' });
+                }
+            },
+
+            // Event info
             eventId: null,
             eventName: null,
             eventSlug: null,
+            eventDisplayInfo: null,
+            setEvent: (id, name, slug, displayInfo) => set({
+                eventId: id,
+                eventName: name,
+                eventSlug: slug,
+                eventDisplayInfo: displayInfo || null,
+            }),
+
+            // Cart items
             items: [],
-            reservation: null,
-            step: 'selection',
-            timerStartedAt: null,
-            timerDuration: 600, // 10 minutes
-            isTimerExpired: false,
-
-            // Event actions
-            setEvent: (eventId, eventName, eventSlug) => {
-                const currentEventId = get().eventId;
-                // If switching events, clear cart
-                if (currentEventId && currentEventId !== eventId) {
-                    set({
-                        eventId,
-                        eventName,
-                        eventSlug,
-                        items: [],
-                        reservation: null,
-                        step: 'selection',
-                        timerStartedAt: null,
-                        isTimerExpired: false,
-                    });
-                } else {
-                    set({ eventId, eventName, eventSlug });
-                }
-            },
-
-            // Cart actions
-            addItem: (item) => {
-                const items = get().items;
-                const existingIndex = items.findIndex(i => i.priceId === item.priceId);
-
+            addItem: (item) => set((state) => {
+                const existingIndex = state.items.findIndex(i => i.priceId === item.priceId);
                 if (existingIndex >= 0) {
-                    // Update quantity
-                    const newItems = [...items];
-                    newItems[existingIndex].quantity += item.quantity || 1;
-                    set({ items: newItems });
-                } else {
-                    // Add new item
-                    set({
-                        items: [...items, { ...item, quantity: item.quantity || 1 }],
-                    });
+                    const newItems = [...state.items];
+                    newItems[existingIndex] = {
+                        ...newItems[existingIndex],
+                        quantity: newItems[existingIndex].quantity + item.quantity,
+                    };
+                    return { items: newItems };
                 }
-            },
-
-            removeItem: (priceId) => {
-                set({
-                    items: get().items.filter(item => item.priceId !== priceId),
-                });
-            },
-
-            updateQuantity: (priceId, quantity) => {
+                return { items: [...state.items, item] };
+            }),
+            removeItem: (priceId) => set((state) => ({
+                items: state.items.filter(i => i.priceId !== priceId),
+            })),
+            updateItemQuantity: (priceId, quantity) => set((state) => {
                 if (quantity <= 0) {
-                    get().removeItem(priceId);
-                    return;
+                    return { items: state.items.filter(i => i.priceId !== priceId) };
                 }
-
-                set({
-                    items: get().items.map(item =>
-                        item.priceId === priceId ? { ...item, quantity } : item
+                return {
+                    items: state.items.map(i =>
+                        i.priceId === priceId ? { ...i, quantity } : i
                     ),
-                });
-            },
+                };
+            }),
+            clearCart: () => set({
+                items: [],
+                coupon: null,
+                nominativeAssignments: [],
+                step: 'selection',
+                timerStartedAt: null,
+                isTimerExpired: false,
+                transactionId: null,
+                transactionAmount: null,
+                transactionCurrency: null,
+            }),
+            hasItems: () => get().items.length > 0,
 
-            clearCart: () => {
-                set({
-                    items: [],
-                    reservation: null,
-                    step: 'selection',
-                    timerStartedAt: null,
-                    isTimerExpired: false,
-                });
-            },
+            // Transaction
+            transactionId: null,
+            transactionAmount: null,
+            transactionCurrency: null,
+            setTransaction: (id, amount, currency) => set({
+                transactionId: id,
+                transactionAmount: amount,
+                transactionCurrency: currency,
+            }),
+            clearTransaction: () => set({
+                transactionId: null,
+                transactionAmount: null,
+                transactionCurrency: null,
+            }),
 
-            // Reservation actions
-            setReservation: (data) => {
-                set({ reservation: data });
-            },
+            // Coupon
+            coupon: null,
+            setCoupon: (coupon) => set({ coupon }),
 
-            // Step actions
-            setStep: (step) => {
-                set({ step });
-            },
+            // Nominative assignments
+            nominativeAssignments: [],
+            setNominativeAssignments: (assignments) => set({ nominativeAssignments: assignments }),
 
-            goToSummary: () => {
-                const { items, reservation } = get();
-                if (items.length > 0 || reservation) {
-                    set({ step: 'summary' });
-                    // Start timer when entering summary
-                    if (!get().timerStartedAt) {
-                        get().startTimer();
-                    }
+            // Fee
+            fee: null,
+            setFee: (fee) => set({ fee }),
+            getServiceFee: () => {
+                const state = get();
+                const subtotal = state.getSubtotal();
+                const discount = state.getDiscount();
+                const baseAmount = subtotal - discount;
+
+                if (!state.fee || !state.fee.isActive) return 0;
+
+                if (state.fee.type === 'PERCENTAGE' && state.fee.percentage) {
+                    return Math.round(baseAmount * (state.fee.percentage / 100) * 100) / 100;
                 }
-            },
-
-            goToPayment: () => {
-                set({ step: 'payment' });
-            },
-
-            goBack: () => {
-                const currentStep = get().step;
-                if (currentStep === 'summary') {
-                    set({ step: 'selection' });
-                } else if (currentStep === 'payment') {
-                    set({ step: 'summary' });
+                if (state.fee.type === 'FIXED_AMOUNT' && state.fee.fixedAmount) {
+                    return state.fee.fixedAmount;
                 }
+                return 0;
             },
 
-            // Timer actions
-            startTimer: () => {
-                set({
-                    timerStartedAt: Date.now(),
-                    isTimerExpired: false,
-                });
-            },
+            // Timer
+            timerStartedAt: null,
+            timerDuration: TIMER_DURATION,
+            isTimerExpired: false,
+            startTimer: () => set({ timerStartedAt: Date.now(), isTimerExpired: false }),
+            resetTimer: () => set({ timerStartedAt: null, isTimerExpired: false }),
+            expireTimer: () => set({ isTimerExpired: true }),
 
-            resetTimer: () => {
-                set({
-                    timerStartedAt: Date.now(),
-                    isTimerExpired: false,
-                });
+            // Totals
+            getSubtotal: () => {
+                const items = get().items;
+                return items.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
             },
+            getDiscount: () => {
+                const state = get();
+                const subtotal = state.getSubtotal();
+                if (!state.coupon) return 0;
 
-            expireTimer: () => {
-                set({
-                    isTimerExpired: true,
-                    items: [],
-                    reservation: null,
-                    step: 'selection',
-                    timerStartedAt: null,
-                });
+                if (state.coupon.type === 'PERCENTAGE') {
+                    return Math.round(subtotal * (state.coupon.value / 100) * 100) / 100;
+                }
+                if (state.coupon.type === 'FIXED_AMOUNT') {
+                    return Math.min(state.coupon.value, subtotal);
+                }
+                return 0;
             },
-
-            // Computed values
             getTotal: () => {
-                const { items, reservation } = get();
-                const itemsTotal = items.reduce((acc, item) => acc + (item.unitPrice * item.quantity), 0);
-                const reservationTotal = reservation?.minPrice || 0;
-                return itemsTotal + reservationTotal;
-            },
-
-            getItemCount: () => {
-                return get().items.reduce((acc, item) => acc + item.quantity, 0);
-            },
-
-            hasItems: () => {
-                const { items, reservation } = get();
-                return items.length > 0 || reservation !== null;
+                const state = get();
+                const subtotal = state.getSubtotal();
+                const discount = state.getDiscount();
+                const serviceFee = state.getServiceFee();
+                return Math.max(0, subtotal - discount + serviceFee);
             },
         }),
         {
-            name: 'klubit-checkout',
+            name: 'checkout-storage',
             partialize: (state) => ({
                 eventId: state.eventId,
                 eventName: state.eventName,
                 eventSlug: state.eventSlug,
+                eventDisplayInfo: state.eventDisplayInfo,
                 items: state.items,
-                reservation: state.reservation,
-                step: state.step,
+                coupon: state.coupon,
+                nominativeAssignments: state.nominativeAssignments,
                 timerStartedAt: state.timerStartedAt,
+                step: state.step,
+                fee: state.fee,
+                transactionId: state.transactionId,
+                transactionAmount: state.transactionAmount,
+                transactionCurrency: state.transactionCurrency,
             }),
         }
     )
 );
 
-// ============================================
-// HOOKS
-// ============================================
-
+// Hook for timer countdown
 export const useCheckoutTimer = () => {
     const { timerStartedAt, timerDuration, isTimerExpired, expireTimer } = useCheckoutStore();
+    const [remainingTime, setRemainingTime] = useState<number>(timerDuration);
 
-    const getRemainingTime = (): number => {
-        if (!timerStartedAt || isTimerExpired) return 0;
-        const elapsed = Math.floor((Date.now() - timerStartedAt) / 1000);
-        return Math.max(0, timerDuration - elapsed);
-    };
+    useEffect(() => {
+        if (!timerStartedAt || isTimerExpired) {
+            setRemainingTime(timerDuration);
+            return;
+        }
 
-    const formatTime = (seconds: number): string => {
-        const mins = Math.floor(seconds / 60);
-        const secs = seconds % 60;
-        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-    };
+        const calculateRemaining = () => {
+            const elapsed = Math.floor((Date.now() - timerStartedAt) / 1000);
+            const remaining = Math.max(0, timerDuration - elapsed);
+            return remaining;
+        };
 
-    return {
-        remainingTime: getRemainingTime(),
-        formattedTime: formatTime(getRemainingTime()),
-        isExpired: isTimerExpired || getRemainingTime() === 0,
-        expireTimer,
-    };
+        setRemainingTime(calculateRemaining());
+
+        const interval = setInterval(() => {
+            const remaining = calculateRemaining();
+            setRemainingTime(remaining);
+
+            if (remaining <= 0) {
+                expireTimer();
+                clearInterval(interval);
+            }
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, [timerStartedAt, timerDuration, isTimerExpired, expireTimer]);
+
+    return { remainingTime, isTimerExpired };
 };
 
 export default useCheckoutStore;

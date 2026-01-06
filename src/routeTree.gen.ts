@@ -25,6 +25,8 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RrppSlugRouteImport } from './routes/rrpp.$slug'
 import { Route as EventSlugRouteImport } from './routes/event.$slug'
+import { Route as CheckoutSuccessRouteImport } from './routes/checkout.success'
+import { Route as CheckoutCancelRouteImport } from './routes/checkout.cancel'
 import { Route as ArtistSlugRouteImport } from './routes/artist.$slug'
 import { Route as AuthenticatedWalletRouteImport } from './routes/_authenticated/wallet'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
@@ -108,6 +110,16 @@ const EventSlugRoute = EventSlugRouteImport.update({
   path: '/event/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CheckoutSuccessRoute = CheckoutSuccessRouteImport.update({
+  id: '/checkout/success',
+  path: '/checkout/success',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CheckoutCancelRoute = CheckoutCancelRouteImport.update({
+  id: '/checkout/cancel',
+  path: '/checkout/cancel',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ArtistSlugRoute = ArtistSlugRouteImport.update({
   id: '/artist/$slug',
   path: '/artist/$slug',
@@ -141,6 +153,8 @@ export interface FileRoutesByFullPath {
   '/profile': typeof AuthenticatedProfileRoute
   '/wallet': typeof AuthenticatedWalletRoute
   '/artist/$slug': typeof ArtistSlugRoute
+  '/checkout/cancel': typeof CheckoutCancelRoute
+  '/checkout/success': typeof CheckoutSuccessRoute
   '/event/$slug': typeof EventSlugRoute
   '/rrpp/$slug': typeof RrppSlugRoute
 }
@@ -161,6 +175,8 @@ export interface FileRoutesByTo {
   '/profile': typeof AuthenticatedProfileRoute
   '/wallet': typeof AuthenticatedWalletRoute
   '/artist/$slug': typeof ArtistSlugRoute
+  '/checkout/cancel': typeof CheckoutCancelRoute
+  '/checkout/success': typeof CheckoutSuccessRoute
   '/event/$slug': typeof EventSlugRoute
   '/rrpp/$slug': typeof RrppSlugRoute
 }
@@ -183,6 +199,8 @@ export interface FileRoutesById {
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/wallet': typeof AuthenticatedWalletRoute
   '/artist/$slug': typeof ArtistSlugRoute
+  '/checkout/cancel': typeof CheckoutCancelRoute
+  '/checkout/success': typeof CheckoutSuccessRoute
   '/event/$slug': typeof EventSlugRoute
   '/rrpp/$slug': typeof RrppSlugRoute
 }
@@ -205,6 +223,8 @@ export interface FileRouteTypes {
     | '/profile'
     | '/wallet'
     | '/artist/$slug'
+    | '/checkout/cancel'
+    | '/checkout/success'
     | '/event/$slug'
     | '/rrpp/$slug'
   fileRoutesByTo: FileRoutesByTo
@@ -225,6 +245,8 @@ export interface FileRouteTypes {
     | '/profile'
     | '/wallet'
     | '/artist/$slug'
+    | '/checkout/cancel'
+    | '/checkout/success'
     | '/event/$slug'
     | '/rrpp/$slug'
   id:
@@ -246,6 +268,8 @@ export interface FileRouteTypes {
     | '/_authenticated/profile'
     | '/_authenticated/wallet'
     | '/artist/$slug'
+    | '/checkout/cancel'
+    | '/checkout/success'
     | '/event/$slug'
     | '/rrpp/$slug'
   fileRoutesById: FileRoutesById
@@ -266,6 +290,8 @@ export interface RootRouteChildren {
   TermsAndConditionsRoute: typeof TermsAndConditionsRoute
   VerifyRoute: typeof VerifyRoute
   ArtistSlugRoute: typeof ArtistSlugRoute
+  CheckoutCancelRoute: typeof CheckoutCancelRoute
+  CheckoutSuccessRoute: typeof CheckoutSuccessRoute
   EventSlugRoute: typeof EventSlugRoute
   RrppSlugRoute: typeof RrppSlugRoute
 }
@@ -384,6 +410,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EventSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/checkout/success': {
+      id: '/checkout/success'
+      path: '/checkout/success'
+      fullPath: '/checkout/success'
+      preLoaderRoute: typeof CheckoutSuccessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/checkout/cancel': {
+      id: '/checkout/cancel'
+      path: '/checkout/cancel'
+      fullPath: '/checkout/cancel'
+      preLoaderRoute: typeof CheckoutCancelRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/artist/$slug': {
       id: '/artist/$slug'
       path: '/artist/$slug'
@@ -438,6 +478,8 @@ const rootRouteChildren: RootRouteChildren = {
   TermsAndConditionsRoute: TermsAndConditionsRoute,
   VerifyRoute: VerifyRoute,
   ArtistSlugRoute: ArtistSlugRoute,
+  CheckoutCancelRoute: CheckoutCancelRoute,
+  CheckoutSuccessRoute: CheckoutSuccessRoute,
   EventSlugRoute: EventSlugRoute,
   RrppSlugRoute: RrppSlugRoute,
 }

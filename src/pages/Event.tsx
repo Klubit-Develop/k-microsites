@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { toast } from 'sonner';
 import dayjs from 'dayjs';
 import 'dayjs/locale/es';
@@ -8,6 +8,7 @@ import { useParams, useSearch, useNavigate } from '@tanstack/react-router';
 
 import axiosInstance from '@/config/axiosConfig';
 import { useAuthStore } from '@/stores/authStore';
+import { useCheckoutStore, useCheckoutTimer } from '@/stores/useCheckoutStore';
 
 import PageError from '@/components/common/PageError';
 import LocationCard from '@/components/LocationCard';
@@ -25,10 +26,9 @@ import ProductsList from '@/components/ProductsList';
 import EventStepper from '@/components/EventStepper';
 import CheckoutFooter from '@/components/CheckoutFooter';
 import ItemInfoModal, { type ItemInfoData, type ModalVariant } from '@/components/ItemInfoModal';
-
-// ============================================
-// TYPES
-// ============================================
+import CheckoutSummary from '@/components/CheckoutSummary';
+import TimeExpiredModal from '@/components/TimeExpiredModal';
+import StripePayment from '@/components/StripePayment';
 
 interface Artist {
     id: string;
@@ -225,6 +225,22 @@ interface UserFavoritesResponse {
     };
 }
 
+interface Fee {
+    id: string;
+    type: 'PERCENTAGE' | 'FIXED_AMOUNT';
+    percentage: number | null;
+    fixedAmount: number | null;
+    currency: string;
+    isActive: boolean;
+}
+
+interface FeeResponse {
+    status: 'success' | 'error';
+    code: string;
+    data: { fee: Fee | null };
+    message: string;
+}
+
 const VENUE_TYPE_MAP: Record<string, string> = {
     CLUB: 'Club',
     DISCO: 'Discoteca',
@@ -253,10 +269,6 @@ interface SelectedQuantities {
     promotions: Record<string, number>;
 }
 
-// ============================================
-// URL SERIALIZATION HELPERS
-// ============================================
-
 const parseQuantitiesFromUrl = (urlString: string | undefined): Record<string, number> => {
     if (!urlString) return {};
     const quantities: Record<string, number> = {};
@@ -280,10 +292,6 @@ const serializeQuantitiesToUrl = (quantities: Record<string, number>): string | 
     return pairs.length > 0 ? pairs.join(',') : undefined;
 };
 
-// ============================================
-// MAIN COMPONENT
-// ============================================
-
 const Event = () => {
     const { slug } = useParams({ strict: false });
     const { i18n, t } = useTranslation();
@@ -299,15 +307,10 @@ const Event = () => {
     const currentStep = searchParams.step ?? 1;
     const activeTab: TabKey = searchParams.tab ?? 'tickets';
 
-    // Estado para el modal de información de ticket/guestlist/reservation
     const [infoModalOpen, setInfoModalOpen] = useState(false);
     const [infoModalData, setInfoModalData] = useState<ItemInfoData | null>(null);
     const [infoModalPriceId, setInfoModalPriceId] = useState<string | null>(null);
     const [infoModalVariant, setInfoModalVariant] = useState<ModalVariant>('ticket');
-
-    // ============================================
-    // SELECTED QUANTITIES FROM URL
-    // ============================================
 
     const selectedQuantities = useMemo<SelectedQuantities>(() => ({
         tickets: parseQuantitiesFromUrl(searchParams.tickets),
@@ -316,10 +319,6 @@ const Event = () => {
         products: parseQuantitiesFromUrl(searchParams.products),
         promotions: parseQuantitiesFromUrl(searchParams.promotions),
     }), [searchParams.tickets, searchParams.guestlists, searchParams.reservations, searchParams.products, searchParams.promotions]);
-
-    // ============================================
-    // URL NAVIGATION
-    // ============================================
 
     const updateSearchParams = useCallback((updates: Partial<EventSearchParams>, addToHistory = false) => {
         const currentParams = searchParams;
@@ -331,7 +330,6 @@ const Event = () => {
             }
         });
 
-        // Clean default values
         if (newParams.step === 1) delete newParams.step;
         if (newParams.tab === 'tickets') delete newParams.tab;
 
@@ -342,9 +340,50 @@ const Event = () => {
         } as const);
     }, [navigate, searchParams]);
 
-    // ============================================
-    // QUERIES
-    // ============================================
+    const {
+        setStep: setCheckoutStep,
+        hasItems: checkoutHasItems,
+        goBack: goBackCheckout,
+        goToSummary,
+        goToPayment,
+        setEvent,
+        addItem,
+        clearCart,
+        step: checkoutStep,
+        eventId: checkoutEventId,
+        eventName: checkoutEventName,
+        eventSlug: checkoutEventSlug,
+        eventDisplayInfo: checkoutEventDisplayInfo,
+        items: checkoutItems,
+        setCoupon,
+        setNominativeAssignments,
+        isTimerExpired,
+        resetTimer,
+        expireTimer,
+        setFee,
+        getServiceFee,
+        transactionId,
+        setTransaction,
+        clearTransaction,
+    } = useCheckoutStore();
+
+    useEffect(() => {
+        if (currentStep === 3) {
+            if (!transactionId) {
+                updateSearchParams({ step: 2 }, true);
+                return;
+            }
+            setCheckoutStep('payment');
+        } else if (currentStep === 2) {
+            if (!checkoutHasItems()) {
+                updateSearchParams({ step: 1 }, true);
+                return;
+            }
+            setCheckoutStep('summary');
+        } else {
+            setCheckoutStep('selection');
+        }
+    }, [currentStep, checkoutHasItems, setCheckoutStep, updateSearchParams, transactionId]);
 
     const eventQuery = useQuery({
         queryKey: ['event', slug],
@@ -385,6 +424,22 @@ const Event = () => {
         refetchOnWindowFocus: false,
     });
 
+    const feeQuery = useQuery({
+        queryKey: ['fee', 'active'],
+        queryFn: async (): Promise<Fee | null> => {
+            const response = await axiosInstance.get<FeeResponse>('/v2/fees/active');
+            return response.data.data.fee;
+        },
+        staleTime: 1000 * 60 * 30,
+        refetchOnWindowFocus: false,
+    });
+
+    useEffect(() => {
+        if (feeQuery.isSuccess) {
+            setFee(feeQuery.data);
+        }
+    }, [feeQuery.data, feeQuery.isSuccess, setFee]);
+
     const toggleFavoriteMutation = useMutation({
         mutationFn: async (id: string) => {
             await axiosInstance.post('/v2/favorites/toggle', { eventId: id });
@@ -398,9 +453,49 @@ const Event = () => {
         },
     });
 
-    // ============================================
-    // FORMATTERS
-    // ============================================
+    // Create transaction mutation
+    const createTransactionMutation = useMutation({
+        mutationFn: async (data: {
+            eventId: string;
+            items: Array<{
+                itemType: 'TICKET' | 'GUESTLIST' | 'RESERVATION' | 'PRODUCT' | 'PROMOTION';
+                itemId: string;
+                priceId?: string;
+                quantity: number;
+            }>;
+            couponCode?: string;
+        }) => {
+            const response = await axiosInstance.post<{
+                status: 'success' | 'error';
+                data: {
+                    transaction: {
+                        id: string;
+                        totalPrice: number;
+                        currency: string;
+                    };
+                };
+                message: string;
+            }>('/v2/transactions', data);
+            return response.data;
+        },
+        onSuccess: (response) => {
+            if (response.status === 'success') {
+                const { id, totalPrice, currency } = response.data.transaction;
+                setTransaction(id, totalPrice, currency);
+                goToPayment();
+                updateSearchParams({ step: 3 }, true);
+            } else {
+                toast.error(response.message || t('checkout.transaction_error', 'Error al crear la transacción'));
+            }
+        },
+        onError: (error: any) => {
+            if (error.backendError) {
+                toast.error(error.backendError.message);
+            } else {
+                toast.error(t('common.error_connection', 'Error de conexión'));
+            }
+        },
+    });
 
     const formatEventDate = (dateString: string): string => {
         const formatted = dayjs(dateString).locale(locale).format('ddd, D MMMM');
@@ -411,13 +506,29 @@ const Event = () => {
         return `${startTime} - ${endTime}`;
     };
 
-    // ============================================
-    // HANDLERS
-    // ============================================
-
     const handleStepChange = useCallback((step: number) => {
-        updateSearchParams({ step }, true);
-    }, [updateSearchParams]);
+        if (step === 1) {
+            if (checkoutStep === 'summary' || checkoutStep === 'payment') {
+                goBackCheckout();
+            }
+            updateSearchParams({ step: 1 }, true);
+        } else if (step === 2) {
+            if (checkoutStep === 'payment') {
+                goBackCheckout();
+                updateSearchParams({ step: 2 }, true);
+            } else if (checkoutHasItems()) {
+                goToSummary();
+                updateSearchParams({ step: 2 }, true);
+            } else {
+                toast.error(t('event.select_items', 'Selecciona al menos un item'));
+            }
+        } else if (step === 3) {
+            if (transactionId) {
+                goToPayment();
+                updateSearchParams({ step: 3 }, true);
+            }
+        }
+    }, [updateSearchParams, checkoutStep, goBackCheckout, goToSummary, goToPayment, checkoutHasItems, transactionId, t]);
 
     const handleTabChange = useCallback((tab: string) => {
         updateSearchParams({ tab: tab as TabKey });
@@ -440,10 +551,6 @@ const Event = () => {
         updateSearchParams({ [tabKey]: serialized });
     }, [selectedQuantities, activeTab, updateSearchParams]);
 
-    // ============================================
-    // INFO MODAL HANDLERS
-    // ============================================
-
     const handleOpenInfoModal = useCallback((
         item: Ticket | Guestlist | Promotion,
         price: TicketPrice | null,
@@ -455,8 +562,7 @@ const Event = () => {
             promotion: '#FF336D',
         };
         const indicatorColor = indicatorColors[type];
-        
-        // Handle promotion variant
+
         if (type === 'promotion') {
             const promo = item as Promotion;
             const infoData: ItemInfoData = {
@@ -474,24 +580,18 @@ const Event = () => {
             return;
         }
 
-        // Handle ticket/guestlist variants
         if (!price) return;
 
-        // Cast to the correct type (we know it's not Promotion at this point)
         const ticketOrGuestlist = item as Ticket | Guestlist;
 
-        // Calculate low stock
-        const isLowStock = price.maxQuantity 
-            ? (price.maxQuantity - price.soldQuantity) <= 5 
+        const isLowStock = price.maxQuantity
+            ? (price.maxQuantity - price.soldQuantity) <= 5
             : false;
 
-        // Check if guestlist is free
         const isFree = type === 'guestlist' && price.finalPrice === 0;
 
-        // For guestlist, check if there's a precompra price option available
         const hasPrecompra = type === 'guestlist' && (ticketOrGuestlist as Guestlist).prices?.length > 1;
-        
-        // Get precompra data if available (the non-free price option)
+
         let precompraData = undefined;
         if (hasPrecompra && type === 'guestlist') {
             const guestlist = ticketOrGuestlist as Guestlist;
@@ -511,8 +611,8 @@ const Event = () => {
             name: ticketOrGuestlist.name,
             priceName: price.name !== ticketOrGuestlist.name ? price.name : undefined,
             indicatorColor,
-            maxPersons: type === 'ticket' 
-                ? 1 
+            maxPersons: type === 'ticket'
+                ? 1
                 : (ticketOrGuestlist as Guestlist).maxPersonsPerGuestlist || 1,
             products: ticketOrGuestlist.benefits
                 ?.filter(b => b.type === 'PRODUCT')
@@ -540,7 +640,6 @@ const Event = () => {
 
     const handleCloseInfoModal = useCallback(() => {
         setInfoModalOpen(false);
-        // Limpiar datos después de la animación
         setTimeout(() => {
             setInfoModalData(null);
             setInfoModalPriceId(null);
@@ -553,27 +652,172 @@ const Event = () => {
         handleQuantityChange(infoModalPriceId, delta, activeTab);
     }, [infoModalPriceId, handleQuantityChange, activeTab]);
 
-    const handleInfoModalConfirm = useCallback(() => {
-        handleCloseInfoModal();
-        // TODO: Navegar al checkout step 2
-    }, [handleCloseInfoModal]);
-
-    // Obtener cantidad actual del item del modal
     const infoModalQuantity = useMemo(() => {
         if (!infoModalPriceId) return 0;
         return selectedQuantities[activeTab]?.[infoModalPriceId] || 0;
     }, [infoModalPriceId, selectedQuantities, activeTab]);
 
-    // ============================================
-    // CALCULATIONS
-    // ============================================
+    const { remainingTime } = useCheckoutTimer();
+
+    const handleTimerExpired = useCallback(() => {
+        expireTimer();
+    }, [expireTimer]);
+
+    const handleRetryAfterExpired = useCallback(() => {
+        resetTimer();
+        clearTransaction();
+        updateSearchParams({ step: 1 }, true);
+    }, [resetTimer, clearTransaction, updateSearchParams]);
+
+    const handleBackFromSummary = useCallback(() => {
+        goBackCheckout();
+        updateSearchParams({ step: 1 }, true);
+    }, [goBackCheckout, updateSearchParams]);
+
+    const handleContinueToPayment = useCallback((data: {
+        coupon?: { id: string; code: string; type: 'PERCENTAGE' | 'FIXED_AMOUNT'; value: number };
+        nominativeAssignments?: Array<{
+            itemIndex: number;
+            assignmentType: 'me' | 'send' | 'fill';
+            phone?: string;
+            phoneCountry?: string;
+            firstName?: string;
+            lastName?: string;
+        }>;
+    }) => {
+        if (data.coupon) {
+            setCoupon(data.coupon);
+        }
+        if (data.nominativeAssignments) {
+            setNominativeAssignments(data.nominativeAssignments);
+        }
+
+        if (!checkoutEventId) {
+            toast.error(t('checkout.no_event', 'No hay evento seleccionado'));
+            return;
+        }
+
+        // Map checkout items to transaction items
+        const transactionItems = checkoutItems.map(item => {
+            let itemType: 'TICKET' | 'GUESTLIST' | 'RESERVATION' | 'PRODUCT' | 'PROMOTION';
+            switch (item.type) {
+                case 'ticket':
+                    itemType = 'TICKET';
+                    break;
+                case 'guestlist':
+                    itemType = 'GUESTLIST';
+                    break;
+                case 'reservation':
+                    itemType = 'RESERVATION';
+                    break;
+                case 'product':
+                    itemType = 'PRODUCT';
+                    break;
+                case 'promotion':
+                    itemType = 'PROMOTION';
+                    break;
+                default:
+                    itemType = 'TICKET';
+            }
+
+            return {
+                itemType,
+                itemId: item.id,
+                priceId: item.priceId !== item.id ? item.priceId : undefined,
+                quantity: item.quantity,
+            };
+        });
+
+        createTransactionMutation.mutate({
+            eventId: checkoutEventId,
+            items: transactionItems,
+            couponCode: data.coupon?.code,
+        });
+    }, [checkoutEventId, checkoutItems, setCoupon, setNominativeAssignments, createTransactionMutation, t]);
+
+    const handlePaymentSuccess = useCallback(() => {
+        clearCart();
+        navigate({
+            to: '/checkout/success',
+            search: {
+                transactionId: transactionId || undefined,
+                payment_intent: undefined,
+                payment_intent_client_secret: undefined,
+                redirect_status: undefined,
+            },
+        });
+    }, [clearCart, navigate, transactionId]);
+
+    const handlePaymentCancel = useCallback(() => {
+        clearTransaction();
+        goBackCheckout();
+        updateSearchParams({ step: 2 }, true);
+    }, [clearTransaction, goBackCheckout, updateSearchParams]);
+
+    const handleInfoModalConfirm = useCallback(() => {
+        if (!infoModalData || !infoModalPriceId || !eventQuery.data) return;
+
+        const event = eventQuery.data;
+        const quantity = infoModalQuantity;
+
+        if (quantity <= 0) {
+            toast.error(t('event.select_quantity', 'Selecciona una cantidad'));
+            return;
+        }
+
+        setEvent(
+            event.id,
+            event.name,
+            event.slug,
+            {
+                coverImage: event.flyer,
+                date: dayjs(event.startDate).locale('es').format('ddd, D MMMM'),
+            }
+        );
+
+        let isNominative = false;
+        if (infoModalVariant === 'ticket') {
+            const ticket = event.tickets?.find(t =>
+                t.prices?.some(p => p.id === infoModalPriceId)
+            );
+            isNominative = ticket?.isNominative ?? false;
+        }
+
+        addItem({
+            id: infoModalData.id,
+            priceId: infoModalPriceId,
+            type: infoModalVariant === 'promotion' ? 'promotion' : infoModalVariant,
+            name: infoModalData.name,
+            priceName: infoModalData.priceName,
+            unitPrice: infoModalData.finalPrice,
+            quantity,
+            isNominative,
+        });
+
+        handleCloseInfoModal();
+
+        goToSummary();
+
+        updateSearchParams({ step: 2 }, true);
+    }, [
+        infoModalData,
+        infoModalPriceId,
+        infoModalQuantity,
+        infoModalVariant,
+        eventQuery.data,
+        setEvent,
+        addItem,
+        goToSummary,
+        handleCloseInfoModal,
+        updateSearchParams,
+        t
+    ]);
 
     const calculateTotal = useCallback((): number => {
         if (!eventQuery.data) return 0;
 
         let total = 0;
 
-        // Tickets
         eventQuery.data.tickets?.forEach(ticket => {
             ticket.prices?.forEach(price => {
                 const quantity = selectedQuantities.tickets[price.id] || 0;
@@ -581,7 +825,6 @@ const Event = () => {
             });
         });
 
-        // Guestlists
         eventQuery.data.guestlists?.forEach(guestlist => {
             guestlist.prices?.forEach(price => {
                 const quantity = selectedQuantities.guestlists[price.id] || 0;
@@ -589,7 +832,6 @@ const Event = () => {
             });
         });
 
-        // Reservations
         eventQuery.data.reservations?.forEach(reservation => {
             reservation.prices?.forEach(price => {
                 const quantity = selectedQuantities.reservations[price.id] || 0;
@@ -597,13 +839,11 @@ const Event = () => {
             });
         });
 
-        // Products
         eventQuery.data.products?.forEach(product => {
             const quantity = selectedQuantities.products[product.id] || 0;
             total += (product.price ?? 0) * quantity;
         });
 
-        // Promotions (solo FIXED_PRICE tiene costo directo)
         eventQuery.data.promotions?.forEach(promotion => {
             const quantity = selectedQuantities.promotions[promotion.id] || 0;
             if (promotion.type === 'FIXED_PRICE') {
@@ -625,21 +865,112 @@ const Event = () => {
         toggleFavoriteMutation.mutate(eventId);
     };
 
-    const handleCheckout = () => {
-        handleStepChange(2);
-    };
+    const handleCheckout = useCallback(() => {
+        const event = eventQuery.data;
+        if (!event) return;
 
-    // ============================================
-    // ERROR STATE
-    // ============================================
+        const hasSelectedItems = Object.values(selectedQuantities).some(
+            tab => Object.values(tab as Record<string, number>).some((qty: number) => qty > 0)
+        );
+
+        if (!hasSelectedItems) {
+            toast.error(t('event.select_items', 'Selecciona al menos un item'));
+            return;
+        }
+
+        clearCart();
+
+        setEvent(
+            event.id,
+            event.name,
+            event.slug,
+            {
+                coverImage: event.flyer,
+                date: dayjs(event.startDate).locale('es').format('ddd, D MMMM'),
+            }
+        );
+
+        event.tickets?.forEach(ticket => {
+            ticket.prices?.forEach(price => {
+                const quantity = selectedQuantities.tickets[price.id];
+                if (quantity > 0) {
+                    addItem({
+                        id: ticket.id,
+                        priceId: price.id,
+                        type: 'ticket',
+                        name: ticket.name,
+                        priceName: price.name,
+                        unitPrice: price.finalPrice,
+                        quantity,
+                        isNominative: ticket.isNominative,
+                    });
+                }
+            });
+        });
+
+        event.guestlists?.forEach(guestlist => {
+            guestlist.prices?.forEach(price => {
+                const quantity = selectedQuantities.guestlists[price.id];
+                if (quantity > 0) {
+                    addItem({
+                        id: guestlist.id,
+                        priceId: price.id,
+                        type: 'guestlist',
+                        name: guestlist.name,
+                        priceName: price.name,
+                        unitPrice: price.finalPrice,
+                        quantity,
+                        maxPersons: guestlist.maxPersonsPerGuestlist,
+                    });
+                }
+            });
+        });
+
+        event.promotions?.forEach(promotion => {
+            const quantity = selectedQuantities.promotions[promotion.id];
+            if (quantity > 0) {
+                const unitPrice = promotion.type === 'FIXED_PRICE' ? promotion.value : 0;
+                addItem({
+                    id: promotion.id,
+                    priceId: promotion.id,
+                    type: 'promotion',
+                    name: promotion.name,
+                    unitPrice,
+                    quantity,
+                });
+            }
+        });
+
+        event.products?.forEach(product => {
+            const quantity = selectedQuantities.products[product.id];
+            if (quantity > 0) {
+                addItem({
+                    id: product.id,
+                    priceId: product.id,
+                    type: 'product',
+                    name: product.name,
+                    unitPrice: product.price,
+                    quantity,
+                });
+            }
+        });
+
+        goToSummary();
+        updateSearchParams({ step: 2 }, true);
+    }, [
+        eventQuery.data,
+        selectedQuantities,
+        clearCart,
+        setEvent,
+        addItem,
+        goToSummary,
+        updateSearchParams,
+        t,
+    ]);
 
     if (eventQuery.isError) {
         return <PageError />;
     }
-
-    // ============================================
-    // DERIVED STATE
-    // ============================================
 
     const isLoading = eventQuery.isLoading;
     const event = eventQuery.data;
@@ -650,13 +981,8 @@ const Event = () => {
     const likesCount = favoritesCountQuery.data ?? event?._count?.favorites ?? 0;
     const isLiked = userFavoriteQuery.data ?? false;
 
-    // ============================================
-    // DYNAMIC TABS (solo mostrar tabs con contenido)
-    // ============================================
-
     const availableTabs = useMemo(() => {
         if (isLoading) {
-            // Durante loading, mostrar todos los tabs
             return [
                 { key: 'tickets', label: t('event.tabs.tickets', 'Entradas') },
                 { key: 'guestlists', label: t('event.tabs.guestlists', 'Guestlists') },
@@ -687,7 +1013,6 @@ const Event = () => {
         return tabs;
     }, [isLoading, event, t]);
 
-    // Si el tab activo no está disponible, usar el primero
     const effectiveActiveTab = useMemo(() => {
         if (availableTabs.find(tab => tab.key === activeTab)) {
             return activeTab;
@@ -701,10 +1026,6 @@ const Event = () => {
         ...event.vibes.map(v => v.name),
         ...event.musics.map(m => m.name),
     ] : [];
-
-    // ============================================
-    // RENDER TAB CONTENT
-    // ============================================
 
     const renderTabContent = () => {
         switch (effectiveActiveTab) {
@@ -804,9 +1125,69 @@ const Event = () => {
         }
     };
 
-    // ============================================
-    // RENDER
-    // ============================================
+    const renderRightColumn = () => {
+        // Step 3: Payment
+        if (checkoutStep === 'payment' && transactionId) {
+            return (
+                <StripePayment
+                    transactionId={transactionId}
+                    onSuccess={handlePaymentSuccess}
+                    onCancel={handlePaymentCancel}
+                    timerSeconds={remainingTime}
+                    onTimerExpired={handleTimerExpired}
+                />
+            );
+        }
+
+        // Step 2: Summary
+        if (checkoutStep === 'summary' && checkoutEventId) {
+            return (
+                <CheckoutSummary
+                    event={{
+                        id: checkoutEventId,
+                        name: checkoutEventName || '',
+                        slug: checkoutEventSlug || '',
+                        coverImage: checkoutEventDisplayInfo?.coverImage,
+                        date: checkoutEventDisplayInfo?.date || '',
+                    }}
+                    items={checkoutItems}
+                    serviceFee={getServiceFee()}
+                    timerSeconds={remainingTime}
+                    onTimerExpired={handleTimerExpired}
+                    onBack={handleBackFromSummary}
+                    onContinueToPayment={handleContinueToPayment}
+                    isLoading={createTransactionMutation.isPending}
+                />
+            );
+        }
+
+        // Step 1: Selection
+        return (
+            <>
+                <div className="overflow-x-auto overflow-y-hidden">
+                    <div className="min-w-[500px]">
+                        <TabSelector
+                            tabs={availableTabs}
+                            activeTab={effectiveActiveTab}
+                            onTabChange={handleTabChange}
+                            isLoading={isLoading}
+                        />
+                    </div>
+                </div>
+
+                {renderTabContent()}
+
+                {activeTab !== 'reservations' && (
+                    <CheckoutFooter
+                        total={total}
+                        totalQuantity={totalQuantity}
+                        onCheckout={handleCheckout}
+                        isLoading={isLoading}
+                    />
+                )}
+            </>
+        );
+    };
 
     return (
         <div className="bg-[#050505] min-h-screen flex flex-col gap-[60px] items-center py-24">
@@ -879,30 +1260,7 @@ const Event = () => {
 
                 {/* RIGHT COLUMN - Rates & Checkout */}
                 <div className="flex flex-col gap-[36px] w-[500px] rounded-[10px]">
-                    {/* Tab Selector con scroll horizontal */}
-                    <div className="overflow-x-auto overflow-y-hidden">
-                        <div className="min-w-[500px]">
-                            <TabSelector
-                                tabs={availableTabs}
-                                activeTab={effectiveActiveTab}
-                                onTabChange={handleTabChange}
-                                isLoading={isLoading}
-                            />
-                        </div>
-                    </div>
-
-                    {/* Tab Content */}
-                    {renderTabContent()}
-
-                    {/* Checkout Footer - oculto en tab de reservas porque tiene su propio flujo */}
-                    {activeTab !== 'reservations' && (
-                        <CheckoutFooter
-                            total={total}
-                            totalQuantity={totalQuantity}
-                            onCheckout={handleCheckout}
-                            isLoading={isLoading}
-                        />
-                    )}
+                    {renderRightColumn()}
                 </div>
             </div>
 
@@ -915,6 +1273,12 @@ const Event = () => {
                 quantity={infoModalQuantity}
                 onQuantityChange={handleInfoModalQuantityChange}
                 onConfirm={handleInfoModalConfirm}
+            />
+
+            {/* Time Expired Modal */}
+            <TimeExpiredModal
+                isOpen={isTimerExpired}
+                onRetry={handleRetryAfterExpired}
             />
         </div>
     );

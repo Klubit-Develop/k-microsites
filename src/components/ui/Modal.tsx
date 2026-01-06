@@ -35,7 +35,6 @@ const Modal = ({
     useEffect(() => {
         if (isOpen) {
             setIsVisible(true);
-            // Small delay to trigger animation
             requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
                     setIsAnimating(true);
@@ -43,7 +42,6 @@ const Modal = ({
             });
         } else {
             setIsAnimating(false);
-            // Wait for animation to complete before hiding
             const timer = setTimeout(() => {
                 setIsVisible(false);
             }, 200);
@@ -68,6 +66,8 @@ const Modal = ({
         };
     }, [isOpen, handleKeyDown]);
 
+    if (!isVisible) return null;
+
     const handleBackdropClick = (e: React.MouseEvent) => {
         if (e.target === e.currentTarget && !isLoading) {
             onClose();
@@ -81,33 +81,21 @@ const Modal = ({
         return 'bg-[#FF336D] text-[#F6F6F6]';
     };
 
-    if (!isVisible) return null;
-
     return createPortal(
         <div
-            className={`fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-4 transition-opacity duration-200 ease-out ${isAnimating ? 'opacity-100' : 'opacity-0'
+            className={`fixed inset-0 z-50 flex items-center justify-center p-4 transition-opacity duration-200 ease-out ${isAnimating ? 'opacity-100' : 'opacity-0'
                 }`}
             onClick={handleBackdropClick}
         >
-            {/* Backdrop */}
-            <div
-                className={`absolute inset-0 bg-black/70 transition-opacity duration-200 ease-out ${isAnimating ? 'opacity-100' : 'opacity-0'
-                    }`}
-            />
+            <div className={`absolute inset-0 bg-black/70 transition-opacity duration-200 ease-out ${isAnimating ? 'opacity-100' : 'opacity-0'
+                }`} />
 
-            {/* Modal */}
-            <div
-                className={`relative bg-[#0A0A0A] border-2 border-[#232323] rounded-t-[42px] md:rounded-[42px] w-full max-w-[400px] px-6 py-[42px] flex flex-col gap-9 items-center max-h-[90vh] overflow-y-auto transition-all duration-200 ease-out ${isAnimating
-                        ? 'opacity-100 translate-y-0 scale-100'
-                        : 'opacity-0 translate-y-4 md:translate-y-0 md:scale-95'
-                    }`}
-            >
-                {/* Grabber */}
-                <div className="absolute top-[-2px] left-1/2 -translate-x-1/2 pt-[5px] opacity-50 md:hidden">
+            <div className={`relative bg-[#0A0A0A] border-2 border-[#232323] rounded-[42px] w-full max-w-[400px] px-6 py-[42px] flex flex-col gap-9 items-center transition-all duration-200 ease-out ${isAnimating ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
+                }`}>
+                <div className="absolute top-[-2px] left-1/2 -translate-x-1/2 pt-[5px] opacity-50">
                     <div className="w-9 h-[5px] bg-[#F6F6F6] opacity-50 rounded-full" />
                 </div>
 
-                {/* Si hay children, renderizar children. Si no, renderizar contenido default */}
                 {children ? (
                     children
                 ) : (
