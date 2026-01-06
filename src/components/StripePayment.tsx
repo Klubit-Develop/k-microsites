@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { loadStripe } from '@stripe/stripe-js';
 import {
@@ -19,6 +19,11 @@ interface PaymentIntentResponse {
     data: {
         clientSecret: string;
         paymentIntentId: string;
+        transactionId: string;
+        amount: number;
+        currency: string;
+        expiresAt: string | null;
+        stripeAccountId?: string;
     };
     message: string;
 }
@@ -52,7 +57,6 @@ const CheckoutForm = ({ onSuccess, onCancel, timerSeconds, onTimerExpired }: Che
     const [isProcessing, setIsProcessing] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-    // Handle timer expiration
     useEffect(() => {
         if (timerSeconds !== undefined && timerSeconds <= 0 && onTimerExpired) {
             onTimerExpired();
@@ -89,10 +93,8 @@ const CheckoutForm = ({ onSuccess, onCancel, timerSeconds, onTimerExpired }: Che
                 if (paymentIntent.status === 'succeeded') {
                     onSuccess();
                 } else if (paymentIntent.status === 'processing') {
-                    // Payment is processing, redirect to success page to poll
                     onSuccess();
                 } else if (paymentIntent.status === 'requires_action') {
-                    // 3D Secure or other action required - Stripe handles this
                     setIsProcessing(false);
                 } else {
                     setErrorMessage(t('payment.generic_error', 'Estado de pago inesperado'));
@@ -100,6 +102,7 @@ const CheckoutForm = ({ onSuccess, onCancel, timerSeconds, onTimerExpired }: Che
                 }
             }
         } catch (err) {
+            console.error('Payment error:', err);
             setErrorMessage(t('payment.generic_error', 'Ha ocurrido un error inesperado'));
             setIsProcessing(false);
         }
@@ -196,23 +199,45 @@ const StripePayment = ({
     const [clientSecret, setClientSecret] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    
+    // Prevent double PaymentIntent creation (React StrictMode)
+    const hasCreatedIntent = useRef(false);
 
     useEffect(() => {
+        if (hasCreatedIntent.current) {
+            return;
+        }
+
         const createPaymentIntent = async () => {
+            hasCreatedIntent.current = true;
+            
             try {
                 setIsLoading(true);
                 setError(null);
+
+                console.log('Creating PaymentIntent for transaction:', transactionId);
 
                 const response = await axiosInstance.post<PaymentIntentResponse>(
                     `/v2/transactions/${transactionId}/payment-intent`
                 );
 
+                console.log('PaymentIntent response:', response.data);
+
                 if (response.data.status === 'success') {
-                    setClientSecret(response.data.data.clientSecret);
+                    const secret = response.data.data.clientSecret;
+                    
+                    console.log('ClientSecret received:', secret ? 'Yes (length: ' + secret.length + ')' : 'No');
+                    
+                    if (secret) {
+                        setClientSecret(secret);
+                    } else {
+                        setError(t('payment.no_client_secret', 'No se pudo iniciar el pago'));
+                    }
                 } else {
                     setError(response.data.message || t('payment.intent_error', 'Error al iniciar el pago'));
                 }
             } catch (err: any) {
+                console.error('PaymentIntent creation error:', err);
                 if (err.backendError) {
                     setError(err.backendError.message);
                 } else {
@@ -255,7 +280,16 @@ const StripePayment = ({
     }
 
     if (!clientSecret) {
-        return null;
+        return (
+            <div className="flex flex-col gap-6 bg-[#111111] rounded-2xl p-6">
+                <div className="bg-[rgba(255,35,35,0.15)] text-[#FF2323] px-4 py-3 rounded-xl text-[14px] font-helvetica text-center">
+                    {t('payment.no_client_secret', 'No se pudo iniciar el pago')}
+                </div>
+                <Button variant="secondary" onClick={onCancel}>
+                    {t('common.go_back', 'Volver')}
+                </Button>
+            </div>
+        );
     }
 
     const appearance: import('@stripe/stripe-js').Appearance = {
