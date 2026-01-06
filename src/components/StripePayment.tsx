@@ -73,7 +73,11 @@ const CheckoutForm = ({ transactionId, onSuccess, onCancel, timerSeconds, onTime
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
+        console.log('=== STRIPE PAYMENT SUBMIT ===');
+        console.log('transactionId prop:', transactionId);
+
         if (!stripe || !elements) {
+            console.log('Stripe or elements not ready');
             return;
         }
 
@@ -94,7 +98,10 @@ const CheckoutForm = ({ transactionId, onSuccess, onCancel, timerSeconds, onTime
                 redirect: 'if_required',
             });
 
+            console.log('confirmPayment result:', { error, paymentIntent });
+
             if (error) {
+                console.log('Payment error:', error);
                 if (error.type === 'card_error' || error.type === 'validation_error') {
                     setErrorMessage(error.message || t('payment.generic_error', 'Error en el pago'));
                 } else {
@@ -102,14 +109,19 @@ const CheckoutForm = ({ transactionId, onSuccess, onCancel, timerSeconds, onTime
                 }
                 setIsProcessing(false);
             } else if (paymentIntent) {
+                console.log('PaymentIntent status:', paymentIntent.status);
+                
                 if (paymentIntent.status === 'succeeded') {
+                    console.log('✅ Payment succeeded! Calling onSuccess...');
                     onSuccess();
                 } else if (paymentIntent.status === 'processing') {
+                    console.log('⏳ Payment processing! Calling onSuccess...');
                     onSuccess();
                 } else if (paymentIntent.status === 'requires_action') {
-                    // 3D Secure - Stripe manejará el redirect automáticamente
+                    console.log('🔐 Payment requires action (3D Secure)');
                     setIsProcessing(false);
                 } else {
+                    console.log('❓ Unexpected payment status:', paymentIntent.status);
                     setErrorMessage(t('payment.generic_error', 'Estado de pago inesperado'));
                     setIsProcessing(false);
                 }
@@ -215,6 +227,9 @@ const StripePayment = ({
     
     // Prevent double PaymentIntent creation (React StrictMode)
     const hasCreatedIntent = useRef(false);
+
+    console.log('=== STRIPE PAYMENT RENDER ===');
+    console.log('transactionId prop:', transactionId);
 
     useEffect(() => {
         if (hasCreatedIntent.current) {
