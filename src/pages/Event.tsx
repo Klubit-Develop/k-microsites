@@ -736,27 +736,10 @@ const Event = () => {
     }, [checkoutEventId, checkoutItems, setCoupon, setNominativeAssignments, createTransactionMutation, t]);
 
     const handlePaymentSuccess = useCallback(() => {
-        console.log('=== handlePaymentSuccess CALLED ===');
-        console.log('transactionId from store:', transactionId);
-
-        // Guardar transactionId ANTES de limpiar el carrito
         const savedTransactionId = transactionId;
-        console.log('savedTransactionId:', savedTransactionId);
-
         clearCart();
-        console.log('Cart cleared');
-
-        console.log('Navigating to /checkout/success with transactionId:', savedTransactionId);
-
-        // IMPORTANTE: Usar función que IGNORA prev para evitar merge de params
-        navigate({
-            to: '/checkout/success',
-            search: () => ({
-                transactionId: savedTransactionId || undefined
-            }),
-            replace: true,
-        });
-    }, [clearCart, navigate, transactionId]);
+        window.location.href = `/checkout/success?transactionId=${savedTransactionId}`;
+    }, [clearCart, transactionId]);
 
     const handlePaymentCancel = useCallback(() => {
         clearTransaction();
