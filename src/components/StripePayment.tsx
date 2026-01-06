@@ -12,7 +12,14 @@ import { Lock, Clock } from 'lucide-react';
 import axiosInstance from '@/config/axiosConfig';
 import Button from '@/components/ui/Button';
 
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+// Validar que la key existe
+const STRIPE_PUBLISHABLE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+
+if (!STRIPE_PUBLISHABLE_KEY) {
+    console.error('❌ VITE_STRIPE_PUBLISHABLE_KEY is not defined in environment variables');
+}
+
+const stripePromise = STRIPE_PUBLISHABLE_KEY ? loadStripe(STRIPE_PUBLISHABLE_KEY) : null;
 
 interface PaymentIntentResponse {
     status: 'success' | 'error';
@@ -23,7 +30,6 @@ interface PaymentIntentResponse {
         amount: number;
         currency: string;
         expiresAt: string | null;
-        stripeAccountId?: string;
     };
     message: string;
 }
@@ -37,6 +43,7 @@ interface StripePaymentProps {
 }
 
 interface CheckoutFormProps {
+    transactionId: string;
     onSuccess: () => void;
     onCancel: () => void;
     timerSeconds?: number;
@@ -49,7 +56,7 @@ const formatTime = (seconds: number): string => {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 };
 
-const CheckoutForm = ({ onSuccess, onCancel, timerSeconds, onTimerExpired }: CheckoutFormProps) => {
+const CheckoutForm = ({ transactionId, onSuccess, onCancel, timerSeconds, onTimerExpired }: CheckoutFormProps) => {
     const { t } = useTranslation();
     const stripe = useStripe();
     const elements = useElements();
@@ -74,10 +81,15 @@ const CheckoutForm = ({ onSuccess, onCancel, timerSeconds, onTimerExpired }: Che
         setErrorMessage(null);
 
         try {
+            // Incluir transactionId en la URL de retorno
+            const returnUrl = `${window.location.origin}/checkout/success?transactionId=${transactionId}`;
+            
+            console.log('Return URL:', returnUrl);
+
             const { error, paymentIntent } = await stripe.confirmPayment({
                 elements,
                 confirmParams: {
-                    return_url: `${window.location.origin}/checkout/success`,
+                    return_url: returnUrl,
                 },
                 redirect: 'if_required',
             });
@@ -95,6 +107,7 @@ const CheckoutForm = ({ onSuccess, onCancel, timerSeconds, onTimerExpired }: Che
                 } else if (paymentIntent.status === 'processing') {
                     onSuccess();
                 } else if (paymentIntent.status === 'requires_action') {
+                    // 3D Secure - Stripe manejará el redirect automáticamente
                     setIsProcessing(false);
                 } else {
                     setErrorMessage(t('payment.generic_error', 'Estado de pago inesperado'));
@@ -227,11 +240,13 @@ const StripePayment = ({
                     const secret = response.data.data.clientSecret;
                     
                     console.log('ClientSecret received:', secret ? 'Yes (length: ' + secret.length + ')' : 'No');
+                    console.log('ClientSecret format check:', secret?.includes('_secret_') ? '✅ Valid format' : '❌ Invalid format');
                     
-                    if (secret) {
+                    if (secret && secret.includes('_secret_')) {
                         setClientSecret(secret);
                     } else {
-                        setError(t('payment.no_client_secret', 'No se pudo iniciar el pago'));
+                        console.error('Invalid clientSecret format:', secret);
+                        setError(t('payment.invalid_secret', 'Error en la configuración del pago'));
                     }
                 } else {
                     setError(response.data.message || t('payment.intent_error', 'Error al iniciar el pago'));
@@ -250,6 +265,20 @@ const StripePayment = ({
 
         createPaymentIntent();
     }, [transactionId, t]);
+
+    // Verificar que Stripe está configurado
+    if (!stripePromise) {
+        return (
+            <div className="flex flex-col gap-6 bg-[#111111] rounded-2xl p-6">
+                <div className="bg-[rgba(255,35,35,0.15)] text-[#FF2323] px-4 py-3 rounded-xl text-[14px] font-helvetica text-center">
+                    {t('payment.stripe_not_configured', 'Error: Stripe no está configurado correctamente')}
+                </div>
+                <Button variant="secondary" onClick={onCancel}>
+                    {t('common.go_back', 'Volver')}
+                </Button>
+            </div>
+        );
+    }
 
     if (isLoading) {
         return (
@@ -358,6 +387,7 @@ const StripePayment = ({
                 }}
             >
                 <CheckoutForm
+                    transactionId={transactionId}
                     onSuccess={onSuccess}
                     onCancel={onCancel}
                     timerSeconds={timerSeconds}
