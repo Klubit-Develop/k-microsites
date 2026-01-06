@@ -736,14 +736,13 @@ const Event = () => {
     }, [checkoutEventId, checkoutItems, setCoupon, setNominativeAssignments, createTransactionMutation, t]);
 
     const handlePaymentSuccess = useCallback(() => {
+        // Guardar transactionId ANTES de limpiar el carrito
+        const savedTransactionId = transactionId;
         clearCart();
         navigate({
             to: '/checkout/success',
             search: {
-                transactionId: transactionId || undefined,
-                payment_intent: undefined,
-                payment_intent_client_secret: undefined,
-                redirect_status: undefined,
+                transactionId: savedTransactionId || undefined,
             },
         });
     }, [clearCart, navigate, transactionId]);
