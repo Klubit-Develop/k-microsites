@@ -275,7 +275,6 @@ const ReservationSelectionStep = ({
     onBack,
     onContinue,
     total,
-    formData,
 }: ReservationSelectionStepProps) => {
     const { t } = useTranslation();
 
