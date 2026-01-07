@@ -36,83 +36,79 @@ const EventStepper = ({
 
     if (isLoading) {
         return (
-            <div className={`flex items-center justify-center w-full px-4 md:px-8 lg:px-16 xl:px-24 2xl:px-96 animate-pulse ${className}`}>
-                <div className="flex items-center w-full max-w-[500px]">
-                    {steps.map((_, index) => (
-                        <div key={index} className="contents">
-                            <div className="flex items-center gap-[7px] px-4 md:px-6">
-                                <div className="w-[23px] h-[23px] bg-[#232323] rounded-full" />
-                                <div className="h-4 w-16 bg-[#232323] rounded hidden sm:block" />
-                            </div>
-                            {index < steps.length - 1 && (
-                                <div className="flex-1 h-px bg-[#232323]" />
-                            )}
+            <div className={`flex items-center justify-center w-full px-[470px] animate-pulse ${className}`}>
+                {steps.map((_, index) => (
+                    <div key={index} className="contents">
+                        <div className="flex items-center gap-[7px] px-6">
+                            <div className="w-[23px] h-[23px] bg-[#232323] rounded-full" />
+                            <div className="h-4 w-16 bg-[#232323] rounded" />
                         </div>
-                    ))}
-                </div>
+                        {index < steps.length - 1 && (
+                            <div className="flex-1 h-px bg-[#232323]" />
+                        )}
+                    </div>
+                ))}
             </div>
         );
     }
 
     return (
-        <div className={`flex items-center justify-center w-full px-4 md:px-8 lg:px-16 xl:px-24 2xl:px-96 ${className}`}>
-            <div className="flex items-center w-full max-w-[500px]">
-                {steps.map((step, index) => {
-                    const stepNumber = index + 1;
-                    const isActive = stepNumber <= currentStep;
-                    const isCompleted = stepNumber < currentStep;
-                    const isClickable = onStepClick && stepNumber <= currentStep;
+        <div className={`flex items-center justify-center w-full px-[470px] ${className}`}>
+            {steps.map((step, index) => {
+                const stepNumber = index + 1;
+                const isActive = stepNumber <= currentStep;
+                const isCompleted = stepNumber < currentStep;
+                const isClickable = onStepClick && stepNumber <= currentStep;
 
-                    return (
-                        <div key={step.key} className="contents">
-                            <button
-                                type="button"
-                                onClick={() => handleStepClick(stepNumber)}
-                                disabled={!isClickable}
+                return (
+                    <div key={step.key} className="contents">
+                        <button
+                            type="button"
+                            onClick={() => handleStepClick(stepNumber)}
+                            disabled={!isClickable}
+                            className={`
+                                flex items-center gap-[7px] px-6
+                                bg-transparent border-none outline-none
+                                ${isClickable
+                                    ? 'cursor-pointer hover:opacity-80 transition-opacity'
+                                    : 'cursor-default'
+                                }
+                            `}
+                        >
+                            <div
                                 className={`
-                                    flex items-center gap-[7px] px-4 md:px-6
-                                    bg-transparent border-none outline-none
-                                    ${isClickable
-                                        ? 'cursor-pointer hover:opacity-80 transition-opacity'
-                                        : 'cursor-default'
+                                    flex items-center justify-center w-[23px] h-[23px] border rounded-full
+                                    transition-colors
+                                    ${isActive
+                                        ? 'bg-[#e5ff88] border-[#e5ff88]'
+                                        : 'bg-[#939393] border-[#939393]'
                                     }
                                 `}
                             >
-                                <div
-                                    className={`
-                                        flex items-center justify-center w-[23px] h-[23px] border rounded-full
-                                        transition-colors shrink-0
-                                        ${isActive
-                                            ? 'bg-[#e5ff88] border-[#e5ff88]'
-                                            : 'bg-[#939393] border-[#939393]'
-                                        }
-                                    `}
-                                >
-                                    <span className="text-[#141414] text-base font-medium font-helvetica">
-                                        {isCompleted ? '✓' : stepNumber}
-                                    </span>
-                                </div>
-                                <span
-                                    className={`
-                                        text-sm font-normal font-helvetica transition-colors hidden sm:inline
-                                        ${isActive ? 'text-[#e5ff88]' : 'text-[#939393]'}
-                                    `}
-                                >
-                                    {t(step.labelKey, step.defaultLabel)}
+                                <span className="text-[#141414] text-[16px] font-medium font-helvetica">
+                                    {stepNumber}
                                 </span>
-                            </button>
-                            {index < steps.length - 1 && (
-                                <div
-                                    className={`
-                                        flex-1 h-px transition-colors
-                                        ${isCompleted ? 'bg-[#e5ff88]' : 'bg-[#939393]'}
-                                    `}
-                                />
-                            )}
-                        </div>
-                    );
-                })}
-            </div>
+                            </div>
+                            <span
+                                className={`
+                                    text-[14px] font-normal font-helvetica transition-colors
+                                    ${isActive ? 'text-[#e5ff88]' : 'text-[#939393]'}
+                                `}
+                            >
+                                {t(step.labelKey, step.defaultLabel)}
+                            </span>
+                        </button>
+                        {index < steps.length - 1 && (
+                            <div
+                                className={`
+                                    flex-1 h-px transition-colors
+                                    ${isCompleted ? 'bg-[#e5ff88]' : 'bg-[#939393]'}
+                                `}
+                            />
+                        )}
+                    </div>
+                );
+            })}
         </div>
     );
 };

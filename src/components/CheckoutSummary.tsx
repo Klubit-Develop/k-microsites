@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
-
 import IncidentModal from '@/components/IncidentModal';
+import InputTextPhone from '@/components/ui/InputTextPhone';
+import { countries } from '@/utils/countries';
 
 // ============================================
 // TYPES
@@ -56,18 +57,11 @@ interface CheckoutSummaryProps {
         nominativeAssignments?: NominativeAssignment[];
     }) => void;
     isLoading?: boolean;
-    transactionId?: string;
 }
 
 // ============================================
 // ICONS
 // ============================================
-
-const ChevronDownIcon = () => (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-        <path d="M4 6L8 10L12 6" stroke="#939393" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-);
 
 const IndicatorDot = ({ color }: { color: string }) => (
     <div className="w-[6px] h-[6px] rounded-full shrink-0" style={{ backgroundColor: color }} />
@@ -110,6 +104,7 @@ const EventInfoCard = ({ event, items }: { event: EventInfo; items: CartItem[] }
         switch (type) {
             case 'ticket': return '#D591FF';
             case 'guestlist': return '#FFCE1F';
+            case 'reservation': return '#3FE8E8';
             case 'promotion': return '#FF336D';
             case 'product': return '#00D1FF';
             default: return '#939393';
@@ -382,12 +377,24 @@ interface NominativeAssignmentSectionProps {
     onAssignmentChange: (assignments: NominativeAssignment[]) => void;
 }
 
+// Checkbox icon component
+const CheckboxIcon = ({ checked }: { checked: boolean }) => (
+    <div className={`w-[24px] h-[24px] rounded-full border-2 flex items-center justify-center transition-colors ${checked ? 'bg-[#e5ff88] border-[#e5ff88]' : 'border-[#939393]'
+        }`}>
+        {checked && (
+            <svg width="12" height="9" viewBox="0 0 12 9" fill="none">
+                <path d="M1 4L4.5 7.5L11 1" stroke="#0a0a0a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+        )}
+    </div>
+);
+
 const NominativeAssignmentSection = ({
     items,
     assignments,
     onAssignmentChange
 }: NominativeAssignmentSectionProps) => {
-    const { t } = useTranslation();
+    const { i18n, t } = useTranslation();
 
     // Get all nominative items expanded by quantity
     const nominativeEntries = useMemo(() => {
@@ -413,23 +420,40 @@ const NominativeAssignmentSection = ({
         const newAssignments = assignments.filter(a => a.itemIndex !== itemIndex);
 
         if (!existing || existing.assignmentType !== 'me') {
-            // Activate "Soy yo"
+            // Activate "Para mi"
             newAssignments.push({ itemIndex, assignmentType: 'me' });
         } else {
-            // Deactivate "Soy yo" -> return to 'send' as default
-            newAssignments.push({ itemIndex, assignmentType: 'send', phoneCountry: 'ES' });
+            // Deactivate "Para mi" -> return to default state with phone input
+            newAssignments.push({ itemIndex, assignmentType: 'send', phoneCountry: '34' });
         }
 
         onAssignmentChange(newAssignments);
     };
 
-    const handleChangeType = (itemIndex: number, type: 'send' | 'fill') => {
-        const newAssignments = assignments.filter(a => a.itemIndex !== itemIndex);
-        newAssignments.push({
-            itemIndex,
-            assignmentType: type,
-            phoneCountry: 'ES'
-        });
+    const handleConfirmPhone = (itemIndex: number) => {
+        const assignment = assignments.find(a => a.itemIndex === itemIndex);
+        if (!assignment?.phone) {
+            toast.error(t('checkout.phone_required', 'Introduce un número de teléfono'));
+            return;
+        }
+
+        // Validate phone length
+        const selectedCountry = countries.find(c => c.phone === assignment.phoneCountry);
+        const expectedLength = selectedCountry?.phoneLength || 9;
+        const phoneDigits = assignment.phone.replace(/\D/g, '');
+
+        if (phoneDigits.length !== expectedLength) {
+            toast.error(t('checkout.phone_invalid_length', 'Número de teléfono inválido'));
+            return;
+        }
+
+        // TODO: Llamar API para buscar usuario por teléfono
+        // Por ahora simulamos que no se encuentra y pasamos a 'fill'
+        const newAssignments = assignments.map(a =>
+            a.itemIndex === itemIndex
+                ? { ...a, assignmentType: 'fill' as const }
+                : a
+        );
         onAssignmentChange(newAssignments);
     };
 
@@ -440,153 +464,188 @@ const NominativeAssignmentSection = ({
         onAssignmentChange(newAssignments);
     };
 
+    // Format phone number based on country pattern
+    const formatPhone = (value: string, pattern: number[] = [3, 3, 3]) => {
+        const digits = value.replace(/\D/g, '');
+        let result = '';
+        let index = 0;
+
+        for (let i = 0; i < pattern.length && index < digits.length; i++) {
+            const segment = digits.slice(index, index + pattern[i]);
+            result += segment;
+            index += pattern[i];
+            if (index < digits.length) result += ' ';
+        }
+
+        return result;
+    };
+
+    const handlePhoneChange = (itemIndex: number, value: string) => {
+        const assignment = assignments.find(a => a.itemIndex === itemIndex);
+        const countryCode = assignment?.phoneCountry || '34';
+        const selectedCountry = countries.find(c => c.phone === countryCode);
+        const maxLength = selectedCountry?.phoneLength || 9;
+        const pattern = selectedCountry?.phoneFormat || [3, 3, 3];
+
+        const numericValue = value.replace(/\D/g, '');
+        const limitedValue = numericValue.slice(0, maxLength);
+        const formattedValue = formatPhone(limitedValue, pattern);
+
+        handleUpdateAssignment(itemIndex, { phone: formattedValue });
+    };
+
+    const handleCountryChange = (itemIndex: number, newCountry: string) => {
+        handleUpdateAssignment(itemIndex, { phoneCountry: newCountry, phone: '' });
+    };
+
+    const getIndicatorColor = (type: CartItem['type']) => {
+        switch (type) {
+            case 'ticket': return '#D591FF';
+            case 'guestlist': return '#FFCE1F';
+            case 'reservation': return '#3FE8E8';
+            case 'promotion': return '#FF336D';
+            case 'product': return '#00D1FF';
+            default: return '#939393';
+        }
+    };
+
     return (
         <div className="flex flex-col gap-[4px] w-full">
             <span className="text-[#939393] text-[16px] font-medium font-helvetica px-[6px]">
                 {t('checkout.client_assignment', 'Asignación clientes')}*
             </span>
 
-            <div className="flex flex-col gap-[12px]">
+            <div className="flex flex-col gap-[8px]">
                 {nominativeEntries.map(({ item, index }) => {
                     const assignment = assignments.find(a => a.itemIndex === index);
                     const isMe = assignment?.assignmentType === 'me';
                     const isSend = assignment?.assignmentType === 'send';
                     const isFill = assignment?.assignmentType === 'fill';
+                    const indicatorColor = getIndicatorColor(item.type);
 
                     return (
                         <div
                             key={index}
-                            className="bg-[#141414] border-2 border-[#232323] rounded-[16px] w-full overflow-hidden"
+                            className="bg-[#141414] border-2 border-[#232323] rounded-[16px] w-full"
                         >
-                            {/* Header */}
-                            <div className="flex items-center justify-between px-[16px] h-[56px] border-b-[1.5px] border-[#232323]">
-                                <div className="flex items-center gap-[6px]">
-                                    <IndicatorDot color="#D591FF" />
-                                    <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica">
-                                        {item.name}
-                                    </span>
-                                    <span className="text-[#f6f6f6] text-[16px] font-bold font-helvetica">
-                                        x1
-                                    </span>
+                            {/* Variante 1: "Para mi" seleccionado - Solo header */}
+                            {isMe && (
+                                <div className="flex items-center justify-between px-[16px] h-[56px]">
+                                    <div className="flex items-center gap-[6px]">
+                                        <div
+                                            className="w-[6px] h-[6px] rounded-full shrink-0"
+                                            style={{ backgroundColor: indicatorColor }}
+                                        />
+                                        <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica">
+                                            {item.name}
+                                        </span>
+                                        <span className="text-[#f6f6f6] text-[16px] font-bold font-helvetica">
+                                            x1
+                                        </span>
+                                    </div>
+                                    <button
+                                        onClick={() => handleToggleMe(index)}
+                                        className="flex items-center gap-[8px] cursor-pointer"
+                                    >
+                                        <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica">
+                                            {t('checkout.for_me', 'Para mi')}
+                                        </span>
+                                        <CheckboxIcon checked={true} />
+                                    </button>
                                 </div>
-                                <button
-                                    onClick={() => handleToggleMe(index)}
-                                    className="flex items-center gap-[8px] cursor-pointer"
-                                >
-                                    <span className="text-[#f6f6f6] text-[14px] font-medium font-helvetica">
-                                        {t('checkout.its_me', 'Soy yo')}
-                                    </span>
-                                    <div className={`w-[24px] h-[24px] rounded-full border-2 flex items-center justify-center transition-colors ${isMe ? 'bg-[#e5ff88] border-[#e5ff88]' : 'border-[#232323]'
-                                        }`}>
-                                        {isMe && (
-                                            <svg width="12" height="9" viewBox="0 0 12 9" fill="none">
-                                                <path d="M1 4L4.5 7.5L11 1" stroke="#0a0a0a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                            </svg>
-                                        )}
-                                    </div>
-                                </button>
-                            </div>
+                            )}
 
-                            {/* Options (only if not "me") */}
+                            {/* Variante 2 y 3: No es "Para mi" - Mostrar formulario */}
                             {!isMe && (
-                                <>
-                                    {/* Tabs */}
-                                    <div className="flex px-[16px] py-[12px] gap-[8px]">
+                                <div className="flex flex-col gap-[16px] px-[16px] pb-[16px]">
+                                    {/* Header con border bottom */}
+                                    <div className="flex items-center justify-between h-[56px] border-b-[1.5px] border-[#232323]">
+                                        <div className="flex items-center gap-[6px]">
+                                            <div
+                                                className="w-[6px] h-[6px] rounded-full shrink-0"
+                                                style={{ backgroundColor: indicatorColor }}
+                                            />
+                                            <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica">
+                                                {item.name}
+                                            </span>
+                                            <span className="text-[#f6f6f6] text-[16px] font-bold font-helvetica">
+                                                x1
+                                            </span>
+                                        </div>
                                         <button
-                                            onClick={() => handleChangeType(index, 'send')}
-                                            className={`flex-1 h-[40px] rounded-[8px] flex items-center justify-center font-bold text-[14px] font-helvetica transition-colors ${isSend
-                                                    ? 'bg-[#232323] text-[#f6f6f6]'
-                                                    : 'bg-transparent text-[#939393] hover:text-[#f6f6f6]'
-                                                }`}
+                                            onClick={() => handleToggleMe(index)}
+                                            className="flex items-center gap-[8px] cursor-pointer"
                                         >
-                                            {t('checkout.send', 'Enviar')}
-                                        </button>
-                                        <button
-                                            onClick={() => handleChangeType(index, 'fill')}
-                                            className={`flex-1 h-[40px] rounded-[8px] flex items-center justify-center font-bold text-[14px] font-helvetica transition-colors ${isFill
-                                                    ? 'bg-[#232323] text-[#f6f6f6]'
-                                                    : 'bg-transparent text-[#939393] hover:text-[#f6f6f6]'
-                                                }`}
-                                        >
-                                            {t('checkout.fill_data', 'Rellenar datos')}
+                                            <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica">
+                                                {t('checkout.for_me', 'Para mi')}
+                                            </span>
+                                            <CheckboxIcon checked={false} />
                                         </button>
                                     </div>
 
-                                    {/* Send Form */}
+                                    {/* Phone input usando InputTextPhone */}
+                                    <InputTextPhone
+                                        label={`${t('checkout.phone', 'Teléfono')}*`}
+                                        placeholder="000 00 00 00"
+                                        value={assignment?.phone || ''}
+                                        onChange={(value) => handlePhoneChange(index, value)}
+                                        country={assignment?.phoneCountry || '34'}
+                                        onCountryChange={(country) => handleCountryChange(index, country)}
+                                        countries={countries}
+                                        language={i18n.language as 'es' | 'en'}
+                                    />
+
+                                    {/* Confirm phone button - Solo si aún no está confirmado */}
                                     {isSend && (
-                                        <div className="px-[16px] pb-[16px]">
-                                            <div className="flex flex-col gap-[4px]">
-                                                <span className="text-[#939393] text-[14px] font-medium font-helvetica">
-                                                    {t('checkout.phone', 'Teléfono')}*
-                                                </span>
-                                                <div className="flex gap-[8px]">
-                                                    <button className="h-[48px] px-[12px] bg-[#232323] rounded-[12px] flex items-center gap-[4px]">
-                                                        <span className="text-[16px]">🇪🇸</span>
-                                                        <ChevronDownIcon />
-                                                    </button>
-                                                    <input
-                                                        type="tel"
-                                                        value={assignment?.phone || ''}
-                                                        onChange={(e) => handleUpdateAssignment(index, { phone: e.target.value })}
-                                                        placeholder={t('checkout.phone_placeholder', '')}
-                                                        className="flex-1 h-[48px] bg-[#232323] rounded-[12px] px-[16px] text-[#f6f6f6] text-[16px] font-medium font-helvetica placeholder:text-[#939393] outline-none"
-                                                    />
-                                                </div>
-                                                <span className="text-[#939393] text-[12px] font-normal font-helvetica mt-1">
-                                                    {t('checkout.account_notice', 'La entrada se enviará automáticamente al número indicado. Podrás cancelar el envío desde el chat con el otro usuario.')}
-                                                </span>
-                                            </div>
-                                        </div>
+                                        <button
+                                            onClick={() => handleConfirmPhone(index)}
+                                            className="w-full h-[36px] bg-[#232323] rounded-[8px] flex items-center justify-center font-bold text-[14px] font-helvetica text-[#f6f6f6] cursor-pointer hover:bg-[#2a2a2a] transition-colors"
+                                        >
+                                            {t('checkout.confirm_phone', 'Confirmar teléfono')}
+                                        </button>
                                     )}
 
-                                    {/* Fill Form */}
+                                    {/* Info text */}
+                                    <p className="text-[#939393] text-[12px] font-medium font-helvetica px-[6px]">
+                                        {isFill
+                                            ? t('checkout.assign_auto_number', '**La entrada se asignará automáticamente al número indicado. Siempre podrás cancelar el envío desde la app.')
+                                            : t('checkout.assign_auto_user', '**La entrada se asignará automáticamente al siguiente usuario. Siempre podrás cancelar el envío desde la app.')
+                                        }
+                                    </p>
+
+                                    {/* Variante 3: Usuario no encontrado - Mostrar campos nombre/apellidos */}
                                     {isFill && (
-                                        <div className="px-[16px] pb-[16px] flex flex-col gap-[12px]">
+                                        <>
+                                            {/* Nombre */}
                                             <div className="flex flex-col gap-[4px]">
-                                                <span className="text-[#939393] text-[14px] font-medium font-helvetica">
+                                                <span className="text-[#939393] text-[14px] font-normal font-helvetica px-[6px]">
                                                     {t('checkout.first_name', 'Nombre')}*
                                                 </span>
                                                 <input
                                                     type="text"
                                                     value={assignment?.firstName || ''}
                                                     onChange={(e) => handleUpdateAssignment(index, { firstName: e.target.value })}
-                                                    placeholder={t('checkout.first_name_placeholder', '')}
-                                                    className="w-full h-[48px] bg-[#232323] rounded-[12px] px-[16px] text-[#f6f6f6] text-[16px] font-medium font-helvetica placeholder:text-[#939393] outline-none"
+                                                    placeholder={t('checkout.first_name_placeholder', 'Borja')}
+                                                    className="w-full h-[48px] border-[1.5px] border-[#232323] rounded-[12px] px-[16px] bg-transparent text-[#f6f6f6] text-[16px] font-medium font-helvetica placeholder:text-[#939393] outline-none focus:border-[#3fe8e8] transition-colors"
                                                 />
                                             </div>
+
+                                            {/* Apellidos */}
                                             <div className="flex flex-col gap-[4px]">
-                                                <span className="text-[#939393] text-[14px] font-medium font-helvetica">
+                                                <span className="text-[#939393] text-[14px] font-normal font-helvetica px-[6px]">
                                                     {t('checkout.last_name', 'Apellidos')}*
                                                 </span>
                                                 <input
                                                     type="text"
                                                     value={assignment?.lastName || ''}
                                                     onChange={(e) => handleUpdateAssignment(index, { lastName: e.target.value })}
-                                                    placeholder={t('checkout.last_name_placeholder', '')}
-                                                    className="w-full h-[48px] bg-[#232323] rounded-[12px] px-[16px] text-[#f6f6f6] text-[16px] font-medium font-helvetica placeholder:text-[#939393] outline-none"
+                                                    placeholder={t('checkout.last_name_placeholder', 'Gomendio')}
+                                                    className="w-full h-[48px] border-[1.5px] border-[#232323] rounded-[12px] px-[16px] bg-transparent text-[#f6f6f6] text-[16px] font-medium font-helvetica placeholder:text-[#939393] outline-none focus:border-[#3fe8e8] transition-colors"
                                                 />
                                             </div>
-                                            <div className="flex flex-col gap-[4px]">
-                                                <span className="text-[#939393] text-[14px] font-medium font-helvetica">
-                                                    {t('checkout.phone', 'Teléfono')}*
-                                                </span>
-                                                <div className="flex gap-[8px]">
-                                                    <button className="h-[48px] px-[12px] bg-[#232323] rounded-[12px] flex items-center gap-[4px]">
-                                                        <span className="text-[16px]">🇪🇸</span>
-                                                        <ChevronDownIcon />
-                                                    </button>
-                                                    <input
-                                                        type="tel"
-                                                        value={assignment?.phone || ''}
-                                                        onChange={(e) => handleUpdateAssignment(index, { phone: e.target.value })}
-                                                        placeholder={t('checkout.phone_placeholder', '')}
-                                                        className="flex-1 h-[48px] bg-[#232323] rounded-[12px] px-[16px] text-[#f6f6f6] text-[16px] font-medium font-helvetica placeholder:text-[#939393] outline-none"
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
+                                        </>
                                     )}
-                                </>
+                                </div>
                             )}
                         </div>
                     );
@@ -608,7 +667,6 @@ const CheckoutSummary = ({
     onTimerExpired,
     onContinueToPayment,
     isLoading = false,
-    transactionId,
 }: CheckoutSummaryProps) => {
     const { t } = useTranslation();
 
@@ -617,7 +675,7 @@ const CheckoutSummary = ({
     const [appliedCoupon, setAppliedCoupon] = useState<CouponData | null>(null);
     const [couponLoading, setCouponLoading] = useState(false);
     const [nominativeAssignments, setNominativeAssignments] = useState<NominativeAssignment[]>([]);
-    const [showIncidentModal, setShowIncidentModal] = useState(false);
+    const [isIncidentModalOpen, setIsIncidentModalOpen] = useState(false);
 
     // Initialize nominative assignments with 'send' as default
     useEffect(() => {
@@ -641,7 +699,7 @@ const CheckoutSummary = ({
                         initialAssignments.push({
                             itemIndex: globalIndex,
                             assignmentType: 'send',
-                            phoneCountry: 'ES'
+                            phoneCountry: '34'
                         });
                         globalIndex++;
                     }
@@ -800,8 +858,8 @@ const CheckoutSummary = ({
             <p className="text-[#f6f6f6] text-[14px] font-normal font-helvetica px-[6px] leading-[1.4]">
                 {t('checkout.incident_info_prefix', 'En caso de incidencia, por favor notifíquela mediante el ')}
                 <button
-                    onClick={() => setShowIncidentModal(true)}
-                    className="text-[#ff336d] underline hover:opacity-80 transition-opacity cursor-pointer"
+                    onClick={() => setIsIncidentModalOpen(true)}
+                    className="text-[#ff336d] underline hover:opacity-80 transition-opacity cursor-pointer bg-transparent border-none p-0 font-normal text-[14px] font-helvetica"
                 >
                     {t('checkout.incident_info_link', 'siguiente formulario')}
                 </button>
@@ -837,11 +895,10 @@ const CheckoutSummary = ({
 
             {/* Incident Modal */}
             <IncidentModal
-                isOpen={showIncidentModal}
-                onClose={() => setShowIncidentModal(false)}
+                isOpen={isIncidentModalOpen}
+                onClose={() => setIsIncidentModalOpen(false)}
                 context={{
                     eventName: event.name,
-                    transactionId: transactionId,
                 }}
             />
         </div>

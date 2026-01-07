@@ -101,6 +101,9 @@ interface CheckoutState {
     getSubtotal: () => number;
     getDiscount: () => number;
     getTotal: () => number;
+
+    // Reset checkout for new event
+    resetForNewEvent: (newEventId: string) => void;
 }
 
 const TIMER_DURATION = 10 * 60; // 10 minutes in seconds
@@ -257,6 +260,31 @@ export const useCheckoutStore = create<CheckoutState>()(
                 const serviceFee = state.getServiceFee();
                 return Math.max(0, subtotal - discount + serviceFee);
             },
+
+            // Reset checkout for new event - clears expired state when visiting a different event
+            resetForNewEvent: (newEventId: string) => {
+                const state = get();
+                
+                // Si el eventId guardado es diferente al nuevo, o si el timer expiró,
+                // limpiamos todo el checkout
+                if (state.eventId !== newEventId || state.isTimerExpired) {
+                    set({
+                        eventId: null,
+                        eventName: null,
+                        eventSlug: null,
+                        eventDisplayInfo: null,
+                        items: [],
+                        coupon: null,
+                        nominativeAssignments: [],
+                        step: 'selection',
+                        timerStartedAt: null,
+                        isTimerExpired: false,
+                        transactionId: null,
+                        transactionAmount: null,
+                        transactionCurrency: null,
+                    });
+                }
+            },
         }),
         {
             name: 'checkout-storage',
@@ -274,6 +302,7 @@ export const useCheckoutStore = create<CheckoutState>()(
                 transactionId: state.transactionId,
                 transactionAmount: state.transactionAmount,
                 transactionCurrency: state.transactionCurrency,
+                isTimerExpired: state.isTimerExpired,
             }),
         }
     )

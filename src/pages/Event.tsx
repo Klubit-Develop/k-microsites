@@ -20,7 +20,7 @@ import OrganizerCard from '@/components/OrganizerCard';
 import TabSelector from '@/components/TabSelector';
 import TicketsList from '@/components/TicketsList';
 import GuestlistsList from '@/components/GuestlistsList';
-import ReservationsFlow from '@/components/ReservationsFlow';
+import ReservationsFlow, { type ReservationFormData } from '@/components/ReservationsFlow';
 import PromotionsList from '@/components/PromotionsList';
 import ProductsList from '@/components/ProductsList';
 import EventStepper from '@/components/EventStepper';
@@ -365,6 +365,7 @@ const Event = () => {
         transactionId,
         setTransaction,
         clearTransaction,
+        resetForNewEvent,
     } = useCheckoutStore();
 
     useEffect(() => {
@@ -397,6 +398,13 @@ const Event = () => {
     });
 
     const eventId = eventQuery.data?.id;
+
+    // Reset checkout if visiting a different event or if timer expired from previous session
+    useEffect(() => {
+        if (eventId) {
+            resetForNewEvent(eventId);
+        }
+    }, [eventId, resetForNewEvent]);
 
     const favoritesCountQuery = useQuery({
         queryKey: ['favorites', 'count', 'event', eventId],
@@ -871,7 +879,10 @@ const Event = () => {
             return;
         }
 
-        clearCart();
+        // Solo limpiar el carrito si es un evento diferente
+        if (checkoutEventId !== event.id) {
+            clearCart();
+        }
 
         setEvent(
             event.id,
@@ -919,6 +930,24 @@ const Event = () => {
             });
         });
 
+        event.reservations?.forEach(reservation => {
+            reservation.prices?.forEach(price => {
+                const quantity = selectedQuantities.reservations[price.id];
+                if (quantity > 0) {
+                    addItem({
+                        id: reservation.id,
+                        priceId: price.id,
+                        type: 'reservation',
+                        name: reservation.name,
+                        priceName: price.name,
+                        unitPrice: price.finalPrice,
+                        quantity,
+                        maxPersons: reservation.maxPersonsPerReservation,
+                    });
+                }
+            });
+        });
+
         event.promotions?.forEach(promotion => {
             const quantity = selectedQuantities.promotions[promotion.id];
             if (quantity > 0) {
@@ -958,6 +987,71 @@ const Event = () => {
         addItem,
         goToSummary,
         updateSearchParams,
+        checkoutEventId,
+        t,
+    ]);
+
+    // Handler específico para reservas que incluye los datos del formulario
+    const handleReservationCheckout = useCallback((formData: ReservationFormData) => {
+        const event = eventQuery.data;
+        if (!event) return;
+
+        const hasSelectedReservations = Object.values(selectedQuantities.reservations).some((qty: number) => qty > 0);
+
+        if (!hasSelectedReservations) {
+            toast.error(t('event.select_reservation', 'Selecciona al menos una reserva'));
+            return;
+        }
+
+        // Solo limpiar el carrito si es un evento diferente
+        if (checkoutEventId !== event.id) {
+            clearCart();
+        }
+
+        setEvent(
+            event.id,
+            event.name,
+            event.slug,
+            {
+                coverImage: event.flyer,
+                date: dayjs(event.startDate).locale('es').format('ddd, D MMMM'),
+            }
+        );
+
+        // Añadir las reservas seleccionadas al carrito
+        event.reservations?.forEach(reservation => {
+            reservation.prices?.forEach(price => {
+                const quantity = selectedQuantities.reservations[price.id];
+                if (quantity > 0) {
+                    addItem({
+                        id: reservation.id,
+                        priceId: price.id,
+                        type: 'reservation',
+                        name: reservation.name,
+                        priceName: price.name,
+                        unitPrice: price.finalPrice,
+                        quantity,
+                        maxPersons: reservation.maxPersonsPerReservation,
+                    });
+                }
+            });
+        });
+
+        // TODO: Guardar formData (reservationName, partySize, observations) 
+        // en el store o enviarlo con la transacción
+        console.log('Reservation form data:', formData);
+
+        goToSummary();
+        updateSearchParams({ step: 2 }, true);
+    }, [
+        eventQuery.data,
+        selectedQuantities,
+        clearCart,
+        setEvent,
+        addItem,
+        goToSummary,
+        updateSearchParams,
+        checkoutEventId,
         t,
     ]);
 
@@ -1068,7 +1162,7 @@ const Event = () => {
                         reservations={event?.reservations || []}
                         selectedQuantities={selectedQuantities.reservations}
                         onQuantityChange={(priceId, delta) => handleQuantityChange(priceId, delta, 'reservations')}
-                        onContinue={handleCheckout}
+                        onContinue={handleReservationCheckout}
                         total={total}
                         isLoading={isLoading}
                     />
