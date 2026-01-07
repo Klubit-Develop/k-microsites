@@ -19,9 +19,6 @@ import Modal from '@/components/ui/Modal';
 import OTPInput from '@/components/ui/OTPInput';
 import { PlusIcon, TrashIcon } from '@/components/icons';
 
-const imgTelefono = 'https://klubit.fra1.cdn.digitaloceanspaces.com/assets/telephone.png';
-const imgCamera = 'https://klubit.fra1.cdn.digitaloceanspaces.com/assets/camara-fotos.png';
-
 // Modal para subir/eliminar avatar
 interface AvatarModalProps {
     isOpen: boolean;
