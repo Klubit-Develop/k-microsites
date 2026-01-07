@@ -101,7 +101,7 @@ interface BackendResponse {
 // HELPER FUNCTIONS
 // =============================================================================
 
-const isEventLive = (startDate: string, startTime?: string, endTime?: string): boolean => {
+const isEventLive = (startDate: string, _endDate?: string, startTime?: string, endTime?: string): boolean => {
     const now = dayjs();
     const eventStart = dayjs(startDate);
 
