@@ -354,11 +354,8 @@ const PassbookCard = ({ walletAddress, userId, clubId }: PassbookCardProps) => {
                     `}
                 >
                     {isGenerating ? (
-                        <div className="flex items-center justify-center h-[44px] px-6 bg-black rounded-md">
-                            <span className="text-[14px] font-helvetica font-medium text-white">
-                                {t('common.loading', 'Cargando...')}
-                            </span>
-                        </div>
+                        /* Skeleton del botón */
+                        <div className="w-[156px] h-[48px] bg-[#232323] rounded-md animate-pulse" />
                     ) : isIOS ? (
                         /* Apple Wallet Badge oficial */
                         <svg xmlns="http://www.w3.org/2000/svg" width="156" height="48" viewBox="0 0 156 48">

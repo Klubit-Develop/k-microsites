@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import dayjs from 'dayjs';
 import 'dayjs/locale/es';
 import 'dayjs/locale/en';
@@ -7,6 +7,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate } from '@tanstack/react-router';
 
 import axiosInstance from '@/config/axiosConfig';
+import { useAuthStore } from '@/stores/authStore';
 import { ChevronRightIcon } from '@/components/icons';
 
 // =============================================================================
@@ -61,6 +62,44 @@ interface BackendResponse {
             limit: number;
             hasMore: boolean;
         };
+    };
+    message: string;
+}
+
+type KardLevel = 'MEMBER' | 'BRONZE' | 'SILVER' | 'GOLD';
+
+type VenueType = 'CLUB' | 'PUB' | 'BAR' | 'LOUNGE' | 'RESTAURANT' | 'PROMOTER' | 'OTHER';
+
+interface UserPassbook {
+    id: string;
+    serialNumber: string;
+    authenticationToken: string;
+    kardLevel: KardLevel;
+    passbookUrl: string;
+    googleWalletUrl: string | null;
+    createdAt: string;
+    updatedAt: string;
+    userId: string;
+    clubId: string;
+    club: {
+        id: string;
+        name: string;
+        slug: string;
+        logo: string;
+        venueType: VenueType;
+        passbookConfig: {
+            backgroundColor: string;
+            foregroundColor: string;
+            labelColor: string;
+        };
+    };
+}
+
+interface PassbooksResponse {
+    status: 'success' | 'error';
+    code: string;
+    data: {
+        passbooks: UserPassbook[];
     };
     message: string;
 }
@@ -330,6 +369,104 @@ const WalletEmpty = () => {
     );
 };
 
+// Venue Type helper
+const getVenueTypeLabel = (venueType: VenueType): string => {
+    switch (venueType) {
+        case 'CLUB': return 'Discoteca';
+        case 'PUB': return 'Pub';
+        case 'BAR': return 'Bar';
+        case 'LOUNGE': return 'Lounge';
+        case 'RESTAURANT': return 'Restaurante';
+        case 'PROMOTER': return 'Promotora';
+        case 'OTHER': return '';
+        default: return '';
+    }
+};
+
+// KlubKard - Tarjeta grande para el carrusel (estilo Figma)
+interface KlubKardProps {
+    clubName: string;
+    clubLogo: string;
+    kardLevel: KardLevel;
+    venueType?: VenueType;
+    backgroundColor?: string;
+    onClick?: () => void;
+}
+
+const KlubKard = ({
+    clubName,
+    clubLogo,
+    venueType,
+    backgroundColor = '#141414',
+    onClick
+}: KlubKardProps) => {
+    const venueLabel = venueType ? getVenueTypeLabel(venueType) : '';
+
+    return (
+        <button
+            onClick={onClick}
+            className="relative flex flex-col justify-between shrink-0 w-[336px] h-[200px] p-6 rounded-[20px] border-[3px] border-[#232323] cursor-pointer overflow-hidden snap-start"
+            style={{
+                background: `linear-gradient(135deg, ${backgroundColor} 0%, #141414 100%)`,
+            }}
+        >
+            {/* Club Logo */}
+            <div
+                className="relative size-[54px] rounded-full border-[1.5px] border-[#232323] overflow-hidden shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]"
+                style={{ backgroundColor: `${backgroundColor}80` }}
+            >
+                {clubLogo ? (
+                    <img
+                        src={clubLogo}
+                        alt={clubName}
+                        className="absolute inset-0 w-full h-full object-cover"
+                    />
+                ) : (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <span className="text-[20px]">🏠</span>
+                    </div>
+                )}
+            </div>
+
+            {/* Bottom Content */}
+            <div className="flex flex-col items-start gap-0 w-full">
+                <h3 className="text-[24px] font-n27 font-semibold text-[#F6F6F6] leading-none truncate w-full text-left">
+                    {clubName}
+                </h3>
+                <div className="flex items-center gap-2">
+                    {venueLabel && (
+                        <span className="text-[14px] font-helvetica text-[#939393]">
+                            {venueLabel}
+                        </span>
+                    )}
+                </div>
+            </div>
+        </button>
+    );
+};
+
+// Page Control Dots
+interface PageDotsProps {
+    total: number;
+    current: number;
+}
+
+const PageDots = ({ total, current }: PageDotsProps) => {
+    if (total <= 1) return null;
+
+    return (
+        <div className="flex items-center justify-center gap-2 py-2">
+            {Array.from({ length: Math.min(total, 5) }).map((_, index) => (
+                <div
+                    key={index}
+                    className={`size-2 rounded-full transition-opacity ${index === current ? 'bg-[#F6F6F6]' : 'bg-[#F6F6F6] opacity-30'
+                        }`}
+                />
+            ))}
+        </div>
+    );
+};
+
 // =============================================================================
 // MAIN COMPONENT
 // =============================================================================
@@ -338,7 +475,9 @@ const Wallet = () => {
     const { t, i18n } = useTranslation();
     const navigate = useNavigate();
     const locale = i18n.language === 'en' ? 'en' : 'es';
+    const { user } = useAuthStore();
 
+    // Query para transacciones
     const { data, isLoading, error } = useQuery({
         queryKey: ['wallet-transactions'],
         queryFn: async () => {
@@ -348,6 +487,31 @@ const Wallet = () => {
             return response.data.data.data;
         },
     });
+
+    // Query para kards del usuario
+    const { data: kardsData } = useQuery({
+        queryKey: ['wallet-kards', user?.id],
+        queryFn: async () => {
+            const response = await axiosInstance.get<PassbooksResponse>(
+                `/v2/wallet/user/${user?.id}`
+            );
+            return response.data.data.passbooks;
+        },
+        enabled: !!user?.id,
+    });
+
+    // Estado para el carrusel de kards
+    const [currentKardIndex, setCurrentKardIndex] = useState(0);
+
+    // Handler para abrir kard en wallet nativo
+    const handleKardClick = (passbook: UserPassbook) => {
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        const url = isIOS ? passbook.passbookUrl : passbook.googleWalletUrl;
+
+        if (url) {
+            window.open(url, '_blank');
+        }
+    };
 
     // Categorize transactions
     const { featuredTransactions, upcomingTransactions, pastTransactions, isLive } = useMemo(() => {
@@ -470,19 +634,44 @@ const Wallet = () => {
                 </div>
             )}
 
-            {/* Tus Kards Section - TODO: Implementar cuando tengamos endpoint de kards */}
-            {/* 
-            <div className="flex flex-col gap-3">
-                <SectionHeader 
-                    title={t('wallet.your_kards', 'Tus kards')} 
-                    to="/wallet/kards"
-                    showArrow={kards.length > 5}
-                />
-                <div className="flex flex-col gap-2">
-                    {kards carousel here}
+            {/* Tus Kards Section - Carrusel estilo Figma */}
+            {kardsData && kardsData.length > 0 && (
+                <div className="flex flex-col gap-4">
+                    <SectionHeader
+                        title={t('wallet.your_kards', 'Tus kards')}
+                        to="/wallet/kards"
+                        showArrow={kardsData.length > 5}
+                    />
+
+                    {/* Carrusel de Kards */}
+                    <div className="relative -mx-4">
+                        <div
+                            className="flex gap-4 overflow-x-auto px-4 pb-2 snap-x snap-mandatory [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+                            onScroll={(e) => {
+                                const scrollLeft = e.currentTarget.scrollLeft;
+                                const cardWidth = 336 + 16; // width + gap
+                                const newIndex = Math.round(scrollLeft / cardWidth);
+                                setCurrentKardIndex(Math.min(newIndex, kardsData.length - 1));
+                            }}
+                        >
+                            {kardsData.map((passbook) => (
+                                <KlubKard
+                                    key={passbook.id}
+                                    clubName={passbook.club.name}
+                                    clubLogo={passbook.club.logo}
+                                    kardLevel={passbook.kardLevel}
+                                    venueType={passbook.club.venueType}
+                                    backgroundColor={passbook.club.passbookConfig.backgroundColor}
+                                    onClick={() => handleKardClick(passbook)}
+                                />
+                            ))}
+                        </div>
+
+                        {/* Page Dots */}
+                        <PageDots total={kardsData.length} current={currentKardIndex} />
+                    </div>
                 </div>
-            </div>
-            */}
+            )}
 
             {/* Pasados Section */}
             {pastTransactions.length > 0 && (

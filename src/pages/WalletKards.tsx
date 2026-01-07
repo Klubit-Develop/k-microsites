@@ -8,21 +8,31 @@ import { useAuthStore } from '@/stores/authStore';
 // INTERFACES
 // =============================================================================
 
-type CardType = 'MEMBER' | 'BRONZE' | 'SILVER' | 'GOLD';
+type KardLevel = 'MEMBER' | 'BRONZE' | 'SILVER' | 'GOLD';
+type VenueType = 'CLUB' | 'PUB' | 'BAR' | 'LOUNGE' | 'RESTAURANT' | 'PROMOTER' | 'OTHER';
 
 interface UserPassbook {
     id: string;
     serialNumber: string;
-    kardLevel: CardType;
+    authenticationToken: string;
+    kardLevel: KardLevel;
     passbookUrl: string;
     googleWalletUrl: string | null;
     createdAt: string;
     updatedAt: string;
+    userId: string;
+    clubId: string;
     club: {
         id: string;
         name: string;
         slug: string;
         logo: string;
+        venueType: VenueType;
+        passbookConfig: {
+            backgroundColor: string;
+            foregroundColor: string;
+            labelColor: string;
+        };
     };
 }
 
@@ -39,33 +49,16 @@ interface PassbooksResponse {
 // HELPER FUNCTIONS
 // =============================================================================
 
-const getKardLevelLabel = (kardLevel: CardType): string => {
-    switch (kardLevel) {
-        case 'MEMBER':
-            return 'Member';
-        case 'BRONZE':
-            return 'Bronze';
-        case 'SILVER':
-            return 'Silver';
-        case 'GOLD':
-            return 'Gold';
-        default:
-            return kardLevel;
-    }
-};
-
-const getKardLevelColor = (kardLevel: CardType): string => {
-    switch (kardLevel) {
-        case 'MEMBER':
-            return '#939393';
-        case 'BRONZE':
-            return '#CD7F32';
-        case 'SILVER':
-            return '#C0C0C0';
-        case 'GOLD':
-            return '#FFD700';
-        default:
-            return '#939393';
+const getVenueTypeLabel = (venueType: VenueType): string => {
+    switch (venueType) {
+        case 'CLUB': return 'Discoteca';
+        case 'PUB': return 'Pub';
+        case 'BAR': return 'Bar';
+        case 'LOUNGE': return 'Lounge';
+        case 'RESTAURANT': return 'Restaurante';
+        case 'PROMOTER': return 'Promotora';
+        case 'OTHER': return '';
+        default: return '';
     }
 };
 
@@ -73,51 +66,71 @@ const getKardLevelColor = (kardLevel: CardType): string => {
 // SUB-COMPONENTS
 // =============================================================================
 
-interface KardCardProps {
+interface KlubKardProps {
     clubName: string;
     clubLogo: string;
-    kardLevel: CardType;
+    kardLevel: KardLevel;
+    venueType?: VenueType;
+    backgroundColor?: string;
     onClick?: () => void;
 }
 
-const KardCard = ({ clubName, clubLogo, kardLevel, onClick }: KardCardProps) => {
-    const kardLevelLabel = getKardLevelLabel(kardLevel);
-    const kardLevelColor = getKardLevelColor(kardLevel);
+const KlubKard = ({
+    clubName,
+    clubLogo,
+    venueType,
+    backgroundColor = '#141414',
+    onClick
+}: KlubKardProps) => {
+    const venueLabel = venueType ? getVenueTypeLabel(venueType) : '';
 
     return (
         <button
             onClick={onClick}
-            className="flex items-center gap-3 w-full p-3 bg-[#141414] border-2 border-[#232323] rounded-2xl shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)] cursor-pointer text-left"
+            className="relative flex flex-col justify-between w-full h-[200px] p-6 rounded-[20px] border-[3px] border-[#232323] cursor-pointer overflow-hidden"
+            style={{
+                background: `linear-gradient(135deg, ${backgroundColor} 0%, #141414 100%)`,
+            }}
         >
             {/* Club Logo */}
-            <div className="relative shrink-0 w-[54px] h-[54px] rounded-lg border-2 border-[#232323] overflow-hidden shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]">
-                <img
-                    src={clubLogo}
-                    alt={clubName}
-                    className="absolute inset-0 w-full h-full object-cover"
-                />
+            <div
+                className="relative size-[54px] rounded-full border-[1.5px] border-[#232323] overflow-hidden shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]"
+                style={{ backgroundColor: `${backgroundColor}80` }}
+            >
+                {clubLogo ? (
+                    <img
+                        src={clubLogo}
+                        alt={clubName}
+                        className="absolute inset-0 w-full h-full object-cover"
+                    />
+                ) : (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <span className="text-[20px]">🏠</span>
+                    </div>
+                )}
             </div>
 
-            {/* Content */}
-            <div className="flex flex-col flex-1 min-w-0 gap-0.5">
-                <span className="text-[16px] font-helvetica font-medium text-[#F6F6F6] truncate">
+            {/* Bottom Content */}
+            <div className="flex flex-col items-start gap-0 w-full">
+                <h3 className="text-[24px] font-n27 font-semibold text-[#F6F6F6] leading-none truncate w-full text-left">
                     {clubName}
-                </span>
-                <span
-                    className="text-[14px] font-helvetica font-medium"
-                    style={{ color: kardLevelColor }}
-                >
-                    {kardLevelLabel}
-                </span>
+                </h3>
+                <div className="flex items-center gap-2">
+                    {venueLabel && (
+                        <span className="text-[14px] font-helvetica text-[#939393]">
+                            {venueLabel}
+                        </span>
+                    )}
+                </div>
             </div>
         </button>
     );
 };
 
 const WalletListSkeleton = () => (
-    <div className="flex flex-col gap-2 w-full animate-pulse">
-        {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="h-[78px] w-full bg-[#232323] rounded-2xl" />
+    <div className="flex flex-col gap-4 w-full animate-pulse">
+        {[1, 2, 3].map((i) => (
+            <div key={i} className="h-[200px] w-full bg-[#232323] rounded-[20px]" />
         ))}
     </div>
 );
@@ -157,7 +170,6 @@ const WalletKards = () => {
     });
 
     const handleKardClick = (passbook: UserPassbook) => {
-        // Detectar plataforma y abrir la URL correspondiente
         const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
         const url = isIOS ? passbook.passbookUrl : passbook.googleWalletUrl;
 
@@ -169,7 +181,7 @@ const WalletKards = () => {
     return (
         <div className="min-h-screen bg-black">
             {/* Content */}
-            <div className="flex flex-col gap-2 w-full max-w-[500px] mx-auto px-4 py-4 pb-8">
+            <div className="flex flex-col gap-4 w-full max-w-[500px] mx-auto px-4 py-4 pb-8">
                 {isLoading ? (
                     <WalletListSkeleton />
                 ) : error ? (
@@ -182,11 +194,13 @@ const WalletKards = () => {
                     <WalletListEmpty />
                 ) : (
                     data.map((passbook) => (
-                        <KardCard
+                        <KlubKard
                             key={passbook.id}
                             clubName={passbook.club.name}
                             clubLogo={passbook.club.logo}
                             kardLevel={passbook.kardLevel}
+                            venueType={passbook.club.venueType}
+                            backgroundColor={passbook.club.passbookConfig.backgroundColor}
                             onClick={() => handleKardClick(passbook)}
                         />
                     ))
