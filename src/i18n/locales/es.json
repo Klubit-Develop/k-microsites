@@ -219,7 +219,7 @@
         "first_name_placeholder": "",
         "last_name": "Apellidos",
         "last_name_placeholder": "",
-        "account_notice": "Al crear una cuenta en Klubit, estás aceptando nuestros",
+        "account_notice": "La entrada se enviará automáticamente al número indicado. Podrás cancelar el envío desde el chat con el otro usuario.",
         "terms": "términos y condiciones",
         "incident_info_prefix": "En caso de incidencia, por favor notifíquela mediante el ",
         "incident_info_link": "siguiente formulario",

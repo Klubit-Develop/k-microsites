@@ -101,6 +101,9 @@ const DAY_MAP: Record<string, { es: string; en: string; order: number }> = {
     SUNDAY: { es: 'Domingo', en: 'Sunday', order: 7 },
 };
 
+// Mínimo de eventos para mostrar el arrow clickeable
+const MIN_EVENTS_FOR_ARROW = 5;
+
 const Home = () => {
     const { i18n, t } = useTranslation();
     const queryClient = useQueryClient();
@@ -279,6 +282,10 @@ const Home = () => {
         navigate({ to: '/', search: { view: 'events' } });
     };
 
+    const handleTodayEventsClick = () => {
+        navigate({ to: '/', search: { view: 'events' } });
+    };
+
     if (clubQuery.isError) {
         return <PageError />;
     }
@@ -289,6 +296,10 @@ const Home = () => {
     const isLiked = userFavoriteQuery.data ?? false;
     const todayEvents = todayEventsQuery.data ?? [];
     const upcomingEvents = upcomingEventsQuery.data ?? [];
+
+    // Determinar si mostrar el arrow clickeable basado en cantidad de eventos
+    const showTodayArrow = todayEvents.length > MIN_EVENTS_FOR_ARROW;
+    const showUpcomingArrow = upcomingEvents.length > MIN_EVENTS_FOR_ARROW;
 
     return (
         <>
@@ -338,7 +349,10 @@ const Home = () => {
                 ) : (
                     <>
                         {todayEvents.length > 0 && (
-                            <EventSection title={t('events.today')}>
+                            <EventSection 
+                                title={t('events.today')}
+                                onHeaderClick={showTodayArrow ? handleTodayEventsClick : undefined}
+                            >
                                 {todayEvents.map((event) => (
                                     <EventCardHz
                                         key={event.id}
@@ -356,7 +370,7 @@ const Home = () => {
                         {upcomingEvents.length > 0 && (
                             <EventSection
                                 title={t('events.upcoming')}
-                                onHeaderClick={handleUpcomingEventsClick}
+                                onHeaderClick={showUpcomingArrow ? handleUpcomingEventsClick : undefined}
                             >
                                 {upcomingEvents.map((event) => (
                                     <EventCardHz
@@ -441,7 +455,10 @@ const Home = () => {
                     ) : (
                         <>
                             {todayEvents.length > 0 && (
-                                <EventSection title={t('events.today')}>
+                                <EventSection 
+                                    title={t('events.today')}
+                                    onHeaderClick={showTodayArrow ? handleTodayEventsClick : undefined}
+                                >
                                     {todayEvents.map((event) => (
                                         <EventCardHz
                                             key={event.id}
@@ -459,7 +476,7 @@ const Home = () => {
                             {upcomingEvents.length > 0 && (
                                 <EventSection
                                     title={t('events.upcoming')}
-                                    onHeaderClick={handleUpcomingEventsClick}
+                                    onHeaderClick={showUpcomingArrow ? handleUpcomingEventsClick : undefined}
                                 >
                                     {upcomingEvents.map((event) => (
                                         <EventCardHz

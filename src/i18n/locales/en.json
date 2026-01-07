@@ -219,7 +219,7 @@
         "first_name_placeholder": "",
         "last_name": "Last name",
         "last_name_placeholder": "",
-        "account_notice": "By creating an account on Klubit, you are accepting our",
+        "account_notice": "The entry will be automatically sent to the number provided. You can cancel the sending from the chat with the other user.",
         "terms": "terms and conditions",
         "incident_info_prefix": "In case of an incident, please report it through the ",
         "incident_info_link": "following form",

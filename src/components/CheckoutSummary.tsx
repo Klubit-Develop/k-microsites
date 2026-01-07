@@ -80,7 +80,7 @@ const IndicatorDot = ({ color }: { color: string }) => (
 // Timer Component
 const CheckoutTimer = ({ seconds, isLow }: { seconds: number; isLow: boolean }) => {
     const { t } = useTranslation();
-    
+
     const formatTime = (secs: number): string => {
         const mins = Math.floor(secs / 60);
         const remainingSecs = secs % 60;
@@ -91,11 +91,10 @@ const CheckoutTimer = ({ seconds, isLow }: { seconds: number; isLow: boolean }) 
     };
 
     return (
-        <div className={`w-full h-[36px] flex items-center justify-center rounded-[12px] border-[1.5px] ${
-            isLow 
-                ? 'bg-[rgba(255,35,35,0.05)] border-[rgba(255,35,35,0.25)]' 
+        <div className={`w-full h-[36px] flex items-center justify-center rounded-[12px] border-[1.5px] ${isLow
+                ? 'bg-[rgba(255,35,35,0.05)] border-[rgba(255,35,35,0.25)]'
                 : 'bg-[rgba(229,255,136,0.05)] border-[rgba(229,255,136,0.25)]'
-        }`}>
+            }`}>
             <span className={`text-[14px] font-normal font-helvetica ${isLow ? 'text-[#ff2323]' : 'text-[#e5ff88]'}`}>
                 {formatTime(seconds)}
             </span>
@@ -106,7 +105,7 @@ const CheckoutTimer = ({ seconds, isLow }: { seconds: number; isLow: boolean }) 
 // Event Info Card
 const EventInfoCard = ({ event, items }: { event: EventInfo; items: CartItem[] }) => {
     const { t } = useTranslation();
-    
+
     const getIndicatorColor = (type: CartItem['type']) => {
         switch (type) {
             case 'ticket': return '#D591FF';
@@ -143,11 +142,10 @@ const EventInfoCard = ({ event, items }: { event: EventInfo; items: CartItem[] }
 
                 {/* Items */}
                 {items.map((item, index) => (
-                    <div 
+                    <div
                         key={`${item.priceId}-${index}`}
-                        className={`flex items-center justify-between px-[16px] h-[56px] ${
-                            index < items.length - 1 ? 'border-b-[1.5px] border-[#232323]' : ''
-                        }`}
+                        className={`flex items-center justify-between px-[16px] h-[56px] ${index < items.length - 1 ? 'border-b-[1.5px] border-[#232323]' : ''
+                            }`}
                     >
                         <div className="flex items-center gap-[6px]">
                             <IndicatorDot color={getIndicatorColor(item.type)} />
@@ -180,21 +178,21 @@ interface CouponSectionProps {
 // Gift icon SVG
 const GiftIcon = () => (
     <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect x="8" y="32" width="64" height="40" rx="4" fill="white" stroke="#E8E8E8" strokeWidth="2"/>
-        <rect x="4" y="24" width="72" height="16" rx="4" fill="white" stroke="#E8E8E8" strokeWidth="2"/>
-        <rect x="36" y="24" width="8" height="48" fill="#FF336D"/>
-        <path d="M40 24C40 24 28 24 28 16C28 8 36 8 40 16" stroke="#FF336D" strokeWidth="4" fill="none"/>
-        <path d="M40 24C40 24 52 24 52 16C52 8 44 8 40 16" stroke="#FF336D" strokeWidth="4" fill="none"/>
-        <circle cx="40" cy="16" r="4" fill="#FF336D"/>
+        <rect x="8" y="32" width="64" height="40" rx="4" fill="white" stroke="#E8E8E8" strokeWidth="2" />
+        <rect x="4" y="24" width="72" height="16" rx="4" fill="white" stroke="#E8E8E8" strokeWidth="2" />
+        <rect x="36" y="24" width="8" height="48" fill="#FF336D" />
+        <path d="M40 24C40 24 28 24 28 16C28 8 36 8 40 16" stroke="#FF336D" strokeWidth="4" fill="none" />
+        <path d="M40 24C40 24 52 24 52 16C52 8 44 8 40 16" stroke="#FF336D" strokeWidth="4" fill="none" />
+        <circle cx="40" cy="16" r="4" fill="#FF336D" />
     </svg>
 );
 
-const CouponSection = ({ 
-    appliedCoupon, 
-    onApplyCoupon, 
-    onRemoveCoupon, 
+const CouponSection = ({
+    appliedCoupon,
+    onApplyCoupon,
+    onRemoveCoupon,
     isLoading,
-    discountAmount 
+    discountAmount
 }: CouponSectionProps) => {
     const { t } = useTranslation();
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -253,7 +251,7 @@ const CouponSection = ({
 
             {/* Coupon Modal */}
             {isModalOpen && (
-                <div 
+                <div
                     className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-[24px]"
                     onClick={(e) => {
                         if (e.target === e.currentTarget) {
@@ -262,7 +260,7 @@ const CouponSection = ({
                         }
                     }}
                 >
-                    <div 
+                    <div
                         className="bg-[#0a0a0a] border-2 border-[#232323] rounded-[42px] w-full max-w-[400px] px-[24px] py-[42px] flex flex-col items-center gap-[36px] relative animate-in fade-in zoom-in-95 duration-200"
                         onClick={(e) => e.stopPropagation()}
                     >
@@ -384,10 +382,10 @@ interface NominativeAssignmentSectionProps {
     onAssignmentChange: (assignments: NominativeAssignment[]) => void;
 }
 
-const NominativeAssignmentSection = ({ 
-    items, 
-    assignments, 
-    onAssignmentChange 
+const NominativeAssignmentSection = ({
+    items,
+    assignments,
+    onAssignmentChange
 }: NominativeAssignmentSectionProps) => {
     const { t } = useTranslation();
 
@@ -395,7 +393,7 @@ const NominativeAssignmentSection = ({
     const nominativeEntries = useMemo(() => {
         const entries: Array<{ item: CartItem; index: number; entryIndex: number }> = [];
         let globalIndex = 0;
-        
+
         items.forEach((item) => {
             if (item.isNominative) {
                 for (let i = 0; i < item.quantity; i++) {
@@ -404,7 +402,7 @@ const NominativeAssignmentSection = ({
                 }
             }
         });
-        
+
         return entries;
     }, [items]);
 
@@ -413,7 +411,7 @@ const NominativeAssignmentSection = ({
     const handleToggleMe = (itemIndex: number) => {
         const existing = assignments.find(a => a.itemIndex === itemIndex);
         const newAssignments = assignments.filter(a => a.itemIndex !== itemIndex);
-        
+
         if (!existing || existing.assignmentType !== 'me') {
             // Activate "Soy yo"
             newAssignments.push({ itemIndex, assignmentType: 'me' });
@@ -421,14 +419,14 @@ const NominativeAssignmentSection = ({
             // Deactivate "Soy yo" -> return to 'send' as default
             newAssignments.push({ itemIndex, assignmentType: 'send', phoneCountry: 'ES' });
         }
-        
+
         onAssignmentChange(newAssignments);
     };
 
     const handleChangeType = (itemIndex: number, type: 'send' | 'fill') => {
         const newAssignments = assignments.filter(a => a.itemIndex !== itemIndex);
-        newAssignments.push({ 
-            itemIndex, 
+        newAssignments.push({
+            itemIndex,
             assignmentType: type,
             phoneCountry: 'ES'
         });
@@ -436,7 +434,7 @@ const NominativeAssignmentSection = ({
     };
 
     const handleUpdateAssignment = (itemIndex: number, data: Partial<NominativeAssignment>) => {
-        const newAssignments = assignments.map(a => 
+        const newAssignments = assignments.map(a =>
             a.itemIndex === itemIndex ? { ...a, ...data } : a
         );
         onAssignmentChange(newAssignments);
@@ -447,7 +445,7 @@ const NominativeAssignmentSection = ({
             <span className="text-[#939393] text-[16px] font-medium font-helvetica px-[6px]">
                 {t('checkout.client_assignment', 'Asignación clientes')}*
             </span>
-            
+
             <div className="flex flex-col gap-[12px]">
                 {nominativeEntries.map(({ item, index }) => {
                     const assignment = assignments.find(a => a.itemIndex === index);
@@ -456,7 +454,7 @@ const NominativeAssignmentSection = ({
                     const isFill = assignment?.assignmentType === 'fill';
 
                     return (
-                        <div 
+                        <div
                             key={index}
                             className="bg-[#141414] border-2 border-[#232323] rounded-[16px] w-full overflow-hidden"
                         >
@@ -478,12 +476,11 @@ const NominativeAssignmentSection = ({
                                     <span className="text-[#f6f6f6] text-[14px] font-medium font-helvetica">
                                         {t('checkout.its_me', 'Soy yo')}
                                     </span>
-                                    <div className={`w-[24px] h-[24px] rounded-full border-2 flex items-center justify-center transition-colors ${
-                                        isMe ? 'bg-[#e5ff88] border-[#e5ff88]' : 'border-[#232323]'
-                                    }`}>
+                                    <div className={`w-[24px] h-[24px] rounded-full border-2 flex items-center justify-center transition-colors ${isMe ? 'bg-[#e5ff88] border-[#e5ff88]' : 'border-[#232323]'
+                                        }`}>
                                         {isMe && (
                                             <svg width="12" height="9" viewBox="0 0 12 9" fill="none">
-                                                <path d="M1 4L4.5 7.5L11 1" stroke="#0a0a0a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                                <path d="M1 4L4.5 7.5L11 1" stroke="#0a0a0a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                                             </svg>
                                         )}
                                     </div>
@@ -497,21 +494,19 @@ const NominativeAssignmentSection = ({
                                     <div className="flex px-[16px] py-[12px] gap-[8px]">
                                         <button
                                             onClick={() => handleChangeType(index, 'send')}
-                                            className={`flex-1 h-[40px] rounded-[8px] flex items-center justify-center font-bold text-[14px] font-helvetica transition-colors ${
-                                                isSend 
-                                                    ? 'bg-[#232323] text-[#f6f6f6]' 
+                                            className={`flex-1 h-[40px] rounded-[8px] flex items-center justify-center font-bold text-[14px] font-helvetica transition-colors ${isSend
+                                                    ? 'bg-[#232323] text-[#f6f6f6]'
                                                     : 'bg-transparent text-[#939393] hover:text-[#f6f6f6]'
-                                            }`}
+                                                }`}
                                         >
                                             {t('checkout.send', 'Enviar')}
                                         </button>
                                         <button
                                             onClick={() => handleChangeType(index, 'fill')}
-                                            className={`flex-1 h-[40px] rounded-[8px] flex items-center justify-center font-bold text-[14px] font-helvetica transition-colors ${
-                                                isFill 
-                                                    ? 'bg-[#232323] text-[#f6f6f6]' 
+                                            className={`flex-1 h-[40px] rounded-[8px] flex items-center justify-center font-bold text-[14px] font-helvetica transition-colors ${isFill
+                                                    ? 'bg-[#232323] text-[#f6f6f6]'
                                                     : 'bg-transparent text-[#939393] hover:text-[#f6f6f6]'
-                                            }`}
+                                                }`}
                                         >
                                             {t('checkout.fill_data', 'Rellenar datos')}
                                         </button>
@@ -537,8 +532,8 @@ const NominativeAssignmentSection = ({
                                                         className="flex-1 h-[48px] bg-[#232323] rounded-[12px] px-[16px] text-[#f6f6f6] text-[16px] font-medium font-helvetica placeholder:text-[#939393] outline-none"
                                                     />
                                                 </div>
-                                                <span className="text-[#939393] text-[12px] font-normal font-helvetica">
-                                                    {t('checkout.account_notice', 'Al crear una cuenta en Klubit, estás aceptando nuestros')} <span className="text-[#e5ff88]">{t('checkout.terms', 'términos y condiciones')}</span>
+                                                <span className="text-[#939393] text-[12px] font-normal font-helvetica mt-1">
+                                                    {t('checkout.account_notice', 'La entrada se enviará automáticamente al número indicado. Podrás cancelar el envío desde el chat con el otro usuario.')}
                                                 </span>
                                             </div>
                                         </div>
@@ -616,7 +611,7 @@ const CheckoutSummary = ({
     transactionId,
 }: CheckoutSummaryProps) => {
     const { t } = useTranslation();
-    
+
     // State
     const [timeLeft, setTimeLeft] = useState(timerSeconds);
     const [appliedCoupon, setAppliedCoupon] = useState<CouponData | null>(null);
@@ -639,7 +634,7 @@ const CheckoutSummary = ({
         if (nominativeAssignments.length === 0 && totalEntries > 0) {
             const initialAssignments: NominativeAssignment[] = [];
             let globalIndex = 0;
-            
+
             items.forEach(item => {
                 if (item.isNominative) {
                     for (let i = 0; i < item.quantity; i++) {
@@ -652,7 +647,7 @@ const CheckoutSummary = ({
                     }
                 }
             });
-            
+
             setNominativeAssignments(initialAssignments);
         }
     }, [items, nominativeAssignments.length]);
@@ -703,13 +698,13 @@ const CheckoutSummary = ({
     // Check if all nominative assignments are complete
     const nominativeComplete = useMemo(() => {
         if (!hasNominativeItems) return true;
-        
+
         const totalNominativeCount = items
             .filter(item => item.isNominative)
             .reduce((acc, item) => acc + item.quantity, 0);
-        
+
         if (nominativeAssignments.length !== totalNominativeCount) return false;
-        
+
         return nominativeAssignments.every(assignment => {
             if (assignment.assignmentType === 'me') return true;
             if (assignment.assignmentType === 'send') return !!assignment.phone;
@@ -726,16 +721,16 @@ const CheckoutSummary = ({
         try {
             const response = await fetch(`${import.meta.env.VITE_API_URL}/v2/coupons/validate/${code}`);
             const data = await response.json();
-            
+
             if (!response.ok || !data.success) {
                 throw new Error(data.message || 'Coupon validation failed');
             }
-            
+
             if (!data.data.valid) {
                 toast.error(t('checkout.invalid_coupon', 'Cupón no válido'));
                 return;
             }
-            
+
             setAppliedCoupon(data.data.coupon);
             toast.success(t('checkout.coupon_applied', 'Cupón aplicado correctamente'));
         } catch (error) {
@@ -804,7 +799,7 @@ const CheckoutSummary = ({
             {/* Info Text */}
             <p className="text-[#f6f6f6] text-[14px] font-normal font-helvetica px-[6px] leading-[1.4]">
                 {t('checkout.incident_info_prefix', 'En caso de incidencia, por favor notifíquela mediante el ')}
-                <button 
+                <button
                     onClick={() => setShowIncidentModal(true)}
                     className="text-[#ff336d] underline hover:opacity-80 transition-opacity cursor-pointer"
                 >
@@ -817,17 +812,16 @@ const CheckoutSummary = ({
             <button
                 onClick={handleContinue}
                 disabled={!canContinue || isLoading}
-                className={`w-full h-[48px] rounded-[12px] flex items-center justify-center font-bold text-[16px] font-helvetica transition-opacity ${
-                    canContinue && !isLoading
+                className={`w-full h-[48px] rounded-[12px] flex items-center justify-center font-bold text-[16px] font-helvetica transition-opacity ${canContinue && !isLoading
                         ? 'bg-[#ff336d] text-[#f6f6f6] cursor-pointer hover:opacity-90'
                         : 'bg-[#ff336d] text-[#f6f6f6] opacity-50 cursor-not-allowed'
-                }`}
+                    }`}
             >
                 {isLoading ? (
                     <div className="flex items-center gap-[8px]">
                         <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                         </svg>
                         <span>{t('checkout.creating_order', 'Creando pedido...')}</span>
                     </div>
@@ -842,7 +836,7 @@ const CheckoutSummary = ({
             </p>
 
             {/* Incident Modal */}
-            <IncidentModal 
+            <IncidentModal
                 isOpen={showIncidentModal}
                 onClose={() => setShowIncidentModal(false)}
                 context={{
@@ -855,10 +849,10 @@ const CheckoutSummary = ({
 };
 
 export default CheckoutSummary;
-export type { 
-    CheckoutSummaryProps, 
-    CartItem, 
-    EventInfo, 
-    CouponData, 
-    NominativeAssignment 
+export type {
+    CheckoutSummaryProps,
+    CartItem,
+    EventInfo,
+    CouponData,
+    NominativeAssignment
 };
