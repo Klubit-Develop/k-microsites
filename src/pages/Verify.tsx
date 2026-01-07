@@ -90,7 +90,9 @@ const Verify = () => {
                 } else if (token && user) {
                     setToken(token);
                     setUser(user);
-                    navigate({ to: '/' });
+                    setTimeout(() => {
+                        navigate({ to: '/' });
+                    }, 100);
                 }
             } else {
                 if (isForgot) {

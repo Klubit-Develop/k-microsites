@@ -16,7 +16,226 @@ import InputTextPhone from '@/components/ui/InputTextPhone';
 import Select from '@/components/ui/Select';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
+import OTPInput from '@/components/ui/OTPInput';
 import { PlusIcon, TrashIcon } from '@/components/icons';
+
+const imgTelefono = 'https://klubit.fra1.cdn.digitaloceanspaces.com/assets/telephone.png';
+const imgCamera = 'https://klubit.fra1.cdn.digitaloceanspaces.com/assets/camara-fotos.png';
+
+// Modal para subir/eliminar avatar
+interface AvatarModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    hasAvatar: boolean;
+    onUpload: () => void;
+    onRemove: () => void;
+    isLoading?: boolean;
+}
+
+const AvatarModal = ({ isOpen, onClose, hasAvatar, onUpload, onRemove, isLoading = false }: AvatarModalProps) => {
+    const { t } = useTranslation();
+
+    return (
+        <Modal isOpen={isOpen} onClose={onClose}>
+            <div className="flex flex-col gap-6 w-full">
+                <div className="flex flex-col gap-4 items-center px-4 w-full">
+                    <div className="flex items-center justify-center size-[120px] p-1">
+                        <img
+                            src={imgCamera}
+                            alt="Camera"
+                            className="w-full h-full object-contain"
+                            style={{ filter: 'drop-shadow(0px 0px 30px black)' }}
+                        />
+                    </div>
+
+                    <h2
+                        className="text-[#F6F6F6] text-[24px] font-semibold text-center w-full"
+                        style={{ fontFamily: "'Borna', sans-serif" }}
+                    >
+                        {t('profile.avatar_modal_title', 'Sube una imagen de perfil')}
+                    </h2>
+
+                    <p className="text-[#939393] text-[16px] font-medium text-center w-full font-helvetica">
+                        {t('profile.avatar_modal_description', 'Sube una imagen en formato JPG o PNG (máx. 5 MB). Para mejor calidad, usa una foto cuadrada de al menos 400x400 px.')}
+                    </p>
+                </div>
+            </div>
+
+            <div className="flex gap-2 w-full">
+                {hasAvatar && (
+                    <button
+                        type="button"
+                        onClick={onRemove}
+                        disabled={isLoading}
+                        className="flex-1 h-12 px-6 bg-[rgba(255,35,35,0.25)] text-[#FF2323] font-bold text-[16px] font-helvetica rounded-xl flex items-center justify-center transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {t('profile.avatar_remove', 'Quitar')}
+                    </button>
+                )}
+                <button
+                    type="button"
+                    onClick={onUpload}
+                    disabled={isLoading}
+                    className={`${hasAvatar ? 'flex-1' : 'w-full'} h-12 px-6 bg-[#232323] text-[#F6F6F6] font-bold text-[16px] font-helvetica rounded-xl flex items-center justify-center transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed`}
+                >
+                    {isLoading ? t('common.loading', 'Cargando...') : t('profile.avatar_upload', 'Subir')}
+                </button>
+            </div>
+        </Modal>
+    );
+};
+
+interface VerifyPhoneModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    country: string;
+    phone: string;
+    onSuccess: (user: any) => void;
+}
+
+const VerifyPhoneModal = ({ isOpen, onClose, country, phone, onSuccess }: VerifyPhoneModalProps) => {
+    const { t, i18n } = useTranslation();
+    const { user } = useAuthStore();
+    const [otpValue, setOtpValue] = useState('');
+    const [countdown, setCountdown] = useState(0);
+
+    useEffect(() => {
+        if (isOpen) {
+            setOtpValue('');
+            setCountdown(0);
+        }
+    }, [isOpen]);
+
+    useEffect(() => {
+        let timer: NodeJS.Timeout;
+        if (countdown > 0) {
+            timer = setInterval(() => {
+                setCountdown((prev) => prev - 1);
+            }, 1000);
+        }
+        return () => clearInterval(timer);
+    }, [countdown]);
+
+    const verifyMutation = useMutation({
+        mutationFn: async (code: string) => {
+            const lang = i18n.language === 'en' ? 'en' : 'es';
+            const response = await axiosInstance.post(`/v2/sms/validate?lang=${lang}`, {
+                country,
+                phone: phone.replace(/\s/g, ''),
+                code,
+                isUpdatePhone: true,
+                userId: user.id
+            });
+            return response.data;
+        },
+        onSuccess: (response) => {
+            if (response.data?.verified && response.data?.phoneUpdated) {
+                onSuccess(response.data.user);
+                onClose();
+                toast.success(t('profile.phone_success', 'Teléfono actualizado correctamente'));
+            }
+        },
+        onError: () => {
+            toast.error(t('profile.verify_phone_error', 'Código inválido'));
+        }
+    });
+
+    const resendMutation = useMutation({
+        mutationFn: async () => {
+            const lang = i18n.language === 'en' ? 'en' : 'es';
+            return await axiosInstance.post(`/v2/sms/resend?lang=${lang}`, {
+                country,
+                phone: phone.replace(/\s/g, ''),
+            });
+        },
+        onSuccess: () => {
+            setOtpValue('');
+            setCountdown(30);
+            toast.success(t('profile.code_resent', 'Código reenviado'));
+        },
+        onError: () => {
+            toast.error(t('verify.error_resend', 'Error al reenviar el código'));
+        }
+    });
+
+    const handleVerify = () => {
+        if (!otpValue || otpValue.length !== 6) {
+            toast.error(t('verify.enter_valid_code', 'Ingresa un código válido de 6 dígitos'));
+            return;
+        }
+        verifyMutation.mutate(otpValue);
+    };
+
+    const handleResend = () => {
+        if (countdown > 0) return;
+        resendMutation.mutate();
+    };
+
+    const isLoading = verifyMutation.isPending;
+
+    return (
+        <Modal isOpen={isOpen} onClose={onClose}>
+            <div className="flex flex-col gap-6 w-full">
+                <div className="flex flex-col gap-4 items-center px-4 w-full">
+                    <div className="flex items-center justify-center size-[120px] p-1">
+                        <img
+                            src={imgTelefono}
+                            alt="Phone"
+                            className="w-full h-full object-contain"
+                            style={{ filter: 'drop-shadow(0px 0px 30px black)' }}
+                        />
+                    </div>
+
+                    <h2
+                        className="text-[#F6F6F6] text-[24px] font-semibold text-center w-full"
+                        style={{ fontFamily: "'Borna', sans-serif" }}
+                    >
+                        {t('profile.verify_phone_title', 'Verifica tu teléfono')}
+                    </h2>
+
+                    <p className="text-[#939393] text-[14px] font-normal text-center w-full font-helvetica">
+                        {t('profile.verify_phone_description', 'Hemos enviado un código SMS al')} +{country} {phone}
+                    </p>
+                </div>
+
+                <OTPInput
+                    length={6}
+                    value={otpValue}
+                    onChange={setOtpValue}
+                    disabled={isLoading}
+                    label={t('profile.verification_code', 'Código de verificación*')}
+                    autoFocus
+                />
+
+                {countdown > 0 ? (
+                    <p className="text-[14px] font-medium font-helvetica text-[#939393] text-center">
+                        {t('verify.can_request_new_code', 'Podrás solicitar un nuevo código en')} {countdown}s
+                    </p>
+                ) : (
+                    <p className="text-[14px] font-medium font-helvetica text-[#939393] text-center">
+                        {t('verify.didnt_receive_code', '¿No has recibido el código?')}
+                        <button
+                            onClick={handleResend}
+                            disabled={resendMutation.isPending}
+                            className="ml-1 text-[#ff336d] cursor-pointer no-underline hover:underline font-medium font-helvetica"
+                        >
+                            {t('verify.resend_code', 'Reenviar')}
+                        </button>
+                    </p>
+                )}
+            </div>
+
+            <button
+                type="button"
+                onClick={handleVerify}
+                disabled={otpValue.length !== 6 || isLoading}
+                className="w-full h-12 px-6 bg-[#FF336D] text-[#F6F6F6] font-bold text-[16px] font-helvetica rounded-xl flex items-center justify-center transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+                {isLoading ? t('verify.verifying', 'Verificando...') : t('profile.save', 'Guardar')}
+            </button>
+        </Modal>
+    );
+};
 
 const SectionHeader = ({ title }: { title: string }) => (
     <div className="flex gap-[2px] items-center px-[6px] w-full">
@@ -33,24 +252,11 @@ interface AvatarEditorProps {
     avatar: string | null;
     firstName: string;
     lastName: string;
-    onUpload: (file: File) => void;
+    onClick: () => void;
     isUploading?: boolean;
 }
 
-const AvatarEditor = ({ avatar, firstName, lastName, onUpload, isUploading = false }: AvatarEditorProps) => {
-    const fileInputRef = useRef<HTMLInputElement>(null);
-
-    const handleClick = () => {
-        fileInputRef.current?.click();
-    };
-
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            onUpload(file);
-        }
-    };
-
+const AvatarEditor = ({ avatar, firstName, lastName, onClick, isUploading = false }: AvatarEditorProps) => {
     const hasAvatar = avatar && avatar.trim() !== '';
     const firstInitial = firstName ? firstName.charAt(0) : '';
     const lastInitial = lastName ? lastName.charAt(0) : '';
@@ -59,18 +265,10 @@ const AvatarEditor = ({ avatar, firstName, lastName, onUpload, isUploading = fal
     return (
         <button
             type="button"
-            onClick={handleClick}
+            onClick={onClick}
             disabled={isUploading}
             className="relative flex items-center gap-[10px] p-0 cursor-pointer disabled:cursor-not-allowed"
         >
-            <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleFileChange}
-                className="hidden"
-            />
-
             <div className="relative w-[140px] h-[140px] rounded-full border-[3px] border-[#232323] shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)] overflow-hidden">
                 {hasAvatar ? (
                     <img
@@ -107,11 +305,16 @@ const Profile = () => {
     const { t, i18n } = useTranslation();
     const navigate = useNavigate();
     const { token, user, setUser, logout } = useAuthStore();
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [isLoading, setIsLoading] = useState(true);
     const [hasError, setHasError] = useState(false);
     const [showLogoutModal, setShowLogoutModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [showVerifyPhoneModal, setShowVerifyPhoneModal] = useState(false);
+    const [showAvatarModal, setShowAvatarModal] = useState(false);
+    const [pendingPhone, setPendingPhone] = useState('');
+    const [pendingCountry, setPendingCountry] = useState('34');
 
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
@@ -123,11 +326,60 @@ const Profile = () => {
     const [country, setCountry] = useState('34');
     const [avatar, setAvatar] = useState<string | null>(null);
 
+    // Estado original para detectar cambios
+    const [originalData, setOriginalData] = useState({
+        firstName: '',
+        lastName: '',
+        birthdate: '',
+        gender: '',
+        username: ''
+    });
+
     const genderOptions = [
         { value: 'male', label: t('register.male', 'Masculino') },
         { value: 'female', label: t('register.female', 'Femenino') },
         { value: 'other', label: t('register.other', 'Otro') }
     ];
+
+    const formatPhone = (value: string, pattern: number[] = [3, 3, 3]) => {
+        const digits = value.replace(/\D/g, '');
+        let result = '';
+        let index = 0;
+
+        for (let i = 0; i < pattern.length && index < digits.length; i++) {
+            const segment = digits.slice(index, index + pattern[i]);
+            result += segment;
+            index += pattern[i];
+            if (index < digits.length) result += ' ';
+        }
+
+        return result;
+    };
+
+    const handlePhoneChange = (value: string) => {
+        const selectedCountry = countries.find((c) => c.phone === country);
+        const maxLength = selectedCountry?.phoneLength || 9;
+        const pattern = selectedCountry?.phoneFormat || [3, 3, 3];
+
+        const numericValue = value.replace(/\D/g, '');
+        const limitedValue = numericValue.slice(0, maxLength);
+        const formattedValue = formatPhone(limitedValue, pattern);
+
+        setPhone(formattedValue);
+    };
+
+    const handleCountryChange = (newCountry: string) => {
+        setCountry(newCountry);
+        setPhone('');
+    };
+
+    // Detectar si hay cambios pendientes
+    const hasChanges = 
+        firstName !== originalData.firstName ||
+        lastName !== originalData.lastName ||
+        birthdate !== originalData.birthdate ||
+        gender !== originalData.gender ||
+        username !== originalData.username;
 
     useEffect(() => {
         const fetchAndSyncUser = async () => {
@@ -154,15 +406,39 @@ const Profile = () => {
 
     useEffect(() => {
         if (user) {
-            setFirstName(user.firstName || '');
-            setLastName(user.lastName || '');
-            setBirthdate(user.birthdate ? user.birthdate.split('T')[0] : '');
-            setGender(user.gender?.toLowerCase() || '');
+            const userFirstName = user.firstName || '';
+            const userLastName = user.lastName || '';
+            const userBirthdate = user.birthdate ? user.birthdate.split('T')[0] : '';
+            const userGender = user.gender?.toLowerCase() || '';
+            const userUsername = user.username || '';
+            const userCountry = user.country || '34';
+
+            setFirstName(userFirstName);
+            setLastName(userLastName);
+            setBirthdate(userBirthdate);
+            setGender(userGender);
             setEmail(user.email || '');
-            setUsername(user.username || '');
-            setPhone(user.phone || '');
-            setCountry(user.country || '34');
+            setUsername(userUsername);
+            setCountry(userCountry);
             setAvatar(user.avatar);
+
+            // Guardar datos originales para detectar cambios
+            setOriginalData({
+                firstName: userFirstName,
+                lastName: userLastName,
+                birthdate: userBirthdate,
+                gender: userGender,
+                username: userUsername
+            });
+            
+            // Formatear el teléfono al cargar con el patrón del país
+            if (user.phone) {
+                const countryData = countries.find((c) => c.phone === userCountry);
+                const pattern = countryData?.phoneFormat || [3, 3, 3];
+                setPhone(formatPhone(user.phone, pattern));
+            } else {
+                setPhone('');
+            }
         }
     }, [user]);
 
@@ -173,6 +449,14 @@ const Profile = () => {
         },
         onSuccess: (updatedUser) => {
             setUser(updatedUser);
+            // Actualizar datos originales para resetear detección de cambios
+            setOriginalData({
+                firstName,
+                lastName,
+                birthdate,
+                gender,
+                username
+            });
             toast.success(t('profile.save_success', 'Perfil actualizado correctamente'));
         },
         onError: () => {
@@ -191,6 +475,8 @@ const Profile = () => {
         },
         onSuccess: (updatedUser) => {
             setUser(updatedUser);
+            setAvatar(updatedUser.avatar);
+            setShowAvatarModal(false);
             toast.success(t('profile.avatar_success', 'Avatar actualizado correctamente'));
         },
         onError: () => {
@@ -198,19 +484,73 @@ const Profile = () => {
         },
     });
 
-    const changePhoneMutation = useMutation({
+    const removeAvatarMutation = useMutation({
         mutationFn: async () => {
-            const response = await axiosInstance.post('/v2/auth/change-phone', { country, phone });
+            const response = await axiosInstance.put(`/v2/users/${user.id}`, {
+                avatar: null
+            });
             return response.data.data.user;
         },
         onSuccess: (updatedUser) => {
             setUser(updatedUser);
-            toast.success(t('profile.phone_success', 'Teléfono actualizado correctamente'));
+            setAvatar(null);
+            setShowAvatarModal(false);
+            toast.success(t('profile.avatar_removed', 'Avatar eliminado correctamente'));
         },
         onError: () => {
-            toast.error(t('profile.phone_error', 'Error al cambiar el teléfono'));
+            toast.error(t('profile.avatar_remove_error', 'Error al eliminar el avatar'));
         },
     });
+
+    const handleAvatarUploadClick = () => {
+        setShowAvatarModal(false);
+        fileInputRef.current?.click();
+    };
+
+    const handleAvatarFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            uploadAvatarMutation.mutate(file);
+        }
+        // Reset input para permitir subir el mismo archivo
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+    };
+
+    const changePhoneMutation = useMutation({
+        mutationFn: async () => {
+            const lang = i18n.language === 'en' ? 'en' : 'es';
+            const response = await axiosInstance.post(`/v2/sms/send?lang=${lang}`, { 
+                country, 
+                phone: phone.replace(/\s/g, '') 
+            });
+            return response.data;
+        },
+        onSuccess: () => {
+            setPendingPhone(phone);
+            setPendingCountry(country);
+            setShowVerifyPhoneModal(true);
+        },
+        onError: () => {
+            toast.error(t('profile.phone_error', 'Error al enviar el código'));
+        },
+    });
+
+    const handlePhoneVerified = (updatedUser: any) => {
+        setUser(updatedUser);
+        const newCountry = updatedUser.country || '34';
+        setCountry(newCountry);
+        
+        // Formatear el teléfono actualizado
+        if (updatedUser.phone) {
+            const countryData = countries.find((c) => c.phone === newCountry);
+            const pattern = countryData?.phoneFormat || [3, 3, 3];
+            setPhone(formatPhone(updatedUser.phone, pattern));
+        } else {
+            setPhone('');
+        }
+    };
 
     const deleteAccountMutation = useMutation({
         mutationFn: async () => {
@@ -231,8 +571,8 @@ const Profile = () => {
         updateUserMutation.mutate({
             firstName,
             lastName,
-            birthdate,
-            gender: gender.toUpperCase(),
+            birthdate: birthdate ? new Date(birthdate) : undefined,
+            gender: gender.toUpperCase() as 'MALE' | 'FEMALE' | 'OTHER',
             username,
         });
     };
@@ -282,12 +622,21 @@ const Profile = () => {
                     <SectionHeader title={t('profile.personal_info', 'Información personal')} />
 
                     <div className="flex flex-col gap-[24px] items-center w-full">
+                        {/* Hidden file input */}
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/jpeg,image/png,image/jpg"
+                            onChange={handleAvatarFileChange}
+                            className="hidden"
+                        />
+
                         <AvatarEditor
                             avatar={avatar}
                             firstName={firstName}
                             lastName={lastName}
-                            onUpload={(file) => uploadAvatarMutation.mutate(file)}
-                            isUploading={uploadAvatarMutation.isPending}
+                            onClick={() => setShowAvatarModal(true)}
+                            isUploading={uploadAvatarMutation.isPending || removeAvatarMutation.isPending}
                         />
 
                         <InputText
@@ -340,15 +689,26 @@ const Profile = () => {
                     />
                 </div>
 
+                {hasChanges && (
+                    <Button
+                        variant="cta"
+                        onClick={handleSave}
+                        disabled={isSaving}
+                        isLoading={isSaving}
+                    >
+                        {t('profile.save', 'Guardar')}
+                    </Button>
+                )}
+
                 <div className="flex flex-col gap-[16px] w-full">
                     <SectionHeader title={t('profile.change_phone', 'Cambiar teléfono')} />
 
                     <InputTextPhone
                         label={t('profile.phone', 'Teléfono*')}
                         value={phone}
-                        onChange={setPhone}
+                        onChange={handlePhoneChange}
                         country={country}
-                        onCountryChange={setCountry}
+                        onCountryChange={handleCountryChange}
                         countries={countries}
                         language={i18n.language as 'es' | 'en'}
                     />
@@ -357,19 +717,11 @@ const Profile = () => {
                         variant="secondary"
                         onClick={() => changePhoneMutation.mutate()}
                         disabled={changePhoneMutation.isPending}
+                        isLoading={changePhoneMutation.isPending}
                     >
                         {t('profile.change_phone_btn', 'Cambiar teléfono')}
                     </Button>
                 </div>
-
-                <Button
-                    variant="cta"
-                    onClick={handleSave}
-                    disabled={isSaving}
-                    isLoading={isSaving}
-                >
-                    {t('profile.save', 'Guardar')}
-                </Button>
 
                 <div className="flex flex-col gap-[16px] w-full pt-[36px] border-t-2 border-[#232323]">
                     <SectionHeader title={t('profile.account', 'Cuenta')} />
@@ -416,6 +768,23 @@ const Profile = () => {
                 onConfirm={handleDeleteAccount}
                 variant="delete"
                 isLoading={deleteAccountMutation.isPending}
+            />
+
+            <VerifyPhoneModal
+                isOpen={showVerifyPhoneModal}
+                onClose={() => setShowVerifyPhoneModal(false)}
+                country={pendingCountry}
+                phone={pendingPhone}
+                onSuccess={handlePhoneVerified}
+            />
+
+            <AvatarModal
+                isOpen={showAvatarModal}
+                onClose={() => setShowAvatarModal(false)}
+                hasAvatar={!!(avatar && avatar.trim() !== '')}
+                onUpload={handleAvatarUploadClick}
+                onRemove={() => removeAvatarMutation.mutate()}
+                isLoading={uploadAvatarMutation.isPending || removeAvatarMutation.isPending}
             />
         </div>
     );

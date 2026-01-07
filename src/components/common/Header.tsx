@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link } from '@tanstack/react-router';
+import { Link, useNavigate } from '@tanstack/react-router';
 import { ChevronDown, ChevronRight, Menu, X } from 'lucide-react';
 
 import { LogoIcon } from '@/components/icons';
@@ -33,13 +33,13 @@ const Header = ({
     onLanguageChange,
 }: HeaderProps) => {
     const { t, i18n } = useTranslation();
+    const navigate = useNavigate();
     const [isLangOpen, setIsLangOpen] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const langRef = useRef<HTMLDivElement>(null);
 
     const currentLang = LANGUAGES.find(l => l.code === i18n.language) || LANGUAGES[0];
 
-    // Close dropdowns on outside click
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (langRef.current && !langRef.current.contains(event.target as Node)) {
@@ -51,7 +51,6 @@ const Header = ({
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    // Prevent body scroll when mobile menu is open
     useEffect(() => {
         if (isMobileMenuOpen) {
             document.body.style.overflow = 'hidden';
@@ -81,11 +80,14 @@ const Header = ({
         return `${firstInitial}${lastInitial}`.toUpperCase();
     };
 
-    const closeMobileMenu = () => {
+    const handleMobileNavigation = (to: string) => {
         setIsMobileMenuOpen(false);
+        document.body.style.overflow = '';
+        requestAnimationFrame(() => {
+            navigate({ to });
+        });
     };
 
-    // Language selector component (reusable for desktop and mobile)
     const LanguageSelector = ({ isMobile = false }: { isMobile?: boolean }) => (
         <div ref={isMobile ? undefined : langRef} className="relative">
             <button
@@ -138,7 +140,6 @@ const Header = ({
         </div>
     );
 
-    // Menu item component for mobile drawer
     const MobileMenuItem = ({
         to,
         children,
@@ -148,10 +149,10 @@ const Header = ({
         children: React.ReactNode;
         showAvatar?: boolean;
     }) => (
-        <Link
-            to={to}
-            onClick={closeMobileMenu}
-            className="flex items-center justify-between w-full px-3 py-3 border-b border-[#232323]"
+        <button
+            type="button"
+            onClick={() => handleMobileNavigation(to)}
+            className="flex items-center justify-between w-full px-3 py-3 border-b border-[#232323] cursor-pointer text-left bg-transparent"
         >
             <div className="flex items-center gap-3">
                 {showAvatar && (
@@ -176,14 +177,12 @@ const Header = ({
                 </span>
             </div>
             <ChevronRight size={20} className="text-[#F6F6F6]" />
-        </Link>
+        </button>
     );
 
     return (
         <>
-            {/* Header */}
             <header className="bg-[#141414] md:bg-[#141414] bg-[#050505] border-b-2 border-[#232323] w-full">
-                {/* Desktop Header */}
                 <div className="hidden md:flex items-center justify-between h-[68px] px-4 sm:px-6 lg:px-34">
                     <Link to="/" className="shrink-0">
                         <LogoIcon
@@ -239,7 +238,6 @@ const Header = ({
                     </div>
                 </div>
 
-                {/* Mobile Header */}
                 <div className="flex md:hidden items-center justify-between h-[94px] px-6 pt-[42px] pb-[32px] bg-[#050505]">
                     <Link to="/" className="shrink-0">
                         <LogoIcon
@@ -249,6 +247,7 @@ const Header = ({
                     </Link>
 
                     <button
+                        type="button"
                         onClick={() => setIsMobileMenuOpen(true)}
                         className="flex items-center justify-center size-[21px] rounded-[10px] cursor-pointer"
                         aria-label={t('header.open_menu', 'Abrir menú')}
@@ -258,28 +257,29 @@ const Header = ({
                 </div>
             </header>
 
-            {/* Mobile Menu Drawer */}
             {isMobileMenuOpen && (
                 <div className="fixed inset-0 z-50 md:hidden">
-                    {/* Backdrop */}
                     <div
                         className="absolute inset-0 bg-black/60"
-                        onClick={closeMobileMenu}
+                        onClick={() => setIsMobileMenuOpen(false)}
                     />
 
-                    {/* Drawer */}
                     <div className="absolute inset-0 bg-[#050505] flex flex-col animate-in slide-in-from-right duration-300">
-                        {/* Drawer Header */}
                         <div className="flex items-center justify-between px-6 pt-[42px] pb-6">
-                            <Link to="/" onClick={closeMobileMenu} className="shrink-0">
+                            <button
+                                type="button"
+                                onClick={() => handleMobileNavigation('/')}
+                                className="shrink-0"
+                            >
                                 <LogoIcon
                                     width={87}
                                     height={20}
                                 />
-                            </Link>
+                            </button>
 
                             <button
-                                onClick={closeMobileMenu}
+                                type="button"
+                                onClick={() => setIsMobileMenuOpen(false)}
                                 className="flex items-center justify-center size-[21px] rounded-[10px] cursor-pointer"
                                 aria-label={t('header.close_menu', 'Cerrar menú')}
                             >
@@ -287,9 +287,7 @@ const Header = ({
                             </button>
                         </div>
 
-                        {/* Menu Content */}
                         <div className="flex-1 flex flex-col justify-between px-4 pt-[30px] pb-16">
-                            {/* Menu Items */}
                             <div className="flex flex-col">
                                 {user ? (
                                     <>
@@ -307,7 +305,6 @@ const Header = ({
                                 )}
                             </div>
 
-                            {/* Language Selector at Bottom */}
                             <div ref={langRef}>
                                 <LanguageSelector isMobile />
                             </div>

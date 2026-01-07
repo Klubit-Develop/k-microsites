@@ -4,7 +4,7 @@ import { TanStackDevtools } from '@tanstack/react-devtools'
 import { Toaster } from 'sonner'
 
 import TanStackQueryDevtools from '../integrations/tanstack-query/devtools'
-import { useAuthStore } from '@/stores/authStore'
+import { useAuthStore, waitForHydration } from '@/stores/authStore'
 
 import type { QueryClient } from '@tanstack/react-query'
 import Header from '@/components/common/Header'
@@ -17,7 +17,6 @@ interface MyRouterContext {
 const authRoutes = ['/auth', '/login', '/register', '/verify', '/incident', '/forgot', '/forgot-change', '/oauth'];
 
 const RootComponent = () => {
-  // Selector específico para evitar re-renders cuando otras propiedades del store cambian
   const user = useAuthStore((state) => state.user);
   const location = useLocation();
 
@@ -51,11 +50,11 @@ const RootComponent = () => {
       />
 
       {!isAuthRoute && <Header user={user} />}
-      
+
       <main className="flex flex-1 flex-col">
         <Outlet />
       </main>
-      
+
       <Footer />
 
       <TanStackDevtools
@@ -77,6 +76,8 @@ const RootComponent = () => {
 export const Route = createRootRouteWithContext<MyRouterContext>()({
   component: RootComponent,
   beforeLoad: async ({ location }) => {
+    await waitForHydration();
+
     const { token } = useAuthStore.getState();
 
     const isAuthRoute = authRoutes.some(route => location.pathname.startsWith(route));

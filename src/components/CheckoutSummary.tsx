@@ -86,8 +86,8 @@ const CheckoutTimer = ({ seconds, isLow }: { seconds: number; isLow: boolean }) 
 
     return (
         <div className={`w-full h-[36px] flex items-center justify-center rounded-[12px] border-[1.5px] ${isLow
-                ? 'bg-[rgba(255,35,35,0.05)] border-[rgba(255,35,35,0.25)]'
-                : 'bg-[rgba(229,255,136,0.05)] border-[rgba(229,255,136,0.25)]'
+            ? 'bg-[rgba(255,35,35,0.05)] border-[rgba(255,35,35,0.25)]'
+            : 'bg-[rgba(229,255,136,0.05)] border-[rgba(229,255,136,0.25)]'
             }`}>
             <span className={`text-[14px] font-normal font-helvetica ${isLow ? 'text-[#ff2323]' : 'text-[#e5ff88]'}`}>
                 {formatTime(seconds)}
@@ -829,13 +829,15 @@ const CheckoutSummary = ({
             <EventInfoCard event={event} items={items} />
 
             {/* Coupon Section */}
-            <CouponSection
-                appliedCoupon={appliedCoupon}
-                onApplyCoupon={handleApplyCoupon}
-                onRemoveCoupon={handleRemoveCoupon}
-                isLoading={couponLoading}
-                discountAmount={discountAmount}
-            />
+            {subtotal > 0 && (
+                <CouponSection
+                    appliedCoupon={appliedCoupon}
+                    onApplyCoupon={handleApplyCoupon}
+                    onRemoveCoupon={handleRemoveCoupon}
+                    isLoading={couponLoading}
+                    discountAmount={discountAmount}
+                />
+            )}
 
             {/* Payment Details */}
             <PaymentDetailsCard
@@ -871,8 +873,8 @@ const CheckoutSummary = ({
                 onClick={handleContinue}
                 disabled={!canContinue || isLoading}
                 className={`w-full h-[48px] rounded-[12px] flex items-center justify-center font-bold text-[16px] font-helvetica transition-opacity ${canContinue && !isLoading
-                        ? 'bg-[#ff336d] text-[#f6f6f6] cursor-pointer hover:opacity-90'
-                        : 'bg-[#ff336d] text-[#f6f6f6] opacity-50 cursor-not-allowed'
+                    ? 'bg-[#ff336d] text-[#f6f6f6] cursor-pointer hover:opacity-90'
+                    : 'bg-[#ff336d] text-[#f6f6f6] opacity-50 cursor-not-allowed'
                     }`}
             >
                 {isLoading ? (
