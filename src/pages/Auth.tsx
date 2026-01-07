@@ -171,8 +171,8 @@ const Auth = () => {
     };
 
     return (
-        <div className="min-h-screen overflow-hidden lg:grid lg:grid-cols-12 lg:gap-2 px-34">
-            {/* Left Section - Logo */}
+        <div className="min-h-screen overflow-hidden lg:grid lg:grid-cols-12 lg:gap-2">
+            {/* Left Section - Logo (Desktop only) */}
             <div className="hidden lg:flex lg:col-span-8 bg-black items-center h-full relative">
                 <div className="h-full w-auto relative -translate-x-20">
                     <LogoCutIcon style={{ height: '100%', width: 'auto', objectFit: 'cover' }} />
@@ -183,91 +183,95 @@ const Auth = () => {
             </div>
 
             {/* Right Section - Form */}
-            <div className="col-span-12 lg:col-span-4 h-full flex items-center justify-center bg-[#050505]">
-                <div className="w-full max-w-[500px] pl-18">
-                    <div className="flex flex-col gap-8 items-center text-center lg:text-left">
+            <div className="col-span-12 lg:col-span-4 min-h-screen flex items-center justify-center bg-[#050505] px-6 sm:px-8 py-8">
+                <div className="w-full max-w-[400px] lg:max-w-[500px]">
+                    <div className="flex flex-col gap-8 items-center">
+                        {/* Logo (Mobile only) */}
                         <div className="lg:hidden">
                             <LogoIcon width={140} height={80} />
                         </div>
 
+                        {/* Title */}
                         <div className="flex flex-col gap-3 w-full">
-                            <h1 className="text-[26px] md:text-[28px] font-medium font-n27 text-center text-[#ff336d]">
+                            <h1 className="text-[24px] sm:text-[26px] md:text-[28px] font-medium font-n27 text-center text-[#ff336d]">
                                 {t('login.title')}
                             </h1>
                         </div>
 
+                        {/* Form */}
                         <div className="flex flex-col gap-5 w-full">
-                            <div className="flex flex-col gap-5">
-                                <form onSubmit={handleSubmit}>
-                                    <div className="flex flex-col gap-5">
-                                        <InputTextPhone
-                                            label={`${t('login.phone')}*`}
-                                            placeholder={t('login.phone')}
-                                            value={phone}
-                                            onChange={handlePhoneChange}
-                                            error={error}
-                                            country={country}
-                                            onCountryChange={handleCountryChange}
-                                            countries={countries}
-                                            language={i18n.language as 'es' | 'en'}
-                                            disabled={loginMutation.isPending}
-                                        />
+                            <form onSubmit={handleSubmit}>
+                                <div className="flex flex-col gap-5">
+                                    <InputTextPhone
+                                        label={`${t('login.phone')}*`}
+                                        placeholder={t('login.phone')}
+                                        value={phone}
+                                        onChange={handlePhoneChange}
+                                        error={error}
+                                        country={country}
+                                        onCountryChange={handleCountryChange}
+                                        countries={countries}
+                                        language={i18n.language as 'es' | 'en'}
+                                        disabled={loginMutation.isPending}
+                                    />
 
-                                        <Button
-                                            type="submit"
-                                            variant="cta"
-                                            disabled={loginMutation.isPending}
-                                            isLoading={loginMutation.isPending}
+                                    <Button
+                                        type="submit"
+                                        variant="cta"
+                                        disabled={loginMutation.isPending}
+                                        isLoading={loginMutation.isPending}
+                                    >
+                                        {t('login.continue')}
+                                    </Button>
+                                </div>
+                            </form>
+
+                            {/* Divider */}
+                            <div className="flex items-center justify-center">
+                                <div className="border-t border-[#232323] w-full max-w-[100px]" />
+                            </div>
+
+                            {/* Social Login */}
+                            <div className="flex flex-col gap-3">
+                                <Button
+                                    onClick={initiateGoogleLogin}
+                                    icon={<GoogleIcon />}
+                                >
+                                    {t('login.continueWithGoogle')}
+                                </Button>
+
+                                <Button
+                                    onClick={initiateAppleLogin}
+                                    icon={<AppleIcon />}
+                                >
+                                    {t('login.continueWithApple')}
+                                </Button>
+                            </div>
+
+                            {/* Links */}
+                            <div className="flex flex-col gap-3">
+                                <div className="flex items-center justify-center text-center">
+                                    <span className="text-[14px] font-helvetica font-normal text-[#F6F6F6]">
+                                        {t('login.cantAccess')}
+                                        <Link
+                                            to="/forgot"
+                                            className="pl-1.5 text-[#ff336d] no-underline font-medium hover:underline cursor-pointer"
                                         >
-                                            {t('login.continue')}
-                                        </Button>
-                                    </div>
-                                </form>
-
-                                <div className="flex items-center justify-center">
-                                    <div className="border-t border-[#00000029] w-full max-w-[100px]" />
+                                            {t('login.forgot_password')}
+                                        </Link>
+                                    </span>
                                 </div>
 
-                                <div className="flex flex-col gap-3">
-                                    <Button
-                                        onClick={initiateGoogleLogin}
-                                        icon={<GoogleIcon />}
-                                    >
-                                        {t('login.continueWithGoogle')}
-                                    </Button>
-
-                                    <Button
-                                        onClick={initiateAppleLogin}
-                                        icon={<AppleIcon />}
-                                    >
-                                        {t('login.continueWithApple')}
-                                    </Button>
-                                </div>
-
-                                <div className="flex flex-col gap-3">
-                                    <div className="flex items-center justify-center">
-                                        <span className="text-[14px] md:text-[15px] font-helvetica font-normal text-[#F6F6F6]">
-                                            {t('login.cantAccess')}
-                                            <Link
-                                                to="/forgot"
-                                                className="pl-1.5 text-[#ff336d] no-underline font-medium hover:underline cursor-pointer"
-                                            >
-                                                {t('login.forgot_password')}
-                                            </Link>
-                                        </span>
-                                    </div>
-
-                                    <div className="flex items-center justify-center flex-col sm:flex-row gap-1 mt-4">
-                                        <p className="text-[13px] font-helvetica font-normal text-[#F6F6F6]">
-                                            {t('login.termsText')} {' '}
-                                            <Link
-                                                to="/"
-                                                className="text-[13px] font-helvetica font-semibold text-[#F6F6F6] underline hover:text-[#98AAC0] transition-colors cursor-pointer"
-                                            >
-                                                {t('login.termsLink')}
-                                            </Link>
-                                        </p>
-                                    </div>
+                                <div className="flex items-center justify-center text-center mt-4">
+                                    <p className="text-[12px] sm:text-[13px] font-helvetica font-normal text-[#F6F6F6]">
+                                        {t('login.termsText')}{' '}
+                                        <Link
+                                            to="/terms-and-conditions"
+                                            className="font-semibold text-[#F6F6F6] underline hover:text-[#98AAC0] transition-colors cursor-pointer"
+                                        >
+                                            {t('login.termsLink')}
+                                        </Link>
+                                    </p>
                                 </div>
                             </div>
                         </div>

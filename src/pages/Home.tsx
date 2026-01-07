@@ -106,7 +106,7 @@ const Home = () => {
     const queryClient = useQueryClient();
     const navigate = useNavigate();
     const { view } = useSearch({ from: '/' });
-    
+
     const token = useAuthStore((state) => state.token);
 
     const isAuthenticated = !!token;
@@ -155,7 +155,7 @@ const Home = () => {
             );
             return response.data.data.favorites.data.length > 0;
         },
-        enabled: !!clubId && isAuthenticated, // Solo si está logueado
+        enabled: !!clubId && isAuthenticated,
         staleTime: 1000 * 60 * 5,
         refetchOnWindowFocus: false,
         refetchOnMount: false,
@@ -291,8 +291,10 @@ const Home = () => {
     const upcomingEvents = upcomingEventsQuery.data ?? [];
 
     return (
-        <div className="flex gap-8 px-34 my-10">
-            <div className="flex-1 flex flex-col gap-9 px-4 py-6">
+        <>
+            {/* Mobile Layout */}
+            <div className="flex flex-col gap-8 px-4 pt-[120px] pb-[360px] md:hidden bg-[#050505] min-h-screen">
+                {/* Club Profile Section */}
                 <div className="flex flex-col gap-6 items-center">
                     <ClubProfile
                         name={club?.name || ''}
@@ -327,16 +329,7 @@ const Home = () => {
                     />
                 </div>
 
-                <LocationCard
-                    address="Calle de Fortuny, 34, 28010. Madrid, España"
-                    coordinates={{
-                        lat: 40.425935536837265,
-                        lng: -3.6897071108489854,
-                    }}
-                />
-            </div>
-
-            <div className="flex-1 flex flex-col gap-9 px-4 py-6">
+                {/* Events Sections */}
                 {showUpcomingEvents ? (
                     <UpcomingEventsPanel
                         clubId={clubId || ''}
@@ -380,8 +373,112 @@ const Home = () => {
                         )}
                     </>
                 )}
+
+                {/* Location Section */}
+                <LocationCard
+                    title={t('club.location', 'Ubicación')}
+                    address="Calle de Fortuny, 34, 28010. Madrid, España"
+                    coordinates={{
+                        lat: 40.425935536837265,
+                        lng: -3.6897071108489854,
+                    }}
+                    legalText={t('club.legal_terms', 'Leer los términos legales del klub')}
+                />
             </div>
-        </div>
+
+            {/* Desktop Layout */}
+            <div className="hidden md:flex gap-8 px-34 my-10">
+                <div className="flex-1 flex flex-col gap-9 px-4 py-6">
+                    <div className="flex flex-col gap-6 items-center">
+                        <ClubProfile
+                            name={club?.name || ''}
+                            type={VENUE_TYPE_MAP[club?.venueType || ''] || club?.venueType || ''}
+                            operatingDays={formatOpeningDays(club?.openingDays || [])}
+                            operatingHours={formatOperatingHours(club?.openingTime || '', club?.closingTime || '')}
+                            logoUrl={club?.logo}
+                            likesCount={likesCount}
+                            isLiked={isLiked}
+                            onLikeClick={handleLike}
+                            isLoading={clubQuery.isLoading}
+                            isLikesLoading={isLikesLoading}
+                            canLike={isAuthenticated}
+                            isLikeDisabled={toggleFavoriteMutation.isPending}
+                        />
+
+                        {club?.images && club.images.length > 0 && (
+                            <PhotoCarousel
+                                photos={club.images.map((url, index) => ({
+                                    id: `photo-${index}`,
+                                    src: url,
+                                    alt: `${club.name} photo ${index + 1}`
+                                }))}
+                                isLoading={clubQuery.isLoading}
+                            />
+                        )}
+
+                        <ContactButtons
+                            onPhoneClick={handlePhoneClick}
+                            onEmailClick={handleEmailClick}
+                            isLoading={clubQuery.isLoading}
+                        />
+                    </div>
+
+                    <LocationCard
+                        address="Calle de Fortuny, 34, 28010. Madrid, España"
+                        coordinates={{
+                            lat: 40.425935536837265,
+                            lng: -3.6897071108489854,
+                        }}
+                    />
+                </div>
+
+                <div className="flex-1 flex flex-col gap-9 px-4 py-6">
+                    {showUpcomingEvents ? (
+                        <UpcomingEventsPanel
+                            clubId={clubId || ''}
+                            onEventClick={handleEventClick}
+                        />
+                    ) : (
+                        <>
+                            {todayEvents.length > 0 && (
+                                <EventSection title={t('events.today')}>
+                                    {todayEvents.map((event) => (
+                                        <EventCardHz
+                                            key={event.id}
+                                            title={event.name}
+                                            date={formatEventDate(event.startDate)}
+                                            time={formatEventTime(event.startTime, event.endTime)}
+                                            location={event.club?.name || ''}
+                                            imageUrl={event.flyer}
+                                            onClick={() => handleEventClick(event.slug)}
+                                        />
+                                    ))}
+                                </EventSection>
+                            )}
+
+                            {upcomingEvents.length > 0 && (
+                                <EventSection
+                                    title={t('events.upcoming')}
+                                    onHeaderClick={handleUpcomingEventsClick}
+                                >
+                                    {upcomingEvents.map((event) => (
+                                        <EventCardHz
+                                            key={event.id}
+                                            title={event.name}
+                                            date={formatEventDate(event.startDate)}
+                                            time={formatEventTime(event.startTime, event.endTime)}
+                                            location={event.club?.name || ''}
+                                            imageUrl={event.flyer}
+                                            onClick={() => handleEventClick(event.slug)}
+                                        />
+                                    ))}
+                                </EventSection>
+                            )}
+                        </>
+                    )}
+                </div>
+            </div>
+        </>
     );
 };
 

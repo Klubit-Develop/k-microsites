@@ -33,7 +33,7 @@ const ClubProfile = ({
 }: ClubProfileProps) => {
     if (isLoading) {
         return (
-            <div className={`flex flex-col gap-4 items-center justify-center px-6 w-[370px] animate-pulse ${className}`}>
+            <div className={`flex flex-col gap-4 items-center justify-center px-6 w-full max-w-[370px] animate-pulse ${className}`}>
                 <div className="flex flex-col gap-2 items-center w-full">
                     <div className="w-[140px] h-[140px] rounded-full bg-[#232323]" />
                     <div className="flex flex-col items-center gap-2 py-1 w-full">
@@ -48,7 +48,7 @@ const ClubProfile = ({
     }
 
     return (
-        <div className={`flex flex-col gap-4 items-center justify-center px-6 w-[370px] ${className}`}>
+        <div className={`flex flex-col gap-4 items-center justify-center px-6 w-full max-w-[370px] ${className}`}>
             <div className="flex flex-col gap-2 items-center w-full">
                 <div className="relative w-[140px] h-[140px] shrink-0 rounded-full shadow-[0px_0px_31px_0px_rgba(0,0,0,0.5)]">
                     <div className="absolute inset-0 rounded-full border-[3px] bg-[#323232] border-[#232323]" />
@@ -68,11 +68,13 @@ const ClubProfile = ({
                     <p className="text-sm leading-normal text-[#939393] truncate font-helvetica">
                         {type}
                     </p>
-                    <div className="flex items-center justify-center gap-1.5 w-full">
+                    <div className="flex items-center justify-center gap-1.5 w-full flex-wrap">
                         <span className="text-sm leading-normal text-[#E5FF88] truncate font-helvetica">
                             {operatingDays}
                         </span>
-                        <div className="w-[3px] h-[3px] rounded-full shrink-0 bg-[#E5FF88]" />
+                        {operatingDays && operatingHours && (
+                            <div className="w-[3px] h-[3px] rounded-full shrink-0 bg-[#E5FF88]" />
+                        )}
                         <span className="text-sm leading-normal text-[#E5FF88] truncate font-helvetica">
                             {operatingHours}
                         </span>
