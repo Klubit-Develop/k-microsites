@@ -2,50 +2,88 @@ import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 
 import axiosInstance from '@/config/axiosConfig';
+import { useAuthStore } from '@/stores/authStore';
 
 // =============================================================================
 // INTERFACES
 // =============================================================================
 
-interface Kard {
+type CardType = 'MEMBER' | 'BRONZE' | 'SILVER' | 'GOLD';
+
+interface UserPassbook {
     id: string;
-    name: string;
+    serialNumber: string;
+    kardLevel: CardType;
+    passbookUrl: string;
+    googleWalletUrl: string | null;
+    createdAt: string;
+    updatedAt: string;
     club: {
         id: string;
         name: string;
+        slug: string;
         logo: string;
-        venueType: string;
     };
 }
 
-interface KardsResponse {
+interface PassbooksResponse {
     status: 'success' | 'error';
     code: string;
     data: {
-        data: Kard[];
-        meta: {
-            total: number;
-            count: number;
-            limit: number;
-            hasMore: boolean;
-        };
+        passbooks: UserPassbook[];
     };
     message: string;
 }
+
+// =============================================================================
+// HELPER FUNCTIONS
+// =============================================================================
+
+const getKardLevelLabel = (kardLevel: CardType): string => {
+    switch (kardLevel) {
+        case 'MEMBER':
+            return 'Member';
+        case 'BRONZE':
+            return 'Bronze';
+        case 'SILVER':
+            return 'Silver';
+        case 'GOLD':
+            return 'Gold';
+        default:
+            return kardLevel;
+    }
+};
+
+const getKardLevelColor = (kardLevel: CardType): string => {
+    switch (kardLevel) {
+        case 'MEMBER':
+            return '#939393';
+        case 'BRONZE':
+            return '#CD7F32';
+        case 'SILVER':
+            return '#C0C0C0';
+        case 'GOLD':
+            return '#FFD700';
+        default:
+            return '#939393';
+    }
+};
 
 // =============================================================================
 // SUB-COMPONENTS
 // =============================================================================
 
 interface KardCardProps {
-    name: string;
     clubName: string;
     clubLogo: string;
-    venueType: string;
+    kardLevel: CardType;
     onClick?: () => void;
 }
 
-const KardCard = ({ name, clubName, clubLogo, venueType, onClick }: KardCardProps) => {
+const KardCard = ({ clubName, clubLogo, kardLevel, onClick }: KardCardProps) => {
+    const kardLevelLabel = getKardLevelLabel(kardLevel);
+    const kardLevelColor = getKardLevelColor(kardLevel);
+
     return (
         <button
             onClick={onClick}
@@ -63,10 +101,13 @@ const KardCard = ({ name, clubName, clubLogo, venueType, onClick }: KardCardProp
             {/* Content */}
             <div className="flex flex-col flex-1 min-w-0 gap-0.5">
                 <span className="text-[16px] font-helvetica font-medium text-[#F6F6F6] truncate">
-                    {name}
+                    {clubName}
                 </span>
-                <span className="text-[14px] font-helvetica text-[#939393] truncate">
-                    {venueType}
+                <span
+                    className="text-[14px] font-helvetica font-medium"
+                    style={{ color: kardLevelColor }}
+                >
+                    {kardLevelLabel}
                 </span>
             </div>
         </button>
@@ -97,42 +138,32 @@ const WalletListEmpty = () => {
 };
 
 // =============================================================================
-// VENUE TYPE MAP
-// =============================================================================
-
-const VENUE_TYPE_MAP: Record<string, string> = {
-    CLUB: 'Club',
-    DISCO: 'Discoteca',
-    BAR: 'Bar',
-    LOUNGE: 'Lounge',
-    PUB: 'Pub',
-    PROMOTER: 'Promotora',
-};
-
-// =============================================================================
 // MAIN COMPONENT
 // =============================================================================
 
 const WalletKards = () => {
     const { t } = useTranslation();
+    const { user } = useAuthStore();
 
-    // TODO: Cambiar endpoint cuando esté disponible
     const { data, isLoading, error } = useQuery({
-        queryKey: ['wallet-kards'],
+        queryKey: ['wallet-passbooks', user?.id],
         queryFn: async () => {
-            // Endpoint placeholder - actualizar cuando exista
-            const response = await axiosInstance.get<KardsResponse>(
-                '/v2/kards/me?limit=50'
+            const response = await axiosInstance.get<PassbooksResponse>(
+                `/v2/wallet/user/${user?.id}`
             );
-            return response.data.data.data;
+            return response.data.data.passbooks;
         },
-        // Deshabilitado hasta que exista el endpoint
-        enabled: false,
+        enabled: !!user?.id,
     });
 
-    const handleKardClick = (kardId: string) => {
-        // TODO: Navegar al detalle de la kard cuando exista la ruta
-        console.log('Kard clicked:', kardId);
+    const handleKardClick = (passbook: UserPassbook) => {
+        // Detectar plataforma y abrir la URL correspondiente
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        const url = isIOS ? passbook.passbookUrl : passbook.googleWalletUrl;
+
+        if (url) {
+            window.open(url, '_blank');
+        }
     };
 
     return (
@@ -150,14 +181,13 @@ const WalletKards = () => {
                 ) : !data || data.length === 0 ? (
                     <WalletListEmpty />
                 ) : (
-                    data.map((kard) => (
+                    data.map((passbook) => (
                         <KardCard
-                            key={kard.id}
-                            name={kard.name}
-                            clubName={kard.club.name}
-                            clubLogo={kard.club.logo}
-                            venueType={VENUE_TYPE_MAP[kard.club.venueType] || kard.club.venueType}
-                            onClick={() => handleKardClick(kard.id)}
+                            key={passbook.id}
+                            clubName={passbook.club.name}
+                            clubLogo={passbook.club.logo}
+                            kardLevel={passbook.kardLevel}
+                            onClick={() => handleKardClick(passbook)}
                         />
                     ))
                 )}

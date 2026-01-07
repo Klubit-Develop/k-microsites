@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import dayjs from 'dayjs';
 import 'dayjs/locale/es';
 import 'dayjs/locale/en';
+import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { useParams } from '@tanstack/react-router';
@@ -9,6 +11,7 @@ import { QRCodeSVG } from 'qrcode.react';
 
 import axiosInstance from '@/config/axiosConfig';
 import LocationCard from '@/components/LocationCard';
+import { useAuthStore } from '@/stores/authStore';
 
 // =============================================================================
 // INTERFACES
@@ -276,13 +279,58 @@ const TarifaCardInfo = ({ item }: TarifaCardInfoProps) => {
 
 interface PassbookCardProps {
     walletAddress: string;
+    userId: string;
+    clubId: string;
 }
 
-const PassbookCard = ({ walletAddress }: PassbookCardProps) => {
+const PassbookCard = ({ walletAddress, userId, clubId }: PassbookCardProps) => {
     const { t } = useTranslation();
+    const [isGenerating, setIsGenerating] = useState(false);
+    const [walletLinks, setWalletLinks] = useState<{ ios: string; android: string | null } | null>(null);
+
     const displayAddress = walletAddress.length > 20
         ? `${walletAddress.slice(0, 10)}...${walletAddress.slice(-10)}`
         : walletAddress;
+
+    // Detectar plataforma
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isAndroid = /Android/.test(navigator.userAgent);
+
+    const handleAddToWallet = async () => {
+        // Si ya tenemos los links, abrir directamente
+        if (walletLinks) {
+            const url = isIOS ? walletLinks.ios : walletLinks.android;
+            if (url) {
+                window.open(url, '_blank');
+            }
+            return;
+        }
+
+        // Generar el passbook
+        setIsGenerating(true);
+        try {
+            const response = await axiosInstance.post('/v2/wallet/generate', {
+                userId,
+                clubId,
+                kardLevel: 'MEMBER',
+                qrContent: walletAddress,
+            });
+
+            const links = response.data.data.walletLinks;
+            setWalletLinks(links);
+
+            // Abrir la URL correspondiente
+            const url = isIOS ? links.ios : links.android;
+            if (url) {
+                window.open(url, '_blank');
+            }
+        } catch (error) {
+            console.error('Error generating passbook:', error);
+            toast.error(t('transaction.passbook_error', 'Error al generar el pase'));
+        } finally {
+            setIsGenerating(false);
+        }
+    };
 
     return (
         <div className="flex flex-col gap-1 w-full">
@@ -303,11 +351,43 @@ const PassbookCard = ({ walletAddress }: PassbookCardProps) => {
                     </span>
                 </div>
 
-                {/* Add to Apple Wallet Button */}
-                <button className="flex items-center justify-center h-[34px] px-4 bg-black rounded-md cursor-pointer">
-                    <span className="text-[12px] font-helvetica text-white">
-                        {t('transaction.add_to_wallet', 'Añadir a Cartera de Apple')}
-                    </span>
+                {/* Add to Wallet Button */}
+                <button
+                    onClick={handleAddToWallet}
+                    disabled={isGenerating}
+                    className={`
+                        flex items-center justify-center gap-2 h-[44px] px-4 bg-black rounded-lg 
+                        transition-opacity
+                        ${isGenerating ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:opacity-80'}
+                    `}
+                >
+                    {isGenerating ? (
+                        <span className="text-[14px] font-helvetica font-medium text-white">
+                            {t('common.loading', 'Cargando...')}
+                        </span>
+                    ) : isIOS ? (
+                        <>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+                                <path d="M18.71 19.5C17.88 20.74 17 21.95 15.66 21.97C14.32 22 13.89 21.18 12.37 21.18C10.84 21.18 10.37 21.95 9.09997 22C7.78997 22.05 6.79997 20.68 5.95997 19.47C4.24997 16.97 2.93997 12.45 4.69997 9.39C5.56997 7.87 7.12997 6.91 8.81997 6.88C10.1 6.86 11.32 7.75 12.11 7.75C12.89 7.75 14.37 6.68 15.92 6.84C16.57 6.87 18.39 7.1 19.56 8.82C19.47 8.88 17.39 10.1 17.41 12.63C17.44 15.65 20.06 16.66 20.09 16.67C20.06 16.74 19.67 18.11 18.71 19.5ZM13 3.5C13.73 2.67 14.94 2.04 15.94 2C16.07 3.17 15.6 4.35 14.9 5.19C14.21 6.04 13.07 6.7 11.95 6.61C11.8 5.46 12.36 4.26 13 3.5Z" />
+                            </svg>
+                            <span className="text-[14px] font-helvetica font-medium text-white">
+                                {t('transaction.add_to_apple_wallet', 'Añadir a Cartera de Apple')}
+                            </span>
+                        </>
+                    ) : isAndroid ? (
+                        <>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+                                <path d="M3 20.5V3.5C3 2.91 3.34 2.39 3.84 2.15L13.69 12L3.84 21.85C3.34 21.6 3 21.09 3 20.5ZM16.81 15.12L6.05 21.34L14.54 12.85L16.81 15.12ZM20.16 10.81C20.5 11.08 20.75 11.5 20.75 12C20.75 12.5 20.53 12.9 20.18 13.18L17.89 14.5L15.39 12L17.89 9.5L20.16 10.81ZM6.05 2.66L16.81 8.88L14.54 11.15L6.05 2.66Z" />
+                            </svg>
+                            <span className="text-[14px] font-helvetica font-medium text-white">
+                                {t('transaction.add_to_google_wallet', 'Añadir a Google Wallet')}
+                            </span>
+                        </>
+                    ) : (
+                        <span className="text-[14px] font-helvetica font-medium text-white">
+                            {t('transaction.download_pass', 'Descargar pase')}
+                        </span>
+                    )}
                 </button>
             </div>
         </div>
@@ -353,6 +433,7 @@ const ItemDetailError = () => {
 
 const ItemDetail = () => {
     const { t, i18n } = useTranslation();
+    const { user } = useAuthStore();
     const { transactionId, itemId } = useParams({
         from: '/_authenticated/wallet/$transactionId/$itemId'
     });
@@ -401,8 +482,12 @@ const ItemDetail = () => {
                 <TarifaCardInfo item={item} />
 
                 {/* Passbook con QR */}
-                {item.walletAddress && (
-                    <PassbookCard walletAddress={item.walletAddress} />
+                {item.walletAddress && user?.id && (
+                    <PassbookCard
+                        walletAddress={item.walletAddress}
+                        userId={user.id}
+                        clubId={transaction.club.id}
+                    />
                 )}
 
                 {/* Dirección con mapa */}
