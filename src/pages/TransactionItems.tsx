@@ -101,7 +101,7 @@ interface BackendResponse {
 // HELPER FUNCTIONS
 // =============================================================================
 
-const isEventLive = (startDate: string, endDate?: string, startTime?: string, endTime?: string): boolean => {
+const isEventLive = (startDate: string, startTime?: string, endTime?: string): boolean => {
     const now = dayjs();
     const eventStart = dayjs(startDate);
 
@@ -328,7 +328,7 @@ const TransactionItemsError = () => {
 // =============================================================================
 
 const TransactionItems = () => {
-    const { t, i18n } = useTranslation();
+    const { i18n } = useTranslation();
     const navigate = useNavigate();
     const { transactionId } = useParams({ from: '/_authenticated/wallet/$transactionId' });
     const locale = i18n.language === 'en' ? 'en' : 'es';
