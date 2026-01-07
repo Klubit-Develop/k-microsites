@@ -5,9 +5,9 @@ import 'dayjs/locale/en';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate } from '@tanstack/react-router';
-import { ChevronRight } from 'lucide-react';
 
 import axiosInstance from '@/config/axiosConfig';
+import { ChevronRightIcon } from '@/components/icons';
 
 // =============================================================================
 // INTERFACES
@@ -257,29 +257,37 @@ const WalletEventCard = ({ title, date, time, location, imageUrl, onClick }: Wal
 interface SectionHeaderProps {
     title: string;
     to?: string;
+    showArrow?: boolean;
 }
 
-const SectionHeader = ({ title, to }: SectionHeaderProps) => {
+const SectionHeader = ({ title, to, showArrow = false }: SectionHeaderProps) => {
     const navigate = useNavigate();
 
     const handleClick = () => {
-        if (to) {
+        if (to && showArrow) {
             navigate({ to });
         }
     };
 
     return (
-        <div className="flex items-center justify-between w-full">
-            <button
-                onClick={handleClick}
-                className="flex items-center gap-1 cursor-pointer"
-                disabled={!to}
-            >
-                <h3 className="text-[20px] font-n27 font-semibold text-[#FF336D]">
+        <div className="flex gap-0.5 items-center px-1.5 w-full">
+            {showArrow && to ? (
+                <button
+                    onClick={handleClick}
+                    className="flex gap-2 items-center cursor-pointer"
+                >
+                    <h3 className="text-[24px] font-n27 font-bold text-[#FF336D]">
+                        {title}
+                    </h3>
+                    <div className="flex items-center pt-1">
+                        <ChevronRightIcon />
+                    </div>
+                </button>
+            ) : (
+                <h3 className="text-[24px] font-n27 font-bold text-[#FF336D]">
                     {title}
                 </h3>
-                {to && <ChevronRight size={20} className="text-[#FF336D]" />}
-            </button>
+            )}
         </div>
     );
 };
@@ -441,9 +449,10 @@ const Wallet = () => {
                     <SectionHeader
                         title={t('wallet.upcoming', 'Próximos')}
                         to="/wallet/upcoming"
+                        showArrow={upcomingTransactions.length > 5}
                     />
                     <div className="flex flex-col gap-2">
-                        {upcomingTransactions.slice(0, 3).map((transaction) => {
+                        {upcomingTransactions.slice(0, 5).map((transaction) => {
                             const cardProps = formatTransactionForCard(transaction);
                             return (
                                 <WalletEventCard
@@ -467,6 +476,7 @@ const Wallet = () => {
                 <SectionHeader 
                     title={t('wallet.your_kards', 'Tus kards')} 
                     to="/wallet/kards"
+                    showArrow={kards.length > 5}
                 />
                 <div className="flex flex-col gap-2">
                     {kards carousel here}
@@ -480,9 +490,10 @@ const Wallet = () => {
                     <SectionHeader
                         title={t('wallet.past', 'Pasados')}
                         to="/wallet/past"
+                        showArrow={pastTransactions.length > 5}
                     />
                     <div className="flex flex-col gap-2">
-                        {pastTransactions.slice(0, 3).map((transaction) => {
+                        {pastTransactions.slice(0, 5).map((transaction) => {
                             const cardProps = formatTransactionForCard(transaction);
                             return (
                                 <WalletEventCard
