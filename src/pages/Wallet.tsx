@@ -333,7 +333,7 @@ const SectionHeader = ({ title, to, showArrow = false }: SectionHeaderProps) => 
 
 // Skeleton
 const WalletSkeleton = () => (
-    <div className="flex flex-col gap-9 w-full max-w-[500px] mx-auto px-4 py-8 animate-pulse">
+    <div className="flex flex-col gap-9 w-full max-w-[500px] mx-auto px-4 pt-[120px] pb-[100px] md:py-8 animate-pulse">
         <div className="h-[240px] w-full bg-[#232323] rounded-2xl" />
         <div className="flex flex-col gap-4">
             <div className="h-6 w-32 bg-[#232323] rounded" />
@@ -347,7 +347,7 @@ const WalletEmpty = () => {
     const { t } = useTranslation();
 
     return (
-        <div className="flex flex-col items-center justify-center gap-4 w-full max-w-[500px] mx-auto px-4 py-16">
+        <div className="flex flex-col items-center justify-center gap-4 w-full max-w-[500px] mx-auto px-4 pt-[120px] pb-[100px] md:py-16">
             <div className="flex items-center justify-center size-20 bg-[#232323] rounded-full">
                 <span className="text-4xl">🎫</span>
             </div>
@@ -580,7 +580,7 @@ const Wallet = () => {
 
     if (error) {
         return (
-            <div className="flex flex-col items-center justify-center gap-4 w-full max-w-[500px] mx-auto px-4 py-16">
+            <div className="flex flex-col items-center justify-center gap-4 w-full max-w-[500px] mx-auto px-4 pt-[120px] pb-[100px] md:py-16">
                 <span className="text-[14px] font-helvetica text-[#FF2323]">
                     {t('common.error_loading', 'Error al cargar')}
                 </span>
@@ -593,7 +593,7 @@ const Wallet = () => {
     }
 
     return (
-        <div className="flex flex-col gap-9 w-full max-w-[500px] mx-auto px-4 py-8">
+        <div className="flex flex-col gap-9 w-full max-w-[500px] mx-auto px-4 pt-[120px] pb-[100px] md:py-8">
             {/* Featured Tickets (Hoy / Live) - Cards grandes */}
             {featuredTransactions.length > 0 && (
                 <div className="flex flex-col gap-4">

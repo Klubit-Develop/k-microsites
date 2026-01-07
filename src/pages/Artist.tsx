@@ -228,9 +228,9 @@ const Artist = () => {
             {Array.from({ length: count }).map((_, index) => (
                 <div
                     key={index}
-                    className="flex gap-[12px] items-center p-[12px] bg-[#141414] border-2 border-[#232323] rounded-[16px] shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)] w-full animate-pulse"
+                    className="flex gap-3 items-center p-3 bg-[#141414] border-2 border-[#232323] rounded-2xl shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)] w-full animate-pulse"
                 >
-                    <div className="w-[54px] h-[68px] bg-[#232323] rounded-[4px] shrink-0" />
+                    <div className="w-[54px] h-[68px] bg-[#232323] rounded shrink-0" />
                     <div className="flex flex-col flex-1 gap-2">
                         <div className="h-4 w-32 bg-[#232323] rounded" />
                         <div className="h-3 w-40 bg-[#232323] rounded" />
@@ -242,8 +242,8 @@ const Artist = () => {
     );
 
     return (
-        <div className="bg-[#050505] min-h-screen flex justify-center py-24">
-            <div className="flex flex-col gap-[36px] w-full max-w-[500px] px-6">
+        <div className="bg-[#050505] min-h-screen flex justify-center pt-[120px] pb-[360px] md:pt-24 md:pb-24">
+            <div className="flex flex-col gap-9 w-full max-w-[500px] px-4 md:px-6">
                 {/* Artist Profile */}
                 <ArtistProfile
                     artisticName={artist?.artisticName || ''}
@@ -262,22 +262,19 @@ const Artist = () => {
 
                 {/* Today's Events */}
                 {(isTodayLoading || todayEvents.length > 0) && (
-                    <div className="flex flex-col gap-[16px] w-full">
+                    <div className="flex flex-col gap-4 w-full">
                         {/* Header */}
-                        <div className="flex gap-[2px] items-center px-[6px] w-full">
+                        <div className="flex gap-0.5 items-center px-1.5 w-full">
                             {isLoading ? (
                                 <div className="h-6 w-16 bg-[#232323] rounded animate-pulse" />
                             ) : (
-                                <h2
-                                    className="text-[#ff336d] text-[24px] font-semibold"
-                                    style={{ fontFamily: "'Borna', sans-serif" }}
-                                >
+                                <h2 className="text-[#ff336d] text-2xl font-semibold font-borna">
                                     {t('artist.today', 'Hoy')}
                                 </h2>
                             )}
                         </div>
                         {/* Events */}
-                        <div className="flex flex-col gap-[8px] w-full">
+                        <div className="flex flex-col gap-2 w-full">
                             {isTodayLoading ? renderSkeletonCards(1) : todayEvents.map(renderEventCard)}
                         </div>
                     </div>
@@ -285,27 +282,24 @@ const Artist = () => {
 
                 {/* Upcoming Events */}
                 {(isUpcomingLoading || upcomingEvents.length > 0) && (
-                    <div className="flex flex-col gap-[16px] w-full">
+                    <div className="flex flex-col gap-4 w-full">
                         {/* Header with arrow */}
-                        <div className="flex gap-[8px] items-center px-[6px] w-full">
+                        <div className="flex gap-2 items-center px-1.5 w-full">
                             {isLoading ? (
                                 <div className="h-6 w-40 bg-[#232323] rounded animate-pulse" />
                             ) : (
-                                <div className="flex gap-[8px] items-center">
-                                    <h2
-                                        className="text-[#ff336d] text-[24px] font-semibold"
-                                        style={{ fontFamily: "'Borna', sans-serif" }}
-                                    >
+                                <div className="flex gap-2 items-center">
+                                    <h2 className="text-[#ff336d] text-2xl font-semibold font-borna">
                                         {t('artist.upcoming_events', 'Próximos eventos')}
                                     </h2>
-                                    <div className="flex items-center pt-[4px]">
+                                    <div className="flex items-center pt-1">
                                         <ChevronRightIcon />
                                     </div>
                                 </div>
                             )}
                         </div>
                         {/* Events */}
-                        <div className="flex flex-col gap-[8px] w-full">
+                        <div className="flex flex-col gap-2 w-full">
                             {isUpcomingLoading ? renderSkeletonCards(3) : upcomingEvents.map(renderEventCard)}
                         </div>
                     </div>
@@ -314,7 +308,7 @@ const Artist = () => {
                 {/* No events message */}
                 {!isTodayLoading && !isUpcomingLoading && todayEvents.length === 0 && upcomingEvents.length === 0 && (
                     <div className="flex items-center justify-center py-12">
-                        <p className="text-[#939393] text-[14px] font-helvetica">
+                        <p className="text-[#939393] text-sm font-helvetica">
                             {t('artist.no_events', 'No hay eventos próximos')}
                         </p>
                     </div>

@@ -207,7 +207,7 @@ const WalletUpcoming = () => {
     return (
         <div className="min-h-screen bg-black">
             {/* Content */}
-            <div className="flex flex-col gap-2 w-full max-w-[500px] mx-auto px-4 py-4 pb-8">
+            <div className="flex flex-col gap-2 w-full max-w-[500px] mx-auto px-4 pt-[120px] pb-[100px] md:py-4 md:pb-8">
                 {isLoading ? (
                     <WalletListSkeleton />
                 ) : error ? (

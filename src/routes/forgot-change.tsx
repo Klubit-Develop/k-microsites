@@ -1,8 +1,16 @@
-import { createFileRoute, redirect } from '@tanstack/react-router'
+import { createFileRoute, redirect, useBlocker } from '@tanstack/react-router'
 import ForgotChangePage from '@/pages/ForgotChange';
 
+const ForgotChangePageWrapper = () => {
+    useBlocker({
+        shouldBlockFn: () => true,
+    });
+
+    return <ForgotChangePage />;
+};
+
 export const Route = createFileRoute('/forgot-change')({
-    component: ForgotChangePage,
+    component: ForgotChangePageWrapper,
     beforeLoad: async ({ location }) => {
         const state = location.state as { id?: string; token?: string };
 

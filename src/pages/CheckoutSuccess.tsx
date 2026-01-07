@@ -172,15 +172,15 @@ const CheckoutSuccess = () => {
     // Loading state
     if (isLoading || !transaction) {
         return (
-            <div className="bg-[#050505] min-h-screen flex items-center justify-center">
-                <div className="flex flex-col gap-6 items-center">
-                    <div className="size-[120px] rounded-full bg-[#141414] animate-pulse" />
-                    <div className="flex flex-col gap-4 items-center">
+            <div className="bg-[#050505] min-h-screen flex items-center justify-center px-4 pt-[120px] pb-[100px] md:pt-24 md:pb-24">
+                <div className="flex flex-col gap-6 items-center w-full max-w-[500px]">
+                    <div className="size-[100px] md:size-[120px] rounded-full bg-[#141414] animate-pulse" />
+                    <div className="flex flex-col gap-4 items-center w-full">
                         <div className="h-8 w-64 bg-[#232323] rounded animate-pulse" />
                         <div className="h-5 w-48 bg-[#232323] rounded animate-pulse" />
                     </div>
-                    <div className="h-[240px] w-[500px] bg-[#232323] rounded-2xl animate-pulse" />
-                    <div className="h-12 w-[500px] bg-[#232323] rounded-xl animate-pulse" />
+                    <div className="h-[200px] md:h-[240px] w-full bg-[#232323] rounded-2xl animate-pulse" />
+                    <div className="h-12 w-full bg-[#232323] rounded-xl animate-pulse" />
                 </div>
             </div>
         );
@@ -189,20 +189,20 @@ const CheckoutSuccess = () => {
     // Error or no transaction
     if (isError || !transactionId) {
         return (
-            <div className="bg-[#050505] min-h-screen flex items-center justify-center">
-                <div className="flex flex-col gap-6 items-center w-[500px]">
-                    <div className="size-[120px] flex items-center justify-center">
-                        <span className="text-[64px]">😕</span>
+            <div className="bg-[#050505] min-h-screen flex items-center justify-center px-4 pt-[120px] pb-[100px] md:pt-24 md:pb-24">
+                <div className="flex flex-col gap-6 items-center w-full max-w-[500px]">
+                    <div className="size-[100px] md:size-[120px] flex items-center justify-center">
+                        <span className="text-[48px] md:text-[64px]">😕</span>
                     </div>
                     <div className="flex flex-col gap-4 items-center text-center">
-                        <h1 className="text-[24px] font-semibold font-n27 text-[#f6f6f6]">
+                        <h1 className="text-xl md:text-2xl font-semibold font-n27 text-[#f6f6f6]">
                             {t('checkout_success.error_title', 'Algo salió mal')}
                         </h1>
-                        <p className="text-[14px] font-normal font-helvetica text-[#f6f6f6]">
+                        <p className="text-sm font-normal font-helvetica text-[#f6f6f6]">
                             {t('checkout_success.error_description', 'No pudimos encontrar tu transacción')}
                         </p>
                     </div>
-                    <Button variant="cta" onClick={handleGoHome}>
+                    <Button variant="cta" onClick={handleGoHome} className="w-full">
                         {t('checkout_success.go_home', 'Ir al inicio')}
                     </Button>
                 </div>
@@ -213,16 +213,16 @@ const CheckoutSuccess = () => {
     // Payment still processing
     if (transaction.status === 'PENDING') {
         return (
-            <div className="bg-[#050505] min-h-screen flex items-center justify-center">
-                <div className="flex flex-col gap-6 items-center w-[500px]">
-                    <div className="size-[120px] flex items-center justify-center">
-                        <div className="size-16 border-4 border-[#FF336D] border-t-transparent rounded-full animate-spin" />
+            <div className="bg-[#050505] min-h-screen flex items-center justify-center px-4 pt-[120px] pb-[100px] md:pt-24 md:pb-24">
+                <div className="flex flex-col gap-6 items-center w-full max-w-[500px]">
+                    <div className="size-[100px] md:size-[120px] flex items-center justify-center">
+                        <div className="size-14 md:size-16 border-4 border-[#FF336D] border-t-transparent rounded-full animate-spin" />
                     </div>
                     <div className="flex flex-col gap-4 items-center text-center px-6">
-                        <h1 className="text-[24px] font-semibold font-n27 text-[#f6f6f6]">
+                        <h1 className="text-xl md:text-2xl font-semibold font-n27 text-[#f6f6f6]">
                             {t('checkout_success.processing_title', 'Procesando pago...')}
                         </h1>
-                        <p className="text-[14px] font-normal font-helvetica text-[#f6f6f6]">
+                        <p className="text-sm font-normal font-helvetica text-[#f6f6f6]">
                             {t('checkout_success.processing_description', 'Estamos confirmando tu pago, espera un momento')}
                         </p>
                     </div>
@@ -234,20 +234,20 @@ const CheckoutSuccess = () => {
     // Payment failed
     if (transaction.status === 'CANCELLED' || transaction.status === 'EXPIRED') {
         return (
-            <div className="bg-[#050505] min-h-screen flex items-center justify-center">
-                <div className="flex flex-col gap-6 items-center w-[500px]">
-                    <div className="size-[120px] flex items-center justify-center">
-                        <span className="text-[64px]">❌</span>
+            <div className="bg-[#050505] min-h-screen flex items-center justify-center px-4 pt-[120px] pb-[100px] md:pt-24 md:pb-24">
+                <div className="flex flex-col gap-6 items-center w-full max-w-[500px]">
+                    <div className="size-[100px] md:size-[120px] flex items-center justify-center">
+                        <span className="text-[48px] md:text-[64px]">❌</span>
                     </div>
                     <div className="flex flex-col gap-4 items-center text-center px-6">
-                        <h1 className="text-[24px] font-semibold font-n27 text-[#f6f6f6]">
+                        <h1 className="text-xl md:text-2xl font-semibold font-n27 text-[#f6f6f6]">
                             {t('checkout_success.failed_title', 'Pago no completado')}
                         </h1>
-                        <p className="text-[14px] font-normal font-helvetica text-[#f6f6f6]">
+                        <p className="text-sm font-normal font-helvetica text-[#f6f6f6]">
                             {t('checkout_success.failed_description', 'Tu pago no pudo ser procesado')}
                         </p>
                     </div>
-                    <Button variant="cta" onClick={handleGoHome}>
+                    <Button variant="cta" onClick={handleGoHome} className="w-full">
                         {t('checkout_success.try_again', 'Intentar de nuevo')}
                     </Button>
                 </div>
@@ -257,23 +257,23 @@ const CheckoutSuccess = () => {
 
     // Success!
     return (
-        <div className="bg-[#050505] min-h-screen flex items-center justify-center py-12">
-            <div className="flex flex-col gap-[36px] items-center w-[500px]">
+        <div className="bg-[#050505] min-h-screen flex items-center justify-center px-4 pt-[120px] pb-[100px] md:pt-24 md:pb-24">
+            <div className="flex flex-col gap-8 md:gap-9 items-center w-full max-w-[500px]">
                 {/* Confetti Icon */}
-                <div className="size-[120px] flex items-center justify-center p-1">
+                <div className="size-[100px] md:size-[120px] flex items-center justify-center p-1">
                     <PartyPopper 
-                        size={96} 
-                        className="text-[#FFCE1F]" 
+                        size={80} 
+                        className="text-[#FFCE1F] md:w-24 md:h-24" 
                         strokeWidth={1.5}
                     />
                 </div>
 
                 {/* Text */}
-                <div className="flex flex-col gap-4 items-center w-full px-[6px]">
-                    <h1 className="text-[24px] font-semibold font-n27 text-[#f6f6f6] text-center">
+                <div className="flex flex-col gap-4 items-center w-full px-1.5">
+                    <h1 className="text-xl md:text-2xl font-semibold font-n27 text-[#f6f6f6] text-center">
                         {t('checkout_success.title', '¡Compra realizada correctamente!')}
                     </h1>
-                    <p className="text-[14px] font-normal font-helvetica text-[#f6f6f6] text-center">
+                    <p className="text-sm font-normal font-helvetica text-[#f6f6f6] text-center">
                         {t('checkout_success.description', 'Ve a la wallet para ver todas tus tarifas')}
                     </p>
                 </div>
@@ -285,7 +285,7 @@ const CheckoutSuccess = () => {
                         className="w-full rounded-2xl border-2 border-[#232323] overflow-hidden shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)]"
                     >
                         {/* Background Image with Gradient */}
-                        <div className="relative h-[240px] w-full">
+                        <div className="relative h-[200px] md:h-[240px] w-full">
                             {/* Event Flyer */}
                             <img
                                 src={transaction.event.flyer}
@@ -299,8 +299,8 @@ const CheckoutSuccess = () => {
                             {/* Content */}
                             <div className="absolute inset-0 flex flex-col justify-end p-4">
                                 {/* Quantity Pill */}
-                                <div className="absolute top-[13px] right-[13px] bg-[#141414] rounded-[25px] px-2 py-1 shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]">
-                                    <span className="text-[14px] font-bold font-helvetica text-[#f6f6f6] min-w-[24px] text-center">
+                                <div className="absolute top-3 right-3 bg-[#141414] rounded-[25px] px-2 py-1 shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]">
+                                    <span className="text-sm font-bold font-helvetica text-[#f6f6f6] min-w-[24px] text-center">
                                         x{item.quantity}
                                     </span>
                                 </div>
@@ -308,28 +308,28 @@ const CheckoutSuccess = () => {
                                 {/* Bottom Content */}
                                 <div className="flex flex-col gap-2 w-full">
                                     {/* Event Name */}
-                                    <h2 className="text-[24px] font-semibold font-n27 text-[#f6f6f6]">
+                                    <h2 className="text-xl md:text-2xl font-semibold font-n27 text-[#f6f6f6]">
                                         {transaction.event.name}
                                     </h2>
 
                                     {/* Event Info */}
-                                    <div className="flex flex-col gap-[2px]">
+                                    <div className="flex flex-col gap-0.5">
                                         {/* Date & Time */}
-                                        <div className="flex items-center gap-1">
-                                            <span className="text-[14px] font-normal font-helvetica text-[#E5FF88]">
+                                        <div className="flex items-center gap-1 flex-wrap">
+                                            <span className="text-sm font-normal font-helvetica text-[#E5FF88]">
                                                 {formatDate(transaction.event.startDate)}
                                             </span>
                                             <span className="size-[3px] rounded-full bg-[#E5FF88]" />
-                                            <span className="text-[14px] font-normal font-helvetica text-[#E5FF88]">
+                                            <span className="text-sm font-normal font-helvetica text-[#E5FF88]">
                                                 {formatTime(transaction.event.startTime, transaction.event.endTime)}
                                             </span>
                                         </div>
 
                                         {/* Location */}
                                         {(transaction.club?.name || transaction.event.address) && (
-                                            <div className="flex items-center gap-[6px] py-[1px]">
+                                            <div className="flex items-center gap-1.5 py-px">
                                                 <span className="text-[13px]">📍</span>
-                                                <span className="text-[14px] font-normal font-helvetica text-[#939393] truncate">
+                                                <span className="text-sm font-normal font-helvetica text-[#939393] truncate">
                                                     {transaction.club?.name || transaction.event.address}
                                                 </span>
                                             </div>
@@ -337,12 +337,12 @@ const CheckoutSuccess = () => {
                                     </div>
 
                                     {/* Divider + Rate Info */}
-                                    <div className="flex items-center gap-[6px] pt-2 border-t-[1.5px] border-[#232323]">
+                                    <div className="flex items-center gap-1.5 pt-2 border-t-[1.5px] border-[#232323]">
                                         <span
-                                            className="size-[6px] rounded-full"
+                                            className="size-1.5 rounded-full"
                                             style={{ backgroundColor: getItemColor(item.itemType) }}
                                         />
-                                        <span className="text-[16px] font-medium font-helvetica text-[#f6f6f6]">
+                                        <span className="text-base font-medium font-helvetica text-[#f6f6f6]">
                                             {item.name}
                                         </span>
                                     </div>

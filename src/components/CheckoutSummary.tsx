@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link } from '@tanstack/react-router';
 import { toast } from 'sonner';
+
+import IncidentModal from '@/components/IncidentModal';
 
 // ============================================
 // TYPES
@@ -55,6 +56,7 @@ interface CheckoutSummaryProps {
         nominativeAssignments?: NominativeAssignment[];
     }) => void;
     isLoading?: boolean;
+    transactionId?: string;
 }
 
 // ============================================
@@ -611,6 +613,7 @@ const CheckoutSummary = ({
     onTimerExpired,
     onContinueToPayment,
     isLoading = false,
+    transactionId,
 }: CheckoutSummaryProps) => {
     const { t } = useTranslation();
     
@@ -619,6 +622,7 @@ const CheckoutSummary = ({
     const [appliedCoupon, setAppliedCoupon] = useState<CouponData | null>(null);
     const [couponLoading, setCouponLoading] = useState(false);
     const [nominativeAssignments, setNominativeAssignments] = useState<NominativeAssignment[]>([]);
+    const [showIncidentModal, setShowIncidentModal] = useState(false);
 
     // Initialize nominative assignments with 'send' as default
     useEffect(() => {
@@ -800,12 +804,12 @@ const CheckoutSummary = ({
             {/* Info Text */}
             <p className="text-[#f6f6f6] text-[14px] font-normal font-helvetica px-[6px] leading-[1.4]">
                 {t('checkout.incident_info_prefix', 'En caso de incidencia, por favor notifíquela mediante el ')}
-                <Link 
-                    to="/incident" 
-                    className="text-[#ff336d] underline hover:opacity-80 transition-opacity"
+                <button 
+                    onClick={() => setShowIncidentModal(true)}
+                    className="text-[#ff336d] underline hover:opacity-80 transition-opacity cursor-pointer"
                 >
                     {t('checkout.incident_info_link', 'siguiente formulario')}
-                </Link>
+                </button>
                 {t('checkout.incident_info_suffix', '. Nuestro equipo analizará la información y trabajará en la solución a la mayor brevedad posible.')}
             </p>
 
@@ -836,6 +840,16 @@ const CheckoutSummary = ({
             <p className="text-[rgba(246,246,246,0.5)] text-[12px] font-medium font-helvetica px-[6px] leading-[1.4]">
                 {t('checkout.legal_text', 'Comprando esta entrada, abrirás una cuenta y aceptarás nuestras Condiciones de Uso generales, la Política de Privacidad y las Condiciones de Compra de entradas. Procesamos tus datos personales de acuerdo con nuestra Política de Privacidad.')}
             </p>
+
+            {/* Incident Modal */}
+            <IncidentModal 
+                isOpen={showIncidentModal}
+                onClose={() => setShowIncidentModal(false)}
+                context={{
+                    eventName: event.name,
+                    transactionId: transactionId,
+                }}
+            />
         </div>
     );
 };

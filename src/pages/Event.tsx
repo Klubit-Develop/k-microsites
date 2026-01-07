@@ -1183,16 +1183,82 @@ const Event = () => {
     };
 
     return (
-        <div className="bg-[#050505] min-h-screen flex flex-col gap-[60px] items-center py-24">
-            <EventStepper
-                currentStep={currentStep}
-                onStepClick={handleStepChange}
-                isLoading={isLoading}
-            />
+        <div className="bg-[#050505] min-h-screen flex flex-col items-center pt-[120px] pb-[100px] md:pt-24 md:pb-24">
+            {/* Stepper - Hidden on mobile, shown on desktop */}
+            <div className="hidden md:block w-full mb-[60px]">
+                <EventStepper
+                    currentStep={currentStep}
+                    onStepClick={handleStepChange}
+                    isLoading={isLoading}
+                />
+            </div>
 
-            <div className="flex items-start justify-between w-full px-96 gap-8">
+            {/* Mobile Layout - Single Column */}
+            <div className="flex flex-col gap-8 w-full px-4 md:hidden">
+                {/* Event Header */}
+                <EventHeader
+                    name={event?.name || ''}
+                    flyer={event?.flyer || ''}
+                    date={event ? formatEventDate(event.startDate) : ''}
+                    time={event ? formatEventTime(event.startTime, event.endTime) : ''}
+                    address={event?.address || ''}
+                    likesCount={likesCount}
+                    isLiked={isLiked}
+                    onLikeClick={handleLike}
+                    isLoading={isLoading}
+                    isLikesLoading={isLikesLoading}
+                    canLike={isAuthenticated}
+                    isLikeDisabled={toggleFavoriteMutation.isPending}
+                />
+
+                <EventTags
+                    tags={allTags}
+                    isLoading={isLoading}
+                />
+
+                {/* Tab content / Checkout - on mobile comes before event details */}
+                {renderRightColumn()}
+
+                <EventDescription
+                    title={t('event.about', 'Sobre el evento')}
+                    description={event?.description || ''}
+                    isLoading={isLoading}
+                />
+
+                <ArtistsList
+                    artists={event?.artists || []}
+                    isLoading={isLoading}
+                />
+
+                {(isLoading || event?.club) && (
+                    <OrganizerCard
+                        organizer={event?.club || { id: '', name: '', slug: '', venueType: '' }}
+                        venueTypeLabel={event?.club ? (VENUE_TYPE_MAP[event.club.venueType] || event.club.venueType) : ''}
+                        isLoading={isLoading}
+                    />
+                )}
+
+                {isLoading ? (
+                    <div className="flex flex-col gap-4 w-full">
+                        <div className="h-7 w-24 bg-[#232323] rounded animate-pulse" />
+                        <div className="h-[200px] w-full bg-[#232323] rounded-2xl animate-pulse" />
+                    </div>
+                ) : event?.address ? (
+                    <LocationCard
+                        title={t('event.location')}
+                        address={event.address}
+                        coordinates={{
+                            lat: event.addressLocation?.coordinates?.[1] ?? 0,
+                            lng: event.addressLocation?.coordinates?.[0] ?? 0,
+                        }}
+                    />
+                ) : null}
+            </div>
+
+            {/* Desktop Layout - Two Columns */}
+            <div className="hidden md:flex items-start justify-center w-full px-8 lg:px-16 xl:px-24 2xl:px-96 gap-8">
                 {/* LEFT COLUMN - Event Info */}
-                <div className="flex flex-col gap-[36px] w-[500px] rounded-[10px]">
+                <div className="flex flex-col gap-9 w-full max-w-[500px]">
                     <EventHeader
                         name={event?.name || ''}
                         flyer={event?.flyer || ''}
@@ -1233,26 +1299,24 @@ const Event = () => {
                     )}
 
                     {isLoading ? (
-                        <div className="flex flex-col gap-[16px] w-full">
+                        <div className="flex flex-col gap-4 w-full">
                             <div className="h-7 w-24 bg-[#232323] rounded animate-pulse" />
                             <div className="h-[200px] w-full bg-[#232323] rounded-2xl animate-pulse" />
                         </div>
                     ) : event?.address ? (
-                        <div className="flex flex-col gap-[16px] w-full">
-                            <LocationCard
-                                title={t('event.location')}
-                                address={event.address}
-                                coordinates={{
-                                    lat: event.addressLocation?.coordinates?.[1] ?? 0,
-                                    lng: event.addressLocation?.coordinates?.[0] ?? 0,
-                                }}
-                            />
-                        </div>
+                        <LocationCard
+                            title={t('event.location')}
+                            address={event.address}
+                            coordinates={{
+                                lat: event.addressLocation?.coordinates?.[1] ?? 0,
+                                lng: event.addressLocation?.coordinates?.[0] ?? 0,
+                            }}
+                        />
                     ) : null}
                 </div>
 
                 {/* RIGHT COLUMN - Rates & Checkout */}
-                <div className="flex flex-col gap-[36px] w-[500px] rounded-[10px]">
+                <div className="flex flex-col gap-9 w-full max-w-[500px]">
                     {renderRightColumn()}
                 </div>
             </div>

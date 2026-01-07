@@ -284,18 +284,22 @@ interface PassbookCardProps {
 }
 
 const PassbookCard = ({ walletAddress, userId, clubId }: PassbookCardProps) => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const [isGenerating, setIsGenerating] = useState(false);
     const [walletLinks, setWalletLinks] = useState<{ ios: string; android: string | null } | null>(null);
 
-    // Detectar plataforma
+    // Detectar plataforma e idioma
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     const isAndroid = /Android/.test(navigator.userAgent);
+    const isSpanish = i18n.language === 'es' || i18n.language.startsWith('es-');
+    
+    // En desktop (ni iOS ni Android), usamos Apple Wallet como default
+    const useAppleWallet = isIOS || (!isIOS && !isAndroid);
 
     const handleAddToWallet = async () => {
         // Si ya tenemos los links, abrir directamente
         if (walletLinks) {
-            const url = isIOS ? walletLinks.ios : walletLinks.android;
+            const url = useAppleWallet ? walletLinks.ios : walletLinks.android;
             if (url) {
                 window.open(url, '_blank');
             }
@@ -315,8 +319,8 @@ const PassbookCard = ({ walletAddress, userId, clubId }: PassbookCardProps) => {
             const links = response.data.data.walletLinks;
             setWalletLinks(links);
 
-            // Abrir la URL correspondiente
-            const url = isIOS ? links.ios : links.android;
+            // Abrir la URL correspondiente según plataforma
+            const url = useAppleWallet ? links.ios : links.android;
             if (url) {
                 window.open(url, '_blank');
             }
@@ -344,7 +348,7 @@ const PassbookCard = ({ walletAddress, userId, clubId }: PassbookCardProps) => {
                     />
                 </div>
 
-                {/* Add to Wallet Button - Badges oficiales */}
+                {/* Add to Wallet Button - Badges según idioma y plataforma */}
                 <button
                     onClick={handleAddToWallet}
                     disabled={isGenerating}
@@ -356,45 +360,20 @@ const PassbookCard = ({ walletAddress, userId, clubId }: PassbookCardProps) => {
                     {isGenerating ? (
                         /* Skeleton del botón */
                         <div className="w-[156px] h-[48px] bg-[#232323] rounded-md animate-pulse" />
-                    ) : isIOS ? (
-                        /* Apple Wallet Badge oficial */
-                        <svg xmlns="http://www.w3.org/2000/svg" width="156" height="48" viewBox="0 0 156 48">
-                            <g fill="none" fillRule="evenodd">
-                                <rect width="156" height="48" fill="#000" rx="6" />
-                                <path fill="#FFF" d="M49.856 19.448c-.063.048-1.144.655-1.144 2.013 0 1.57 1.382 2.125 1.42 2.137-.012.036-.219.758-.726 1.5-.444.648-.906 1.294-1.632 1.294-.713 0-.9-.412-1.72-.412-.8 0-1.088.425-1.744.425-.713 0-1.163-.6-1.688-1.338-.619-.88-1.119-2.244-1.119-3.53 0-2.076 1.356-3.176 2.688-3.176.707 0 1.294.463 1.738.463.425 0 1.088-.488 1.888-.488.306 0 1.407.025 2.039.892zm-2.406-1.632c.331-.387.563-.925.563-1.463 0-.075-.006-.15-.019-.213-.538.02-1.181.356-1.568.8-.306.344-.588.881-.588 1.425 0 .082.013.163.019.188.031.006.081.012.131.012.481 0 1.094-.319 1.462-.75z" />
-                                <path fill="#FFF" d="M54.14 26.266h-1.294l-.706-2.225h-2.456l-.675 2.225h-1.263l2.431-7.522h1.507l2.456 7.522zm-2.225-3.144l-.637-1.962c-.069-.2-.194-.681-.381-1.444h-.025a26.057 26.057 0 01-.363 1.444l-.625 1.962h2.031zm7.028 1.581c0 .519-.175.932-.525 1.238-.35.306-.825.46-1.425.46-.556 0-1.006-.107-1.35-.319v-1.094c.463.287.9.431 1.313.431.512 0 .769-.194.769-.581 0-.2-.069-.362-.206-.488-.138-.125-.406-.287-.806-.487-.519-.263-.887-.531-1.106-.806-.219-.275-.331-.619-.331-1.031 0-.494.181-.894.544-1.2.363-.306.838-.456 1.425-.456.525 0 1 .087 1.425.263v1.05c-.406-.237-.85-.356-1.331-.356-.444 0-.669.169-.669.506 0 .181.063.331.188.45.125.119.375.275.75.469.481.244.838.506 1.069.787.231.281.344.631.344 1.05v.131zm6.247 1.563h-1.294l-.706-2.225h-2.456l-.675 2.225h-1.263l2.431-7.522h1.507l2.456 7.522zm-2.225-3.144l-.637-1.962c-.069-.2-.194-.681-.381-1.444h-.025a26.057 26.057 0 01-.363 1.444l-.625 1.962h2.031zm6.916 3.144h-1.188v-4.528c0-.569.019-1.063.056-1.481h-.025l-1.6 6.009h-.925l-1.587-6.009h-.025c.025.294.037.788.037 1.481v4.528h-1.1v-7.522h1.681l1.431 5.284c.1.369.169.65.206.844h.031c.081-.381.163-.669.244-.862l1.481-5.266h1.581v7.522h-.298zm5.203 0h-3.4v-7.522h3.275v1.056h-2.075v2.025h1.919v1.056h-1.919v2.331h2.2v1.054zm6.166 0h-1.294l-.706-2.225h-2.456l-.675 2.225h-1.263l2.431-7.522h1.507l2.456 7.522zm-2.225-3.144l-.637-1.962c-.069-.2-.194-.681-.381-1.444h-.025a26.057 26.057 0 01-.363 1.444l-.625 1.962h2.031zm2.756 3.144v-7.522h1.2v6.466h2.181v1.056h-3.381zm7.259 0h-1.2v-6.466h-1.544v-1.056h4.281v1.056h-1.537v6.466zm5.603 0h-1.2v-6.466h-1.544v-1.056h4.281v1.056h-1.537v6.466zm5.603 0h-1.2v-3.431h-2.431v3.431h-1.2v-7.522h1.2v3.035h2.431v-3.035h1.2v7.522z" />
-                                <path fill="#FFF" d="M97.497 19.448c-.063.048-1.144.655-1.144 2.013 0 1.57 1.382 2.125 1.42 2.137-.012.036-.219.758-.726 1.5-.444.648-.906 1.294-1.632 1.294-.713 0-.9-.412-1.72-.412-.8 0-1.088.425-1.744.425-.713 0-1.163-.6-1.688-1.338-.619-.88-1.119-2.244-1.119-3.53 0-2.076 1.356-3.176 2.688-3.176.707 0 1.294.463 1.738.463.425 0 1.088-.488 1.888-.488.306 0 1.407.025 2.039.892zm-2.406-1.632c.331-.387.563-.925.563-1.463 0-.075-.006-.15-.019-.213-.538.02-1.181.356-1.568.8-.306.344-.588.881-.588 1.425 0 .082.013.163.019.188.031.006.081.012.131.012.481 0 1.094-.319 1.462-.75z" />
-                                <path fill="#FFF" d="M100.14 26.266h-1.294l-.706-2.225h-2.456l-.675 2.225h-1.263l2.431-7.522h1.507l2.456 7.522zm-2.225-3.144l-.637-1.962c-.069-.2-.194-.681-.381-1.444h-.025a26.057 26.057 0 01-.363 1.444l-.625 1.962h2.031zm7.028 1.581c0 .519-.175.932-.525 1.238-.35.306-.825.46-1.425.46-.556 0-1.006-.107-1.35-.319v-1.094c.463.287.9.431 1.313.431.512 0 .769-.194.769-.581 0-.2-.069-.362-.206-.488-.138-.125-.406-.287-.806-.487-.519-.263-.887-.531-1.106-.806-.219-.275-.331-.619-.331-1.031 0-.494.181-.894.544-1.2.363-.306.838-.456 1.425-.456.525 0 1 .087 1.425.263v1.05c-.406-.237-.85-.356-1.331-.356-.444 0-.669.169-.669.506 0 .181.063.331.188.45.125.119.375.275.75.469.481.244.838.506 1.069.787.231.281.344.631.344 1.05v.131z" />
-                            </g>
-                        </svg>
-                    ) : isAndroid ? (
-                        /* Google Wallet Badge oficial */
-                        <svg xmlns="http://www.w3.org/2000/svg" width="156" height="48" viewBox="0 0 156 48">
-                            <g fill="none" fillRule="evenodd">
-                                <rect width="156" height="48" fill="#000" rx="6" />
-                                <path fill="#FFF" d="M43.14 26.266h-1.294l-.706-2.225h-2.456l-.675 2.225h-1.263l2.431-7.522h1.507l2.456 7.522zm-2.225-3.144l-.637-1.962c-.069-.2-.194-.681-.381-1.444h-.025a26.057 26.057 0 01-.363 1.444l-.625 1.962h2.031zm7.028 1.581c0 .519-.175.932-.525 1.238-.35.306-.825.46-1.425.46-.556 0-1.006-.107-1.35-.319v-1.094c.463.287.9.431 1.313.431.512 0 .769-.194.769-.581 0-.2-.069-.362-.206-.488-.138-.125-.406-.287-.806-.487-.519-.263-.887-.531-1.106-.806-.219-.275-.331-.619-.331-1.031 0-.494.181-.894.544-1.2.363-.306.838-.456 1.425-.456.525 0 1 .087 1.425.263v1.05c-.406-.237-.85-.356-1.331-.356-.444 0-.669.169-.669.506 0 .181.063.331.188.45.125.119.375.275.75.469.481.244.838.506 1.069.787.231.281.344.631.344 1.05v.131zm6.247 1.563h-1.294l-.706-2.225h-2.456l-.675 2.225h-1.263l2.431-7.522h1.507l2.456 7.522zm-2.225-3.144l-.637-1.962c-.069-.2-.194-.681-.381-1.444h-.025a26.057 26.057 0 01-.363 1.444l-.625 1.962h2.031z" />
-                                <text fill="#FFF" fontFamily="Roboto-Medium, Roboto" fontSize="11" fontWeight="400">
-                                    <tspan x="60" y="28">Add to Google Wallet</tspan>
-                                </text>
-                                <g transform="translate(12, 12)">
-                                    <path fill="#4285F4" d="M10.44 12.324c-.18-.78-.276-1.596-.276-2.436 0-.84.096-1.656.276-2.436l-3.972-3.084A12.036 12.036 0 005 9.888c0 1.944.456 3.78 1.284 5.4l4.156-2.964z" />
-                                    <path fill="#34A853" d="M17 6.12c1.476 0 2.796.504 3.84 1.5l2.88-2.88C21.6 2.82 19.5 1.92 17 1.92c-4.14 0-7.68 2.376-9.408 5.832l3.972 3.084C12.38 8.292 14.432 6.12 17 6.12z" />
-                                    <path fill="#FBBC04" d="M17 17.76c-2.568 0-4.62-1.632-5.436-3.876l-3.972 3.084C9.32 20.424 12.86 22.8 17 22.8c2.4 0 4.692-.828 6.432-2.388l-3.768-2.916c-1.044.696-2.376 1.092-3.664 1.092v1.172z" />
-                                    <path fill="#EA4335" d="M28.44 12.24c0-.72-.06-1.404-.18-2.064H17v4.128h6.42c-.3 1.476-1.14 2.712-2.316 3.552l3.768 2.916c2.208-2.04 3.48-5.04 3.48-8.532h.088z" />
-                                </g>
-                            </g>
-                        </svg>
+                    ) : useAppleWallet ? (
+                        /* Apple Wallet Badge - según idioma */
+                        <img 
+                            src={isSpanish ? '/assets/images/apple_es.svg' : '/assets/images/apple_en.svg'}
+                            alt={t('transaction.add_to_apple_wallet', 'Add to Apple Wallet')}
+                            className="h-[48px] w-auto"
+                        />
                     ) : (
-                        /* Fallback para desktop - Apple Wallet */
-                        <svg xmlns="http://www.w3.org/2000/svg" width="156" height="48" viewBox="0 0 156 48">
-                            <g fill="none" fillRule="evenodd">
-                                <rect width="156" height="48" fill="#000" rx="6" />
-                                <path fill="#FFF" d="M49.856 19.448c-.063.048-1.144.655-1.144 2.013 0 1.57 1.382 2.125 1.42 2.137-.012.036-.219.758-.726 1.5-.444.648-.906 1.294-1.632 1.294-.713 0-.9-.412-1.72-.412-.8 0-1.088.425-1.744.425-.713 0-1.163-.6-1.688-1.338-.619-.88-1.119-2.244-1.119-3.53 0-2.076 1.356-3.176 2.688-3.176.707 0 1.294.463 1.738.463.425 0 1.088-.488 1.888-.488.306 0 1.407.025 2.039.892zm-2.406-1.632c.331-.387.563-.925.563-1.463 0-.075-.006-.15-.019-.213-.538.02-1.181.356-1.568.8-.306.344-.588.881-.588 1.425 0 .082.013.163.019.188.031.006.081.012.131.012.481 0 1.094-.319 1.462-.75z" />
-                                <text fill="#FFF" fontFamily="SF Pro Display, -apple-system, sans-serif" fontSize="11" fontWeight="500">
-                                    <tspan x="54" y="28">Add to Apple Wallet</tspan>
-                                </text>
-                            </g>
-                        </svg>
+                        /* Google Wallet Badge - según idioma */
+                        <img 
+                            src={isSpanish ? '/assets/images/google_es.svg' : '/assets/images/google_en.svg'}
+                            alt={t('transaction.add_to_google_wallet', 'Add to Google Wallet')}
+                            className="h-[55px] w-auto"
+                        />
                     )}
                 </button>
             </div>
@@ -407,7 +386,7 @@ const PassbookCard = ({ walletAddress, userId, clubId }: PassbookCardProps) => {
 // =============================================================================
 
 const ItemDetailSkeleton = () => (
-    <div className="flex flex-col gap-9 w-full max-w-[500px] mx-auto px-4 py-8 animate-pulse">
+    <div className="flex flex-col gap-9 w-full max-w-[500px] mx-auto px-4 pt-[120px] pb-[100px] md:py-8 animate-pulse">
         <div className="h-[100px] w-full bg-[#232323] rounded-2xl" />
         <div className="h-[180px] w-full bg-[#232323] rounded-2xl" />
         <div className="h-[300px] w-full bg-[#232323] rounded-2xl" />
@@ -419,7 +398,7 @@ const ItemDetailError = () => {
     const { t } = useTranslation();
 
     return (
-        <div className="flex flex-col items-center justify-center gap-4 w-full max-w-[500px] mx-auto px-4 py-16">
+        <div className="flex flex-col items-center justify-center gap-4 w-full max-w-[500px] mx-auto px-4 pt-[120px] pb-[100px] md:py-16">
             <div className="flex items-center justify-center size-20 bg-[#232323] rounded-full">
                 <span className="text-4xl">❌</span>
             </div>
@@ -482,7 +461,7 @@ const ItemDetail = () => {
     return (
         <div className="min-h-screen bg-black">
             {/* Content */}
-            <div className="flex flex-col gap-9 w-full max-w-[500px] mx-auto px-4 py-4 pb-8">
+            <div className="flex flex-col gap-9 w-full max-w-[500px] mx-auto px-4 pt-[120px] pb-[100px] md:py-4 md:pb-8">
                 {/* Evento Card */}
                 <EventCardInfo event={transaction.event} locale={locale} />
 
