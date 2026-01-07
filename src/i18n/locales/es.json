@@ -247,5 +247,22 @@
         "failed_description": "Tu pago no pudo ser procesado",
         "error_title": "Algo salió mal",
         "error_description": "No pudimos encontrar tu transacción"
+    },
+    "wallet": {
+        "event_live": "Evento en curso",
+        "today": "Hoy",
+        "upcoming": "Próximos",
+        "past": "Pasados",
+        "empty_title": "Tu wallet está vacía",
+        "empty_description": "Cuando compres entradas, aparecerán aquí",
+        "explore_events": "Explorar eventos",
+        "item": "entrada",
+        "items": "entradas"
+    },
+    "transaction": {
+        "my_tickets": "Mis entradas",
+        "error_title": "Transacción no encontrada",
+        "error_description": "No pudimos encontrar esta transacción",
+        "back_to_wallet": "Volver a Wallet"
     }
 }

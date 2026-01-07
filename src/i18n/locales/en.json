@@ -247,5 +247,22 @@
         "failed_description": "Your payment could not be processed",
         "error_title": "Something went wrong",
         "error_description": "We couldn't find your transaction"
+    },
+    "wallet": {
+        "event_live": "Event in progress",
+        "today": "Today",
+        "upcoming": "Upcoming",
+        "past": "Past",
+        "empty_title": "Your wallet is empty",
+        "empty_description": "When you buy tickets, they will appear here",
+        "explore_events": "Explore events",
+        "item": "ticket",
+        "items": "tickets"
+    },
+    "transaction": {
+        "my_tickets": "My tickets",
+        "error_title": "Transaction not found",
+        "error_description": "We couldn't find this transaction",
+        "back_to_wallet": "Back to Wallet"
     }
 }

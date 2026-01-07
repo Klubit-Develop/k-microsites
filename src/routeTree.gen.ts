@@ -30,6 +30,11 @@ import { Route as CheckoutCancelRouteImport } from './routes/checkout.cancel'
 import { Route as ArtistSlugRouteImport } from './routes/artist.$slug'
 import { Route as AuthenticatedWalletRouteImport } from './routes/_authenticated/wallet'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
+import { Route as AuthenticatedWalletUpcomingRouteImport } from './routes/_authenticated/wallet.upcoming'
+import { Route as AuthenticatedWalletPastRouteImport } from './routes/_authenticated/wallet.past'
+import { Route as AuthenticatedWalletKardsRouteImport } from './routes/_authenticated/wallet.kards'
+import { Route as AuthenticatedWalletTransactionIdRouteImport } from './routes/_authenticated/wallet.$transactionId'
+import { Route as AuthenticatedWalletTransactionIdItemIdRouteImport } from './routes/_authenticated/wallet.$transactionId.$itemId'
 
 const VerifyRoute = VerifyRouteImport.update({
   id: '/verify',
@@ -135,6 +140,35 @@ const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedWalletUpcomingRoute =
+  AuthenticatedWalletUpcomingRouteImport.update({
+    id: '/upcoming',
+    path: '/upcoming',
+    getParentRoute: () => AuthenticatedWalletRoute,
+  } as any)
+const AuthenticatedWalletPastRoute = AuthenticatedWalletPastRouteImport.update({
+  id: '/past',
+  path: '/past',
+  getParentRoute: () => AuthenticatedWalletRoute,
+} as any)
+const AuthenticatedWalletKardsRoute =
+  AuthenticatedWalletKardsRouteImport.update({
+    id: '/kards',
+    path: '/kards',
+    getParentRoute: () => AuthenticatedWalletRoute,
+  } as any)
+const AuthenticatedWalletTransactionIdRoute =
+  AuthenticatedWalletTransactionIdRouteImport.update({
+    id: '/$transactionId',
+    path: '/$transactionId',
+    getParentRoute: () => AuthenticatedWalletRoute,
+  } as any)
+const AuthenticatedWalletTransactionIdItemIdRoute =
+  AuthenticatedWalletTransactionIdItemIdRouteImport.update({
+    id: '/$itemId',
+    path: '/$itemId',
+    getParentRoute: () => AuthenticatedWalletTransactionIdRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -151,12 +185,17 @@ export interface FileRoutesByFullPath {
   '/terms-and-conditions': typeof TermsAndConditionsRoute
   '/verify': typeof VerifyRoute
   '/profile': typeof AuthenticatedProfileRoute
-  '/wallet': typeof AuthenticatedWalletRoute
+  '/wallet': typeof AuthenticatedWalletRouteWithChildren
   '/artist/$slug': typeof ArtistSlugRoute
   '/checkout/cancel': typeof CheckoutCancelRoute
   '/checkout/success': typeof CheckoutSuccessRoute
   '/event/$slug': typeof EventSlugRoute
   '/rrpp/$slug': typeof RrppSlugRoute
+  '/wallet/$transactionId': typeof AuthenticatedWalletTransactionIdRouteWithChildren
+  '/wallet/kards': typeof AuthenticatedWalletKardsRoute
+  '/wallet/past': typeof AuthenticatedWalletPastRoute
+  '/wallet/upcoming': typeof AuthenticatedWalletUpcomingRoute
+  '/wallet/$transactionId/$itemId': typeof AuthenticatedWalletTransactionIdItemIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -173,12 +212,17 @@ export interface FileRoutesByTo {
   '/terms-and-conditions': typeof TermsAndConditionsRoute
   '/verify': typeof VerifyRoute
   '/profile': typeof AuthenticatedProfileRoute
-  '/wallet': typeof AuthenticatedWalletRoute
+  '/wallet': typeof AuthenticatedWalletRouteWithChildren
   '/artist/$slug': typeof ArtistSlugRoute
   '/checkout/cancel': typeof CheckoutCancelRoute
   '/checkout/success': typeof CheckoutSuccessRoute
   '/event/$slug': typeof EventSlugRoute
   '/rrpp/$slug': typeof RrppSlugRoute
+  '/wallet/$transactionId': typeof AuthenticatedWalletTransactionIdRouteWithChildren
+  '/wallet/kards': typeof AuthenticatedWalletKardsRoute
+  '/wallet/past': typeof AuthenticatedWalletPastRoute
+  '/wallet/upcoming': typeof AuthenticatedWalletUpcomingRoute
+  '/wallet/$transactionId/$itemId': typeof AuthenticatedWalletTransactionIdItemIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -197,12 +241,17 @@ export interface FileRoutesById {
   '/terms-and-conditions': typeof TermsAndConditionsRoute
   '/verify': typeof VerifyRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
-  '/_authenticated/wallet': typeof AuthenticatedWalletRoute
+  '/_authenticated/wallet': typeof AuthenticatedWalletRouteWithChildren
   '/artist/$slug': typeof ArtistSlugRoute
   '/checkout/cancel': typeof CheckoutCancelRoute
   '/checkout/success': typeof CheckoutSuccessRoute
   '/event/$slug': typeof EventSlugRoute
   '/rrpp/$slug': typeof RrppSlugRoute
+  '/_authenticated/wallet/$transactionId': typeof AuthenticatedWalletTransactionIdRouteWithChildren
+  '/_authenticated/wallet/kards': typeof AuthenticatedWalletKardsRoute
+  '/_authenticated/wallet/past': typeof AuthenticatedWalletPastRoute
+  '/_authenticated/wallet/upcoming': typeof AuthenticatedWalletUpcomingRoute
+  '/_authenticated/wallet/$transactionId/$itemId': typeof AuthenticatedWalletTransactionIdItemIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -227,6 +276,11 @@ export interface FileRouteTypes {
     | '/checkout/success'
     | '/event/$slug'
     | '/rrpp/$slug'
+    | '/wallet/$transactionId'
+    | '/wallet/kards'
+    | '/wallet/past'
+    | '/wallet/upcoming'
+    | '/wallet/$transactionId/$itemId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -249,6 +303,11 @@ export interface FileRouteTypes {
     | '/checkout/success'
     | '/event/$slug'
     | '/rrpp/$slug'
+    | '/wallet/$transactionId'
+    | '/wallet/kards'
+    | '/wallet/past'
+    | '/wallet/upcoming'
+    | '/wallet/$transactionId/$itemId'
   id:
     | '__root__'
     | '/'
@@ -272,6 +331,11 @@ export interface FileRouteTypes {
     | '/checkout/success'
     | '/event/$slug'
     | '/rrpp/$slug'
+    | '/_authenticated/wallet/$transactionId'
+    | '/_authenticated/wallet/kards'
+    | '/_authenticated/wallet/past'
+    | '/_authenticated/wallet/upcoming'
+    | '/_authenticated/wallet/$transactionId/$itemId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -445,17 +509,85 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProfileRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/wallet/upcoming': {
+      id: '/_authenticated/wallet/upcoming'
+      path: '/upcoming'
+      fullPath: '/wallet/upcoming'
+      preLoaderRoute: typeof AuthenticatedWalletUpcomingRouteImport
+      parentRoute: typeof AuthenticatedWalletRoute
+    }
+    '/_authenticated/wallet/past': {
+      id: '/_authenticated/wallet/past'
+      path: '/past'
+      fullPath: '/wallet/past'
+      preLoaderRoute: typeof AuthenticatedWalletPastRouteImport
+      parentRoute: typeof AuthenticatedWalletRoute
+    }
+    '/_authenticated/wallet/kards': {
+      id: '/_authenticated/wallet/kards'
+      path: '/kards'
+      fullPath: '/wallet/kards'
+      preLoaderRoute: typeof AuthenticatedWalletKardsRouteImport
+      parentRoute: typeof AuthenticatedWalletRoute
+    }
+    '/_authenticated/wallet/$transactionId': {
+      id: '/_authenticated/wallet/$transactionId'
+      path: '/$transactionId'
+      fullPath: '/wallet/$transactionId'
+      preLoaderRoute: typeof AuthenticatedWalletTransactionIdRouteImport
+      parentRoute: typeof AuthenticatedWalletRoute
+    }
+    '/_authenticated/wallet/$transactionId/$itemId': {
+      id: '/_authenticated/wallet/$transactionId/$itemId'
+      path: '/$itemId'
+      fullPath: '/wallet/$transactionId/$itemId'
+      preLoaderRoute: typeof AuthenticatedWalletTransactionIdItemIdRouteImport
+      parentRoute: typeof AuthenticatedWalletTransactionIdRoute
+    }
   }
 }
 
+interface AuthenticatedWalletTransactionIdRouteChildren {
+  AuthenticatedWalletTransactionIdItemIdRoute: typeof AuthenticatedWalletTransactionIdItemIdRoute
+}
+
+const AuthenticatedWalletTransactionIdRouteChildren: AuthenticatedWalletTransactionIdRouteChildren =
+  {
+    AuthenticatedWalletTransactionIdItemIdRoute:
+      AuthenticatedWalletTransactionIdItemIdRoute,
+  }
+
+const AuthenticatedWalletTransactionIdRouteWithChildren =
+  AuthenticatedWalletTransactionIdRoute._addFileChildren(
+    AuthenticatedWalletTransactionIdRouteChildren,
+  )
+
+interface AuthenticatedWalletRouteChildren {
+  AuthenticatedWalletTransactionIdRoute: typeof AuthenticatedWalletTransactionIdRouteWithChildren
+  AuthenticatedWalletKardsRoute: typeof AuthenticatedWalletKardsRoute
+  AuthenticatedWalletPastRoute: typeof AuthenticatedWalletPastRoute
+  AuthenticatedWalletUpcomingRoute: typeof AuthenticatedWalletUpcomingRoute
+}
+
+const AuthenticatedWalletRouteChildren: AuthenticatedWalletRouteChildren = {
+  AuthenticatedWalletTransactionIdRoute:
+    AuthenticatedWalletTransactionIdRouteWithChildren,
+  AuthenticatedWalletKardsRoute: AuthenticatedWalletKardsRoute,
+  AuthenticatedWalletPastRoute: AuthenticatedWalletPastRoute,
+  AuthenticatedWalletUpcomingRoute: AuthenticatedWalletUpcomingRoute,
+}
+
+const AuthenticatedWalletRouteWithChildren =
+  AuthenticatedWalletRoute._addFileChildren(AuthenticatedWalletRouteChildren)
+
 interface AuthenticatedRouteChildren {
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
-  AuthenticatedWalletRoute: typeof AuthenticatedWalletRoute
+  AuthenticatedWalletRoute: typeof AuthenticatedWalletRouteWithChildren
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
-  AuthenticatedWalletRoute: AuthenticatedWalletRoute,
+  AuthenticatedWalletRoute: AuthenticatedWalletRouteWithChildren,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
