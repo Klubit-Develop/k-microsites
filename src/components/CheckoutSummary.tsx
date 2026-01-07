@@ -885,6 +885,8 @@ const CheckoutSummary = ({
                         </svg>
                         <span>{t('checkout.creating_order', 'Creando pedido...')}</span>
                     </div>
+                ) : total === 0 ? (
+                    <span>{t('checkout.confirm_free', 'Confirmar')} - {t('checkout.free', 'Gratis')}</span>
                 ) : (
                     <span>{t('checkout.continue_to_payment', 'Continuar al pago')} - {total.toFixed(2).replace('.', ',')}€</span>
                 )}

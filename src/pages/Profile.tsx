@@ -39,15 +39,6 @@ const AvatarModal = ({ isOpen, onClose, hasAvatar, onUpload, onRemove, isLoading
         <Modal isOpen={isOpen} onClose={onClose}>
             <div className="flex flex-col gap-6 w-full">
                 <div className="flex flex-col gap-4 items-center px-4 w-full">
-                    <div className="flex items-center justify-center size-[120px] p-1">
-                        <img
-                            src={imgCamera}
-                            alt="Camera"
-                            className="w-full h-full object-contain"
-                            style={{ filter: 'drop-shadow(0px 0px 30px black)' }}
-                        />
-                    </div>
-
                     <h2
                         className="text-[#F6F6F6] text-[24px] font-semibold text-center w-full"
                         style={{ fontFamily: "'Borna', sans-serif" }}
@@ -177,15 +168,6 @@ const VerifyPhoneModal = ({ isOpen, onClose, country, phone, onSuccess }: Verify
         <Modal isOpen={isOpen} onClose={onClose}>
             <div className="flex flex-col gap-6 w-full">
                 <div className="flex flex-col gap-4 items-center px-4 w-full">
-                    <div className="flex items-center justify-center size-[120px] p-1">
-                        <img
-                            src={imgTelefono}
-                            alt="Phone"
-                            className="w-full h-full object-contain"
-                            style={{ filter: 'drop-shadow(0px 0px 30px black)' }}
-                        />
-                    </div>
-
                     <h2
                         className="text-[#F6F6F6] text-[24px] font-semibold text-center w-full"
                         style={{ fontFamily: "'Borna', sans-serif" }}
@@ -643,14 +625,14 @@ const Profile = () => {
                             label={t('profile.first_name', 'Nombre*')}
                             value={firstName}
                             onChange={setFirstName}
-                            placeholder="Ej: Juan"
+                            placeholder=""
                         />
 
                         <InputText
                             label={t('profile.last_name', 'Apellidos*')}
                             value={lastName}
                             onChange={setLastName}
-                            placeholder="Ej: García"
+                            placeholder=""
                         />
 
                         <InputDate
@@ -685,7 +667,7 @@ const Profile = () => {
                         label={t('profile.username', 'Username*')}
                         value={username}
                         onChange={setUsername}
-                        placeholder="Ej: juan_garcia"
+                        placeholder=""
                     />
                 </div>
 

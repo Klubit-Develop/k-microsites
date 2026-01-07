@@ -383,8 +383,15 @@ const Event = () => {
             setCheckoutStep('summary');
         } else {
             setCheckoutStep('selection');
+            // Si estamos en step 1 y no hay items en la URL pero sí en el store,
+            // limpiar el carrito (el usuario navegó fuera y volvió)
+            const hasUrlItems = !!(searchParams.tickets || searchParams.guestlists ||
+                searchParams.reservations || searchParams.products || searchParams.promotions);
+            if (!hasUrlItems && checkoutHasItems()) {
+                clearCart();
+            }
         }
-    }, [currentStep, checkoutHasItems, setCheckoutStep, updateSearchParams, transactionId]);
+    }, [currentStep, checkoutHasItems, setCheckoutStep, updateSearchParams, transactionId, searchParams, clearCart]);
 
     const eventQuery = useQuery({
         queryKey: ['event', slug],
@@ -478,6 +485,7 @@ const Event = () => {
                 data: {
                     transaction: {
                         id: string;
+                        status: string;
                         totalPrice: number;
                         currency: string;
                     };
@@ -488,7 +496,17 @@ const Event = () => {
         },
         onSuccess: (response) => {
             if (response.status === 'success') {
-                const { id, totalPrice, currency } = response.data.transaction;
+                const { id, status, totalPrice, currency } = response.data.transaction;
+
+                // Si el total es 0, la transacción ya está COMPLETED en el backend
+                // No necesitamos pasar por Stripe, ir directamente a success
+                if (totalPrice === 0 || status === 'COMPLETED') {
+                    clearCart();
+                    window.location.href = `/checkout/success?transactionId=${id}`;
+                    return;
+                }
+
+                // Flujo normal con pago
                 setTransaction(id, totalPrice, currency);
                 goToPayment();
                 updateSearchParams({ step: 3 }, true);

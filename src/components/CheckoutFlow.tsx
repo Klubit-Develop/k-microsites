@@ -74,6 +74,17 @@ const CheckoutFlow = ({ onBack, onComplete }: CheckoutFlowProps) => {
             });
         },
         onSuccess: (transaction) => {
+            // Si el total es 0, la transacción ya está COMPLETED en el backend
+            // No necesitamos pasar por Stripe, ir directamente a success
+            if (transaction.totalPrice === 0 || transaction.status === 'COMPLETED') {
+                // Limpiar el carrito primero (esto resetea el step a 'selection')
+                clearCart();
+                // Redirigir a la página de éxito
+                window.location.href = `/checkout/success?transactionId=${transaction.id}`;
+                return;
+            }
+            
+            // Flujo normal con pago
             setTransactionId(transaction.id);
             setTransaction(transaction.id, transaction.totalPrice, transaction.currency);
             goToPayment();
