@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import IncidentModal from '@/components/IncidentModal';
 import InputTextPhone from '@/components/ui/InputTextPhone';
 import { countries } from '@/utils/countries';
+import axiosInstance from '@/config/axiosConfig';
 
 // ============================================
 // TYPES
@@ -28,13 +29,23 @@ interface CartItem {
     isNominative?: boolean;
 }
 
+interface FoundUser {
+    id: string;
+    firstName: string;
+    lastName: string;
+    username?: string;
+    avatar?: string;
+}
+
 interface NominativeAssignment {
     itemIndex: number;
-    assignmentType: 'me' | 'send' | 'fill';
+    assignmentType: 'me' | 'send' | 'found' | 'fill';
     phone?: string;
     phoneCountry?: string;
     firstName?: string;
     lastName?: string;
+    foundUser?: FoundUser;
+    isSearching?: boolean;
 }
 
 interface CouponData {
@@ -86,8 +97,8 @@ const CheckoutTimer = ({ seconds, isLow }: { seconds: number; isLow: boolean }) 
 
     return (
         <div className={`w-full h-[36px] flex items-center justify-center rounded-[12px] border-[1.5px] ${isLow
-            ? 'bg-[rgba(255,35,35,0.05)] border-[rgba(255,35,35,0.25)]'
-            : 'bg-[rgba(229,255,136,0.05)] border-[rgba(229,255,136,0.25)]'
+                ? 'bg-[rgba(255,35,35,0.05)] border-[rgba(255,35,35,0.25)]'
+                : 'bg-[rgba(229,255,136,0.05)] border-[rgba(229,255,136,0.25)]'
             }`}>
             <span className={`text-[14px] font-normal font-helvetica ${isLow ? 'text-[#ff2323]' : 'text-[#e5ff88]'}`}>
                 {formatTime(seconds)}
@@ -240,7 +251,7 @@ const CouponSection = ({
                 className="w-full h-[48px] bg-[#232323] rounded-[12px] flex items-center justify-center cursor-pointer hover:bg-[#2a2a2a] transition-colors"
             >
                 <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica">
-                    {t('checkout.apply_coupon', 'Aplicar código de cupón')}
+                    {t('checkout.apply_coupon', 'Aplicar cÃ³digo de cupÃ³n')}
                 </span>
             </button>
 
@@ -270,14 +281,14 @@ const CouponSection = ({
                                 <GiftIcon />
                             </div>
                             <h2 className="text-[#f6f6f6] text-[24px] font-semibold font-borna text-center">
-                                {t('checkout.apply_coupon_title', 'Aplicar cupón')}
+                                {t('checkout.apply_coupon_title', 'Aplicar cupÃ³n')}
                             </h2>
                         </div>
 
                         {/* Input */}
                         <div className="flex flex-col gap-[4px] w-full">
                             <span className="text-[#939393] text-[14px] font-normal font-helvetica px-[6px]">
-                                {t('checkout.coupon_code_label', 'Código de cupón')}
+                                {t('checkout.coupon_code_label', 'CÃ³digo de cupÃ³n')}
                             </span>
                             <input
                                 type="text"
@@ -337,7 +348,7 @@ const PaymentDetailsCard = ({ subtotal, serviceFee, discount, total }: PaymentDe
                 {/* Service Fee */}
                 <div className={`flex items-center justify-between px-[16px] h-[56px] ${discount > 0 ? 'border-b-[1.5px] border-[#232323]' : ''}`}>
                     <span className="text-[#939393] text-[16px] font-medium font-helvetica">
-                        {t('checkout.service_fee', 'Gastos de gestión')}:
+                        {t('checkout.service_fee', 'Gastos de gestiÃ³n')}:
                     </span>
                     <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica">
                         {serviceFee.toFixed(2).replace('.', ',')}€
@@ -430,8 +441,12 @@ const NominativeAssignmentSection = ({
         onAssignmentChange(newAssignments);
     };
 
-    const handleConfirmPhone = (itemIndex: number) => {
+    const handleConfirmPhone = async (itemIndex: number) => {
+        console.log('handleConfirmPhone called with itemIndex:', itemIndex);
+        
         const assignment = assignments.find(a => a.itemIndex === itemIndex);
+        console.log('assignment found:', assignment);
+        
         if (!assignment?.phone) {
             toast.error(t('checkout.phone_required', 'Introduce un número de teléfono'));
             return;
@@ -442,19 +457,91 @@ const NominativeAssignmentSection = ({
         const expectedLength = selectedCountry?.phoneLength || 9;
         const phoneDigits = assignment.phone.replace(/\D/g, '');
 
+        console.log('phoneDigits:', phoneDigits, 'expectedLength:', expectedLength);
+
         if (phoneDigits.length !== expectedLength) {
             toast.error(t('checkout.phone_invalid_length', 'Número de teléfono inválido'));
             return;
         }
 
-        // TODO: Llamar API para buscar usuario por teléfono
-        // Por ahora simulamos que no se encuentra y pasamos a 'fill'
-        const newAssignments = assignments.map(a =>
+        // Set searching state
+        const searchingAssignments = assignments.map(a =>
             a.itemIndex === itemIndex
-                ? { ...a, assignmentType: 'fill' as const }
+                ? { ...a, isSearching: true }
                 : a
         );
-        onAssignmentChange(newAssignments);
+        onAssignmentChange(searchingAssignments);
+
+        try {
+            console.log('Calling POST /v2/users with:', {
+                phones: [{ country: assignment.phoneCountry || '34', phone: phoneDigits }]
+            });
+            
+            // Call API to search user by phone
+            const response = await axiosInstance.post<{
+                status: 'success' | 'error';
+                data: {
+                    users: {
+                        data: Array<{
+                            id: string;
+                            firstName: string;
+                            lastName: string;
+                            username?: string;
+                            avatar?: string;
+                            phone: string;
+                            country: string;
+                        }>;
+                    };
+                };
+            }>('/v2/users', {
+                phones: [
+                    { country: assignment.phoneCountry || '34', phone: phoneDigits }
+                ]
+            });
+
+            console.log('Response:', response.data);
+
+            const users = response.data?.data?.users?.data || [];
+            
+            if (users.length > 0) {
+                // User found
+                const user = users[0];
+                const newAssignments = assignments.map(a =>
+                    a.itemIndex === itemIndex
+                        ? {
+                            ...a,
+                            assignmentType: 'found' as const,
+                            isSearching: false,
+                            foundUser: {
+                                id: user.id,
+                                firstName: user.firstName,
+                                lastName: user.lastName,
+                                username: user.username,
+                                avatar: user.avatar,
+                            }
+                        }
+                        : a
+                );
+                onAssignmentChange(newAssignments);
+            } else {
+                // User not found - show fill form
+                const newAssignments = assignments.map(a =>
+                    a.itemIndex === itemIndex
+                        ? { ...a, assignmentType: 'fill' as const, isSearching: false }
+                        : a
+                );
+                onAssignmentChange(newAssignments);
+            }
+        } catch (error: any) {
+            console.error('Error searching user:', error);
+            // On error, show fill form
+            const newAssignments = assignments.map(a =>
+                a.itemIndex === itemIndex
+                    ? { ...a, assignmentType: 'fill' as const, isSearching: false }
+                    : a
+            );
+            onAssignmentChange(newAssignments);
+        }
     };
 
     const handleUpdateAssignment = (itemIndex: number, data: Partial<NominativeAssignment>) => {
@@ -491,11 +578,38 @@ const NominativeAssignmentSection = ({
         const limitedValue = numericValue.slice(0, maxLength);
         const formattedValue = formatPhone(limitedValue, pattern);
 
-        handleUpdateAssignment(itemIndex, { phone: formattedValue });
+        // Si el teléfono cambia y estaba en estado 'found' o 'fill', volver a 'send'
+        const currentType = assignment?.assignmentType;
+        if (currentType === 'found' || currentType === 'fill') {
+            handleUpdateAssignment(itemIndex, { 
+                phone: formattedValue, 
+                assignmentType: 'send',
+                foundUser: undefined,
+                firstName: undefined,
+                lastName: undefined
+            });
+        } else {
+            handleUpdateAssignment(itemIndex, { phone: formattedValue });
+        }
     };
 
     const handleCountryChange = (itemIndex: number, newCountry: string) => {
-        handleUpdateAssignment(itemIndex, { phoneCountry: newCountry, phone: '' });
+        const assignment = assignments.find(a => a.itemIndex === itemIndex);
+        const currentType = assignment?.assignmentType;
+        
+        // Si cambia el país y estaba en estado 'found' o 'fill', volver a 'send'
+        if (currentType === 'found' || currentType === 'fill') {
+            handleUpdateAssignment(itemIndex, { 
+                phoneCountry: newCountry, 
+                phone: '',
+                assignmentType: 'send',
+                foundUser: undefined,
+                firstName: undefined,
+                lastName: undefined
+            });
+        } else {
+            handleUpdateAssignment(itemIndex, { phoneCountry: newCountry, phone: '' });
+        }
     };
 
     const getIndicatorColor = (type: CartItem['type']) => {
@@ -520,7 +634,9 @@ const NominativeAssignmentSection = ({
                     const assignment = assignments.find(a => a.itemIndex === index);
                     const isMe = assignment?.assignmentType === 'me';
                     const isSend = assignment?.assignmentType === 'send';
+                    const isFound = assignment?.assignmentType === 'found';
                     const isFill = assignment?.assignmentType === 'fill';
+                    const isSearching = assignment?.isSearching;
                     const indicatorColor = getIndicatorColor(item.type);
 
                     return (
@@ -555,7 +671,7 @@ const NominativeAssignmentSection = ({
                                 </div>
                             )}
 
-                            {/* Variante 2 y 3: No es "Para mi" - Mostrar formulario */}
+                            {/* Variante 2, 3 y 4: No es "Para mi" - Mostrar formulario */}
                             {!isMe && (
                                 <div className="flex flex-col gap-[16px] px-[16px] pb-[16px]">
                                     {/* Header con border bottom */}
@@ -598,9 +714,22 @@ const NominativeAssignmentSection = ({
                                     {/* Confirm phone button - Solo si aún no está confirmado */}
                                     {isSend && (
                                         <button
-                                            onClick={() => handleConfirmPhone(index)}
-                                            className="w-full h-[36px] bg-[#232323] rounded-[8px] flex items-center justify-center font-bold text-[14px] font-helvetica text-[#f6f6f6] cursor-pointer hover:bg-[#2a2a2a] transition-colors"
+                                            type="button"
+                                            onClick={() => {
+                                                console.log('Button clicked!');
+                                                handleConfirmPhone(index);
+                                            }}
+                                            disabled={isSearching}
+                                            className={`w-full h-[36px] bg-[#232323] rounded-[8px] flex items-center justify-center gap-[8px] font-bold text-[14px] font-helvetica text-[#f6f6f6] transition-colors ${
+                                                isSearching ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-[#2a2a2a]'
+                                            }`}
                                         >
+                                            {isSearching && (
+                                                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                                </svg>
+                                            )}
                                             {t('checkout.confirm_phone', 'Confirmar teléfono')}
                                         </button>
                                     )}
@@ -613,7 +742,40 @@ const NominativeAssignmentSection = ({
                                         }
                                     </p>
 
-                                    {/* Variante 3: Usuario no encontrado - Mostrar campos nombre/apellidos */}
+                                    {/* Variante: Usuario encontrado - Mostrar card de usuario */}
+                                    {isFound && assignment?.foundUser && (
+                                        <div className="bg-[#141414] border-2 border-[#232323] rounded-[16px] p-[12px] pr-[16px] flex items-center gap-[12px] shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)]">
+                                            {/* Avatar */}
+                                            <div className="w-[54px] h-[54px] rounded-full border-2 border-[#232323] overflow-hidden shrink-0 shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]">
+                                                {assignment.foundUser.avatar ? (
+                                                    <img
+                                                        src={assignment.foundUser.avatar}
+                                                        alt={`${assignment.foundUser.firstName} ${assignment.foundUser.lastName}`}
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                ) : (
+                                                    <div className="w-full h-full bg-[#232323] flex items-center justify-center">
+                                                        <span className="text-[#939393] text-[20px] font-bold font-helvetica">
+                                                            {assignment.foundUser.firstName?.charAt(0)?.toUpperCase() || '?'}
+                                                        </span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            {/* User info */}
+                                            <div className="flex flex-col flex-1 min-w-0">
+                                                <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica truncate">
+                                                    {assignment.foundUser.firstName} {assignment.foundUser.lastName}
+                                                </span>
+                                                {assignment.foundUser.username && (
+                                                    <span className="text-[#939393] text-[14px] font-normal font-helvetica truncate">
+                                                        @{assignment.foundUser.username}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Variante: Usuario no encontrado - Mostrar campos nombre/apellidos */}
                                     {isFill && (
                                         <>
                                             {/* Nombre */}
@@ -625,7 +787,7 @@ const NominativeAssignmentSection = ({
                                                     type="text"
                                                     value={assignment?.firstName || ''}
                                                     onChange={(e) => handleUpdateAssignment(index, { firstName: e.target.value })}
-                                                    placeholder={t('checkout.first_name_placeholder', 'Borja')}
+                                                    placeholder={t('checkout.first_name_placeholder', '')}
                                                     className="w-full h-[48px] border-[1.5px] border-[#232323] rounded-[12px] px-[16px] bg-transparent text-[#f6f6f6] text-[16px] font-medium font-helvetica placeholder:text-[#939393] outline-none focus:border-[#3fe8e8] transition-colors"
                                                 />
                                             </div>
@@ -639,7 +801,7 @@ const NominativeAssignmentSection = ({
                                                     type="text"
                                                     value={assignment?.lastName || ''}
                                                     onChange={(e) => handleUpdateAssignment(index, { lastName: e.target.value })}
-                                                    placeholder={t('checkout.last_name_placeholder', 'Gomendio')}
+                                                    placeholder={t('checkout.last_name_placeholder', '')}
                                                     className="w-full h-[48px] border-[1.5px] border-[#232323] rounded-[12px] px-[16px] bg-transparent text-[#f6f6f6] text-[16px] font-medium font-helvetica placeholder:text-[#939393] outline-none focus:border-[#3fe8e8] transition-colors"
                                                 />
                                             </div>
@@ -765,6 +927,7 @@ const CheckoutSummary = ({
 
         return nominativeAssignments.every(assignment => {
             if (assignment.assignmentType === 'me') return true;
+            if (assignment.assignmentType === 'found') return !!assignment.foundUser;
             if (assignment.assignmentType === 'send') return !!assignment.phone;
             if (assignment.assignmentType === 'fill') {
                 return !!assignment.firstName && !!assignment.lastName && !!assignment.phone;
@@ -785,15 +948,15 @@ const CheckoutSummary = ({
             }
 
             if (!data.data.valid) {
-                toast.error(t('checkout.invalid_coupon', 'Cupón no válido'));
+                toast.error(t('checkout.invalid_coupon', 'CupÃ³n no vÃ¡lido'));
                 return;
             }
 
             setAppliedCoupon(data.data.coupon);
-            toast.success(t('checkout.coupon_applied', 'Cupón aplicado correctamente'));
+            toast.success(t('checkout.coupon_applied', 'CupÃ³n aplicado correctamente'));
         } catch (error) {
             console.error('Coupon validation error:', error);
-            toast.error(t('checkout.coupon_error', 'Error al validar el cupón'));
+            toast.error(t('checkout.coupon_error', 'Error al validar el cupÃ³n'));
         } finally {
             setCouponLoading(false);
         }
@@ -811,9 +974,21 @@ const CheckoutSummary = ({
             return;
         }
 
+        // Procesar nominativeAssignments para copiar datos del foundUser
+        const processedAssignments = nominativeAssignments.map(assignment => {
+            if (assignment.assignmentType === 'found' && assignment.foundUser) {
+                return {
+                    ...assignment,
+                    firstName: assignment.foundUser.firstName,
+                    lastName: assignment.foundUser.lastName,
+                };
+            }
+            return assignment;
+        });
+
         onContinueToPayment({
             coupon: appliedCoupon || undefined,
-            nominativeAssignments: hasNominativeItems ? nominativeAssignments : undefined,
+            nominativeAssignments: hasNominativeItems ? processedAssignments : undefined,
         });
     }, [appliedCoupon, hasNominativeItems, nominativeAssignments, nominativeComplete, onContinueToPayment, t]);
 
@@ -828,7 +1003,7 @@ const CheckoutSummary = ({
             {/* Event Info */}
             <EventInfoCard event={event} items={items} />
 
-            {/* Coupon Section */}
+            {/* Coupon Section - Solo mostrar si subtotal > 0 */}
             {subtotal > 0 && (
                 <CouponSection
                     appliedCoupon={appliedCoupon}
@@ -858,14 +1033,14 @@ const CheckoutSummary = ({
 
             {/* Info Text */}
             <p className="text-[#f6f6f6] text-[14px] font-normal font-helvetica px-[6px] leading-[1.4]">
-                {t('checkout.incident_info_prefix', 'En caso de incidencia, por favor notifíquela mediante el ')}
+                {t('checkout.incident_info_prefix', 'En caso de incidencia, por favor notifÃ­quela mediante el ')}
                 <button
                     onClick={() => setIsIncidentModalOpen(true)}
                     className="text-[#ff336d] underline hover:opacity-80 transition-opacity cursor-pointer bg-transparent border-none p-0 font-normal text-[14px] font-helvetica"
                 >
                     {t('checkout.incident_info_link', 'siguiente formulario')}
                 </button>
-                {t('checkout.incident_info_suffix', '. Nuestro equipo analizará la información y trabajará en la solución a la mayor brevedad posible.')}
+                {t('checkout.incident_info_suffix', '. Nuestro equipo analizarÃ¡ la informaciÃ³n y trabajarÃ¡ en la soluciÃ³n a la mayor brevedad posible.')}
             </p>
 
             {/* Continue Button */}
@@ -873,8 +1048,8 @@ const CheckoutSummary = ({
                 onClick={handleContinue}
                 disabled={!canContinue || isLoading}
                 className={`w-full h-[48px] rounded-[12px] flex items-center justify-center font-bold text-[16px] font-helvetica transition-opacity ${canContinue && !isLoading
-                    ? 'bg-[#ff336d] text-[#f6f6f6] cursor-pointer hover:opacity-90'
-                    : 'bg-[#ff336d] text-[#f6f6f6] opacity-50 cursor-not-allowed'
+                        ? 'bg-[#ff336d] text-[#f6f6f6] cursor-pointer hover:opacity-90'
+                        : 'bg-[#ff336d] text-[#f6f6f6] opacity-50 cursor-not-allowed'
                     }`}
             >
                 {isLoading ? (
@@ -894,7 +1069,7 @@ const CheckoutSummary = ({
 
             {/* Legal Text */}
             <p className="text-[rgba(246,246,246,0.5)] text-[12px] font-medium font-helvetica px-[6px] leading-[1.4]">
-                {t('checkout.legal_text', 'Comprando esta entrada, abrirás una cuenta y aceptarás nuestras Condiciones de Uso generales, la Política de Privacidad y las Condiciones de Compra de entradas. Procesamos tus datos personales de acuerdo con nuestra Política de Privacidad.')}
+                {t('checkout.legal_text', 'Comprando esta entrada, abrirÃ¡s una cuenta y aceptarÃ¡s nuestras Condiciones de Uso generales, la PolÃ­tica de Privacidad y las Condiciones de Compra de entradas. Procesamos tus datos personales de acuerdo con nuestra PolÃ­tica de Privacidad.')}
             </p>
 
             {/* Incident Modal */}

@@ -1,0 +1,242 @@
+.
+├── README.md
+├── eslint.config.js
+├── estructura-frontend.txt
+├── index.html
+├── package.json
+├── pnpm-lock.yaml
+├── prettier.config.js
+├── public
+│   ├── assets
+│   │   ├── fonts
+│   │   │   ├── Helvetica
+│   │   │   │   ├── Helvetica-Bold.eot
+│   │   │   │   ├── Helvetica-Bold.otf
+│   │   │   │   ├── Helvetica-Bold.ttf
+│   │   │   │   ├── Helvetica-Bold.woff
+│   │   │   │   ├── Helvetica-Bold.woff2
+│   │   │   │   ├── Helvetica-Light.eot
+│   │   │   │   ├── Helvetica-Light.otf
+│   │   │   │   ├── Helvetica-Light.ttf
+│   │   │   │   ├── Helvetica-Light.woff
+│   │   │   │   ├── Helvetica-Light.woff2
+│   │   │   │   ├── Helvetica-Medium.eot
+│   │   │   │   ├── Helvetica-Medium.otf
+│   │   │   │   ├── Helvetica-Medium.ttf
+│   │   │   │   ├── Helvetica-Medium.woff
+│   │   │   │   ├── Helvetica-Medium.woff2
+│   │   │   │   ├── Helvetica-Regular.eot
+│   │   │   │   ├── Helvetica-Regular.otf
+│   │   │   │   ├── Helvetica-Regular.ttf
+│   │   │   │   ├── Helvetica-Regular.woff
+│   │   │   │   └── Helvetica-Regular.woff2
+│   │   │   └── N27
+│   │   │       ├── N27-Bold.ttf
+│   │   │       ├── N27-Bold.woff
+│   │   │       ├── N27-Bold.woff2
+│   │   │       ├── N27-Medium.ttf
+│   │   │       ├── N27-Medium.woff
+│   │   │       ├── N27-Medium.woff2
+│   │   │       ├── N27-Regular.ttf
+│   │   │       ├── N27-Regular.woff
+│   │   │       └── N27-Regular.woff2
+│   │   └── images
+│   │       ├── apple-store-en.png
+│   │       ├── apple-store-es.png
+│   │       ├── apple_en.svg
+│   │       ├── apple_es.svg
+│   │       ├── google-store-en.png
+│   │       ├── google-store-es.png
+│   │       ├── google_en.svg
+│   │       ├── google_es.svg
+│   │       └── logo-footer.png
+│   ├── favicon.ico
+│   ├── logo192.png
+│   ├── logo512.png
+│   ├── manifest.json
+│   ├── robots.txt
+│   ├── tanstack-circle-logo.png
+│   └── tanstack-word-logo-white.svg
+├── src
+│   ├── components
+│   │   ├── ArtistCard.tsx
+│   │   ├── ArtistProfile.tsx
+│   │   ├── ArtistsList.tsx
+│   │   ├── CheckoutFlow.tsx
+│   │   ├── CheckoutFooter.tsx
+│   │   ├── CheckoutSummary.tsx
+│   │   ├── ClubProfile.tsx
+│   │   ├── ClubSelector.tsx
+│   │   ├── ContactButtons.tsx
+│   │   ├── EventCardHz.tsx
+│   │   ├── EventDescription.tsx
+│   │   ├── EventHeader.tsx
+│   │   ├── EventSection.tsx
+│   │   ├── EventStepper.tsx
+│   │   ├── EventTags.tsx
+│   │   ├── GuestlistCard.tsx
+│   │   ├── GuestlistsList.tsx
+│   │   ├── IncidentModal.tsx
+│   │   ├── ItemInfoModal.tsx
+│   │   ├── LikesPill.tsx
+│   │   ├── LocationCard.tsx
+│   │   ├── MonthSelector.tsx
+│   │   ├── OrganizerCard.tsx
+│   │   ├── PhotoCarousel.tsx
+│   │   ├── Policypage.tsx
+│   │   ├── ProductsList.tsx
+│   │   ├── PromotionsList.tsx
+│   │   ├── ReservationCard.tsx
+│   │   ├── ReservationModal.tsx
+│   │   ├── ReservationsFlow.tsx
+│   │   ├── ReservationsList.tsx
+│   │   ├── RrppProfile.tsx
+│   │   ├── StripePayment.tsx
+│   │   ├── TabSelector.tsx
+│   │   ├── TicketCard.tsx
+│   │   ├── TicketsList.tsx
+│   │   ├── TimeExpiredModal.tsx
+│   │   ├── Transactionservice.tsx
+│   │   ├── UpcomingEventsPanel.tsx
+│   │   ├── common
+│   │   │   ├── ElementsForm.tsx
+│   │   │   ├── Footer.tsx
+│   │   │   ├── Header.tsx
+│   │   │   └── PageError.tsx
+│   │   ├── icons
+│   │   │   ├── AccessStatus.tsx
+│   │   │   ├── AccountingMenuIcon.tsx
+│   │   │   ├── AppleIcon.tsx
+│   │   │   ├── ArrowLeftIcon.tsx
+│   │   │   ├── BackArrow.tsx
+│   │   │   ├── BellIcons.tsx
+│   │   │   ├── CRMMenuIcon.tsx
+│   │   │   ├── CalendarMenuIcon.tsx
+│   │   │   ├── ChevronLeftIcon.tsx
+│   │   │   ├── ChevronRightIcon.tsx
+│   │   │   ├── ClientKardIcon.tsx
+│   │   │   ├── DashboardMenuIcon.tsx
+│   │   │   ├── DiscoIcon.tsx
+│   │   │   ├── DislikeIcon.tsx
+│   │   │   ├── EventMenuIcon.tsx
+│   │   │   ├── FlagMenuIcon.tsx
+│   │   │   ├── GoogleIcon.tsx
+│   │   │   ├── GreenFlagIcon.tsx
+│   │   │   ├── KardIcon.tsx
+│   │   │   ├── KlaudiaMenuIcon.tsx
+│   │   │   ├── KpiBadge.tsx
+│   │   │   ├── KpiIcon.tsx
+│   │   │   ├── LevelIcons.tsx
+│   │   │   ├── LogoCutIcon.tsx
+│   │   │   ├── LogoIcon.tsx
+│   │   │   ├── LogoMinIcon.tsx
+│   │   │   ├── MailIcon.tsx
+│   │   │   ├── MailIconMax.tsx
+│   │   │   ├── MoreLineIcon.tsx
+│   │   │   ├── PaymentStatus.tsx
+│   │   │   ├── PhoneIcon.tsx
+│   │   │   ├── PlusIcon.tsx
+│   │   │   ├── ProductMenuIcon.tsx
+│   │   │   ├── RRPPIcon.tsx
+│   │   │   ├── RRPPMenuIcon.tsx
+│   │   │   ├── RedPromotionBadgeIcon.tsx
+│   │   │   ├── RrppKardIcon.tsx
+│   │   │   ├── RrppKardsBadgeIcon.tsx
+│   │   │   ├── RrppNameIcon.tsx
+│   │   │   ├── SettingMenuIcon.tsx
+│   │   │   ├── StartBenefitMenuIcon.tsx
+│   │   │   ├── TicketMenuIcon.tsx
+│   │   │   ├── TrashIcon.tsx
+│   │   │   ├── UserMenuIcon.tsx
+│   │   │   └── index.tsx
+│   │   └── ui
+│   │       ├── Button.tsx
+│   │       ├── InputDate.tsx
+│   │       ├── InputText.tsx
+│   │       ├── InputTextArea.tsx
+│   │       ├── InputTextPhone.tsx
+│   │       ├── Modal.tsx
+│   │       ├── OTPInput.tsx
+│   │       └── Select.tsx
+│   ├── config
+│   │   └── axiosConfig.ts
+│   ├── i18n
+│   │   ├── config.ts
+│   │   └── locales
+│   │       ├── en.json
+│   │       └── es.json
+│   ├── integrations
+│   │   └── tanstack-query
+│   │       ├── devtools.tsx
+│   │       └── root-provider.tsx
+│   ├── logo.svg
+│   ├── main.tsx
+│   ├── pages
+│   │   ├── Artist.tsx
+│   │   ├── Auth.tsx
+│   │   ├── CheckoutCancel.tsx
+│   │   ├── CheckoutSuccess.tsx
+│   │   ├── CookiePolicy.tsx
+│   │   ├── Event.tsx
+│   │   ├── Forgot.tsx
+│   │   ├── ForgotChange.tsx
+│   │   ├── Home.tsx
+│   │   ├── Incident.tsx
+│   │   ├── ItemDetail.tsx
+│   │   ├── LegalNotice.tsx
+│   │   ├── Oauth.tsx
+│   │   ├── PrivacyPolicy.tsx
+│   │   ├── Profile.tsx
+│   │   ├── Register.tsx
+│   │   ├── Rrpp.tsx
+│   │   ├── TermsAndConditions.tsx
+│   │   ├── TransactionItems.tsx
+│   │   ├── Verify.tsx
+│   │   ├── Wallet.tsx
+│   │   ├── WalletKards.tsx
+│   │   ├── WalletPast.tsx
+│   │   └── WalletUpcoming.tsx
+│   ├── reportWebVitals.ts
+│   ├── routeTree.gen.ts
+│   ├── routes
+│   │   ├── __root.tsx
+│   │   ├── _authenticated
+│   │   │   ├── profile.tsx
+│   │   │   ├── wallet.$transactionId.$itemId.tsx
+│   │   │   ├── wallet.$transactionId.tsx
+│   │   │   ├── wallet.kards.tsx
+│   │   │   ├── wallet.past.tsx
+│   │   │   ├── wallet.tsx
+│   │   │   └── wallet.upcoming.tsx
+│   │   ├── _authenticated.tsx
+│   │   ├── artist.$slug.tsx
+│   │   ├── auth-success.tsx
+│   │   ├── auth.tsx
+│   │   ├── checkout.cancel.tsx
+│   │   ├── checkout.success.tsx
+│   │   ├── cookie-policy.tsx
+│   │   ├── event.$slug.tsx
+│   │   ├── forgot-change.tsx
+│   │   ├── forgot.tsx
+│   │   ├── incident.tsx
+│   │   ├── index.tsx
+│   │   ├── legal-notice.tsx
+│   │   ├── oauth.tsx
+│   │   ├── privacy-policy.tsx
+│   │   ├── register.tsx
+│   │   ├── rrpp.$slug.tsx
+│   │   ├── terms-and-conditions.tsx
+│   │   └── verify.tsx
+│   ├── sonner-custom.css
+│   ├── stores
+│   │   ├── authStore.ts
+│   │   └── useCheckoutStore.ts
+│   ├── styles.css
+│   └── utils
+│       ├── checkoutUrlState.ts
+│       └── countries.ts
+├── tailwind.config.js
+├── tsconfig.json
+└── vite.config.ts
+
+22 directories, 218 files
