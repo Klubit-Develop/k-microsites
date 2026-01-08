@@ -704,7 +704,7 @@ const Event = () => {
         coupon?: { id: string; code: string; type: 'PERCENTAGE' | 'FIXED_AMOUNT'; value: number };
         nominativeAssignments?: Array<{
             itemIndex: number;
-            assignmentType: 'me' | 'send' | 'fill';
+            assignmentType: 'me' | 'send' | 'found' | 'fill';
             phone?: string;
             phoneCountry?: string;
             firstName?: string;

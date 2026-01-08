@@ -18,7 +18,7 @@ interface CheckoutItem {
 
 interface NominativeAssignment {
     itemIndex: number;
-    assignmentType: 'me' | 'send' | 'fill';
+    assignmentType: 'me' | 'send' | 'found' | 'fill';
     phone?: string;
     phoneCountry?: string;
     firstName?: string;
@@ -264,8 +264,8 @@ export const useCheckoutStore = create<CheckoutState>()(
             // Reset checkout for new event - clears expired state when visiting a different event
             resetForNewEvent: (newEventId: string) => {
                 const state = get();
-                
-                // Si el eventId guardado es diferente al nuevo, o si el timer expiró,
+
+                // Si el eventId guardado es diferente al nuevo, o si el timer expirÃ³,
                 // limpiamos todo el checkout
                 if (state.eventId !== newEventId || state.isTimerExpired) {
                     set({

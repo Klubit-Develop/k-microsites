@@ -83,7 +83,7 @@ const CheckoutFlow = ({ onBack, onComplete }: CheckoutFlowProps) => {
                 window.location.href = `/checkout/success?transactionId=${transaction.id}`;
                 return;
             }
-            
+
             // Flujo normal con pago
             setTransactionId(transaction.id);
             setTransaction(transaction.id, transaction.totalPrice, transaction.currency);
@@ -108,7 +108,7 @@ const CheckoutFlow = ({ onBack, onComplete }: CheckoutFlowProps) => {
         coupon?: { id: string; code: string; type: 'PERCENTAGE' | 'FIXED_AMOUNT'; value: number };
         nominativeAssignments?: Array<{
             itemIndex: number;
-            assignmentType: 'me' | 'send' | 'fill';
+            assignmentType: 'me' | 'send' | 'found' | 'fill';
             phone?: string;
             phoneCountry?: string;
             firstName?: string;
