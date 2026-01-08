@@ -3,8 +3,10 @@ import { toast } from 'sonner';
 import { useEffect } from 'react';
 import { useAuthStore } from '@/stores/authStore';
 import { useTranslation } from 'react-i18next';
+import axiosInstance from '@/config/axiosConfig';
 
 interface SearchParams {
+    oauthToken?: string;
     status?: string;
     provider?: string;
     email?: string;
@@ -34,7 +36,19 @@ interface OAuthUser {
     country: string;
     language: string;
     isOnboardingComplete: boolean;
-    clubRoles: any[];
+    clubRoles: unknown[];
+}
+
+interface OAuthData {
+    status: string;
+    code: string;
+    navigation: string;
+    provider: string;
+    profile: OAuthProfile | null;
+    email: string;
+    sessionToken: string | null;
+    missingFields: string[] | null;
+    user: OAuthUser | null;
 }
 
 const AuthSuccessComponent = () => {
@@ -43,13 +57,24 @@ const AuthSuccessComponent = () => {
     const { setUser, setToken } = useAuthStore();
     const searchParams = Route.useSearch();
 
-    const { status, provider, email, user, profile, token } = searchParams;
+    const { oauthToken } = searchParams;
 
     useEffect(() => {
         const authenticateUser = async () => {
             try {
-                // Validar status
-                if (status !== 'success') {
+                if (!oauthToken) {
+                    console.error('No OAuth token provided');
+                    toast.error(t('auth_success.authentication_error'));
+                    setTimeout(() => {
+                        navigate({ to: '/' });
+                    }, 2000);
+                    return;
+                }
+
+                const response = await axiosInstance.get<OAuthData>(`/v2/oauth/verify/${oauthToken}`);
+                const data = response.data;
+
+                if (data.status !== 'success') {
                     console.error('OAuth failed');
                     toast.error(t('auth_success.authentication_error'));
                     setTimeout(() => {
@@ -58,70 +83,27 @@ const AuthSuccessComponent = () => {
                     return;
                 }
 
-                // Parsear user - puede venir como string JSON o ya como objeto
-                let userData: OAuthUser | null = null;
+                const hasValidUser = data.user && data.user.id && data.user.id.trim() !== '';
+                const hasValidToken = data.sessionToken && data.sessionToken.trim() !== '';
 
-                if (user) {
-                    // Si es string, intentar parsear
-                    if (typeof user === 'string') {
-                        const trimmed = user.trim();
-                        if (trimmed !== '' && trimmed !== '{}') {
-                            try {
-                                userData = JSON.parse(trimmed);
-                            } catch (e) {
-                                console.error('Error parsing user data:', e);
-                            }
-                        }
-                    } else if (typeof user === 'object' && user !== null) {
-                        // Ya viene como objeto
-                        userData = user as unknown as OAuthUser;
-                    }
-                }
-
-                // Validar que userData tenga un id válido
-                const hasValidUser = userData && userData.id && userData.id.trim() !== '';
-                const hasValidToken = token && token.trim() !== '';
-
-                console.log('Parsed userData:', userData);
-                console.log('Has valid user:', hasValidUser);
-                console.log('Has valid token:', hasValidToken);
-
-                // Si NO hay user válido → redirigir a /oauth con el profile
                 if (!hasValidUser) {
-                    let profileData: OAuthProfile | null = null;
-
-                    if (profile) {
-                        if (typeof profile === 'string') {
-                            const trimmed = profile.trim();
-                            if (trimmed !== '' && trimmed !== '{}') {
-                                try {
-                                    profileData = JSON.parse(trimmed);
-                                } catch (e) {
-                                    console.error('Error parsing profile data:', e);
-                                }
-                            }
-                        } else if (typeof profile === 'object' && profile !== null) {
-                            profileData = profile as unknown as OAuthProfile;
-                        }
-                    }
-
                     setTimeout(() => {
                         navigate({
                             to: '/oauth',
-                            state: {
-                                oauthEmail: email || profileData?.email,
-                                provider,
-                                profile: profileData
-                            } as any
+                            search: {
+                                email: data.email || data.profile?.email || '',
+                                provider: data.provider,
+                                firstName: data.profile?.firstName || '',
+                                lastName: data.profile?.lastName || ''
+                            }
                         });
                     }, 1500);
                     return;
                 }
 
-                // Si HAY user válido y token → hacer login directo
                 if (hasValidUser && hasValidToken) {
-                    setToken(token!);
-                    setUser(userData!);
+                    setToken(data.sessionToken!);
+                    setUser(data.user!);
 
                     toast.success(t('auth_success.login_success'));
 
@@ -131,14 +113,13 @@ const AuthSuccessComponent = () => {
                     return;
                 }
 
-                // Caso edge: hay user pero no token
                 console.error('User exists but no token provided');
                 toast.error(t('auth_success.authentication_error'));
                 setTimeout(() => {
                     navigate({ to: '/' });
                 }, 2000);
 
-            } catch (error: any) {
+            } catch (error) {
                 console.error('Error in auth-success:', error);
                 toast.error(t('auth_success.authentication_error'));
                 setTimeout(() => {
@@ -148,7 +129,7 @@ const AuthSuccessComponent = () => {
         };
 
         authenticateUser();
-    }, [status, provider, email, user, profile, token, navigate, setToken, setUser, t]);
+    }, [oauthToken, navigate, setToken, setUser, t]);
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -161,15 +142,16 @@ const AuthSuccessComponent = () => {
 };
 
 export const Route = createFileRoute('/auth-success')({
-    validateSearch: (search: Record<string, any>): SearchParams => ({
-        status: search.status || '',
-        provider: search.provider || '',
-        email: search.email || '',
-        exists: search.exists || '',
-        user: search.user || '',
-        profile: search.profile || '',
-        redirectTo: search.redirectTo || '',
-        token: search.token || ''
+    validateSearch: (search: Record<string, unknown>): SearchParams => ({
+        oauthToken: (search.oauthToken as string) || '',
+        status: (search.status as string) || '',
+        provider: (search.provider as string) || '',
+        email: (search.email as string) || '',
+        exists: (search.exists as string) || '',
+        user: (search.user as string) || '',
+        profile: (search.profile as string) || '',
+        redirectTo: (search.redirectTo as string) || '',
+        token: (search.token as string) || ''
     }),
     component: AuthSuccessComponent
 });
