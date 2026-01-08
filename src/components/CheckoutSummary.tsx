@@ -5,6 +5,7 @@ import IncidentModal from '@/components/IncidentModal';
 import InputTextPhone from '@/components/ui/InputTextPhone';
 import { countries } from '@/utils/countries';
 import axiosInstance from '@/config/axiosConfig';
+import { useAuthStore } from '@/stores/authStore';
 
 // ============================================
 // TYPES
@@ -116,27 +117,9 @@ const EventInfoCard = ({ event, items }: { event: EventInfo; items: CartItem[] }
     return (
         <div className="flex flex-col gap-[4px] w-full">
             <span className="text-[#939393] text-[16px] font-medium font-helvetica px-[6px]">
-                {t('checkout.event', 'Evento')}
+                {t('checkout.your_order', 'Tu pedido')}
             </span>
             <div className="bg-[#141414] border-2 border-[#232323] rounded-[16px] w-full">
-                {/* Event Header */}
-                <div className="flex items-center gap-[12px] px-[16px] py-[12px] border-b-[1.5px] border-[#232323]">
-                    {event.coverImage && (
-                        <div className="w-[30px] h-[37.5px] rounded-[2px] overflow-hidden shrink-0 border border-[#232323]">
-                            <img src={event.coverImage} alt={event.name} className="w-full h-full object-cover" />
-                        </div>
-                    )}
-                    <div className="flex items-center gap-[4px]">
-                        <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica">
-                            {event.name}
-                        </span>
-                        <div className="w-[3px] h-[3px] rounded-full bg-[#939393]" />
-                        <span className="text-[#e5ff88] text-[14px] font-normal font-helvetica">
-                            {event.date}
-                        </span>
-                    </div>
-                </div>
-
                 {/* Items */}
                 {items.map((item, index) => (
                     <div
@@ -397,6 +380,7 @@ const NominativeAssignmentSection = ({
     onAssignmentChange
 }: NominativeAssignmentSectionProps) => {
     const { i18n, t } = useTranslation();
+    const { user } = useAuthStore();
 
     // Get all nominative items expanded by quantity
     const nominativeEntries = useMemo(() => {
@@ -458,6 +442,17 @@ const NominativeAssignmentSection = ({
         if (phoneDigits.length !== expectedLength) {
             toast.error(t('checkout.phone_invalid_length', 'Número de teléfono inválido'));
             return;
+        }
+
+        // Validar que no sea el teléfono del usuario logueado
+        if (user?.phone && user?.country) {
+            const userPhoneDigits = user.phone.replace(/\D/g, '');
+            const userCountry = user.country;
+            
+            if (phoneDigits === userPhoneDigits && assignment.phoneCountry === userCountry) {
+                toast.error(t('checkout.cannot_send_to_self', 'No puedes enviar una entrada a ti mismo'));
+                return;
+            }
         }
 
         const searchingAssignments = assignments.map(a =>
@@ -689,7 +684,7 @@ const NominativeAssignmentSection = ({
                                         />
                                         {/* Check verde cuando usuario encontrado */}
                                         {isFound && (
-                                            <div className="absolute right-[16px] top-[36px] w-[24px] h-[24px] rounded-full bg-[#e5ff88] flex items-center justify-center z-10">
+                                            <div className="absolute right-[16px] top-[38px] w-[24px] h-[24px] rounded-full bg-[#e5ff88] flex items-center justify-center z-10">
                                                 <svg width="12" height="9" viewBox="0 0 12 9" fill="none">
                                                     <path d="M1 4L4.5 7.5L11 1" stroke="#0a0a0a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                                                 </svg>
@@ -941,7 +936,7 @@ const CheckoutSummary = ({
             {/* Timer */}
             <CheckoutTimer seconds={timeLeft} isLow={isLowTime} />
 
-            {/* Event Info */}
+            {/* Cart Items */}
             <EventInfoCard event={event} items={items} />
 
             {/* Coupon Section - Solo mostrar si subtotal > 0 */}

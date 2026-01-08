@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import ReservationCard, { type Reservation, type ReservationZone } from './ReservationCard';
 
@@ -25,6 +25,7 @@ interface ReservationsFlowProps {
     onContinue: (formData: ReservationFormData) => void;
     total: number;
     isLoading?: boolean;
+    storedFormData?: ReservationFormData | null;
 }
 
 // ============================================
@@ -60,15 +61,19 @@ const RESERVATION_COLOR = '#3fe8e8';
 interface ZoneCardProps {
     zoneData: ZoneWithReservations;
     onClick: () => void;
+    hasSelectedItems?: boolean;
 }
 
-const ZoneCard = ({ zoneData, onClick }: ZoneCardProps) => {
+const ZoneCard = ({ zoneData, onClick, hasSelectedItems = false }: ZoneCardProps) => {
     const { t } = useTranslation();
+    const borderClass = hasSelectedItems 
+        ? 'border-[#e5ff88]' 
+        : 'border-[#232323] hover:border-[#3fe8e8]';
 
     return (
         <button
             onClick={onClick}
-            className="w-full bg-[#141414] border-2 border-[#232323] rounded-[16px] px-[16px] py-[16px] cursor-pointer transition-colors hover:border-[#3fe8e8] group text-left"
+            className={`w-full bg-[#141414] border-2 rounded-[16px] px-[16px] py-[16px] cursor-pointer transition-colors group text-left ${borderClass}`}
         >
             <div className="flex flex-col gap-[2px]">
                 <div className="flex items-center gap-[6px]">
@@ -152,6 +157,10 @@ const ReservationFormStep = ({
 }: ReservationFormStepProps) => {
     const { t } = useTranslation();
 
+    const maxPersonsAvailable = useMemo(() => {
+        return Math.max(...zoneData.reservations.map(r => r.maxPersonsPerReservation || 1));
+    }, [zoneData.reservations]);
+
     const handlePartySizeChange = (delta: number) => {
         const newSize = Math.max(1, formData.partySize + delta);
         onFormChange({ ...formData, partySize: newSize });
@@ -199,9 +208,12 @@ const ReservationFormStep = ({
 
                 {/* Party size - Counter style like Figma */}
                 <div className="flex flex-col gap-[4px]">
-                    <div className="px-[6px]">
+                    <div className="px-[6px] flex items-center justify-between">
                         <span className="text-[#939393] text-[14px] font-normal font-helvetica">
                             {t('event.party_size', 'Cantidad de personas')}*
+                        </span>
+                        <span className="text-[#3fe8e8] text-[12px] font-medium font-helvetica">
+                            {t('event.max_capacity', 'Máx. {{max}} personas', { max: maxPersonsAvailable })}
                         </span>
                     </div>
                     <div className="bg-[#141414] border-[1.5px] border-[#232323] rounded-[12px] px-[16px] py-[12px] flex items-center gap-[24px]">
@@ -320,8 +332,8 @@ const ReservationSelectionStep = ({
             {/* Party size info */}
             <div className="flex items-center gap-2 px-4 py-3 bg-[#141414] border border-[#232323] rounded-xl">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <path d="M8 8C9.65685 8 11 6.65685 11 5C11 3.34315 9.65685 2 8 2C6.34315 2 5 3.34315 5 5C5 6.65685 6.34315 8 8 8Z" fill="#3fe8e8" />
-                    <path d="M8 9.5C5.23858 9.5 3 11.7386 3 14.5H13C13 11.7386 10.7614 9.5 8 9.5Z" fill="#3fe8e8" />
+                    <path d="M8 8C9.65685 8 11 6.65685 11 5C11 3.34315 9.65685 2 8 2C6.34315 2 5 3.34315 5 5C5 6.65685 6.34315 8 8 8Z" fill="#3fe8e8"/>
+                    <path d="M8 9.5C5.23858 9.5 3 11.7386 3 14.5H13C13 11.7386 10.7614 9.5 8 9.5Z" fill="#3fe8e8"/>
                 </svg>
                 <span className="text-[#f6f6f6] text-[14px] font-medium font-helvetica">
                     {t('event.party_size_selected', '{{count}} personas', { count: formData.partySize })}
@@ -399,17 +411,21 @@ const ReservationsFlow = ({
     onContinue,
     total,
     isLoading = false,
+    storedFormData,
 }: ReservationsFlowProps) => {
     const { t } = useTranslation();
 
     // Flow state: 0 = zones list, 1 = form, 2 = selection
     const [currentStep, setCurrentStep] = useState<0 | 1 | 2>(0);
     const [selectedZone, setSelectedZone] = useState<ZoneWithReservations | null>(null);
-    const [formData, setFormData] = useState<ReservationFormData>({
-        reservationName: '',
-        partySize: 1,
-        observations: '',
-    });
+    const [formData, setFormData] = useState<ReservationFormData>(() => 
+        storedFormData || {
+            reservationName: '',
+            partySize: 1,
+            observations: '',
+        }
+    );
+    const [hasInitialized, setHasInitialized] = useState(false);
 
     // Group reservations by zone
     const zonesWithReservations = useMemo<ZoneWithReservations[]>(() => {
@@ -440,11 +456,51 @@ const ReservationsFlow = ({
         return Array.from(zoneMap.values());
     }, [reservations, t]);
 
+    // Restaurar estado si hay items seleccionados o formData guardado
+    useEffect(() => {
+        if (hasInitialized || isLoading || zonesWithReservations.length === 0) return;
+
+        const hasSelectedItems = Object.values(selectedQuantities).some(qty => qty > 0);
+        
+        if (hasSelectedItems) {
+            // Restaurar formData desde el store si existe
+            if (storedFormData) {
+                setFormData(storedFormData);
+            }
+            
+            // Encontrar qué zona tiene los items seleccionados
+            for (const zoneData of zonesWithReservations) {
+                const zoneHasSelection = zoneData.reservations.some(reservation =>
+                    reservation.prices?.some(price => (selectedQuantities[price.id] || 0) > 0)
+                );
+                
+                if (zoneHasSelection) {
+                    setSelectedZone(zoneData);
+                    setCurrentStep(2);
+                    break;
+                }
+            }
+        }
+        
+        setHasInitialized(true);
+    }, [hasInitialized, isLoading, zonesWithReservations, selectedQuantities, storedFormData]);
+
     // Handlers
     const handleZoneClick = useCallback((zoneData: ZoneWithReservations) => {
         setSelectedZone(zoneData);
-        setCurrentStep(1); // Go to form step
-    }, []);
+        
+        // Si ya hay items seleccionados en esta zona, ir directamente a selección
+        const zoneHasSelection = zoneData.reservations.some(reservation =>
+            reservation.prices?.some(price => (selectedQuantities[price.id] || 0) > 0)
+        );
+        
+        if (zoneHasSelection && storedFormData) {
+            setFormData(storedFormData);
+            setCurrentStep(2); // Go to selection step
+        } else {
+            setCurrentStep(1); // Go to form step
+        }
+    }, [selectedQuantities, storedFormData]);
 
     const handleBackToZones = useCallback(() => {
         setCurrentStep(0);
@@ -492,13 +548,19 @@ const ReservationsFlow = ({
             // Step 0: Zones list
             return (
                 <div className="flex flex-col gap-4">
-                    {zonesWithReservations.map(zoneData => (
-                        <ZoneCard
-                            key={zoneData.zone.id}
-                            zoneData={zoneData}
-                            onClick={() => handleZoneClick(zoneData)}
-                        />
-                    ))}
+                    {zonesWithReservations.map(zoneData => {
+                        const zoneHasSelection = zoneData.reservations.some(reservation =>
+                            reservation.prices?.some(price => (selectedQuantities[price.id] || 0) > 0)
+                        );
+                        return (
+                            <ZoneCard
+                                key={zoneData.zone.id}
+                                zoneData={zoneData}
+                                onClick={() => handleZoneClick(zoneData)}
+                                hasSelectedItems={zoneHasSelection}
+                            />
+                        );
+                    })}
                 </div>
             );
 

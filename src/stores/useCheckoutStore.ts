@@ -46,6 +46,12 @@ interface EventDisplayInfo {
     date?: string;
 }
 
+interface ReservationFormData {
+    reservationName: string;
+    partySize: number;
+    observations: string;
+}
+
 interface CheckoutState {
     // Step management
     step: CheckoutStep;
@@ -67,6 +73,7 @@ interface CheckoutState {
     removeItem: (priceId: string) => void;
     updateItemQuantity: (priceId: string, quantity: number) => void;
     clearCart: () => void;
+    clearItemsByType: (type: CheckoutItem['type']) => void;
     hasItems: () => boolean;
 
     // Transaction (for Stripe Elements)
@@ -83,6 +90,10 @@ interface CheckoutState {
     // Nominative assignments
     nominativeAssignments: NominativeAssignment[];
     setNominativeAssignments: (assignments: NominativeAssignment[]) => void;
+
+    // Reservation form data
+    reservationFormData: ReservationFormData | null;
+    setReservationFormData: (data: ReservationFormData | null) => void;
 
     // Fee
     fee: Fee | null;
@@ -182,6 +193,9 @@ export const useCheckoutStore = create<CheckoutState>()(
                 transactionAmount: null,
                 transactionCurrency: null,
             }),
+            clearItemsByType: (type) => set((state) => ({
+                items: state.items.filter(i => i.type !== type),
+            })),
             hasItems: () => get().items.length > 0,
 
             // Transaction
@@ -206,6 +220,10 @@ export const useCheckoutStore = create<CheckoutState>()(
             // Nominative assignments
             nominativeAssignments: [],
             setNominativeAssignments: (assignments) => set({ nominativeAssignments: assignments }),
+
+            // Reservation form data
+            reservationFormData: null,
+            setReservationFormData: (data) => set({ reservationFormData: data }),
 
             // Fee
             fee: null,
@@ -265,7 +283,7 @@ export const useCheckoutStore = create<CheckoutState>()(
             resetForNewEvent: (newEventId: string) => {
                 const state = get();
 
-                // Si el eventId guardado es diferente al nuevo, o si el timer expiró,
+                // Si el eventId guardado es diferente al nuevo, o si el timer expirÃƒÆ’Ã‚Â³,
                 // limpiamos todo el checkout
                 if (state.eventId !== newEventId || state.isTimerExpired) {
                     set({
@@ -276,6 +294,7 @@ export const useCheckoutStore = create<CheckoutState>()(
                         items: [],
                         coupon: null,
                         nominativeAssignments: [],
+                        reservationFormData: null,
                         step: 'selection',
                         timerStartedAt: null,
                         isTimerExpired: false,
@@ -296,6 +315,7 @@ export const useCheckoutStore = create<CheckoutState>()(
                 items: state.items,
                 coupon: state.coupon,
                 nominativeAssignments: state.nominativeAssignments,
+                reservationFormData: state.reservationFormData,
                 timerStartedAt: state.timerStartedAt,
                 step: state.step,
                 fee: state.fee,

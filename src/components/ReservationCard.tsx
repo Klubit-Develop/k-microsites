@@ -96,7 +96,7 @@ const ReservationCard = ({
         >
             {/* Top semicircle - en el lado derecho */}
             <div
-                className="absolute right-[120px] top-[-2px] w-[18px] h-[10px] bg-[#050505] rounded-b-full z-10"
+                className="absolute right-[148px] top-[-2px] w-[18px] h-[10px] bg-[#050505] rounded-b-full z-10"
                 style={{
                     borderLeft: `2px solid ${borderColor}`,
                     borderRight: `2px solid ${borderColor}`,
@@ -106,7 +106,7 @@ const ReservationCard = ({
 
             {/* Bottom semicircle - en el lado derecho */}
             <div
-                className="absolute right-[120px] bottom-[-2px] w-[18px] h-[10px] bg-[#050505] rounded-t-full z-10"
+                className="absolute right-[148px] bottom-[-2px] w-[18px] h-[10px] bg-[#050505] rounded-t-full z-10"
                 style={{
                     borderLeft: `2px solid ${borderColor}`,
                     borderRight: `2px solid ${borderColor}`,
@@ -115,7 +115,7 @@ const ReservationCard = ({
             />
 
             {/* Dashed vertical line */}
-            <div className="absolute right-[128px] top-[8px] bottom-[8px] w-0 border-l-[1.5px] border-dashed border-[#232323] z-0" />
+            <div className="absolute right-[156px] top-[8px] bottom-[8px] w-0 border-l-[1.5px] border-dashed border-[#232323] z-0" />
 
             {/* Header row */}
             <div className="flex items-center justify-between h-[56px] px-[16px] border-b-[1.5px] border-[#232323]">
@@ -164,7 +164,7 @@ const ReservationCard = ({
                                 {price.maxQuantity && (price.maxQuantity - price.soldQuantity) < 5 && !price.isSoldOut && (
                                     <div className="flex items-center px-[8px] py-[2px] bg-[#232323] rounded-[25px] shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]">
                                         <span className="text-[#f6f6f6] text-[12px] font-medium font-helvetica">
-                                            Hot 🔥
+                                            Hot ðŸ”¥
                                         </span>
                                     </div>
                                 )}
@@ -175,7 +175,7 @@ const ReservationCard = ({
                         </div>
 
                         {/* Quantity selector */}
-                        <div className="flex items-center gap-[6px] w-[120px] justify-center shrink-0">
+                        <div className="flex items-center gap-[6px] w-[130px] justify-center shrink-0">
                             <button
                                 onClick={() => onQuantityChange(price.id, -1)}
                                 disabled={quantity === 0}

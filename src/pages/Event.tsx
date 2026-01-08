@@ -371,6 +371,7 @@ const Event = () => {
         setEvent,
         addItem,
         clearCart,
+        clearItemsByType,
         step: checkoutStep,
         eventId: checkoutEventId,
         eventName: checkoutEventName,
@@ -379,6 +380,8 @@ const Event = () => {
         items: checkoutItems,
         setCoupon,
         setNominativeAssignments,
+        reservationFormData: storedReservationFormData,
+        setReservationFormData,
         isTimerExpired,
         resetTimer,
         expireTimer,
@@ -982,10 +985,11 @@ const Event = () => {
             return;
         }
 
-        // Solo limpiar el carrito si es un evento diferente
-        if (checkoutEventId !== event.id) {
-            clearCart();
-        }
+        // Limpiar solo los tipos que vamos a procesar (no reservations, eso lo maneja handleReservationCheckout)
+        clearItemsByType('ticket');
+        clearItemsByType('guestlist');
+        clearItemsByType('product');
+        clearItemsByType('promotion');
 
         setEvent(
             event.id,
@@ -1033,24 +1037,6 @@ const Event = () => {
             });
         });
 
-        event.reservations?.forEach(reservation => {
-            reservation.prices?.forEach(price => {
-                const quantity = selectedQuantities.reservations[price.id];
-                if (quantity > 0) {
-                    addItem({
-                        id: reservation.id,
-                        priceId: price.id,
-                        type: 'reservation',
-                        name: reservation.name,
-                        priceName: price.name,
-                        unitPrice: price.finalPrice,
-                        quantity,
-                        maxPersons: reservation.maxPersonsPerReservation,
-                    });
-                }
-            });
-        });
-
         event.promotions?.forEach(promotion => {
             const quantity = selectedQuantities.promotions[promotion.id];
             if (quantity > 0) {
@@ -1085,12 +1071,11 @@ const Event = () => {
     }, [
         eventQuery.data,
         selectedQuantities,
-        clearCart,
+        clearItemsByType,
         setEvent,
         addItem,
         goToSummary,
         updateSearchParams,
-        checkoutEventId,
         isAuthenticated,
         t,
     ]);
@@ -1113,10 +1098,8 @@ const Event = () => {
             return;
         }
 
-        // Solo limpiar el carrito si es un evento diferente
-        if (checkoutEventId !== event.id) {
-            clearCart();
-        }
+        // Solo limpiar reservations, mantener otros tipos (tickets, guestlists, etc.)
+        clearItemsByType('reservation');
 
         setEvent(
             event.id,
@@ -1147,21 +1130,20 @@ const Event = () => {
             });
         });
 
-        // TODO: Guardar formData (reservationName, partySize, observations) 
-        // en el store o enviarlo con la transacción
-        console.log('Reservation form data:', formData);
+        // Guardar formData en el store para recuperarlo si el usuario vuelve
+        setReservationFormData(formData);
 
         goToSummary();
         updateSearchParams({ step: 2 }, true);
     }, [
         eventQuery.data,
         selectedQuantities,
-        clearCart,
+        clearItemsByType,
         setEvent,
         addItem,
+        setReservationFormData,
         goToSummary,
         updateSearchParams,
-        checkoutEventId,
         isAuthenticated,
         t,
     ]);
@@ -1276,6 +1258,7 @@ const Event = () => {
                         onContinue={handleReservationCheckout}
                         total={total}
                         isLoading={isLoading}
+                        storedFormData={storedReservationFormData}
                     />
                 );
 
@@ -1364,15 +1347,13 @@ const Event = () => {
         // Step 1: Selection
         return (
             <>
-                <div className="overflow-x-auto overflow-y-hidden">
-                    <div className="min-w-[500px]">
-                        <TabSelector
-                            tabs={availableTabs}
-                            activeTab={effectiveActiveTab}
-                            onTabChange={handleTabChange}
-                            isLoading={isLoading}
-                        />
-                    </div>
+                <div className="w-full">
+                    <TabSelector
+                        tabs={availableTabs}
+                        activeTab={effectiveActiveTab}
+                        onTabChange={handleTabChange}
+                        isLoading={isLoading}
+                    />
                 </div>
 
                 {renderTabContent()}
@@ -1391,8 +1372,8 @@ const Event = () => {
 
     return (
         <div className="bg-[#050505] min-h-screen flex flex-col items-center pt-[120px] pb-[100px] md:pt-24 md:pb-24">
-            {/* Stepper - Hidden on mobile, shown on desktop */}
-            <div className="hidden md:block w-full mb-[60px]">
+            {/* Stepper - Always shown on desktop, shown on mobile only for step > 1 */}
+            <div className={`w-full mb-6 md:mb-[60px] ${currentStep > 1 ? 'block' : 'hidden md:block'}`}>
                 <EventStepper
                     currentStep={currentStep}
                     onStepClick={handleStepChange}
@@ -1402,64 +1383,73 @@ const Event = () => {
 
             {/* Mobile Layout - Single Column */}
             <div className="flex flex-col gap-8 w-full px-4 md:hidden">
-                {/* Event Header */}
-                <EventHeader
-                    name={event?.name || ''}
-                    flyer={event?.flyer || ''}
-                    date={event ? formatEventDate(event.startDate) : ''}
-                    time={event ? formatEventTime(event.startTime, event.endTime) : ''}
-                    address={event?.address || ''}
-                    likesCount={likesCount}
-                    isLiked={isLiked}
-                    onLikeClick={handleLike}
-                    isLoading={isLoading}
-                    isLikesLoading={isLikesLoading}
-                    canLike={isAuthenticated}
-                    isLikeDisabled={toggleFavoriteMutation.isPending}
-                />
+                {/* Event Header - Solo mostrar en step 1 */}
+                {currentStep === 1 && (
+                    <>
+                        <EventHeader
+                            name={event?.name || ''}
+                            flyer={event?.flyer || ''}
+                            date={event ? formatEventDate(event.startDate) : ''}
+                            time={event ? formatEventTime(event.startTime, event.endTime) : ''}
+                            address={event?.address || ''}
+                            likesCount={likesCount}
+                            isLiked={isLiked}
+                            onLikeClick={handleLike}
+                            isLoading={isLoading}
+                            isLikesLoading={isLikesLoading}
+                            canLike={isAuthenticated}
+                            isLikeDisabled={toggleFavoriteMutation.isPending}
+                        />
 
-                <EventTags
-                    tags={allTags}
-                    isLoading={isLoading}
-                />
-
-                {/* Tab content / Checkout - on mobile comes before event details */}
-                {renderRightColumn()}
-
-                <EventDescription
-                    title={t('event.about', 'Sobre el evento')}
-                    description={event?.description || ''}
-                    isLoading={isLoading}
-                />
-
-                <ArtistsList
-                    artists={event?.artists || []}
-                    isLoading={isLoading}
-                />
-
-                {(isLoading || event?.club) && (
-                    <OrganizerCard
-                        organizer={event?.club || { id: '', name: '', slug: '', venueType: '' }}
-                        venueTypeLabel={event?.club ? (VENUE_TYPE_MAP[event.club.venueType] || event.club.venueType) : ''}
-                        isLoading={isLoading}
-                    />
+                        <EventTags
+                            tags={allTags}
+                            isLoading={isLoading}
+                        />
+                    </>
                 )}
 
-                {isLoading ? (
-                    <div className="flex flex-col gap-4 w-full">
-                        <div className="h-7 w-24 bg-[#232323] rounded animate-pulse" />
-                        <div className="h-[200px] w-full bg-[#232323] rounded-2xl animate-pulse" />
-                    </div>
-                ) : event?.address ? (
-                    <LocationCard
-                        title={t('event.location')}
-                        address={event.address}
-                        coordinates={{
-                            lat: event.addressLocation?.coordinates?.[1] ?? 0,
-                            lng: event.addressLocation?.coordinates?.[0] ?? 0,
-                        }}
-                    />
-                ) : null}
+                {/* Tab content / Checkout */}
+                {renderRightColumn()}
+
+                {/* Event details - Solo mostrar en step 1 */}
+                {currentStep === 1 && (
+                    <>
+                        <EventDescription
+                            title={t('event.about', 'Sobre el evento')}
+                            description={event?.description || ''}
+                            isLoading={isLoading}
+                        />
+
+                        <ArtistsList
+                            artists={event?.artists || []}
+                            isLoading={isLoading}
+                        />
+
+                        {(isLoading || event?.club) && (
+                            <OrganizerCard
+                                organizer={event?.club || { id: '', name: '', slug: '', venueType: '' }}
+                                venueTypeLabel={event?.club ? (VENUE_TYPE_MAP[event.club.venueType] || event.club.venueType) : ''}
+                                isLoading={isLoading}
+                            />
+                        )}
+
+                        {isLoading ? (
+                            <div className="flex flex-col gap-4 w-full">
+                                <div className="h-7 w-24 bg-[#232323] rounded animate-pulse" />
+                                <div className="h-[200px] w-full bg-[#232323] rounded-2xl animate-pulse" />
+                            </div>
+                        ) : event?.address ? (
+                            <LocationCard
+                                title={t('event.location')}
+                                address={event.address}
+                                coordinates={{
+                                    lat: event.addressLocation?.coordinates?.[1] ?? 0,
+                                    lng: event.addressLocation?.coordinates?.[0] ?? 0,
+                                }}
+                            />
+                        ) : null}
+                    </>
+                )}
             </div>
 
             {/* Desktop Layout - Two Columns */}
