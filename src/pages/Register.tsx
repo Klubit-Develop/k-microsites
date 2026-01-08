@@ -3,8 +3,9 @@ import { toast } from 'sonner';
 import { useForm } from '@tanstack/react-form';
 import { useTranslation } from 'react-i18next';
 import { LogoIcon, LogoCutIcon } from '@/components/icons';
-import { Link, useLocation, useNavigate } from '@tanstack/react-router';
+import { Link, useNavigate } from '@tanstack/react-router';
 import { useMutation } from '@tanstack/react-query';
+import { Route } from '@/routes/register';
 
 import axiosInstance from '@/config/axiosConfig';
 import InputText from '@/components/ui/InputText';
@@ -18,19 +19,21 @@ import 'dayjs/locale/en';
 interface BackendResponse {
     status: 'success' | 'error';
     code: string;
-    data: Record<string, any>;
+    data: Record<string, unknown>;
     message: string;
     details: string;
 }
 
 const Register = () => {
     const navigate = useNavigate();
-    const location = useLocation();
     const { i18n, t } = useTranslation();
+    const searchParams = Route.useSearch();
 
-    const { country, phone } = (location.state as { country?: string; phone?: string }) || {};
-
-    const { oauthEmail } = (location.search as { oauthEmail?: string }) || {};
+    const country = searchParams.country || '34';
+    const phone = searchParams.phone || '';
+    const oauthEmail = searchParams.oauthEmail || '';
+    const oauthFirstName = searchParams.oauthFirstName || '';
+    const oauthLastName = searchParams.oauthLastName || '';
 
     const sendEmailMutation = useMutation({
         mutationFn: async (data: { email: string }) => {
@@ -119,10 +122,10 @@ const Register = () => {
 
     const form = useForm({
         defaultValues: {
-            firstName: '',
-            lastName: '',
-            email: oauthEmail || '',
-            repeatEmail: '',
+            firstName: oauthFirstName,
+            lastName: oauthLastName,
+            email: oauthEmail,
+            repeatEmail: oauthEmail,
             country: country || '34',
             phone: phone || '',
             gender: '',
@@ -252,7 +255,7 @@ const Register = () => {
                                                     error={field.state.meta.errors?.[0]}
                                                     max={dayjs().subtract(14, 'years').format('YYYY-MM-DD')}
                                                     min={dayjs().subtract(120, 'years').format('YYYY-MM-DD')}
-                                                    maxErrorMessage={t('register.birthdate_too_young', 'Debes tener al menos 14 años')}
+                                                    maxErrorMessage={t('register.birthdate_too_young', 'Debes tener al menos 14 aÃ±os')}
                                                     minErrorMessage={t('register.birthdate_too_old', 'La fecha es demasiado antigua')}
                                                 />
                                             )}

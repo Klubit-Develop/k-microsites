@@ -2,8 +2,9 @@ import { toast } from 'sonner';
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMutation } from '@tanstack/react-query';
-import { useLocation, useNavigate } from '@tanstack/react-router';
+import { useNavigate } from '@tanstack/react-router';
 import { useAuthStore } from '@/stores/authStore';
+import { Route } from '@/routes/verify';
 
 import axiosInstance from '@/config/axiosConfig';
 import OTPInput from '@/components/ui/OTPInput';
@@ -12,19 +13,31 @@ import { LogoIcon, LogoCutIcon } from '@/components/icons';
 
 const Verify = () => {
     const navigate = useNavigate();
-    const location = useLocation();
     const { i18n, t } = useTranslation();
+    const searchParams = Route.useSearch();
 
     const { setUser, setToken } = useAuthStore();
 
     const [otpValue, setOtpValue] = useState('');
     const [countdown, setCountdown] = useState(0);
 
-    const verificationType = (location.state as { verification?: string })?.verification;
-    const isForgot = (location.state as { forgot?: string })?.forgot || false;
+    const verification = searchParams.verification || '';
+    const email = searchParams.email || '';
+    const country = searchParams.country || '';
+    const phone = searchParams.phone || '';
+    const oauthEmail = searchParams.oauthEmail || '';
+    const oauthProvider = searchParams.oauthProvider || '';
+    const oauthFirstName = searchParams.oauthFirstName || '';
+    const oauthLastName = searchParams.oauthLastName || '';
+    const currentEmail = searchParams.currentEmail || '';
+    const userId = searchParams.userId || '';
+    const stateToken = searchParams.token || '';
+
+    const isForgot = searchParams.isForgot === 'true';
+    const verificationType = verification;
 
     const forgotChangeMutation = useMutation({
-        mutationFn: async (data: { id: string; token: string, email: string }) => {
+        mutationFn: async (data: { id: string; token: string; email: string }) => {
             const response = await axiosInstance.post('/v2/auth/forgot-change',
                 { email: data.email },
                 { headers: { 'Authorization': `Bearer ${data.token}` } }
@@ -32,13 +45,14 @@ const Verify = () => {
             return response.data;
         },
         onSuccess: (response) => {
-            if (response.status === 'success' && (location.state as { token?: string })?.token && response.data?.user) {
-                setToken((location.state as { token?: string })?.token!);
+            if (response.status === 'success' && response.data?.user) {
+                setToken(stateToken);
                 setUser(response.data.user);
+                toast.success(t('verify.verification_success'));
                 navigate({ to: '/' });
             }
         },
-        onError: (error: any) => {
+        onError: (error: { backendError?: { message: string } }) => {
             if (error.backendError) {
                 toast.error(error.backendError.message);
             } else {
@@ -50,68 +64,60 @@ const Verify = () => {
     const verifyMutation = useMutation({
         mutationFn: async (code: string) => {
             const lang = i18n.language === 'en' ? 'en' : 'es';
-            const state = location.state as {
-                email?: string;
-                currentEmail?: string;
-                country?: string;
-                phone?: string;
-            };
 
             if (verificationType === 'email') {
-                const email = isForgot ? state.currentEmail : state.email;
-                return await axiosInstance.post(`/v2/email/validate?lang=${lang}`, { email, code });
+                const emailToValidate = isForgot ? currentEmail : email;
+                return await axiosInstance.post(`/v2/email/validate?lang=${lang}`, { 
+                    email: emailToValidate, 
+                    code 
+                });
             } else {
                 return await axiosInstance.post(`/v2/sms/validate?lang=${lang}`, {
-                    country: state.country,
-                    phone: state.phone?.replace(/\s/g, ''),
+                    country,
+                    phone: phone?.replace(/\s/g, ''),
                     code,
                     isForgot
                 });
             }
         },
         onSuccess: (response) => {
-            const state = location.state as {
-                id?: string;
-                token?: string;
-                email?: string;
-                country?: string;
-                phone?: string;
-            };
-
-            const { token, user } = response.data.data || {};
+            const { token: responseToken, user } = response.data.data || {};
 
             if (verificationType === 'email') {
                 if (isForgot) {
                     forgotChangeMutation.mutate({
-                        id: state.id!,
-                        token: state.token!,
-                        email: state.email!
+                        id: userId,
+                        token: stateToken,
+                        email: email
                     });
-                } else if (token && user) {
-                    setToken(token);
+                } else if (responseToken && user) {
+                    setToken(responseToken);
                     setUser(user);
                     setTimeout(() => {
                         navigate({ to: '/' });
                     }, 100);
                 }
             } else {
-                if (isForgot) {
+                if (isForgot && user) {
                     navigate({
                         to: '/forgot-change',
-                        state: {
+                        search: {
                             id: user.id,
-                            token: token,
+                            token: responseToken,
                             currentEmail: user.email
-                        } as any
+                        }
                     });
                 } else {
                     navigate({
                         to: '/register',
-                        state: {
-                            country: state.country,
-                            phone: state.phone,
-                            oauthEmail: (location.search as { oauthEmail?: string })?.oauthEmail || ''
-                        } as any
+                        search: {
+                            country: country,
+                            phone: phone,
+                            oauthEmail: oauthEmail,
+                            oauthProvider: oauthProvider,
+                            oauthFirstName: oauthFirstName,
+                            oauthLastName: oauthLastName,
+                        }
                     });
                 }
             }
@@ -127,12 +133,12 @@ const Verify = () => {
 
             if (verificationType === 'email') {
                 return await axiosInstance.post(`/v2/email/resend?lang=${lang}`, {
-                    email: (location.state as { email?: string })?.email
+                    email
                 });
             } else {
                 return await axiosInstance.post(`/v2/sms/resend?lang=${lang}`, {
-                    country: (location.state as { country?: string })?.country,
-                    phone: (location.state as { phone?: string })?.phone?.replace(/\s/g, ''),
+                    country,
+                    phone: phone?.replace(/\s/g, ''),
                 });
             }
         },
@@ -161,9 +167,9 @@ const Verify = () => {
 
     const getContactDisplay = () => {
         if (verificationType === 'sms') {
-            return `+${(location.state as { country?: string })?.country} ${(location.state as { phone?: string })?.phone}`;
+            return `+${country} ${phone}`;
         }
-        return (location.state as { email?: string })?.email;
+        return email;
     };
 
     useEffect(() => {

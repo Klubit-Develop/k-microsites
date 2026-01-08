@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMutation } from '@tanstack/react-query';
 import { Link, useNavigate } from '@tanstack/react-router';
+import { Route } from '@/routes/oauth';
 
 import { LogoIcon, LogoCutIcon } from '@/components/icons';
 import InputTextPhone from '@/components/ui/InputTextPhone';
@@ -13,7 +14,7 @@ import { countries } from '@/utils/countries';
 interface BackendResponse {
     status: 'success' | 'error';
     code: string;
-    data: Record<string, any>;
+    data: Record<string, unknown>;
     message: string;
     details: string;
 }
@@ -21,6 +22,9 @@ interface BackendResponse {
 const Oauth = () => {
     const navigate = useNavigate();
     const { i18n, t } = useTranslation();
+    const searchParams = Route.useSearch();
+
+    const { email: oauthEmail, provider, firstName, lastName } = searchParams;
 
     const [country, setCountry] = useState('34');
     const [phone, setPhone] = useState('');
@@ -61,19 +65,21 @@ const Oauth = () => {
         },
         onSuccess: (response: BackendResponse) => {
             if (response.status === 'success') {
-                if (response.data?.exists) {
+                const responseData = response.data as { exists?: boolean; email?: string };
+                
+                if (responseData?.exists) {
                     sendEmailMutation.mutate({
-                        email: response.data.email,
+                        email: responseData.email || '',
                     });
 
                     navigate({
                         to: '/verify',
-                        state: {
+                        search: {
                             verification: 'email',
-                            email: response.data.email,
+                            email: responseData.email || '',
                             country,
                             phone
-                        } as any
+                        }
                     });
                 } else {
                     sendSMSMutation.mutate({
@@ -83,11 +89,15 @@ const Oauth = () => {
 
                     navigate({
                         to: '/verify',
-                        state: {
+                        search: {
                             verification: 'sms',
                             country,
                             phone,
-                        } as any
+                            oauthEmail,
+                            oauthProvider: provider,
+                            oauthFirstName: firstName,
+                            oauthLastName: lastName,
+                        }
                     });
                 }
             } else {
