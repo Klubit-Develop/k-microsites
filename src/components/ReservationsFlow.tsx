@@ -157,6 +157,12 @@ const ReservationFormStep = ({
         onFormChange({ ...formData, partySize: newSize });
     };
 
+    const availableReservationsCount = useMemo(() => {
+        return zoneData.reservations.filter(
+            r => r.maxPersonsPerReservation >= formData.partySize
+        ).length;
+    }, [zoneData.reservations, formData.partySize]);
+
     return (
         <div className="flex flex-col gap-[32px]">
             {/* Back button */}
@@ -216,6 +222,11 @@ const ReservationFormStep = ({
                             <PlusIcon />
                         </button>
                     </div>
+                    {availableReservationsCount === 0 && (
+                        <span className="text-[#ff336d] text-[12px] font-medium font-helvetica px-[6px]">
+                            {t('event.no_reservations_available', 'No hay reservas disponibles para este número de personas')}
+                        </span>
+                    )}
                 </div>
 
                 {/* Observations */}
@@ -236,10 +247,11 @@ const ReservationFormStep = ({
             </div>
 
             {/* Continue button */}
+            {/* Continue button */}
             <button
                 onClick={onContinue}
-                disabled={!formData.reservationName.trim()}
-                className={`w-full h-[48px] rounded-[12px] flex items-center justify-center font-bold text-[16px] font-helvetica transition-opacity ${formData.reservationName.trim() ? 'bg-[#ff336d] text-[#f6f6f6] cursor-pointer hover:opacity-90' : 'bg-[#232323] text-[#939393] cursor-not-allowed'}`}
+                disabled={!formData.reservationName.trim() || availableReservationsCount === 0}
+                className={`w-full h-[48px] rounded-[12px] flex items-center justify-center font-bold text-[16px] font-helvetica transition-opacity ${formData.reservationName.trim() && availableReservationsCount > 0 ? 'bg-[#ff336d] text-[#f6f6f6] cursor-pointer hover:opacity-90' : 'bg-[#232323] text-[#939393] cursor-not-allowed'}`}
             >
                 {t('event.view_reservations', 'Ver reservas')}
             </button>
@@ -275,10 +287,17 @@ const ReservationSelectionStep = ({
     onBack,
     onContinue,
     total,
+    formData,
 }: ReservationSelectionStepProps) => {
     const { t } = useTranslation();
 
-    const hasSelection = zoneData.reservations.some(reservation =>
+    const filteredReservations = useMemo(() => {
+        return zoneData.reservations.filter(
+            reservation => reservation.maxPersonsPerReservation >= formData.partySize
+        );
+    }, [zoneData.reservations, formData.partySize]);
+
+    const hasSelection = filteredReservations.some(reservation =>
         reservation.prices?.some(price => (selectedQuantities[price.id] || 0) > 0)
     );
 
@@ -298,6 +317,17 @@ const ReservationSelectionStep = ({
             {/* Zone header */}
             <ZoneHeader zoneData={zoneData} />
 
+            {/* Party size info */}
+            <div className="flex items-center gap-2 px-4 py-3 bg-[#141414] border border-[#232323] rounded-xl">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M8 8C9.65685 8 11 6.65685 11 5C11 3.34315 9.65685 2 8 2C6.34315 2 5 3.34315 5 5C5 6.65685 6.34315 8 8 8Z" fill="#3fe8e8" />
+                    <path d="M8 9.5C5.23858 9.5 3 11.7386 3 14.5H13C13 11.7386 10.7614 9.5 8 9.5Z" fill="#3fe8e8" />
+                </svg>
+                <span className="text-[#f6f6f6] text-[14px] font-medium font-helvetica">
+                    {t('event.party_size_selected', '{{count}} personas', { count: formData.partySize })}
+                </span>
+            </div>
+
             {/* Zone floor plan */}
             {zoneData.zone.floorPlan && (
                 <div className="flex flex-col gap-[4px]">
@@ -316,16 +346,24 @@ const ReservationSelectionStep = ({
                 </div>
             )}
 
-            {/* Reservation cards */}
+            {/* Reservation cards - filtered by partySize */}
             <div className="flex flex-col gap-[16px]">
-                {zoneData.reservations.map(reservation => (
-                    <ReservationCard
-                        key={reservation.id}
-                        reservation={reservation}
-                        selectedQuantities={selectedQuantities}
-                        onQuantityChange={onQuantityChange}
-                    />
-                ))}
+                {filteredReservations.length > 0 ? (
+                    filteredReservations.map(reservation => (
+                        <ReservationCard
+                            key={reservation.id}
+                            reservation={reservation}
+                            selectedQuantities={selectedQuantities}
+                            onQuantityChange={onQuantityChange}
+                        />
+                    ))
+                ) : (
+                    <div className="flex items-center justify-center py-8">
+                        <p className="text-[#939393] text-[14px] font-helvetica text-center">
+                            {t('event.no_reservations_for_party_size', 'No hay reservas disponibles para {{count}} personas', { count: formData.partySize })}
+                        </p>
+                    </div>
+                )}
             </div>
 
             {/* Pay button */}

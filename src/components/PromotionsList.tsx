@@ -34,6 +34,8 @@ interface PromotionCardProps {
     onQuantityChange: (promotionId: string, delta: number) => void;
     onMoreInfo?: (promotion: Promotion) => void;
     showHotBadge?: boolean;
+    eventStartDate?: string;
+    eventStartTime?: string;
 }
 
 interface PromotionsListProps {
@@ -42,6 +44,8 @@ interface PromotionsListProps {
     onQuantityChange: (promotionId: string, delta: number) => void;
     onMoreInfo?: (promotion: Promotion) => void;
     isLoading?: boolean;
+    eventStartDate?: string;
+    eventStartTime?: string;
 }
 
 // ============================================
@@ -74,10 +78,26 @@ const PromotionCard = ({
     onQuantityChange,
     onMoreInfo,
     showHotBadge = false,
+    eventStartDate,
+    eventStartTime,
 }: PromotionCardProps) => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const isSelected = quantity > 0;
     const borderColor = isSelected ? '#e5ff88' : '#232323';
+
+    const formattedDateTime = (() => {
+        if (!eventStartDate) return '';
+        const locale = i18n.language === 'es' ? 'es' : 'en';
+        const date = new Date(eventStartDate);
+        const dayName = date.toLocaleDateString(locale, { weekday: 'short' });
+        const day = date.getDate();
+        const month = date.toLocaleDateString(locale, { month: 'short' });
+        const datePart = `${dayName}, ${day} ${month}`;
+        if (eventStartTime) {
+            return `${datePart} · ${eventStartTime}h`;
+        }
+        return datePart;
+    })();
 
     // Formatear precio según tipo de promoción
     const formatPromotionPrice = (): string => {
@@ -123,11 +143,16 @@ const PromotionCard = ({
                         {showHotBadge && (
                             <div className="flex items-center px-[8px] py-[2px] bg-[#232323] rounded-[25px] shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]">
                                 <span className="text-[#f6f6f6] text-[12px] font-medium font-helvetica">
-                                    Hot 🔥
+                                    Hot ðŸ”¥
                                 </span>
                             </div>
                         )}
                     </div>
+                    {formattedDateTime && (
+                        <span className="text-[#E5FF88] text-[12px] font-medium font-helvetica">
+                            {formattedDateTime}
+                        </span>
+                    )}
                     <span 
                         className="text-[#939393] text-[14px] font-normal font-helvetica cursor-pointer hover:text-[#f6f6f6] transition-colors"
                         onClick={() => onMoreInfo?.(promotion)}
@@ -242,6 +267,8 @@ const PromotionsList = ({
     onQuantityChange,
     onMoreInfo,
     isLoading = false,
+    eventStartDate,
+    eventStartTime,
 }: PromotionsListProps) => {
     if (isLoading) {
         return (
@@ -262,7 +289,9 @@ const PromotionsList = ({
                     quantity={selectedQuantities[promotion.id] || 0}
                     onQuantityChange={onQuantityChange}
                     onMoreInfo={onMoreInfo}
-                    showHotBadge={index < 2} // Show badge on first 2 items as example
+                    showHotBadge={index < 2}
+                    eventStartDate={eventStartDate}
+                    eventStartTime={eventStartTime}
                 />
             ))}
         </div>

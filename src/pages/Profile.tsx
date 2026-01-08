@@ -192,7 +192,7 @@ const VerifyPhoneModal = ({ isOpen, onClose, country, phone, onSuccess }: Verify
                     </p>
                 ) : (
                     <p className="text-[14px] font-medium font-helvetica text-[#939393] text-center">
-                        {t('verify.didnt_receive_code', '¿No has recibido el código?')}
+                        {t('verify.didnt_receive_code', 'Â¿No has recibido el código?')}
                         <button
                             onClick={handleResend}
                             disabled={resendMutation.isPending}
@@ -596,6 +596,19 @@ const Profile = () => {
     return (
         <div className="bg-[#050505] min-h-screen flex justify-center py-24">
             <div className="flex flex-col gap-[36px] w-full max-w-[600px] px-6">
+
+                {/* Botón volver */}
+                <button
+                    onClick={() => navigate({ to: '/' })}
+                    className="flex items-center gap-2 text-[#939393] hover:text-[#F6F6F6] transition-colors self-start cursor-pointer"
+                >
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    <span className="text-[14px] font-helvetica font-medium">
+                        {t('common.back', 'Volver')}
+                    </span>
+                </button>
 
                 <div className="flex flex-col gap-[16px] w-full">
                     <SectionHeader title={t('profile.personal_info', 'Información personal')} />

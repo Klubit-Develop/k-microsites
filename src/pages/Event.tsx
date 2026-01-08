@@ -405,8 +405,8 @@ const Event = () => {
             setCheckoutStep('summary');
         } else {
             setCheckoutStep('selection');
-            // Si estamos en step 1 y no hay items en la URL pero sÃƒÂ­ en el store,
-            // limpiar el carrito (el usuario navegÃƒÂ³ fuera y volviÃƒÂ³)
+            // Si estamos en step 1 y no hay items en la URL pero sí en el store,
+            // limpiar el carrito (el usuario navegó fuera y volvió)
             const hasUrlItems = !!(searchParams.tickets || searchParams.guestlists ||
                 searchParams.reservations || searchParams.products || searchParams.promotions);
             if (!hasUrlItems && checkoutHasItems()) {
@@ -650,7 +650,7 @@ const Event = () => {
             const precompraPrice = guestlist.prices.find(p => p.finalPrice > 0 && p.id !== price.id);
             if (precompraPrice) {
                 precompraData = {
-                    products: [{ name: 'ConsumiciÃƒÂ³n', quantity: 1 }],
+                    products: [{ name: 'Consumición', quantity: 1 }],
                     startTime: '00:00',
                     endTime: '06:00',
                     price: precompraPrice.finalPrice,
@@ -678,7 +678,7 @@ const Event = () => {
             finalPrice: price.finalPrice,
             currency: price.currency || 'EUR',
             isLowStock,
-            lowStockLabel: isLowStock ? 'ÃƒÅ¡ltimas Ã°Å¸â€™Â£' : undefined,
+            lowStockLabel: isLowStock ? 'últimas 👣' : undefined,
             isFree,
             hasPrecompra,
             precompraData,
@@ -855,7 +855,7 @@ const Event = () => {
             return;
         }
 
-        // Verificar autenticaciÃ³n antes de continuar
+        // Verificar autenticación antes de continuar
         if (!isAuthenticated) {
             handleCloseInfoModal();
             setAuthModalOpen(true);
@@ -976,7 +976,7 @@ const Event = () => {
             return;
         }
 
-        // Verificar autenticaciÃ³n antes de continuar
+        // Verificar autenticación antes de continuar
         if (!isAuthenticated) {
             setAuthModalOpen(true);
             return;
@@ -1095,7 +1095,7 @@ const Event = () => {
         t,
     ]);
 
-    // Handler especÃƒÂ­fico para reservas que incluye los datos del formulario
+    // Handler específico para reservas que incluye los datos del formulario
     const handleReservationCheckout = useCallback((formData: ReservationFormData) => {
         const event = eventQuery.data;
         if (!event) return;
@@ -1107,7 +1107,7 @@ const Event = () => {
             return;
         }
 
-        // Verificar autenticaciÃ³n antes de continuar
+        // Verificar autenticación antes de continuar
         if (!isAuthenticated) {
             setAuthModalOpen(true);
             return;
@@ -1128,7 +1128,7 @@ const Event = () => {
             }
         );
 
-        // AÃƒÂ±adir las reservas seleccionadas al carrito
+        // Añadir las reservas seleccionadas al carrito
         event.reservations?.forEach(reservation => {
             reservation.prices?.forEach(price => {
                 const quantity = selectedQuantities.reservations[price.id];
@@ -1148,7 +1148,7 @@ const Event = () => {
         });
 
         // TODO: Guardar formData (reservationName, partySize, observations) 
-        // en el store o enviarlo con la transacciÃƒÂ³n
+        // en el store o enviarlo con la transacción
         console.log('Reservation form data:', formData);
 
         goToSummary();
@@ -1296,6 +1296,8 @@ const Event = () => {
                         onQuantityChange={(promotionId, delta) => handleQuantityChange(promotionId, delta, 'promotions')}
                         onMoreInfo={(promotion) => handleOpenInfoModal(promotion, null, 'promotion')}
                         isLoading={isLoading}
+                        eventStartDate={event?.startDate}
+                        eventStartTime={event?.startTime}
                     />
                 );
 

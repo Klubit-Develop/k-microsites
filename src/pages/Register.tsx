@@ -260,7 +260,7 @@ const Register = () => {
                                                     error={field.state.meta.errors?.[0]}
                                                     max={dayjs().subtract(14, 'years').format('YYYY-MM-DD')}
                                                     min={dayjs().subtract(120, 'years').format('YYYY-MM-DD')}
-                                                    maxErrorMessage={t('register.birthdate_too_young', 'Debes tener al menos 14 aÃ±os')}
+                                                    maxErrorMessage={t('register.birthdate_too_young', 'Debes tener al menos 14 años')}
                                                     minErrorMessage={t('register.birthdate_too_old', 'La fecha es demasiado antigua')}
                                                 />
                                             )}

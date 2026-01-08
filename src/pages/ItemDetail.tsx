@@ -142,7 +142,7 @@ const formatEventDate = (dateString: string, locale: string): string => {
 
 const formatPrice = (price: number): string => {
     if (price === 0) return 'Gratis';
-    return `${price.toFixed(2)}Ã¢â€šÂ¬`;
+    return `${price.toFixed(2)}€`;
 };
 
 const formatTimeRange = (startTime?: string, endTime?: string): string => {
@@ -200,6 +200,11 @@ interface EventCardInfoProps {
 
 const EventCardInfo = ({ event, locale }: EventCardInfoProps) => {
     const formattedDate = formatEventDate(event.startDate, locale);
+    const formattedTime = event.startTime && event.endTime 
+        ? `${event.startTime}h - ${event.endTime}h`
+        : event.startTime 
+            ? `${event.startTime}h`
+            : '';
 
     return (
         <div className="flex flex-col gap-1 w-full">
@@ -217,14 +222,23 @@ const EventCardInfo = ({ event, locale }: EventCardInfoProps) => {
                         />
                     </div>
                     {/* Event info */}
-                    <div className="flex items-center gap-1">
+                    <div className="flex flex-col gap-1">
                         <span className="text-[16px] font-helvetica font-medium text-[#F6F6F6]">
                             {event.name}
                         </span>
-                        <span className="size-[3px] bg-[#E5FF88] rounded-full" />
-                        <span className="text-[14px] font-helvetica text-[#E5FF88]">
-                            {formattedDate}
-                        </span>
+                        <div className="flex items-center gap-1">
+                            <span className="text-[14px] font-helvetica text-[#E5FF88]">
+                                {formattedDate}
+                            </span>
+                            {formattedTime && (
+                                <>
+                                    <span className="size-[3px] bg-[#E5FF88] rounded-full" />
+                                    <span className="text-[14px] font-helvetica text-[#E5FF88]">
+                                        {formattedTime}
+                                    </span>
+                                </>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -275,7 +289,7 @@ const TarifaCardInfo = ({ item }: TarifaCardInfoProps) => {
                             {price}
                         </span>
                         {item.unitPrice === 0 && (
-                            <span className="text-[18px]">Ã°Å¸â€ â€œ</span>
+                            <span className="text-[18px]">🎁</span>
                         )}
                     </div>
                 </div>
@@ -338,7 +352,7 @@ const PassbookCard = ({ walletAddress, userId, clubId }: PassbookCardProps) => {
             const links = response.data.data.walletLinks;
             setWalletLinks(links);
 
-            // Abrir la URL correspondiente segÃƒÂºn plataforma
+            // Abrir la URL correspondiente según plataforma
             const url = useAppleWallet ? links.ios : links.android;
             if (url) {
                 window.open(url, '_blank');
@@ -367,7 +381,7 @@ const PassbookCard = ({ walletAddress, userId, clubId }: PassbookCardProps) => {
                     />
                 </div>
 
-                {/* Add to Wallet Button - Badges segÃƒÂºn idioma y plataforma */}
+                {/* Add to Wallet Button - Badges según idioma y plataforma */}
                 <button
                     onClick={handleAddToWallet}
                     disabled={isGenerating}
@@ -377,17 +391,17 @@ const PassbookCard = ({ walletAddress, userId, clubId }: PassbookCardProps) => {
                     `}
                 >
                     {isGenerating ? (
-                        /* Skeleton del botÃ³n */
+                        /* Skeleton del botón */
                         <div className="w-[156px] h-[48px] bg-[#232323] rounded-md animate-pulse" />
                     ) : useAppleWallet ? (
-                        /* Apple Wallet Badge - segÃƒÂºn idioma */
+                        /* Apple Wallet Badge - según idioma */
                         <img 
                             src={isSpanish ? '/assets/images/apple_es.svg' : '/assets/images/apple_en.svg'}
                             alt={t('transaction.add_to_apple_wallet', 'Add to Apple Wallet')}
                             className="h-[48px] w-auto"
                         />
                     ) : (
-                        /* Google Wallet Badge - segÃƒÂºn idioma */
+                        /* Google Wallet Badge - según idioma */
                         <img 
                             src={isSpanish ? '/assets/images/google_es.svg' : '/assets/images/google_en.svg'}
                             alt={t('transaction.add_to_google_wallet', 'Add to Google Wallet')}
@@ -464,6 +478,10 @@ const AssignmentStatusCard = ({ item, currentUserId, transactionUserId }: Assign
 
     // Caso: Usuario no existe (pending_claim) - visto por el comprador
     if (item.status === 'PENDING_CLAIM' && isPurchaser) {
+        const formattedPhone = item.assignedToPhone 
+            ? `+${item.assignedToCountry || ''} ${item.assignedToPhone.slice(0, 3)}...${item.assignedToPhone.slice(-2)}`
+            : '';
+        
         return (
             <div className="flex flex-col gap-1 w-full">
                 <span className="text-[16px] font-helvetica font-medium text-[#939393] px-1.5">
@@ -475,7 +493,7 @@ const AssignmentStatusCard = ({ item, currentUserId, transactionUserId }: Assign
                     </div>
                     <div className="flex flex-col gap-0.5">
                         <span className="text-[16px] font-helvetica font-medium text-[#F6F6F6]">
-                            {item.assignedToEmail || ''}
+                            {formattedPhone}
                         </span>
                         <span className="text-[13px] font-helvetica text-[#939393]">
                             {t('wallet.pending_registration', 'Pendiente de registro')}
@@ -493,7 +511,7 @@ const AssignmentStatusCard = ({ item, currentUserId, transactionUserId }: Assign
         );
     }
 
-    // Caso: El destinatario ve quien se lo enviÃ³
+    // Caso: El destinatario ve quien se lo envió
     if (isRecipient && item.purchasedBy) {
         return (
             <div className="flex flex-col gap-1 w-full">
@@ -549,7 +567,7 @@ const ItemDetailError = () => {
     return (
         <div className="flex flex-col items-center justify-center gap-4 w-full max-w-[500px] mx-auto px-4 pt-[120px] pb-[100px] md:py-16">
             <div className="flex items-center justify-center size-20 bg-[#232323] rounded-full">
-                <span className="text-4xl">Ã¢ÂÅ’</span>
+                <span className="text-4xl">❌</span>
             </div>
             <div className="flex flex-col items-center gap-2 text-center">
                 <h2 className="text-[20px] font-helvetica font-bold text-[#F6F6F6]">
@@ -605,7 +623,7 @@ const ItemDetail = () => {
         );
     }
 
-    // LÃ³gica para determinar quiÃ©n puede ver el QR:
+    // Lógica para determinar quién puede ver el QR:
     // - Caso 1 (isForMe): El comprador puede ver el QR
     // - Caso 2 (found): El DESTINATARIO puede ver el QR, el comprador NO
     // - Caso 3 (PENDING_CLAIM): El COMPRADOR puede ver el QR hasta que el destinatario reclame
@@ -614,9 +632,9 @@ const ItemDetail = () => {
     const isPendingClaim = item.status === 'PENDING_CLAIM';
     
     // Puede ver QR si:
-    // 1. Es para mÃ­ (isForMe)
+    // 1. Es para mí (isForMe)
     // 2. Soy el destinatario (found)
-    // 3. Soy el comprador Y estÃ¡ pendiente de claim
+    // 3. Soy el comprador Y está pendiente de claim
     const canViewQR = item.isForMe || isRecipient || (isPurchaser && isPendingClaim);
 
     return (
@@ -628,7 +646,7 @@ const ItemDetail = () => {
                 {/* Tarifa Card */}
                 <TarifaCardInfo item={item} />
 
-                {/* Estado de asignaciÃ³n */}
+                {/* Estado de asignación */}
                 <AssignmentStatusCard
                     item={item}
                     currentUserId={user.id}
@@ -658,14 +676,14 @@ const ItemDetail = () => {
                             </div>
                             <div className="text-center">
                                 <p className="text-[14px] font-helvetica text-[#939393]">
-                                    {t('wallet.qr_transferred', 'Esta entrada ya estÃ¡ en la wallet del destinatario')}
+                                    {t('wallet.qr_transferred', 'Esta entrada ya está en la wallet del destinatario')}
                                 </p>
                             </div>
                         </div>
                     </div>
                 )}
 
-                {/* DirecciÃ³n con mapa */}
+                {/* Dirección con mapa */}
                 {transaction.club.address && transaction.club.addressLocation && (
                     <LocationCard
                         address={transaction.club.address}
@@ -676,10 +694,10 @@ const ItemDetail = () => {
                     />
                 )}
 
-                {/* Link a tÃ©rminos */}
+                {/* Link a términos */}
                 <button className="px-1.5 text-left cursor-pointer">
                     <span className="text-[12px] font-helvetica font-medium text-[#F6F6F6]/50 underline">
-                        {t('transaction.read_terms', 'Leer los tÃ©rminos de compra de la tarifa')}
+                        {t('transaction.read_terms', 'Leer los términos de compra de la tarifa')}
                     </span>
                 </button>
             </div>

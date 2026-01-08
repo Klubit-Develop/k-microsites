@@ -230,7 +230,7 @@ const TicketWallet = ({ transaction, isLive = false }: TicketWalletProps) => {
                         </div>
 
                         <div className="flex items-center gap-1.5 py-px">
-                            <span className="text-[13px]">📍</span>
+                            <span className="text-[13px]">ðŸ“</span>
                             <span className="text-[14px] font-helvetica text-[#939393] truncate">
                                 {club.address || club.name}
                             </span>
@@ -282,7 +282,7 @@ const WalletEventCard = ({ title, date, time, location, imageUrl, onClick }: Wal
                 </div>
 
                 <div className="flex items-center gap-1.5 py-px">
-                    <span className="text-[13px]">📍</span>
+                    <span className="text-[13px]">ðŸ“</span>
                     <span className="text-[14px] font-helvetica text-[#939393] truncate">
                         {location}
                     </span>
@@ -349,7 +349,7 @@ const WalletEmpty = () => {
     return (
         <div className="flex flex-col items-center justify-center gap-4 w-full max-w-[500px] mx-auto px-4 pt-[120px] pb-[100px] md:py-16">
             <div className="flex items-center justify-center size-20 bg-[#232323] rounded-full">
-                <span className="text-4xl">🎫</span>
+                <span className="text-4xl">ðŸŽ«</span>
             </div>
             <div className="flex flex-col items-center gap-2 text-center">
                 <h2 className="text-[20px] font-helvetica font-bold text-[#F6F6F6]">
@@ -423,7 +423,7 @@ const KlubKard = ({
                     />
                 ) : (
                     <div className="absolute inset-0 flex items-center justify-center">
-                        <span className="text-[20px]">🏠</span>
+                        <span className="text-[20px]">ðŸ </span>
                     </div>
                 )}
             </div>
@@ -594,6 +594,19 @@ const Wallet = () => {
 
     return (
         <div className="flex flex-col gap-9 w-full max-w-[500px] mx-auto px-4 pt-[120px] pb-[100px] md:py-8">
+            {/* Botón volver */}
+            <button
+                onClick={() => navigate({ to: '/' })}
+                className="flex items-center gap-2 text-[#939393] hover:text-[#F6F6F6] transition-colors self-start cursor-pointer"
+            >
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <span className="text-[14px] font-helvetica font-medium">
+                    {t('common.back', 'Volver')}
+                </span>
+            </button>
+
             {/* Featured Tickets (Hoy / Live) - Cards grandes */}
             {featuredTransactions.length > 0 && (
                 <div className="flex flex-col gap-4">

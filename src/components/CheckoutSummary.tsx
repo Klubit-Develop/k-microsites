@@ -6,6 +6,10 @@ import InputTextPhone from '@/components/ui/InputTextPhone';
 import { countries } from '@/utils/countries';
 import axiosInstance from '@/config/axiosConfig';
 
+// ============================================
+// TYPES
+// ============================================
+
 interface EventInfo {
     id: string;
     name: string;
@@ -57,10 +61,19 @@ interface CheckoutSummaryProps {
     isLoading?: boolean;
 }
 
+// ============================================
+// ICONS
+// ============================================
+
 const IndicatorDot = ({ color }: { color: string }) => (
     <div className="w-[6px] h-[6px] rounded-full shrink-0" style={{ backgroundColor: color }} />
 );
 
+// ============================================
+// SUB COMPONENTS
+// ============================================
+
+// Timer Component
 const CheckoutTimer = ({ seconds, isLow }: { seconds: number; isLow: boolean }) => {
     const { t } = useTranslation();
 
@@ -85,6 +98,7 @@ const CheckoutTimer = ({ seconds, isLow }: { seconds: number; isLow: boolean }) 
     );
 };
 
+// Event Info Card
 const EventInfoCard = ({ event, items }: { event: EventInfo; items: CartItem[] }) => {
     const { t } = useTranslation();
 
@@ -105,6 +119,7 @@ const EventInfoCard = ({ event, items }: { event: EventInfo; items: CartItem[] }
                 {t('checkout.event', 'Evento')}
             </span>
             <div className="bg-[#141414] border-2 border-[#232323] rounded-[16px] w-full">
+                {/* Event Header */}
                 <div className="flex items-center gap-[12px] px-[16px] py-[12px] border-b-[1.5px] border-[#232323]">
                     {event.coverImage && (
                         <div className="w-[30px] h-[37.5px] rounded-[2px] overflow-hidden shrink-0 border border-[#232323]">
@@ -122,6 +137,7 @@ const EventInfoCard = ({ event, items }: { event: EventInfo; items: CartItem[] }
                     </div>
                 </div>
 
+                {/* Items */}
                 {items.map((item, index) => (
                     <div
                         key={`${item.priceId}-${index}`}
@@ -147,6 +163,7 @@ const EventInfoCard = ({ event, items }: { event: EventInfo; items: CartItem[] }
     );
 };
 
+// Coupon Section
 interface CouponSectionProps {
     appliedCoupon: CouponData | null;
     onApplyCoupon: (code: string) => Promise<void>;
@@ -155,6 +172,7 @@ interface CouponSectionProps {
     discountAmount: number;
 }
 
+// Gift icon SVG
 const GiftIcon = () => (
     <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
         <rect x="8" y="32" width="64" height="40" rx="4" fill="white" stroke="#E8E8E8" strokeWidth="2" />
@@ -190,6 +208,7 @@ const CouponSection = ({
         }
     };
 
+    // Applied coupon display
     if (appliedCoupon) {
         return (
             <div className="bg-[#141414] border-2 border-[#232323] rounded-[12px] px-[16px] py-[12px] flex items-center justify-between w-full">
@@ -217,6 +236,7 @@ const CouponSection = ({
 
     return (
         <>
+            {/* Trigger Button */}
             <button
                 onClick={() => setIsModalOpen(true)}
                 className="w-full h-[48px] bg-[#232323] rounded-[12px] flex items-center justify-center cursor-pointer hover:bg-[#2a2a2a] transition-colors"
@@ -226,6 +246,7 @@ const CouponSection = ({
                 </span>
             </button>
 
+            {/* Coupon Modal */}
             {isModalOpen && (
                 <div
                     className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-[24px]"
@@ -240,10 +261,12 @@ const CouponSection = ({
                         className="bg-[#0a0a0a] border-2 border-[#232323] rounded-[42px] w-full max-w-[400px] px-[24px] py-[42px] flex flex-col items-center gap-[36px] relative animate-in fade-in zoom-in-95 duration-200"
                         onClick={(e) => e.stopPropagation()}
                     >
+                        {/* Grabber */}
                         <div className="absolute top-[14px] left-1/2 -translate-x-1/2">
                             <div className="w-[36px] h-[5px] bg-[#f6f6f6] opacity-25 rounded-full" />
                         </div>
 
+                        {/* Icon + Title */}
                         <div className="flex flex-col items-center gap-[16px] px-[16px] w-full">
                             <div className="w-[120px] h-[120px] flex items-center justify-center">
                                 <GiftIcon />
@@ -253,6 +276,7 @@ const CouponSection = ({
                             </h2>
                         </div>
 
+                        {/* Input */}
                         <div className="flex flex-col gap-[4px] w-full">
                             <span className="text-[#939393] text-[14px] font-normal font-helvetica px-[6px]">
                                 {t('checkout.coupon_code_label', 'Código de cupón')}
@@ -268,6 +292,7 @@ const CouponSection = ({
                             />
                         </div>
 
+                        {/* Apply Button */}
                         <button
                             onClick={handleApply}
                             disabled={isLoading || !couponCode.trim()}
@@ -284,6 +309,7 @@ const CouponSection = ({
     );
 };
 
+// Payment Details Card
 interface PaymentDetailsProps {
     subtotal: number;
     serviceFee: number;
@@ -300,6 +326,7 @@ const PaymentDetailsCard = ({ subtotal, serviceFee, discount, total }: PaymentDe
                 {t('checkout.payment_details', 'Detalles pago')}
             </span>
             <div className="bg-[#141414] border-2 border-[#232323] rounded-[16px] w-full">
+                {/* Subtotal */}
                 <div className="flex items-center justify-between px-[16px] h-[56px] border-b-[1.5px] border-[#232323]">
                     <span className="text-[#939393] text-[16px] font-medium font-helvetica">
                         {t('checkout.subtotal', 'Subtotal')}:
@@ -309,6 +336,7 @@ const PaymentDetailsCard = ({ subtotal, serviceFee, discount, total }: PaymentDe
                     </span>
                 </div>
 
+                {/* Service Fee */}
                 <div className={`flex items-center justify-between px-[16px] h-[56px] ${discount > 0 ? 'border-b-[1.5px] border-[#232323]' : ''}`}>
                     <span className="text-[#939393] text-[16px] font-medium font-helvetica">
                         {t('checkout.service_fee', 'Gastos de gestión')}:
@@ -318,6 +346,7 @@ const PaymentDetailsCard = ({ subtotal, serviceFee, discount, total }: PaymentDe
                     </span>
                 </div>
 
+                {/* Discount (only if applied) */}
                 {discount > 0 && (
                     <div className="flex items-center justify-between px-[16px] h-[56px] border-b-[1.5px] border-[#232323]">
                         <span className="text-[#939393] text-[16px] font-medium font-helvetica">
@@ -329,6 +358,7 @@ const PaymentDetailsCard = ({ subtotal, serviceFee, discount, total }: PaymentDe
                     </div>
                 )}
 
+                {/* Total */}
                 <div className="flex items-center justify-between px-[16px] h-[56px]">
                     <span className="text-[#939393] text-[16px] font-medium font-helvetica">
                         {t('checkout.total_price', 'Precio total')}:
@@ -342,12 +372,14 @@ const PaymentDetailsCard = ({ subtotal, serviceFee, discount, total }: PaymentDe
     );
 };
 
+// Nominative Assignment Section
 interface NominativeAssignmentSectionProps {
     items: CartItem[];
     assignments: NominativeAssignment[];
     onAssignmentChange: (assignments: NominativeAssignment[]) => void;
 }
 
+// Checkbox icon component
 const CheckboxIcon = ({ checked }: { checked: boolean }) => (
     <div className={`w-[24px] h-[24px] rounded-full border-2 flex items-center justify-center transition-colors ${checked ? 'bg-[#e5ff88] border-[#e5ff88]' : 'border-[#939393]'
         }`}>
@@ -366,12 +398,13 @@ const NominativeAssignmentSection = ({
 }: NominativeAssignmentSectionProps) => {
     const { i18n, t } = useTranslation();
 
+    // Get all nominative items expanded by quantity
     const nominativeEntries = useMemo(() => {
         const entries: Array<{ item: CartItem; index: number; entryIndex: number }> = [];
         let globalIndex = 0;
 
         items.forEach((item) => {
-            if (item.isNominative === true) {
+            if (item.isNominative) {
                 for (let i = 0; i < item.quantity; i++) {
                     entries.push({ item, index: globalIndex, entryIndex: i });
                     globalIndex++;
@@ -386,16 +419,29 @@ const NominativeAssignmentSection = ({
 
     const handleToggleMe = (itemIndex: number) => {
         const existing = assignments.find(a => a.itemIndex === itemIndex);
-        const newAssignments = assignments.filter(a => a.itemIndex !== itemIndex);
 
         if (!existing || existing.assignmentType !== 'me') {
+            // Activate "Para mi" - remove any other "me" assignment first
+            const newAssignments = assignments
+                .filter(a => a.itemIndex !== itemIndex)
+                .map(a => a.assignmentType === 'me' 
+                    ? { ...a, assignmentType: 'send' as const, phoneCountry: '34' }
+                    : a
+                );
             newAssignments.push({ itemIndex, assignmentType: 'me' });
+            onAssignmentChange(newAssignments);
         } else {
+            // Deactivate "Para mi" -> return to default state with phone input
+            const newAssignments = assignments.filter(a => a.itemIndex !== itemIndex);
             newAssignments.push({ itemIndex, assignmentType: 'send', phoneCountry: '34' });
+            onAssignmentChange(newAssignments);
         }
-
-        onAssignmentChange(newAssignments);
     };
+
+    const meAssignedIndex = useMemo(() => {
+        const meAssignment = assignments.find(a => a.assignmentType === 'me');
+        return meAssignment?.itemIndex ?? null;
+    }, [assignments]);
 
     const handleConfirmPhone = async (itemIndex: number) => {
         const assignment = assignments.find(a => a.itemIndex === itemIndex);
@@ -483,6 +529,7 @@ const NominativeAssignmentSection = ({
         onAssignmentChange(newAssignments);
     };
 
+    // Format phone number based on country pattern
     const formatPhone = (value: string, pattern: number[] = [3, 3, 3]) => {
         const digits = value.replace(/\D/g, '');
         let result = '';
@@ -571,6 +618,7 @@ const NominativeAssignmentSection = ({
                             key={index}
                             className="bg-[#141414] border-2 border-[#232323] rounded-[16px] w-full"
                         >
+                            {/* Variante 1: "Para mi" seleccionado - Solo header */}
                             {isMe && (
                                 <div className="flex items-center justify-between px-[16px] h-[56px]">
                                     <div className="flex items-center gap-[6px]">
@@ -597,8 +645,10 @@ const NominativeAssignmentSection = ({
                                 </div>
                             )}
 
+                            {/* Variante 2, 3 y 4: No es "Para mi" - Mostrar formulario */}
                             {!isMe && (
                                 <div className="flex flex-col gap-[16px] px-[16px] pb-[16px]">
+                                    {/* Header con border bottom */}
                                     <div className="flex items-center justify-between h-[56px] border-b-[1.5px] border-[#232323]">
                                         <div className="flex items-center gap-[6px]">
                                             <div
@@ -614,7 +664,8 @@ const NominativeAssignmentSection = ({
                                         </div>
                                         <button
                                             onClick={() => handleToggleMe(index)}
-                                            className="flex items-center gap-[8px] cursor-pointer"
+                                            disabled={meAssignedIndex !== null}
+                                            className={`flex items-center gap-[8px] ${meAssignedIndex !== null ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                                         >
                                             <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica">
                                                 {t('checkout.for_me', 'Para mi')}
@@ -623,6 +674,7 @@ const NominativeAssignmentSection = ({
                                         </button>
                                     </div>
 
+                                    {/* Phone input con indicador de estado */}
                                     <div className="relative">
                                         <InputTextPhone
                                             label={`${t('checkout.phone', 'Teléfono')}*`}
@@ -635,6 +687,7 @@ const NominativeAssignmentSection = ({
                                             language={i18n.language as 'es' | 'en'}
                                             disabled={isFound || isNotFound}
                                         />
+                                        {/* Check verde cuando usuario encontrado */}
                                         {isFound && (
                                             <div className="absolute right-[16px] top-[36px] w-[24px] h-[24px] rounded-full bg-[#e5ff88] flex items-center justify-center z-10">
                                                 <svg width="12" height="9" viewBox="0 0 12 9" fill="none">
@@ -644,6 +697,7 @@ const NominativeAssignmentSection = ({
                                         )}
                                     </div>
 
+                                    {/* Confirm phone button - Solo si aún no está confirmado */}
                                     {isSend && (
                                         <button
                                             type="button"
@@ -663,6 +717,7 @@ const NominativeAssignmentSection = ({
                                         </button>
                                     )}
 
+                                    {/* Botón cambiar número para estados found/notfound */}
                                     {(isFound || isNotFound) && (
                                         <button
                                             type="button"
@@ -678,6 +733,7 @@ const NominativeAssignmentSection = ({
                                         </button>
                                     )}
 
+                                    {/* Info text */}
                                     <p className="text-[#939393] text-[12px] font-medium font-helvetica px-[6px]">
                                         {isNotFound
                                             ? t('checkout.assign_auto_number', '**La entrada se asignará automáticamente al número indicado. Siempre podrás cancelar el envío desde la app.')
@@ -685,6 +741,7 @@ const NominativeAssignmentSection = ({
                                         }
                                     </p>
 
+                                    {/* Variante: Usuario no encontrado - Mostrar campo email */}
                                     {isNotFound && (
                                         <div className="flex flex-col gap-[4px]">
                                             <span className="text-[#939393] text-[14px] font-normal font-helvetica px-[6px]">
@@ -712,6 +769,10 @@ const NominativeAssignmentSection = ({
     );
 };
 
+// ============================================
+// MAIN COMPONENT
+// ============================================
+
 const CheckoutSummary = ({
     event,
     items,
@@ -723,35 +784,35 @@ const CheckoutSummary = ({
 }: CheckoutSummaryProps) => {
     const { t } = useTranslation();
 
+    // State
     const [timeLeft, setTimeLeft] = useState(timerSeconds);
     const [appliedCoupon, setAppliedCoupon] = useState<CouponData | null>(null);
     const [couponLoading, setCouponLoading] = useState(false);
-    const [assignments, setAssignments] = useState<NominativeAssignment[]>([]);
+    const [nominativeAssignments, setNominativeAssignments] = useState<NominativeAssignment[]>([]);
     const [isIncidentModalOpen, setIsIncidentModalOpen] = useState(false);
 
-    const hasNominativeItems = useMemo(() => {
-        return items.some(item => item.isNominative === true);
-    }, [items]);
-
-    const nominativeItemCount = useMemo(() => {
-        return items
-            .filter(item => item.isNominative === true)
-            .reduce((acc, item) => acc + item.quantity, 0);
-    }, [items]);
-
+    // Initialize nominative assignments with 'send' as default
     useEffect(() => {
-        if (!hasNominativeItems || nominativeItemCount === 0) return;
+        const nominativeItems = items.filter(item => item.isNominative);
+        if (nominativeItems.length === 0) return;
 
-        if (assignments.length === 0) {
+        // Count total nominative entries
+        let totalEntries = 0;
+        nominativeItems.forEach(item => {
+            totalEntries += item.quantity;
+        });
+
+        // Only initialize if we don't have assignments yet
+        if (nominativeAssignments.length === 0 && totalEntries > 0) {
             const initialAssignments: NominativeAssignment[] = [];
             let globalIndex = 0;
 
             items.forEach(item => {
-                if (item.isNominative === true) {
+                if (item.isNominative) {
                     for (let i = 0; i < item.quantity; i++) {
                         initialAssignments.push({
                             itemIndex: globalIndex,
-                            assignmentType: 'me',
+                            assignmentType: globalIndex === 0 ? 'me' : 'send',
                             phoneCountry: '34'
                         });
                         globalIndex++;
@@ -759,10 +820,11 @@ const CheckoutSummary = ({
                 }
             });
 
-            setAssignments(initialAssignments);
+            setNominativeAssignments(initialAssignments);
         }
-    }, [items, assignments.length, hasNominativeItems, nominativeItemCount]);
+    }, [items, nominativeAssignments.length]);
 
+    // Timer countdown
     useEffect(() => {
         if (timeLeft <= 0) {
             onTimerExpired();
@@ -783,6 +845,7 @@ const CheckoutSummary = ({
         return () => clearInterval(interval);
     }, [timeLeft, onTimerExpired]);
 
+    // Calculations
     const subtotal = useMemo(() => {
         return items.reduce((acc, item) => acc + (item.unitPrice * item.quantity), 0);
     }, [items]);
@@ -799,22 +862,34 @@ const CheckoutSummary = ({
         return Math.max(0, subtotal + serviceFee - discountAmount);
     }, [subtotal, serviceFee, discountAmount]);
 
-    const assignmentsComplete = useMemo(() => {
-        if (!hasNominativeItems) return true;
-        if (assignments.length !== nominativeItemCount) return false;
+    // Check if has nominative items
+    const hasNominativeItems = useMemo(() => {
+        return items.some(item => item.isNominative);
+    }, [items]);
 
-        return assignments.every(assignment => {
+    // Check if all nominative assignments are complete
+    const nominativeComplete = useMemo(() => {
+        if (!hasNominativeItems) return true;
+
+        const totalNominativeCount = items
+            .filter(item => item.isNominative)
+            .reduce((acc, item) => acc + item.quantity, 0);
+
+        if (nominativeAssignments.length !== totalNominativeCount) return false;
+
+        return nominativeAssignments.every(assignment => {
             if (assignment.assignmentType === 'me') return true;
             if (assignment.assignmentType === 'found') return !!assignment.toUserId;
             if (assignment.assignmentType === 'notfound') {
                 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                 return !!assignment.phone && !!assignment.email && emailRegex.test(assignment.email);
             }
-            if (assignment.assignmentType === 'send') return false;
+            if (assignment.assignmentType === 'send') return false; // Debe confirmar teléfono
             return false;
         });
-    }, [assignments, hasNominativeItems, nominativeItemCount]);
+    }, [hasNominativeItems, items, nominativeAssignments]);
 
+    // Apply coupon
     const handleApplyCoupon = useCallback(async (code: string) => {
         setCouponLoading(true);
         try {
@@ -840,31 +915,36 @@ const CheckoutSummary = ({
         }
     }, [t]);
 
+    // Remove coupon
     const handleRemoveCoupon = useCallback(() => {
         setAppliedCoupon(null);
     }, []);
 
+    // Continue to payment
     const handleContinue = useCallback(() => {
-        if (!assignmentsComplete) {
+        if (hasNominativeItems && !nominativeComplete) {
             toast.error(t('checkout.complete_assignments', 'Por favor completa la asignación de todas las entradas'));
             return;
         }
 
         onContinueToPayment({
             coupon: appliedCoupon || undefined,
-            nominativeAssignments: hasNominativeItems ? assignments : undefined,
+            nominativeAssignments: hasNominativeItems ? nominativeAssignments : undefined,
         });
-    }, [appliedCoupon, assignments, assignmentsComplete, hasNominativeItems, onContinueToPayment, t]);
+    }, [appliedCoupon, hasNominativeItems, nominativeAssignments, nominativeComplete, onContinueToPayment, t]);
 
     const isLowTime = timeLeft < 60;
-    const canContinue = assignmentsComplete;
+    const canContinue = !hasNominativeItems || nominativeComplete;
 
     return (
         <div className="flex flex-col gap-[36px] w-full max-w-[480px] mx-auto px-[24px] py-[24px]">
+            {/* Timer */}
             <CheckoutTimer seconds={timeLeft} isLow={isLowTime} />
 
+            {/* Event Info */}
             <EventInfoCard event={event} items={items} />
 
+            {/* Coupon Section - Solo mostrar si subtotal > 0 */}
             {subtotal > 0 && (
                 <CouponSection
                     appliedCoupon={appliedCoupon}
@@ -875,6 +955,7 @@ const CheckoutSummary = ({
                 />
             )}
 
+            {/* Payment Details */}
             <PaymentDetailsCard
                 subtotal={subtotal}
                 serviceFee={serviceFee}
@@ -882,14 +963,16 @@ const CheckoutSummary = ({
                 total={total}
             />
 
+            {/* Nominative Assignment (only for tickets with isNominative) */}
             {hasNominativeItems && (
                 <NominativeAssignmentSection
                     items={items}
-                    assignments={assignments}
-                    onAssignmentChange={setAssignments}
+                    assignments={nominativeAssignments}
+                    onAssignmentChange={setNominativeAssignments}
                 />
             )}
 
+            {/* Info Text */}
             <p className="text-[#f6f6f6] text-[14px] font-normal font-helvetica px-[6px] leading-[1.4]">
                 {t('checkout.incident_info_prefix', 'En caso de incidencia, por favor notifíquela mediante el ')}
                 <button
@@ -901,6 +984,7 @@ const CheckoutSummary = ({
                 {t('checkout.incident_info_suffix', '. Nuestro equipo analizará la información y trabajará en la solución a la mayor brevedad posible.')}
             </p>
 
+            {/* Continue Button */}
             <button
                 onClick={handleContinue}
                 disabled={!canContinue || isLoading}
@@ -924,10 +1008,12 @@ const CheckoutSummary = ({
                 )}
             </button>
 
+            {/* Legal Text */}
             <p className="text-[rgba(246,246,246,0.5)] text-[12px] font-medium font-helvetica px-[6px] leading-[1.4]">
                 {t('checkout.legal_text', 'Comprando esta entrada, abrirás una cuenta y aceptarás nuestras Condiciones de Uso generales, la Política de Privacidad y las Condiciones de Compra de entradas. Procesamos tus datos personales de acuerdo con nuestra Política de Privacidad.')}
             </p>
 
+            {/* Incident Modal */}
             <IncidentModal
                 isOpen={isIncidentModalOpen}
                 onClose={() => setIsIncidentModalOpen(false)}
