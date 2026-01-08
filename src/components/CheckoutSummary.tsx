@@ -100,7 +100,7 @@ const CheckoutTimer = ({ seconds, isLow }: { seconds: number; isLow: boolean }) 
 };
 
 // Event Info Card
-const EventInfoCard = ({ event, items }: { event: EventInfo; items: CartItem[] }) => {
+const EventInfoCard = ({ items }: { event: EventInfo; items: CartItem[] }) => {
     const { t } = useTranslation();
 
     const getIndicatorColor = (type: CartItem['type']) => {
