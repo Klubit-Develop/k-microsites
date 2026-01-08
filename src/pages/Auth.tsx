@@ -13,7 +13,7 @@ import { countries } from '@/utils/countries';
 interface BackendResponse {
     status: 'success' | 'error';
     code: string;
-    data: Record<string, any>;
+    data: Record<string, unknown>;
     message: string;
     details: string;
 }
@@ -31,7 +31,7 @@ const Auth = () => {
             const response = await axiosInstance.post<BackendResponse>('/v2/email/send', data);
             return response.data;
         },
-        onError: (error: any) => {
+        onError: (error: { backendError?: { message: string } }) => {
             if (error.backendError) {
                 toast.error(error.backendError.message);
             } else {
@@ -45,7 +45,7 @@ const Auth = () => {
             const response = await axiosInstance.post<BackendResponse>('/v2/sms/send', data);
             return response.data;
         },
-        onError: (error: any) => {
+        onError: (error: { backendError?: { message: string } }) => {
             if (error.backendError) {
                 toast.error(error.backendError.message);
             } else {
@@ -61,19 +61,21 @@ const Auth = () => {
         },
         onSuccess: (response: BackendResponse) => {
             if (response.status === 'success') {
-                if (response.data?.exists) {
+                const responseData = response.data as { exists?: boolean; email?: string };
+                
+                if (responseData?.exists) {
                     sendEmailMutation.mutate({
-                        email: response.data.email,
+                        email: responseData.email || '',
                     });
 
                     navigate({
                         to: '/verify',
-                        state: {
+                        search: {
                             verification: 'email',
-                            email: response.data.email,
+                            email: responseData.email || '',
                             country,
                             phone
-                        } as any
+                        }
                     });
                 } else {
                     sendSMSMutation.mutate({
@@ -83,18 +85,18 @@ const Auth = () => {
 
                     navigate({
                         to: '/verify',
-                        state: {
+                        search: {
                             verification: 'sms',
                             country,
-                            phone,
-                        } as any
+                            phone
+                        }
                     });
                 }
             } else {
                 toast.error(response.message || response.details);
             }
         },
-        onError: (error: any) => {
+        onError: (error: { backendError?: { message: string } }) => {
             if (error.backendError) {
                 toast.error(error.backendError.message);
             } else {

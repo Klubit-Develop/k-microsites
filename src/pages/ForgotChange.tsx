@@ -3,7 +3,8 @@ import { useForm } from '@tanstack/react-form';
 import { useTranslation } from 'react-i18next';
 import { LogoIcon, LogoCutIcon } from '@/components/icons';
 import { useMutation } from '@tanstack/react-query';
-import { useLocation, useNavigate } from '@tanstack/react-router';
+import { useNavigate } from '@tanstack/react-router';
+import { Route } from '@/routes/forgot-change';
 
 import axiosInstance from '@/config/axiosConfig';
 import InputText from '@/components/ui/InputText';
@@ -11,15 +12,24 @@ import Button from '@/components/ui/Button';
 
 const ForgotChange = () => {
     const navigate = useNavigate();
-    const location = useLocation();
     const { t } = useTranslation();
+    const searchParams = Route.useSearch();
+
+    const cleanString = (value: string | undefined): string => {
+        if (!value) return '';
+        return value.replace(/^"|"$/g, '');
+    };
+
+    const id = cleanString(searchParams.id);
+    const token = cleanString(searchParams.token);
+    const currentEmail = cleanString(searchParams.currentEmail);
 
     const validators = {
         email: (value: string) => {
             if (!value) return t('forgot_change.email_required');
             if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return t('forgot_change.email_invalid');
         },
-        repeatEmail: (email: any, repeatEmail: any) => {
+        repeatEmail: (email: string, repeatEmail: string) => {
             if (!repeatEmail) return t('forgot_change.repeat_email_required');
             if (email !== repeatEmail) return t('forgot_change.emails_not_match');
         }
@@ -33,17 +43,17 @@ const ForgotChange = () => {
         onSuccess: (_data, variables) => {
             navigate({
                 to: '/verify',
-                state: {
+                search: {
                     verification: 'email',
-                    forgot: true,
-                    id: (location.state as { id?: string })?.id,
-                    token: (location.state as { token?: string })?.token,
-                    currentEmail: (location.state as { currentEmail?: string })?.currentEmail,
+                    isForgot: 'true',
+                    userId: id,
+                    token: token,
+                    currentEmail: currentEmail,
                     email: variables.email
-                } as any
+                }
             });
         },
-        onError: (error: any) => {
+        onError: (error: { backendError?: { message: string } }) => {
             if (error.backendError) {
                 toast.error(error.backendError.message);
             } else {
@@ -74,7 +84,7 @@ const ForgotChange = () => {
         },
         onSubmit: async ({ value }) => {
             sendEmailMutation.mutate({
-                currentEmail: (location.state as { currentEmail?: string })?.currentEmail!,
+                currentEmail: currentEmail,
                 email: value.email,
             });
         }

@@ -13,7 +13,7 @@ import { countries } from '@/utils/countries';
 interface BackendResponse {
     status: 'success' | 'error';
     code: string;
-    data: Record<string, any>;
+    data: Record<string, unknown>;
     message: string;
     details: string;
 }
@@ -31,7 +31,7 @@ const ForgotPage = () => {
             const response = await axiosInstance.post<BackendResponse>('/v2/sms/send', data);
             return response.data;
         },
-        onError: (error: any) => {
+        onError: (error: { backendError?: { message: string } }) => {
             if (error.backendError) {
                 toast.error(error.backendError.message);
             } else {
@@ -47,7 +47,9 @@ const ForgotPage = () => {
         },
         onSuccess: (response: BackendResponse) => {
             if (response.status === 'success') {
-                if (response.data?.exists) {
+                const responseData = response.data as { exists?: boolean; email?: string };
+                
+                if (responseData?.exists) {
                     sendSMSMutation.mutate({
                         country,
                         phone: phone.replace(/\s/g, '')
@@ -55,7 +57,12 @@ const ForgotPage = () => {
 
                     navigate({
                         to: '/verify',
-                        state: { verification: 'sms', forgot: true, country, phone } as any
+                        search: {
+                            verification: 'sms',
+                            isForgot: 'true',
+                            country,
+                            phone
+                        }
                     });
                 } else {
                     navigate({ to: '/incident' });
@@ -64,7 +71,7 @@ const ForgotPage = () => {
                 toast.error(response.message || response.details);
             }
         },
-        onError: (error: any) => {
+        onError: (error: { backendError?: { message: string } }) => {
             if (error.backendError) {
                 toast.error(error.backendError.message);
             } else {

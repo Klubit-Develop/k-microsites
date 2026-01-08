@@ -82,12 +82,12 @@ const Register = () => {
 
                 navigate({
                     to: '/verify',
-                    state: {
+                    search: {
                         verification: 'email',
                         email: variables.email,
                         country,
                         phone: phone?.replace(/\s/g, ''),
-                    } as any
+                    }
                 });
             } else {
                 toast.error(response.message || response.details);

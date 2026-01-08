@@ -1,20 +1,21 @@
-import { createFileRoute, redirect, useBlocker } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 import ForgotChangePage from '@/pages/ForgotChange';
 
-const ForgotChangePageWrapper = () => {
-    useBlocker({
-        shouldBlockFn: () => true,
-    });
-
-    return <ForgotChangePage />;
-};
+interface ForgotChangeSearchParams {
+    id?: string;
+    token?: string;
+    currentEmail?: string;
+}
 
 export const Route = createFileRoute('/forgot-change')({
-    component: ForgotChangePageWrapper,
-    beforeLoad: async ({ location }) => {
-        const state = location.state as { id?: string; token?: string };
-
-        if (!state?.id || !state?.token) {
+    validateSearch: (search: Record<string, unknown>): ForgotChangeSearchParams => ({
+        id: (search.id as string) || '',
+        token: (search.token as string) || '',
+        currentEmail: (search.currentEmail as string) || '',
+    }),
+    component: ForgotChangePage,
+    beforeLoad: async ({ search }) => {
+        if (!search?.id || !search?.token) {
             throw redirect({ to: '/forgot' });
         }
     },

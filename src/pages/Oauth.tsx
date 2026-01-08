@@ -30,26 +30,12 @@ const Oauth = () => {
     const [phone, setPhone] = useState('');
     const [error, setError] = useState('');
 
-    const sendEmailMutation = useMutation({
-        mutationFn: async (data: { email: string }) => {
-            const response = await axiosInstance.post<BackendResponse>('/v2/email/send', data);
-            return response.data;
-        },
-        onError: (error: any) => {
-            if (error.backendError) {
-                toast.error(error.backendError.message);
-            } else {
-                toast.error(t('common.error_connection'));
-            }
-        }
-    });
-
     const sendSMSMutation = useMutation({
         mutationFn: async (data: { country: string; phone: string }) => {
             const response = await axiosInstance.post<BackendResponse>('/v2/sms/send', data);
             return response.data;
         },
-        onError: (error: any) => {
+        onError: (error: { backendError?: { message: string } }) => {
             if (error.backendError) {
                 toast.error(error.backendError.message);
             } else {
@@ -68,38 +54,33 @@ const Oauth = () => {
                 const responseData = response.data as { exists?: boolean; email?: string };
                 
                 if (responseData?.exists) {
-                    sendEmailMutation.mutate({
-                        email: responseData.email || '',
-                    });
-
-                    navigate({
-                        to: '/verify',
-                        search: {
-                            verification: 'email',
-                            email: responseData.email || '',
-                            country,
-                            phone
-                        }
-                    });
-                } else {
-                    sendSMSMutation.mutate({
-                        country,
-                        phone: phone.replace(/\s/g, '')
-                    });
-
-                    navigate({
-                        to: '/verify',
-                        search: {
-                            verification: 'sms',
-                            country,
-                            phone,
-                            oauthEmail,
-                            oauthProvider: provider,
-                            oauthFirstName: firstName,
-                            oauthLastName: lastName,
-                        }
-                    });
+                    if (oauthEmail && responseData.email === oauthEmail) {
+                        toast.error(t('oauth.account_already_exists'));
+                        navigate({ to: '/auth' });
+                        return;
+                    }
+                    
+                    toast.error(t('oauth.phone_belongs_to_another_account'));
+                    return;
                 }
+                
+                sendSMSMutation.mutate({
+                    country,
+                    phone: phone.replace(/\s/g, '')
+                });
+
+                navigate({
+                    to: '/verify',
+                    search: {
+                        verification: 'sms',
+                        country,
+                        phone,
+                        oauthEmail,
+                        oauthProvider: provider,
+                        oauthFirstName: firstName,
+                        oauthLastName: lastName,
+                    }
+                });
             } else {
                 toast.error(response.message || response.details);
             }
