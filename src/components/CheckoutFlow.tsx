@@ -1,14 +1,23 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { useMutation } from '@tanstack/react-query';
 
 import { useCheckoutStore, useCheckoutTimer } from '@/stores/useCheckoutStore';
-import { transactionService, type CartItemRequest } from '@/components/Transactionservice';
+import { transactionService, type CartItemRequest, type AttendeeRequest } from '@/components/Transactionservice';
 
 import CheckoutSummary from '@/components/CheckoutSummary';
 import StripePayment from '@/components/StripePayment';
 import TimeExpiredModal from '@/components/TimeExpiredModal';
+
+interface NominativeAssignment {
+    itemIndex: number;
+    assignmentType: 'me' | 'send' | 'found' | 'notfound';
+    phone?: string;
+    phoneCountry?: string;
+    email?: string;
+    toUserId?: string;
+}
 
 interface CheckoutFlowProps {
     onBack: () => void;
@@ -25,7 +34,6 @@ const CheckoutFlow = ({ onBack, onComplete }: CheckoutFlowProps) => {
         eventDisplayInfo,
         items,
         coupon,
-        nominativeAssignments,
         step,
         isTimerExpired,
         goToPayment,
@@ -43,20 +51,50 @@ const CheckoutFlow = ({ onBack, onComplete }: CheckoutFlowProps) => {
     const { remainingTime } = useCheckoutTimer();
 
     const [transactionId, setTransactionId] = useState<string | null>(null);
+    
+    const pendingDataRef = useRef<{
+        coupon?: { id: string; code: string; type: 'PERCENTAGE' | 'FIXED_AMOUNT'; value: number };
+        nominativeAssignments?: NominativeAssignment[];
+    }>({});
 
     const createTransactionMutation = useMutation({
         mutationFn: async () => {
             if (!eventId) throw new Error('No event selected');
 
-            const cartItems: CartItemRequest[] = items.map((item, index) => {
-                const itemAttendees = nominativeAssignments
-                    .filter(a => a.itemIndex === index)
-                    .map(a => ({
-                        isForMe: a.assignmentType === 'me',
-                        firstName: a.firstName,
-                        lastName: a.lastName,
-                        phone: a.phone,
-                    }));
+            const currentAssignments = pendingDataRef.current.nominativeAssignments || [];
+            const currentCoupon = pendingDataRef.current.coupon || coupon;
+
+            const cartItems: CartItemRequest[] = items.map((item) => {
+                const itemAttendees: AttendeeRequest[] = currentAssignments
+                    .filter(a => {
+                        let startIndex = 0;
+                        for (const prevItem of items) {
+                            if (prevItem === item) break;
+                            if (prevItem.isNominative) startIndex += prevItem.quantity;
+                        }
+                        const endIndex = startIndex + (item.isNominative ? item.quantity : 0);
+                        return a.itemIndex >= startIndex && a.itemIndex < endIndex;
+                    })
+                    .map(a => {
+                        if (a.assignmentType === 'me') {
+                            return { isForMe: true };
+                        }
+                        if (a.assignmentType === 'found' && a.toUserId) {
+                            return {
+                                isForMe: false,
+                                toUserId: a.toUserId,
+                            };
+                        }
+                        if (a.assignmentType === 'notfound' && a.phone && a.phoneCountry) {
+                            return {
+                                isForMe: false,
+                                phone: a.phone.replace(/\s/g, ''),
+                                phoneCountry: a.phoneCountry,
+                                email: a.email,
+                            };
+                        }
+                        return { isForMe: true };
+                    });
 
                 return {
                     itemType: item.type.toUpperCase() as CartItemRequest['itemType'],
@@ -70,26 +108,24 @@ const CheckoutFlow = ({ onBack, onComplete }: CheckoutFlowProps) => {
             return transactionService.createTransaction({
                 eventId,
                 items: cartItems,
-                couponCode: coupon?.code,
+                couponCode: currentCoupon?.code,
             });
         },
         onSuccess: (transaction) => {
-            // Si el total es 0, la transacción ya está COMPLETED en el backend
-            // No necesitamos pasar por Stripe, ir directamente a success
+            pendingDataRef.current = {};
+            
             if (transaction.totalPrice === 0 || transaction.status === 'COMPLETED') {
-                // Limpiar el carrito primero (esto resetea el step a 'selection')
                 clearCart();
-                // Redirigir a la página de éxito
                 window.location.href = `/checkout/success?transactionId=${transaction.id}`;
                 return;
             }
 
-            // Flujo normal con pago
             setTransactionId(transaction.id);
             setTransaction(transaction.id, transaction.totalPrice, transaction.currency);
             goToPayment();
         },
         onError: (error: Error) => {
+            pendingDataRef.current = {};
             console.error('Error creating transaction:', error);
             toast.error(t('checkout.transaction_error', 'Error al crear la transacción'));
         },
@@ -106,15 +142,13 @@ const CheckoutFlow = ({ onBack, onComplete }: CheckoutFlowProps) => {
 
     const handleContinueToPayment = useCallback((data: {
         coupon?: { id: string; code: string; type: 'PERCENTAGE' | 'FIXED_AMOUNT'; value: number };
-        nominativeAssignments?: Array<{
-            itemIndex: number;
-            assignmentType: 'me' | 'send' | 'found' | 'fill';
-            phone?: string;
-            phoneCountry?: string;
-            firstName?: string;
-            lastName?: string;
-        }>;
+        nominativeAssignments?: NominativeAssignment[];
     }) => {
+        pendingDataRef.current = {
+            coupon: data.coupon,
+            nominativeAssignments: data.nominativeAssignments,
+        };
+
         if (data.coupon) {
             setCoupon(data.coupon);
         }

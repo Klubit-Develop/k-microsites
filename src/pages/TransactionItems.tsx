@@ -15,12 +15,32 @@ import axiosInstance from '@/config/axiosConfig';
 interface TransactionItem {
     id: string;
     itemType: 'TICKET' | 'GUESTLIST' | 'RESERVATION' | 'PRODUCT' | 'PROMOTION';
-    status: string;
+    status: 'ACTIVE' | 'PENDING_CLAIM' | 'TRANSFERRED' | 'VALIDATED' | 'CANCELLED';
     quantity: number;
     unitPrice: number;
     subtotal: number;
     isForMe: boolean;
-    walletAddress: string;
+    walletAddress: string | null;
+    // Campos de asignaciÃ³n
+    assignedToUserId?: string | null;
+    assignedToPhone?: string | null;
+    assignedToCountry?: string | null;
+    assignedToEmail?: string | null;
+    purchasedById?: string | null;
+    assignedToUser?: {
+        id: string;
+        firstName: string;
+        lastName: string;
+        username?: string;
+        avatar?: string;
+    } | null;
+    purchasedBy?: {
+        id: string;
+        firstName: string;
+        lastName: string;
+        username?: string;
+        avatar?: string;
+    } | null;
     ticketId?: string | null;
     guestlistId?: string | null;
     reservationId?: string | null;
@@ -115,7 +135,7 @@ const isEventLive = (startDate: string, _endDate?: string, startTime?: string, e
             const eventStartTime = eventStart.hour(startHour).minute(startMin);
             let eventEndTime = eventStart.hour(endHour).minute(endMin);
 
-            // Si la hora de fin es menor que la de inicio, el evento termina al día siguiente
+            // Si la hora de fin es menor que la de inicio, el evento termina al dÃƒÂ­a siguiente
             if (endHour < startHour) {
                 eventEndTime = eventEndTime.add(1, 'day');
             }
@@ -125,7 +145,7 @@ const isEventLive = (startDate: string, _endDate?: string, startTime?: string, e
         return true;
     }
 
-    // Si el evento empezó ayer pero termina hoy (eventos nocturnos)
+    // Si el evento empezÃ³ ayer pero termina hoy (eventos nocturnos)
     if (eventStart.isSame(now.subtract(1, 'day'), 'day') && endTime) {
         const [endHour, endMin] = endTime.split(':').map(Number);
         const eventEndTime = now.hour(endHour).minute(endMin);
@@ -198,6 +218,12 @@ interface ItemCardProps {
     itemType: string;
     quantity: number;
     isLive: boolean;
+    status: TransactionItem['status'];
+    assignedToUser?: TransactionItem['assignedToUser'];
+    assignedToPhone?: string | null;
+    assignedToCountry?: string | null;
+    assignedToEmail?: string | null;
+    isForMe: boolean;
     onClick?: () => void;
 }
 
@@ -211,10 +237,21 @@ const ItemCard = ({
     itemType,
     quantity,
     isLive,
+    status,
+    assignedToUser,
+    assignedToPhone,
+    assignedToEmail,
+    isForMe,
     onClick,
 }: ItemCardProps) => {
     const { t } = useTranslation();
     const dotColor = getItemTypeDotColor(itemType);
+
+    // Determinar si mostrar badge de "Enviado a"
+    const showSentBadge = !isForMe && (assignedToUser || (status === 'PENDING_CLAIM' && assignedToPhone));
+    const sentToText = assignedToUser
+        ? `${assignedToUser.firstName} ${assignedToUser.lastName}`
+        : assignedToEmail || '';
 
     return (
         <button
@@ -256,7 +293,7 @@ const ItemCard = ({
 
                         {/* Location */}
                         <div className="flex items-center gap-1.5 py-px">
-                            <span className="text-[13px]">📍</span>
+                            <span className="text-[13px]">Ã°Å¸â€œÂ</span>
                             <span className="text-[14px] font-helvetica text-[#939393] truncate">
                                 {location}
                             </span>
@@ -277,8 +314,25 @@ const ItemCard = ({
             </div>
 
             {/* Badges */}
+            {/* Sent To Badge */}
+            {showSentBadge && (
+                <div className="absolute top-[13px] left-[13px] flex items-center gap-1.5 px-2.5 py-1 bg-[#141414] rounded-full shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)] max-w-[200px]">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="shrink-0">
+                        <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" stroke="#3FE8E8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                    <span className="text-[13px] font-helvetica text-[#F6F6F6] truncate">
+                        {sentToText}
+                    </span>
+                    {status === 'PENDING_CLAIM' && (
+                        <span className="text-[11px] font-helvetica text-[#939393]">
+                            ({t('wallet.pending', 'pendiente')})
+                        </span>
+                    )}
+                </div>
+            )}
+
             {/* Live Badge */}
-            {isLive && (
+            {isLive && !showSentBadge && (
                 <div className="absolute top-[13px] left-[13px] flex items-center gap-1.5 px-2.5 py-1 bg-[#141414] rounded-full shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]">
                     <span className="text-[14px] font-helvetica text-[#F6F6F6]">
                         {t('wallet.event_live', 'Evento en curso')}
@@ -314,7 +368,7 @@ const TransactionItemsError = () => {
     return (
         <div className="flex flex-col items-center justify-center gap-4 w-full py-16">
             <div className="flex items-center justify-center size-16 bg-[#232323] rounded-full">
-                <span className="text-3xl">❌</span>
+                <span className="text-3xl">Ã¢ÂÅ’</span>
             </div>
             <p className="text-[14px] font-helvetica text-[#FF2323] text-center">
                 {t('common.error_loading', 'Error al cargar')}
@@ -388,6 +442,12 @@ const TransactionItems = () => {
                             itemType={item.itemType}
                             quantity={item.quantity}
                             isLive={isLive}
+                            status={item.status}
+                            assignedToUser={item.assignedToUser}
+                            assignedToPhone={item.assignedToPhone}
+                            assignedToCountry={item.assignedToCountry}
+                            assignedToEmail={item.assignedToEmail}
+                            isForMe={item.isForMe}
                             onClick={() => handleItemClick(item.id)}
                         />
                     ))

@@ -29,6 +29,7 @@ import ItemInfoModal, { type ItemInfoData, type ModalVariant } from '@/component
 import CheckoutSummary from '@/components/CheckoutSummary';
 import TimeExpiredModal from '@/components/TimeExpiredModal';
 import StripePayment from '@/components/StripePayment';
+import AuthModal from '@/components/AuthModal';
 
 interface Artist {
     id: string;
@@ -269,6 +270,26 @@ interface SelectedQuantities {
     promotions: Record<string, number>;
 }
 
+interface AttendeeRequest {
+    isForMe: boolean;
+    firstName?: string;
+    lastName?: string;
+    birthdate?: string;
+    country?: string;
+    phone?: string;
+    toUserId?: string;
+    phoneCountry?: string;
+    email?: string;
+}
+
+interface TransactionItemRequest {
+    itemType: 'TICKET' | 'GUESTLIST' | 'RESERVATION' | 'PRODUCT' | 'PROMOTION';
+    itemId: string;
+    priceId?: string;
+    quantity: number;
+    attendees?: AttendeeRequest[];
+}
+
 const parseQuantitiesFromUrl = (urlString: string | undefined): Record<string, number> => {
     if (!urlString) return {};
     const quantities: Record<string, number> = {};
@@ -311,6 +332,7 @@ const Event = () => {
     const [infoModalData, setInfoModalData] = useState<ItemInfoData | null>(null);
     const [infoModalPriceId, setInfoModalPriceId] = useState<string | null>(null);
     const [infoModalVariant, setInfoModalVariant] = useState<ModalVariant>('ticket');
+    const [authModalOpen, setAuthModalOpen] = useState(false);
 
     const selectedQuantities = useMemo<SelectedQuantities>(() => ({
         tickets: parseQuantitiesFromUrl(searchParams.tickets),
@@ -383,8 +405,8 @@ const Event = () => {
             setCheckoutStep('summary');
         } else {
             setCheckoutStep('selection');
-            // Si estamos en step 1 y no hay items en la URL pero sí en el store,
-            // limpiar el carrito (el usuario navegó fuera y volvió)
+            // Si estamos en step 1 y no hay items en la URL pero sÃƒÂ­ en el store,
+            // limpiar el carrito (el usuario navegÃƒÂ³ fuera y volviÃƒÂ³)
             const hasUrlItems = !!(searchParams.tickets || searchParams.guestlists ||
                 searchParams.reservations || searchParams.products || searchParams.promotions);
             if (!hasUrlItems && checkoutHasItems()) {
@@ -472,12 +494,7 @@ const Event = () => {
     const createTransactionMutation = useMutation({
         mutationFn: async (data: {
             eventId: string;
-            items: Array<{
-                itemType: 'TICKET' | 'GUESTLIST' | 'RESERVATION' | 'PRODUCT' | 'PROMOTION';
-                itemId: string;
-                priceId?: string;
-                quantity: number;
-            }>;
+            items: TransactionItemRequest[];
             couponCode?: string;
         }) => {
             const response = await axiosInstance.post<{
@@ -498,15 +515,12 @@ const Event = () => {
             if (response.status === 'success') {
                 const { id, status, totalPrice, currency } = response.data.transaction;
 
-                // Si el total es 0, la transacción ya está COMPLETED en el backend
-                // No necesitamos pasar por Stripe, ir directamente a success
                 if (totalPrice === 0 || status === 'COMPLETED') {
                     clearCart();
                     window.location.href = `/checkout/success?transactionId=${id}`;
                     return;
                 }
 
-                // Flujo normal con pago
                 setTransaction(id, totalPrice, currency);
                 goToPayment();
                 updateSearchParams({ step: 3 }, true);
@@ -539,6 +553,10 @@ const Event = () => {
             }
             updateSearchParams({ step: 1 }, true);
         } else if (step === 2) {
+            if (!isAuthenticated) {
+                setAuthModalOpen(true);
+                return;
+            }
             if (checkoutStep === 'payment') {
                 goBackCheckout();
                 updateSearchParams({ step: 2 }, true);
@@ -554,7 +572,15 @@ const Event = () => {
                 updateSearchParams({ step: 3 }, true);
             }
         }
-    }, [updateSearchParams, checkoutStep, goBackCheckout, goToSummary, goToPayment, checkoutHasItems, transactionId, t]);
+    }, [updateSearchParams, checkoutStep, goBackCheckout, goToSummary, goToPayment, checkoutHasItems, transactionId, t, isAuthenticated]);
+
+    const handleAuthSuccess = useCallback(() => {
+        setAuthModalOpen(false);
+        if (checkoutHasItems()) {
+            goToSummary();
+            updateSearchParams({ step: 2 }, true);
+        }
+    }, [checkoutHasItems, goToSummary, updateSearchParams]);
 
     const handleTabChange = useCallback((tab: string) => {
         updateSearchParams({ tab: tab as TabKey });
@@ -624,7 +650,7 @@ const Event = () => {
             const precompraPrice = guestlist.prices.find(p => p.finalPrice > 0 && p.id !== price.id);
             if (precompraPrice) {
                 precompraData = {
-                    products: [{ name: 'Consumición', quantity: 1 }],
+                    products: [{ name: 'ConsumiciÃƒÂ³n', quantity: 1 }],
                     startTime: '00:00',
                     endTime: '06:00',
                     price: precompraPrice.finalPrice,
@@ -652,7 +678,7 @@ const Event = () => {
             finalPrice: price.finalPrice,
             currency: price.currency || 'EUR',
             isLowStock,
-            lowStockLabel: isLowStock ? 'Últimas 💣' : undefined,
+            lowStockLabel: isLowStock ? 'ÃƒÅ¡ltimas Ã°Å¸â€™Â£' : undefined,
             isFree,
             hasPrecompra,
             precompraData,
@@ -704,13 +730,18 @@ const Event = () => {
         coupon?: { id: string; code: string; type: 'PERCENTAGE' | 'FIXED_AMOUNT'; value: number };
         nominativeAssignments?: Array<{
             itemIndex: number;
-            assignmentType: 'me' | 'send' | 'found' | 'fill';
+            assignmentType: 'me' | 'send' | 'found' | 'notfound';
             phone?: string;
             phoneCountry?: string;
-            firstName?: string;
-            lastName?: string;
+            email?: string;
+            toUserId?: string;
         }>;
     }) => {
+        if (!isAuthenticated) {
+            setAuthModalOpen(true);
+            return;
+        }
+
         if (data.coupon) {
             setCoupon(data.coupon);
         }
@@ -723,8 +754,9 @@ const Event = () => {
             return;
         }
 
-        // Map checkout items to transaction items
-        const transactionItems = checkoutItems.map(item => {
+        const assignments = data.nominativeAssignments || [];
+
+        const transactionItems: TransactionItemRequest[] = checkoutItems.map(item => {
             let itemType: 'TICKET' | 'GUESTLIST' | 'RESERVATION' | 'PRODUCT' | 'PROMOTION';
             switch (item.type) {
                 case 'ticket':
@@ -746,11 +778,50 @@ const Event = () => {
                     itemType = 'TICKET';
             }
 
+            let attendees: AttendeeRequest[] | undefined = undefined;
+
+            if (item.isNominative && assignments.length > 0) {
+                let startIndex = 0;
+                for (const prevItem of checkoutItems) {
+                    if (prevItem === item) break;
+                    if (prevItem.isNominative) {
+                        startIndex += prevItem.quantity;
+                    }
+                }
+                const endIndex = startIndex + item.quantity;
+
+                const itemAssignments = assignments.filter(
+                    a => a.itemIndex >= startIndex && a.itemIndex < endIndex
+                );
+
+                attendees = itemAssignments.map(a => {
+                    if (a.assignmentType === 'me') {
+                        return { isForMe: true };
+                    }
+                    if (a.assignmentType === 'found' && a.toUserId) {
+                        return {
+                            isForMe: false,
+                            toUserId: a.toUserId,
+                        };
+                    }
+                    if (a.assignmentType === 'notfound' && a.phone && a.phoneCountry) {
+                        return {
+                            isForMe: false,
+                            phone: a.phone.replace(/\s/g, ''),
+                            phoneCountry: a.phoneCountry,
+                            email: a.email,
+                        };
+                    }
+                    return { isForMe: true };
+                });
+            }
+
             return {
                 itemType,
                 itemId: item.id,
                 priceId: item.priceId !== item.id ? item.priceId : undefined,
                 quantity: item.quantity,
+                attendees,
             };
         });
 
@@ -759,7 +830,7 @@ const Event = () => {
             items: transactionItems,
             couponCode: data.coupon?.code,
         });
-    }, [checkoutEventId, checkoutItems, setCoupon, setNominativeAssignments, createTransactionMutation, t]);
+    }, [checkoutEventId, checkoutItems, setCoupon, setNominativeAssignments, createTransactionMutation, isAuthenticated, t]);
 
     const handlePaymentSuccess = useCallback(() => {
         const savedTransactionId = transactionId;
@@ -781,6 +852,13 @@ const Event = () => {
 
         if (quantity <= 0) {
             toast.error(t('event.select_quantity', 'Selecciona una cantidad'));
+            return;
+        }
+
+        // Verificar autenticaciÃ³n antes de continuar
+        if (!isAuthenticated) {
+            handleCloseInfoModal();
+            setAuthModalOpen(true);
             return;
         }
 
@@ -829,6 +907,7 @@ const Event = () => {
         goToSummary,
         handleCloseInfoModal,
         updateSearchParams,
+        isAuthenticated,
         t
     ]);
 
@@ -894,6 +973,12 @@ const Event = () => {
 
         if (!hasSelectedItems) {
             toast.error(t('event.select_items', 'Selecciona al menos un item'));
+            return;
+        }
+
+        // Verificar autenticaciÃ³n antes de continuar
+        if (!isAuthenticated) {
+            setAuthModalOpen(true);
             return;
         }
 
@@ -1006,10 +1091,11 @@ const Event = () => {
         goToSummary,
         updateSearchParams,
         checkoutEventId,
+        isAuthenticated,
         t,
     ]);
 
-    // Handler específico para reservas que incluye los datos del formulario
+    // Handler especÃƒÂ­fico para reservas que incluye los datos del formulario
     const handleReservationCheckout = useCallback((formData: ReservationFormData) => {
         const event = eventQuery.data;
         if (!event) return;
@@ -1018,6 +1104,12 @@ const Event = () => {
 
         if (!hasSelectedReservations) {
             toast.error(t('event.select_reservation', 'Selecciona al menos una reserva'));
+            return;
+        }
+
+        // Verificar autenticaciÃ³n antes de continuar
+        if (!isAuthenticated) {
+            setAuthModalOpen(true);
             return;
         }
 
@@ -1036,7 +1128,7 @@ const Event = () => {
             }
         );
 
-        // Añadir las reservas seleccionadas al carrito
+        // AÃƒÂ±adir las reservas seleccionadas al carrito
         event.reservations?.forEach(reservation => {
             reservation.prices?.forEach(price => {
                 const quantity = selectedQuantities.reservations[price.id];
@@ -1056,7 +1148,7 @@ const Event = () => {
         });
 
         // TODO: Guardar formData (reservationName, partySize, observations) 
-        // en el store o enviarlo con la transacción
+        // en el store o enviarlo con la transacciÃƒÂ³n
         console.log('Reservation form data:', formData);
 
         goToSummary();
@@ -1070,6 +1162,7 @@ const Event = () => {
         goToSummary,
         updateSearchParams,
         checkoutEventId,
+        isAuthenticated,
         t,
     ]);
 
@@ -1448,6 +1541,15 @@ const Event = () => {
             <TimeExpiredModal
                 isOpen={isTimerExpired}
                 onRetry={handleRetryAfterExpired}
+            />
+
+            {/* Auth Modal */}
+            <AuthModal
+                isOpen={authModalOpen}
+                onClose={() => setAuthModalOpen(false)}
+                onSuccess={handleAuthSuccess}
+                eventSlug={slug}
+                checkoutSearchParams={searchParams as Record<string, string>}
             />
         </div>
     );

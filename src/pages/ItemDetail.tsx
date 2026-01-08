@@ -20,12 +20,31 @@ import { useAuthStore } from '@/stores/authStore';
 interface TransactionItem {
     id: string;
     itemType: 'TICKET' | 'GUESTLIST' | 'RESERVATION' | 'PROMOTION' | 'PRODUCT';
-    status: string;
+    status: 'ACTIVE' | 'PENDING_CLAIM' | 'TRANSFERRED' | 'VALIDATED' | 'CANCELLED';
     quantity: number;
     unitPrice: number;
     subtotal: number;
     isForMe: boolean;
-    walletAddress?: string;
+    walletAddress?: string | null;
+    purchasedById?: string | null;
+    assignedToUserId?: string | null;
+    assignedToPhone?: string | null;
+    assignedToCountry?: string | null;
+    assignedToEmail?: string | null;
+    assignedToUser?: {
+        id: string;
+        firstName: string;
+        lastName: string;
+        username?: string;
+        avatar?: string;
+    } | null;
+    purchasedBy?: {
+        id: string;
+        firstName: string;
+        lastName: string;
+        username?: string;
+        avatar?: string;
+    } | null;
     ticketId?: string | null;
     guestlistId?: string | null;
     reservationId?: string | null;
@@ -123,7 +142,7 @@ const formatEventDate = (dateString: string, locale: string): string => {
 
 const formatPrice = (price: number): string => {
     if (price === 0) return 'Gratis';
-    return `${price.toFixed(2)}€`;
+    return `${price.toFixed(2)}Ã¢â€šÂ¬`;
 };
 
 const formatTimeRange = (startTime?: string, endTime?: string): string => {
@@ -256,7 +275,7 @@ const TarifaCardInfo = ({ item }: TarifaCardInfoProps) => {
                             {price}
                         </span>
                         {item.unitPrice === 0 && (
-                            <span className="text-[18px]">🆓</span>
+                            <span className="text-[18px]">Ã°Å¸â€ â€œ</span>
                         )}
                     </div>
                 </div>
@@ -319,7 +338,7 @@ const PassbookCard = ({ walletAddress, userId, clubId }: PassbookCardProps) => {
             const links = response.data.data.walletLinks;
             setWalletLinks(links);
 
-            // Abrir la URL correspondiente según plataforma
+            // Abrir la URL correspondiente segÃƒÂºn plataforma
             const url = useAppleWallet ? links.ios : links.android;
             if (url) {
                 window.open(url, '_blank');
@@ -348,7 +367,7 @@ const PassbookCard = ({ walletAddress, userId, clubId }: PassbookCardProps) => {
                     />
                 </div>
 
-                {/* Add to Wallet Button - Badges según idioma y plataforma */}
+                {/* Add to Wallet Button - Badges segÃƒÂºn idioma y plataforma */}
                 <button
                     onClick={handleAddToWallet}
                     disabled={isGenerating}
@@ -358,17 +377,17 @@ const PassbookCard = ({ walletAddress, userId, clubId }: PassbookCardProps) => {
                     `}
                 >
                     {isGenerating ? (
-                        /* Skeleton del botón */
+                        /* Skeleton del botÃ³n */
                         <div className="w-[156px] h-[48px] bg-[#232323] rounded-md animate-pulse" />
                     ) : useAppleWallet ? (
-                        /* Apple Wallet Badge - según idioma */
+                        /* Apple Wallet Badge - segÃƒÂºn idioma */
                         <img 
                             src={isSpanish ? '/assets/images/apple_es.svg' : '/assets/images/apple_en.svg'}
                             alt={t('transaction.add_to_apple_wallet', 'Add to Apple Wallet')}
                             className="h-[48px] w-auto"
                         />
                     ) : (
-                        /* Google Wallet Badge - según idioma */
+                        /* Google Wallet Badge - segÃƒÂºn idioma */
                         <img 
                             src={isSpanish ? '/assets/images/google_es.svg' : '/assets/images/google_en.svg'}
                             alt={t('transaction.add_to_google_wallet', 'Add to Google Wallet')}
@@ -379,6 +398,136 @@ const PassbookCard = ({ walletAddress, userId, clubId }: PassbookCardProps) => {
             </div>
         </div>
     );
+};
+
+// =============================================================================
+// ASSIGNMENT STATUS CARD
+// =============================================================================
+
+interface AssignmentStatusCardProps {
+    item: TransactionItem;
+    currentUserId: string;
+    transactionUserId: string;
+}
+
+const AssignmentStatusCard = ({ item, currentUserId, transactionUserId }: AssignmentStatusCardProps) => {
+    const { t } = useTranslation();
+    
+    const isPurchaser = currentUserId === transactionUserId || currentUserId === item.purchasedById;
+    const isRecipient = currentUserId === item.assignedToUserId;
+    const isSentToOther = !item.isForMe && (item.assignedToUserId || item.status === 'PENDING_CLAIM');
+    
+    if (item.isForMe || (!isSentToOther)) {
+        return null;
+    }
+
+    // Caso: Usuario destinatario existe (found)
+    if (item.assignedToUser && isPurchaser) {
+        return (
+            <div className="flex flex-col gap-1 w-full">
+                <span className="text-[16px] font-helvetica font-medium text-[#939393] px-1.5">
+                    {t('wallet.sent_to', 'Enviado a')}
+                </span>
+                <div className="flex items-center gap-3 p-4 bg-[#141414] border-2 border-[#232323] rounded-2xl">
+                    {item.assignedToUser.avatar ? (
+                        <img 
+                            src={item.assignedToUser.avatar} 
+                            alt={item.assignedToUser.firstName}
+                            className="w-12 h-12 rounded-full object-cover"
+                        />
+                    ) : (
+                        <div className="w-12 h-12 rounded-full bg-[#232323] flex items-center justify-center">
+                            <Users className="w-6 h-6 text-[#939393]" />
+                        </div>
+                    )}
+                    <div className="flex flex-col gap-0.5">
+                        <span className="text-[16px] font-helvetica font-medium text-[#F6F6F6]">
+                            {item.assignedToUser.firstName} {item.assignedToUser.lastName}
+                        </span>
+                        {item.assignedToUser.username && (
+                            <span className="text-[14px] font-helvetica text-[#939393]">
+                                @{item.assignedToUser.username}
+                            </span>
+                        )}
+                    </div>
+                    <div className="ml-auto">
+                        <div className="px-3 py-1 bg-[#22C55E]/20 rounded-full">
+                            <span className="text-[12px] font-helvetica font-medium text-[#22C55E]">
+                                {t('wallet.delivered', 'Entregado')}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Caso: Usuario no existe (pending_claim) - visto por el comprador
+    if (item.status === 'PENDING_CLAIM' && isPurchaser) {
+        return (
+            <div className="flex flex-col gap-1 w-full">
+                <span className="text-[16px] font-helvetica font-medium text-[#939393] px-1.5">
+                    {t('wallet.sent_to', 'Enviado a')}
+                </span>
+                <div className="flex items-center gap-3 p-4 bg-[#141414] border-2 border-[#232323] rounded-2xl">
+                    <div className="w-12 h-12 rounded-full bg-[#232323] flex items-center justify-center">
+                        <Users className="w-6 h-6 text-[#939393]" />
+                    </div>
+                    <div className="flex flex-col gap-0.5">
+                        <span className="text-[16px] font-helvetica font-medium text-[#F6F6F6]">
+                            {item.assignedToEmail || ''}
+                        </span>
+                        <span className="text-[13px] font-helvetica text-[#939393]">
+                            {t('wallet.pending_registration', 'Pendiente de registro')}
+                        </span>
+                    </div>
+                    <div className="ml-auto">
+                        <div className="px-3 py-1 bg-[#FFCE1F]/20 rounded-full">
+                            <span className="text-[12px] font-helvetica font-medium text-[#FFCE1F]">
+                                {t('wallet.pending', 'Pendiente')}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Caso: El destinatario ve quien se lo enviÃ³
+    if (isRecipient && item.purchasedBy) {
+        return (
+            <div className="flex flex-col gap-1 w-full">
+                <span className="text-[16px] font-helvetica font-medium text-[#939393] px-1.5">
+                    {t('wallet.received_from', 'Recibido de')}
+                </span>
+                <div className="flex items-center gap-3 p-4 bg-[#141414] border-2 border-[#232323] rounded-2xl">
+                    {item.purchasedBy.avatar ? (
+                        <img 
+                            src={item.purchasedBy.avatar} 
+                            alt={item.purchasedBy.firstName}
+                            className="w-12 h-12 rounded-full object-cover"
+                        />
+                    ) : (
+                        <div className="w-12 h-12 rounded-full bg-[#232323] flex items-center justify-center">
+                            <Users className="w-6 h-6 text-[#939393]" />
+                        </div>
+                    )}
+                    <div className="flex flex-col gap-0.5">
+                        <span className="text-[16px] font-helvetica font-medium text-[#F6F6F6]">
+                            {item.purchasedBy.firstName} {item.purchasedBy.lastName}
+                        </span>
+                        {item.purchasedBy.username && (
+                            <span className="text-[14px] font-helvetica text-[#939393]">
+                                @{item.purchasedBy.username}
+                            </span>
+                        )}
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    return null;
 };
 
 // =============================================================================
@@ -400,7 +549,7 @@ const ItemDetailError = () => {
     return (
         <div className="flex flex-col items-center justify-center gap-4 w-full max-w-[500px] mx-auto px-4 pt-[120px] pb-[100px] md:py-16">
             <div className="flex items-center justify-center size-20 bg-[#232323] rounded-full">
-                <span className="text-4xl">❌</span>
+                <span className="text-4xl">Ã¢ÂÅ’</span>
             </div>
             <div className="flex flex-col items-center gap-2 text-center">
                 <h2 className="text-[20px] font-helvetica font-bold text-[#F6F6F6]">
@@ -432,15 +581,13 @@ const ItemDetail = () => {
             const response = await axiosInstance.get<BackendResponse>(
                 `/v2/transactions/${transactionId}`
             );
-            // El backend puede devolver data.transaction o data directamente
             const data = response.data.data;
             return (data as any).transaction || data;
         },
         enabled: !!transactionId,
     });
 
-    // Encontrar el item específico
-    const item = transaction?.items?.find((i: { id: string; }) => i.id === itemId);
+    const item = transaction?.items?.find((i: { id: string; }) => i.id === itemId) as TransactionItem | undefined;
 
     if (isLoading) {
         return (
@@ -450,7 +597,7 @@ const ItemDetail = () => {
         );
     }
 
-    if (error || !transaction || !item) {
+    if (error || !transaction || !item || !user?.id) {
         return (
             <div className="min-h-screen bg-black">
                 <ItemDetailError />
@@ -458,9 +605,22 @@ const ItemDetail = () => {
         );
     }
 
+    // LÃ³gica para determinar quiÃ©n puede ver el QR:
+    // - Caso 1 (isForMe): El comprador puede ver el QR
+    // - Caso 2 (found): El DESTINATARIO puede ver el QR, el comprador NO
+    // - Caso 3 (PENDING_CLAIM): El COMPRADOR puede ver el QR hasta que el destinatario reclame
+    const isPurchaser = user.id === transaction.user.id || user.id === item.purchasedById;
+    const isRecipient = user.id === item.assignedToUserId;
+    const isPendingClaim = item.status === 'PENDING_CLAIM';
+    
+    // Puede ver QR si:
+    // 1. Es para mÃ­ (isForMe)
+    // 2. Soy el destinatario (found)
+    // 3. Soy el comprador Y estÃ¡ pendiente de claim
+    const canViewQR = item.isForMe || isRecipient || (isPurchaser && isPendingClaim);
+
     return (
         <div className="min-h-screen bg-black">
-            {/* Content */}
             <div className="flex flex-col gap-9 w-full max-w-[500px] mx-auto px-4 pt-[120px] pb-[100px] md:py-4 md:pb-8">
                 {/* Evento Card */}
                 <EventCardInfo event={transaction.event} locale={locale} />
@@ -468,8 +628,15 @@ const ItemDetail = () => {
                 {/* Tarifa Card */}
                 <TarifaCardInfo item={item} />
 
-                {/* Passbook con QR */}
-                {item.walletAddress && user?.id && (
+                {/* Estado de asignaciÃ³n */}
+                <AssignmentStatusCard
+                    item={item}
+                    currentUserId={user.id}
+                    transactionUserId={transaction.user.id}
+                />
+
+                {/* Passbook con QR - Solo si puede verlo */}
+                {canViewQR && item.walletAddress && (
                     <PassbookCard
                         walletAddress={item.walletAddress}
                         userId={user.id}
@@ -477,7 +644,28 @@ const ItemDetail = () => {
                     />
                 )}
 
-                {/* Dirección con mapa */}
+                {/* Mensaje cuando el comprador NO puede ver el QR (ya enviado a usuario existente) */}
+                {!canViewQR && isPurchaser && item.assignedToUserId && (
+                    <div className="flex flex-col gap-1 w-full">
+                        <span className="text-[16px] font-helvetica font-medium text-[#939393] px-1.5">
+                            Passbook
+                        </span>
+                        <div className="flex flex-col items-center gap-3 p-6 bg-[#141414] border-2 border-[#232323] rounded-2xl">
+                            <div className="w-16 h-16 rounded-full bg-[#232323] flex items-center justify-center">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke="#22C55E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                </svg>
+                            </div>
+                            <div className="text-center">
+                                <p className="text-[14px] font-helvetica text-[#939393]">
+                                    {t('wallet.qr_transferred', 'Esta entrada ya estÃ¡ en la wallet del destinatario')}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* DirecciÃ³n con mapa */}
                 {transaction.club.address && transaction.club.addressLocation && (
                     <LocationCard
                         address={transaction.club.address}
@@ -488,10 +676,10 @@ const ItemDetail = () => {
                     />
                 )}
 
-                {/* Link a términos */}
+                {/* Link a tÃ©rminos */}
                 <button className="px-1.5 text-left cursor-pointer">
                     <span className="text-[12px] font-helvetica font-medium text-[#F6F6F6]/50 underline">
-                        {t('transaction.read_terms', 'Leer los términos de compra de la tarifa')}
+                        {t('transaction.read_terms', 'Leer los tÃ©rminos de compra de la tarifa')}
                     </span>
                 </button>
             </div>

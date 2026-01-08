@@ -3,10 +3,17 @@ import { toast } from 'sonner';
 import { useEffect } from 'react';
 import { useAuthStore } from '@/stores/authStore';
 import { useTranslation } from 'react-i18next';
-import axiosInstance from '@/config/axiosConfig';
+import { getCheckoutReturnState, clearCheckoutReturnState } from '@/components/AuthModal';
 
 interface SearchParams {
-    oauthToken?: string;
+    status?: string;
+    provider?: string;
+    email?: string;
+    exists?: string;
+    user?: string;
+    profile?: string;
+    redirectTo?: string;
+    token?: string;
 }
 
 interface OAuthProfile {
@@ -31,84 +38,18 @@ interface OAuthUser {
     clubRoles: unknown[];
 }
 
-interface OAuthDataMainApp {
-    status: string;
-    code: string;
-    navigation: string;
-    provider: string;
-    profile: OAuthProfile | null;
-    email: string;
-    sessionToken: string | null;
-    missingFields: string[] | null;
-    user: OAuthUser | null;
-}
-
-interface OAuthDataMicrosites {
-    status: string;
-    provider: string;
-    email: string;
-    exists: boolean;
-    redirectTo: string;
-    token: string | null;
-    user: OAuthUser | null;
-    profile: OAuthProfile | null;
-}
-
-type OAuthData = OAuthDataMainApp | OAuthDataMicrosites;
-
-const isMicrositesData = (data: OAuthData): data is OAuthDataMicrosites => {
-    return 'exists' in data;
-};
-
 const AuthSuccessComponent = () => {
     const navigate = useNavigate();
     const { t } = useTranslation();
     const { setUser, setToken } = useAuthStore();
     const searchParams = Route.useSearch();
 
-    const { oauthToken } = searchParams;
+    const { status, provider, email, user, profile, token } = searchParams;
 
     useEffect(() => {
         const authenticateUser = async () => {
             try {
-                if (!oauthToken) {
-                    console.error('No OAuth token provided');
-                    toast.error(t('auth_success.authentication_error'));
-                    setTimeout(() => {
-                        navigate({ to: '/' });
-                    }, 2000);
-                    return;
-                }
-
-                const response = await axiosInstance.get<OAuthData>(`/v2/oauth/verify/${oauthToken}`);
-                const data = response.data;
-
-                if (isMicrositesData(data)) {
-                    if (data.exists && data.user && data.token) {
-                        setToken(data.token);
-                        setUser(data.user);
-                        toast.success(t('auth_success.login_success'));
-                        setTimeout(() => {
-                            navigate({ to: '/' });
-                        }, 1500);
-                        return;
-                    }
-
-                    setTimeout(() => {
-                        navigate({
-                            to: '/oauth',
-                            search: {
-                                email: data.email || data.profile?.email || '',
-                                provider: data.provider,
-                                firstName: data.profile?.firstName || '',
-                                lastName: data.profile?.lastName || ''
-                            }
-                        });
-                    }, 1500);
-                    return;
-                }
-
-                if (data.status !== 'success') {
+                if (status !== 'success') {
                     console.error('OAuth failed');
                     toast.error(t('auth_success.authentication_error'));
                     setTimeout(() => {
@@ -117,18 +58,56 @@ const AuthSuccessComponent = () => {
                     return;
                 }
 
-                const hasValidUser = data.user && data.user.id && data.user.id.trim() !== '';
-                const hasValidToken = data.sessionToken && data.sessionToken.trim() !== '';
+                let userData: OAuthUser | null = null;
+
+                if (user) {
+                    if (typeof user === 'string') {
+                        const trimmed = user.trim();
+                        if (trimmed !== '' && trimmed !== '{}') {
+                            try {
+                                userData = JSON.parse(trimmed);
+                            } catch (e) {
+                                console.error('Error parsing user data:', e);
+                            }
+                        }
+                    } else if (typeof user === 'object' && user !== null) {
+                        userData = user as unknown as OAuthUser;
+                    }
+                }
+
+                const hasValidUser = userData && userData.id && userData.id.trim() !== '';
+                const hasValidToken = token && token.trim() !== '';
+
+                console.log('Parsed userData:', userData);
+                console.log('Has valid user:', hasValidUser);
+                console.log('Has valid token:', hasValidToken);
 
                 if (!hasValidUser) {
+                    let profileData: OAuthProfile | null = null;
+
+                    if (profile) {
+                        if (typeof profile === 'string') {
+                            const trimmed = profile.trim();
+                            if (trimmed !== '' && trimmed !== '{}') {
+                                try {
+                                    profileData = JSON.parse(trimmed);
+                                } catch (e) {
+                                    console.error('Error parsing profile data:', e);
+                                }
+                            }
+                        } else if (typeof profile === 'object' && profile !== null) {
+                            profileData = profile as unknown as OAuthProfile;
+                        }
+                    }
+
                     setTimeout(() => {
                         navigate({
                             to: '/oauth',
                             search: {
-                                email: data.email || data.profile?.email || '',
-                                provider: data.provider,
-                                firstName: data.profile?.firstName || '',
-                                lastName: data.profile?.lastName || ''
+                                email: email || profileData?.email || '',
+                                provider: provider || '',
+                                firstName: profileData?.firstName || '',
+                                lastName: profileData?.lastName || ''
                             }
                         });
                     }, 1500);
@@ -136,10 +115,23 @@ const AuthSuccessComponent = () => {
                 }
 
                 if (hasValidUser && hasValidToken) {
-                    setToken(data.sessionToken!);
-                    setUser(data.user!);
+                    setToken(token!);
+                    setUser(userData!);
 
                     toast.success(t('auth_success.login_success'));
+
+                    const checkoutReturn = getCheckoutReturnState();
+                    if (checkoutReturn) {
+                        clearCheckoutReturnState();
+                        setTimeout(() => {
+                            const searchParamsStr = new URLSearchParams(
+                                checkoutReturn.searchParams as Record<string, string>
+                            ).toString();
+                            const returnUrl = `/event/${checkoutReturn.eventSlug}${searchParamsStr ? `?${searchParamsStr}` : ''}`;
+                            navigate({ to: returnUrl });
+                        }, 1000);
+                        return;
+                    }
 
                     setTimeout(() => {
                         navigate({ to: '/' });
@@ -153,7 +145,7 @@ const AuthSuccessComponent = () => {
                     navigate({ to: '/' });
                 }, 2000);
 
-            } catch (error) {
+            } catch (error: unknown) {
                 console.error('Error in auth-success:', error);
                 toast.error(t('auth_success.authentication_error'));
                 setTimeout(() => {
@@ -163,13 +155,13 @@ const AuthSuccessComponent = () => {
         };
 
         authenticateUser();
-    }, [oauthToken, navigate, setToken, setUser, t]);
+    }, [status, provider, email, user, profile, token, navigate, setToken, setUser, t]);
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="min-h-screen flex items-center justify-center bg-black">
             <div className="text-center">
                 <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#ff336d]"></div>
-                <p className="mt-4 text-gray-600 font-helvetica">{t('auth_success.authenticating')}</p>
+                <p className="mt-4 text-[#939393] font-helvetica">{t('auth_success.authenticating')}</p>
             </div>
         </div>
     );
@@ -177,7 +169,14 @@ const AuthSuccessComponent = () => {
 
 export const Route = createFileRoute('/auth-success')({
     validateSearch: (search: Record<string, unknown>): SearchParams => ({
-        oauthToken: (search.oauthToken as string) || ''
+        status: (search.status as string) || '',
+        provider: (search.provider as string) || '',
+        email: (search.email as string) || '',
+        exists: (search.exists as string) || '',
+        user: (search.user as string) || '',
+        profile: (search.profile as string) || '',
+        redirectTo: (search.redirectTo as string) || '',
+        token: (search.token as string) || ''
     }),
     component: AuthSuccessComponent
 });

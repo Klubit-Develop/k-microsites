@@ -62,6 +62,7 @@
 │   │   ├── ArtistCard.tsx
 │   │   ├── ArtistProfile.tsx
 │   │   ├── ArtistsList.tsx
+│   │   ├── AuthModal.tsx
 │   │   ├── CheckoutFlow.tsx
 │   │   ├── CheckoutFooter.tsx
 │   │   ├── CheckoutSummary.tsx
@@ -239,4 +240,4 @@
 ├── tsconfig.json
 └── vite.config.ts
 
-22 directories, 218 files
+22 directories, 219 files

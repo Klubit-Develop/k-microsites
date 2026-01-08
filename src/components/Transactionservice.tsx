@@ -2,19 +2,24 @@ import axiosInstance from '@/config/axiosConfig';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
+export interface AttendeeRequest {
+    isForMe: boolean;
+    firstName?: string;
+    lastName?: string;
+    birthdate?: string;
+    country?: string;
+    phone?: string;
+    toUserId?: string;
+    phoneCountry?: string;
+    email?: string;
+}
+
 export interface CartItemRequest {
     itemType: 'TICKET' | 'GUESTLIST' | 'RESERVATION' | 'PROMOTION' | 'PRODUCT';
     itemId: string;
     priceId?: string;
     quantity: number;
-    attendees?: Array<{
-        isForMe: boolean;
-        firstName?: string;
-        lastName?: string;
-        birthdate?: string;
-        country?: string;
-        phone?: string;
-    }>;
+    attendees?: AttendeeRequest[];
 }
 
 export interface CreateTransactionRequest {
