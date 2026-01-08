@@ -1,4 +1,4 @@
-import { createFileRoute, redirect, useBlocker } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 import RegisterPage from '@/pages/Register';
 
 interface RegisterSearchParams {
@@ -10,14 +10,6 @@ interface RegisterSearchParams {
     oauthLastName?: string;
 }
 
-const RegisterPageWrapper = () => {
-  useBlocker({
-    shouldBlockFn: () => true,
-  });
-
-  return <RegisterPage />;
-};
-
 export const Route = createFileRoute('/register')({
   validateSearch: (search: Record<string, unknown>): RegisterSearchParams => ({
     country: (search.country as string) || '',
@@ -27,7 +19,7 @@ export const Route = createFileRoute('/register')({
     oauthFirstName: (search.oauthFirstName as string) || '',
     oauthLastName: (search.oauthLastName as string) || '',
   }),
-  component: RegisterPageWrapper,
+  component: RegisterPage,
   beforeLoad: async ({ search }) => {
     if (!search?.country || !search?.phone) {
       throw redirect({ to: '/' });

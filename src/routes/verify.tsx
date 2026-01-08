@@ -1,4 +1,4 @@
-import { createFileRoute, redirect, useBlocker } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 import VerifyPage from '@/pages/Verify';
 
 interface VerifySearchParams {
@@ -16,14 +16,6 @@ interface VerifySearchParams {
     token?: string;
 }
 
-const VerifyPageWrapper = () => {
-    useBlocker({
-        shouldBlockFn: () => true,
-    });
-
-    return <VerifyPage />;
-};
-
 export const Route = createFileRoute('/verify')({
     validateSearch: (search: Record<string, unknown>): VerifySearchParams => ({
         verification: (search.verification as string) || '',
@@ -39,7 +31,7 @@ export const Route = createFileRoute('/verify')({
         userId: (search.userId as string) || '',
         token: (search.token as string) || '',
     }),
-    component: VerifyPageWrapper,
+    component: VerifyPage,
     beforeLoad: async ({ search }) => {
         if (!search.verification) {
             throw redirect({ to: '/' });
