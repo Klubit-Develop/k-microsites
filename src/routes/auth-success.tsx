@@ -7,14 +7,6 @@ import axiosInstance from '@/config/axiosConfig';
 
 interface SearchParams {
     oauthToken?: string;
-    status?: string;
-    provider?: string;
-    email?: string;
-    exists?: string;
-    user?: string;
-    profile?: string;
-    redirectTo?: string;
-    token?: string;
 }
 
 interface OAuthProfile {
@@ -39,7 +31,7 @@ interface OAuthUser {
     clubRoles: unknown[];
 }
 
-interface OAuthData {
+interface OAuthDataMainApp {
     status: string;
     code: string;
     navigation: string;
@@ -50,6 +42,23 @@ interface OAuthData {
     missingFields: string[] | null;
     user: OAuthUser | null;
 }
+
+interface OAuthDataMicrosites {
+    status: string;
+    provider: string;
+    email: string;
+    exists: boolean;
+    redirectTo: string;
+    token: string | null;
+    user: OAuthUser | null;
+    profile: OAuthProfile | null;
+}
+
+type OAuthData = OAuthDataMainApp | OAuthDataMicrosites;
+
+const isMicrositesData = (data: OAuthData): data is OAuthDataMicrosites => {
+    return 'exists' in data;
+};
 
 const AuthSuccessComponent = () => {
     const navigate = useNavigate();
@@ -73,6 +82,31 @@ const AuthSuccessComponent = () => {
 
                 const response = await axiosInstance.get<OAuthData>(`/v2/oauth/verify/${oauthToken}`);
                 const data = response.data;
+
+                if (isMicrositesData(data)) {
+                    if (data.exists && data.user && data.token) {
+                        setToken(data.token);
+                        setUser(data.user);
+                        toast.success(t('auth_success.login_success'));
+                        setTimeout(() => {
+                            navigate({ to: '/' });
+                        }, 1500);
+                        return;
+                    }
+
+                    setTimeout(() => {
+                        navigate({
+                            to: '/oauth',
+                            search: {
+                                email: data.email || data.profile?.email || '',
+                                provider: data.provider,
+                                firstName: data.profile?.firstName || '',
+                                lastName: data.profile?.lastName || ''
+                            }
+                        });
+                    }, 1500);
+                    return;
+                }
 
                 if (data.status !== 'success') {
                     console.error('OAuth failed');
@@ -143,15 +177,7 @@ const AuthSuccessComponent = () => {
 
 export const Route = createFileRoute('/auth-success')({
     validateSearch: (search: Record<string, unknown>): SearchParams => ({
-        oauthToken: (search.oauthToken as string) || '',
-        status: (search.status as string) || '',
-        provider: (search.provider as string) || '',
-        email: (search.email as string) || '',
-        exists: (search.exists as string) || '',
-        user: (search.user as string) || '',
-        profile: (search.profile as string) || '',
-        redirectTo: (search.redirectTo as string) || '',
-        token: (search.token as string) || ''
+        oauthToken: (search.oauthToken as string) || ''
     }),
     component: AuthSuccessComponent
 });
