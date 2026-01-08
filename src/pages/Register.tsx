@@ -29,11 +29,16 @@ const Register = () => {
     const { i18n, t } = useTranslation();
     const searchParams = Route.useSearch();
 
-    const country = searchParams.country || '34';
-    const phone = searchParams.phone || '';
-    const oauthEmail = searchParams.oauthEmail || '';
-    const oauthFirstName = searchParams.oauthFirstName || '';
-    const oauthLastName = searchParams.oauthLastName || '';
+    const cleanString = (value: string | undefined): string => {
+        if (!value) return '';
+        return value.replace(/^"|"$/g, '');
+    };
+
+    const country = cleanString(searchParams.country) || '34';
+    const phone = cleanString(searchParams.phone);
+    const oauthEmail = cleanString(searchParams.oauthEmail);
+    const oauthFirstName = cleanString(searchParams.oauthFirstName);
+    const oauthLastName = cleanString(searchParams.oauthLastName);
 
     const sendEmailMutation = useMutation({
         mutationFn: async (data: { email: string }) => {

@@ -21,17 +21,22 @@ const Verify = () => {
     const [otpValue, setOtpValue] = useState('');
     const [countdown, setCountdown] = useState(0);
 
-    const verification = searchParams.verification || '';
-    const email = searchParams.email || '';
-    const country = searchParams.country || '';
-    const phone = searchParams.phone || '';
-    const oauthEmail = searchParams.oauthEmail || '';
-    const oauthProvider = searchParams.oauthProvider || '';
-    const oauthFirstName = searchParams.oauthFirstName || '';
-    const oauthLastName = searchParams.oauthLastName || '';
-    const currentEmail = searchParams.currentEmail || '';
-    const userId = searchParams.userId || '';
-    const stateToken = searchParams.token || '';
+    const cleanString = (value: string | undefined): string => {
+        if (!value) return '';
+        return value.replace(/^"|"$/g, '');
+    };
+
+    const verification = cleanString(searchParams.verification);
+    const email = cleanString(searchParams.email);
+    const country = cleanString(searchParams.country);
+    const phone = cleanString(searchParams.phone);
+    const oauthEmail = cleanString(searchParams.oauthEmail);
+    const oauthProvider = cleanString(searchParams.oauthProvider);
+    const oauthFirstName = cleanString(searchParams.oauthFirstName);
+    const oauthLastName = cleanString(searchParams.oauthLastName);
+    const currentEmail = cleanString(searchParams.currentEmail);
+    const userId = cleanString(searchParams.userId);
+    const stateToken = cleanString(searchParams.token);
 
     const isForgot = searchParams.isForgot === 'true';
     const verificationType = verification;
