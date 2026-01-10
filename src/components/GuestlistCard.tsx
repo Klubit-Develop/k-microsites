@@ -39,13 +39,6 @@ interface GuestlistCardProps {
     className?: string;
 }
 
-const PersonIcon = () => (
-    <svg width="12" height="13" viewBox="0 0 12 13" fill="none">
-        <path d="M6 6.5C7.38071 6.5 8.5 5.38071 8.5 4C8.5 2.61929 7.38071 1.5 6 1.5C4.61929 1.5 3.5 2.61929 3.5 4C3.5 5.38071 4.61929 6.5 6 6.5Z" fill="#939393" />
-        <path d="M6 8C3.79086 8 2 9.79086 2 12H10C10 9.79086 8.20914 8 6 8Z" fill="#939393" />
-    </svg>
-);
-
 const MinusIcon = () => (
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
         <path d="M4 10H16" stroke="#F6F6F6" strokeWidth="2" strokeLinecap="round" />
@@ -69,13 +62,11 @@ const GuestlistCard = ({
 }: GuestlistCardProps) => {
     const { t } = useTranslation();
 
-    // Color amarillo para guestlists
     const GUESTLIST_COLOR = '#ffce1f';
 
     if (isLoading) {
         return (
             <div className={`relative flex flex-col bg-[#141414] border-2 border-[#232323] rounded-2xl w-full overflow-visible animate-pulse ${className}`}>
-                {/* Top semicircle skeleton */}
                 <div
                     className="absolute right-[120px] md:right-[152px] top-[-2px] w-[18px] h-[10px] bg-[#050505] rounded-b-full z-10"
                     style={{
@@ -85,7 +76,6 @@ const GuestlistCard = ({
                     }}
                 />
 
-                {/* Bottom semicircle skeleton */}
                 <div
                     className="absolute right-[120px] md:right-[152px] bottom-[-2px] w-[18px] h-[10px] bg-[#050505] rounded-t-full z-10"
                     style={{
@@ -95,16 +85,12 @@ const GuestlistCard = ({
                     }}
                 />
 
-                {/* Dashed line skeleton */}
                 <div className="absolute right-[128px] md:right-[160px] top-[8px] bottom-[8px] w-0 border-l-[1.5px] border-dashed border-[#232323] z-0" />
 
-                {/* Header skeleton */}
-                <div className="flex items-center justify-between h-14 px-4 border-b-[1.5px] border-[#232323]">
+                <div className="flex items-center h-14 px-4 border-b-[1.5px] border-[#232323]">
                     <div className="h-5 w-32 bg-[#232323] rounded" />
-                    <div className="h-7 w-16 bg-[#232323] rounded-[25px]" />
                 </div>
 
-                {/* Price row skeleton */}
                 <div className="flex items-center justify-between px-4 py-3">
                     <div className="flex flex-col gap-2.5">
                         <div className="h-5 w-20 bg-[#232323] rounded" />
@@ -120,23 +106,57 @@ const GuestlistCard = ({
         );
     }
 
+    const maxPerUser = guestlist.maxPerUser || 1;
+    const maxPersonsPerGuestlist = guestlist.maxPersonsPerGuestlist || 1;
+
+    const getTotalSelectedQuantity = (): number => {
+        return guestlist.prices?.reduce((sum, price) => {
+            return sum + (selectedQuantities[price.id] || 0);
+        }, 0) || 0;
+    };
+
+    const getListsRequired = (quantity: number): number => {
+        if (quantity <= 0) return 0;
+        return Math.ceil(quantity / maxPersonsPerGuestlist);
+    };
+
+    const getAvailability = (price: GuestlistPrice): number => {
+        if (price.isSoldOut) return 0;
+        if (price.maxQuantity === null) return maxPerUser;
+        return Math.max(0, price.maxQuantity - price.soldQuantity);
+    };
+
+    const isGuestlistSoldOut = guestlist.prices?.every(price => {
+        const available = getAvailability(price);
+        return available <= 0;
+    });
+
     const hasSelectedQuantity = guestlist.prices?.some(
         price => (selectedQuantities[price.id] || 0) > 0
     );
-    const borderColor = hasSelectedQuantity ? '#e5ff88' : '#232323';
 
-    // Format time range
+    const totalSelected = getTotalSelectedQuantity();
+    const listsRequired = getListsRequired(totalSelected);
+    const showMultiplier = listsRequired > 1;
+
+    const getBorderColor = () => {
+        if (isGuestlistSoldOut) return '#232323';
+        if (hasSelectedQuantity) return '#e5ff88';
+        return '#232323';
+    };
+
+    const borderColor = getBorderColor();
     const timeRange = `${guestlist.startTime} - ${guestlist.endTime}`;
 
     return (
         <div
             className={`
                 relative flex flex-col bg-[#141414] border-2 rounded-2xl w-full overflow-visible
-                ${hasSelectedQuantity ? 'border-[#e5ff88]' : 'border-[#232323]'}
+                ${isGuestlistSoldOut ? 'opacity-50 pointer-events-none' : ''}
+                ${hasSelectedQuantity && !isGuestlistSoldOut ? 'border-[#e5ff88]' : 'border-[#232323]'}
                 ${className}
             `}
         >
-            {/* Top semicircle - responsive position */}
             <div
                 className="absolute right-[120px] md:right-[152px] top-[-2px] w-[18px] h-[10px] bg-[#050505] rounded-b-full z-10"
                 style={{
@@ -146,7 +166,6 @@ const GuestlistCard = ({
                 }}
             />
 
-            {/* Bottom semicircle - responsive position */}
             <div
                 className="absolute right-[120px] md:right-[152px] bottom-[-2px] w-[18px] h-[10px] bg-[#050505] rounded-t-full z-10"
                 style={{
@@ -156,12 +175,29 @@ const GuestlistCard = ({
                 }}
             />
 
-            {/* Dashed vertical line - responsive position */}
             <div className="absolute right-[128px] md:right-[160px] top-[8px] bottom-[8px] w-0 border-l-[1.5px] border-dashed border-[#232323] z-0" />
 
-            {/* Guestlist Header */}
+            {showMultiplier && (
+                <div className="absolute top-[-12px] right-[-8px] z-20">
+                    <div className="flex items-center justify-center px-3 py-1.5 bg-[#232323] rounded-full shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]">
+                        <span className="text-[#e5ff88] text-base font-bold font-helvetica">
+                            x{listsRequired}
+                        </span>
+                    </div>
+                </div>
+            )}
+
+            {isGuestlistSoldOut && (
+                <div className="absolute top-[-12px] right-[-8px] z-20">
+                    <div className="flex items-center px-3 py-1.5 bg-[#232323] rounded-full shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]">
+                        <span className="text-[#ff4d4d] text-sm font-medium font-helvetica">
+                            {t('event.sold_out', 'Agotado')}
+                        </span>
+                    </div>
+                </div>
+            )}
+
             <div className="flex items-center justify-between h-14 px-4 border-b-[1.5px] border-[#232323]">
-                {/* Left: Name with yellow indicator */}
                 <div className="flex flex-col gap-0.5 flex-1 min-w-0 mr-4">
                     <div className="flex items-center gap-1.5">
                         <div
@@ -172,27 +208,24 @@ const GuestlistCard = ({
                             {guestlist.name}
                         </span>
                     </div>
-                    {/* Time range */}
                     <span className="text-[#939393] text-xs font-normal font-helvetica ml-3">
                         {timeRange}
                     </span>
                 </div>
-
-                {/* Right: Capacity pill */}
-                <div className="flex items-center gap-1 px-2.5 py-1 bg-[#232323] rounded-[25px] shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)] shrink-0">
-                    <span className="text-[#939393] text-base font-medium font-helvetica">
-                        {guestlist.maxPersonsPerGuestlist}
-                    </span>
-                    <PersonIcon />
-                </div>
             </div>
 
-            {/* Prices */}
             {guestlist.prices?.map((price, priceIndex) => {
                 const quantity = selectedQuantities[price.id] || 0;
                 const isLast = priceIndex === (guestlist.prices?.length ?? 0) - 1;
                 const showPriceName = guestlist.prices.length > 1;
                 const isFree = price.finalPrice === 0;
+
+                const available = getAvailability(price);
+                const isPriceSoldOut = available <= 0;
+                const maxAllowed = Math.min(maxPerUser, available);
+                const isAtMax = quantity >= maxAllowed;
+
+                const isLowStock = !isPriceSoldOut && available > 0 && available < 20;
 
                 return (
                     <div
@@ -202,9 +235,7 @@ const GuestlistCard = ({
                             ${!isLast ? 'border-b-[1.5px] border-[#232323]' : ''}
                         `}
                     >
-                        {/* Info section */}
                         <div className="flex flex-col gap-2.5 flex-1 min-w-0 mr-4">
-                            {/* Price info */}
                             <div className="flex flex-col">
                                 {showPriceName && (
                                     <span className="text-[#939393] text-sm font-normal font-helvetica">
@@ -218,7 +249,7 @@ const GuestlistCard = ({
                                             : `${(price.finalPrice ?? 0).toFixed(2).replace('.', ',')}€`
                                         }
                                     </span>
-                                    {price.maxQuantity && (price.maxQuantity - price.soldQuantity) < 20 && !price.isSoldOut && (
+                                    {isLowStock && (
                                         <div className="flex items-center px-2 py-0.5 bg-[#232323] rounded-[25px] shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]">
                                             <span className="text-[#f6f6f6] text-xs font-medium font-helvetica">
                                                 Hot 🔥
@@ -235,14 +266,13 @@ const GuestlistCard = ({
                             </span>
                         </div>
 
-                        {/* Quantity Selector */}
                         <div className="flex items-center gap-1.5 shrink-0">
                             <button
                                 onClick={() => onQuantityChange(price.id, -1)}
-                                disabled={quantity === 0}
+                                disabled={quantity === 0 || isPriceSoldOut}
                                 className={`
                                     flex items-center justify-center w-9 h-9 bg-[#232323] rounded-lg
-                                    ${quantity === 0 ? 'opacity-50' : 'cursor-pointer'}
+                                    ${quantity === 0 || isPriceSoldOut ? 'opacity-50' : 'cursor-pointer'}
                                 `}
                             >
                                 <MinusIcon />
@@ -254,8 +284,12 @@ const GuestlistCard = ({
                                 {quantity}
                             </span>
                             <button
-                                onClick={() => onQuantityChange(price.id, 1)}
-                                className="flex items-center justify-center w-9 h-9 bg-[#232323] rounded-lg cursor-pointer"
+                                onClick={() => !isAtMax && !isPriceSoldOut && onQuantityChange(price.id, 1)}
+                                disabled={isAtMax || isPriceSoldOut}
+                                className={`
+                                    flex items-center justify-center w-9 h-9 bg-[#232323] rounded-lg
+                                    ${isAtMax || isPriceSoldOut ? 'opacity-50' : 'cursor-pointer'}
+                                `}
                             >
                                 <PlusIcon />
                             </button>

@@ -31,7 +31,6 @@ const Modal = ({
     const [isVisible, setIsVisible] = useState(false);
     const [isAnimating, setIsAnimating] = useState(false);
 
-    // Handle open/close animations
     useEffect(() => {
         if (isOpen) {
             setIsVisible(true);
@@ -68,10 +67,14 @@ const Modal = ({
 
     if (!isVisible) return null;
 
-    const handleBackdropClick = (e: React.MouseEvent) => {
-        if (e.target === e.currentTarget && !isLoading) {
+    const handleBackdropClick = () => {
+        if (!isLoading) {
             onClose();
         }
+    };
+
+    const handleContentClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
     };
 
     const getConfirmButtonStyles = () => {
@@ -83,15 +86,17 @@ const Modal = ({
 
     return createPortal(
         <div
-            className={`fixed inset-0 z-50 flex items-center justify-center p-4 transition-opacity duration-200 ease-out ${isAnimating ? 'opacity-100' : 'opacity-0'
-                }`}
-            onClick={handleBackdropClick}
+            className={`fixed inset-0 z-50 flex items-center justify-center p-4 transition-opacity duration-200 ease-out ${isAnimating ? 'opacity-100' : 'opacity-0'}`}
         >
-            <div className={`absolute inset-0 bg-black/70 transition-opacity duration-200 ease-out ${isAnimating ? 'opacity-100' : 'opacity-0'
-                }`} />
+            <div 
+                className={`absolute inset-0 bg-black/70 transition-opacity duration-200 ease-out cursor-pointer ${isAnimating ? 'opacity-100' : 'opacity-0'}`}
+                onClick={handleBackdropClick}
+            />
 
-            <div className={`relative bg-[#0A0A0A] border-2 border-[#232323] rounded-[42px] w-full max-w-[400px] px-6 py-[42px] flex flex-col gap-9 items-center transition-all duration-200 ease-out ${isAnimating ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
-                }`}>
+            <div 
+                className={`relative bg-[#0A0A0A] border-2 border-[#232323] rounded-[42px] w-full max-w-[400px] px-6 py-[42px] flex flex-col gap-9 items-center transition-all duration-200 ease-out ${isAnimating ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
+                onClick={handleContentClick}
+            >
                 <div className="absolute top-[-2px] left-1/2 -translate-x-1/2 pt-[5px] opacity-50">
                     <div className="w-9 h-[5px] bg-[#F6F6F6] opacity-50 rounded-full" />
                 </div>

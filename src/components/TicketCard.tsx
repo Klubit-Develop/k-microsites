@@ -37,13 +37,6 @@ interface TicketCardProps {
     className?: string;
 }
 
-const PersonIcon = () => (
-    <svg width="12" height="13" viewBox="0 0 12 13" fill="none">
-        <path d="M6 6.5C7.38071 6.5 8.5 5.38071 8.5 4C8.5 2.61929 7.38071 1.5 6 1.5C4.61929 1.5 3.5 2.61929 3.5 4C3.5 5.38071 4.61929 6.5 6 6.5Z" fill="#939393" />
-        <path d="M6 8C3.79086 8 2 9.79086 2 12H10C10 9.79086 8.20914 8 6 8Z" fill="#939393" />
-    </svg>
-);
-
 const MinusIcon = () => (
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
         <path d="M4 10H16" stroke="#F6F6F6" strokeWidth="2" strokeLinecap="round" />
@@ -70,7 +63,6 @@ const TicketCard = ({
     if (isLoading) {
         return (
             <div className={`relative flex flex-col bg-[#141414] border-2 border-[#232323] rounded-[16px] w-full overflow-visible animate-pulse ${className}`}>
-                {/* Top semicircle skeleton */}
                 <div
                     className="absolute right-[152px] top-[-2px] w-[18px] h-[10px] bg-[#050505] rounded-b-full z-10"
                     style={{
@@ -80,7 +72,6 @@ const TicketCard = ({
                     }}
                 />
 
-                {/* Bottom semicircle skeleton */}
                 <div
                     className="absolute right-[152px] bottom-[-2px] w-[18px] h-[10px] bg-[#050505] rounded-t-full z-10"
                     style={{
@@ -90,16 +81,12 @@ const TicketCard = ({
                     }}
                 />
 
-                {/* Dashed line skeleton */}
                 <div className="absolute right-[160px] top-[8px] bottom-[8px] w-0 border-l-[1.5px] border-dashed border-[#232323] z-0" />
 
-                {/* Header skeleton */}
-                <div className="flex items-center justify-between h-[56px] px-[16px] border-b-[1.5px] border-[#232323]">
+                <div className="flex items-center h-[56px] px-[16px] border-b-[1.5px] border-[#232323]">
                     <div className="h-5 w-32 bg-[#232323] rounded" />
-                    <div className="h-7 w-16 bg-[#232323] rounded-[25px]" />
                 </div>
 
-                {/* Price row skeleton */}
                 <div className="flex items-center justify-between px-[16px] py-[12px]">
                     <div className="flex flex-col gap-[10px]">
                         <div className="h-5 w-20 bg-[#232323] rounded" />
@@ -128,7 +115,6 @@ const TicketCard = ({
                 ${className}
             `}
         >
-            {/* Top semicircle */}
             <div
                 className="absolute right-[152px] top-[-2px] w-[18px] h-[10px] bg-[#050505] rounded-b-full z-10"
                 style={{
@@ -138,7 +124,6 @@ const TicketCard = ({
                 }}
             />
 
-            {/* Bottom semicircle */}
             <div
                 className="absolute right-[152px] bottom-[-2px] w-[18px] h-[10px] bg-[#050505] rounded-t-full z-10"
                 style={{
@@ -148,29 +133,17 @@ const TicketCard = ({
                 }}
             />
 
-            {/* Dashed vertical line */}
             <div className="absolute right-[160px] top-[8px] bottom-[8px] w-0 border-l-[1.5px] border-dashed border-[#232323] z-0" />
 
-            {/* Ticket Header */}
-            <div className="flex items-center justify-between h-[56px] px-[16px] border-b-[1.5px] border-[#232323]">
-                {/* Left: Name */}
+            <div className="flex items-center h-[56px] px-[16px] border-b-[1.5px] border-[#232323]">
                 <div className="flex items-center gap-[6px]">
                     <div className="w-[6px] h-[6px] bg-[#d591ff] rounded-full shrink-0" />
                     <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica">
                         {ticket.name}
                     </span>
                 </div>
-
-                {/* Right: Capacity pill */}
-                <div className="flex items-center gap-[4px] px-[10px] py-[4px] bg-[#232323] rounded-[25px] shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]">
-                    <span className="text-[#939393] text-[16px] font-medium font-helvetica">
-                        {ticket.maxPurchasePerUser}
-                    </span>
-                    <PersonIcon />
-                </div>
             </div>
 
-            {/* Prices */}
             {ticket.prices?.map((price, priceIndex) => {
                 const quantity = selectedQuantities[price.id] || 0;
                 const isLast = priceIndex === (ticket.prices?.length ?? 0) - 1;
@@ -184,9 +157,7 @@ const TicketCard = ({
                             ${!isLast ? 'border-b-[1.5px] border-[#232323]' : ''}
                         `}
                     >
-                        {/* Info section */}
                         <div className="flex flex-col gap-[10px]">
-                            {/* Price info */}
                             <div className="flex flex-col">
                                 {showPriceName && (
                                     <span className="text-[#939393] text-[14px] font-normal font-helvetica">
@@ -214,7 +185,6 @@ const TicketCard = ({
                             </span>
                         </div>
 
-                        {/* Quantity Selector */}
                         <div className="flex items-center gap-[6px]">
                             <button
                                 onClick={() => onQuantityChange(price.id, -1)}

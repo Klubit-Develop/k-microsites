@@ -408,8 +408,8 @@ const Event = () => {
             setCheckoutStep('summary');
         } else {
             setCheckoutStep('selection');
-            // Si estamos en step 1 y no hay items en la URL pero sí en el store,
-            // limpiar el carrito (el usuario navegó fuera y volvió)
+            // Si estamos en step 1 y no hay items en la URL pero sÃ­ en el store,
+            // limpiar el carrito (el usuario navegÃ³ fuera y volviÃ³)
             const hasUrlItems = !!(searchParams.tickets || searchParams.guestlists ||
                 searchParams.reservations || searchParams.products || searchParams.promotions);
             if (!hasUrlItems && checkoutHasItems()) {
@@ -528,14 +528,14 @@ const Event = () => {
                 goToPayment();
                 updateSearchParams({ step: 3 }, true);
             } else {
-                toast.error(response.message || t('checkout.transaction_error', 'Error al crear la transacción'));
+                toast.error(response.message || t('checkout.transaction_error', 'Error al crear la transacciÃ³n'));
             }
         },
         onError: (error: any) => {
             if (error.backendError) {
                 toast.error(error.backendError.message);
             } else {
-                toast.error(t('common.error_connection', 'Error de conexión'));
+                toast.error(t('common.error_connection', 'Error de conexiÃ³n'));
             }
         },
     });
@@ -653,7 +653,7 @@ const Event = () => {
             const precompraPrice = guestlist.prices.find(p => p.finalPrice > 0 && p.id !== price.id);
             if (precompraPrice) {
                 precompraData = {
-                    products: [{ name: 'Consumición', quantity: 1 }],
+                    products: [{ name: 'ConsumiciÃ³n', quantity: 1 }],
                     startTime: '00:00',
                     endTime: '06:00',
                     price: precompraPrice.finalPrice,
@@ -681,7 +681,7 @@ const Event = () => {
             finalPrice: price.finalPrice,
             currency: price.currency || 'EUR',
             isLowStock,
-            lowStockLabel: isLowStock ? 'últimas 👣' : undefined,
+            lowStockLabel: isLowStock ? 'Ãºltimas ðŸ‘£' : undefined,
             isFree,
             hasPrecompra,
             precompraData,
@@ -858,7 +858,7 @@ const Event = () => {
             return;
         }
 
-        // Verificar autenticación antes de continuar
+        // Verificar autenticaciÃ³n antes de continuar
         if (!isAuthenticated) {
             handleCloseInfoModal();
             setAuthModalOpen(true);
@@ -979,7 +979,7 @@ const Event = () => {
             return;
         }
 
-        // Verificar autenticación antes de continuar
+        // Verificar autenticaciÃ³n antes de continuar
         if (!isAuthenticated) {
             setAuthModalOpen(true);
             return;
@@ -1080,7 +1080,7 @@ const Event = () => {
         t,
     ]);
 
-    // Handler específico para reservas que incluye los datos del formulario
+    // Handler especÃ­fico para reservas que incluye los datos del formulario
     const handleReservationCheckout = useCallback((formData: ReservationFormData) => {
         const event = eventQuery.data;
         if (!event) return;
@@ -1092,7 +1092,7 @@ const Event = () => {
             return;
         }
 
-        // Verificar autenticación antes de continuar
+        // Verificar autenticaciÃ³n antes de continuar
         if (!isAuthenticated) {
             setAuthModalOpen(true);
             return;
@@ -1111,7 +1111,7 @@ const Event = () => {
             }
         );
 
-        // Añadir las reservas seleccionadas al carrito
+        // AÃ±adir las reservas seleccionadas al carrito
         event.reservations?.forEach(reservation => {
             reservation.prices?.forEach(price => {
                 const quantity = selectedQuantities.reservations[price.id];
@@ -1167,7 +1167,6 @@ const Event = () => {
                 { key: 'tickets', label: t('event.tabs.tickets', 'Entradas') },
                 { key: 'guestlists', label: t('event.tabs.guestlists', 'Guestlists') },
                 { key: 'reservations', label: t('event.tabs.reservations', 'Reservados') },
-                { key: 'promotions', label: t('event.tabs.promotions', 'Promociones') },
                 { key: 'products', label: t('event.tabs.products', 'Productos') },
             ];
         }
@@ -1183,10 +1182,9 @@ const Event = () => {
         if (event?.reservations && event.reservations.length > 0) {
             tabs.push({ key: 'reservations', label: t('event.tabs.reservations', 'Reservados') });
         }
-        if (event?.promotions && event.promotions.length > 0) {
-            tabs.push({ key: 'promotions', label: t('event.tabs.promotions', 'Promociones') });
-        }
-        if (event?.products && event.products.length > 0) {
+        const hasProductsOrPromotions = (event?.products && event.products.length > 0) || 
+                                         (event?.promotions && event.promotions.length > 0);
+        if (hasProductsOrPromotions) {
             tabs.push({ key: 'products', label: t('event.tabs.products', 'Productos') });
         }
 
@@ -1263,29 +1261,11 @@ const Event = () => {
                 );
 
             case 'promotions':
-                if (!isLoading && (!event?.promotions || event.promotions.length === 0)) {
-                    return (
-                        <div className="flex items-center justify-center py-12">
-                            <p className="text-[#939393] text-[14px] font-helvetica">
-                                {t('event.no_promotions', 'No hay promociones disponibles')}
-                            </p>
-                        </div>
-                    );
-                }
-                return (
-                    <PromotionsList
-                        promotions={event?.promotions || []}
-                        selectedQuantities={selectedQuantities.promotions}
-                        onQuantityChange={(promotionId, delta) => handleQuantityChange(promotionId, delta, 'promotions')}
-                        onMoreInfo={(promotion) => handleOpenInfoModal(promotion, null, 'promotion')}
-                        isLoading={isLoading}
-                        eventStartDate={event?.startDate}
-                        eventStartTime={event?.startTime}
-                    />
-                );
-
-            case 'products':
-                if (!isLoading && (!event?.products || event.products.length === 0)) {
+            case 'products': {
+                const hasPromotions = event?.promotions && event.promotions.length > 0;
+                const hasProducts = event?.products && event.products.length > 0;
+                
+                if (!isLoading && !hasPromotions && !hasProducts) {
                     return (
                         <div className="flex items-center justify-center py-12">
                             <p className="text-[#939393] text-[14px] font-helvetica">
@@ -1294,14 +1274,31 @@ const Event = () => {
                         </div>
                     );
                 }
+                
                 return (
-                    <ProductsList
-                        products={event?.products || []}
-                        selectedQuantities={selectedQuantities.products}
-                        onQuantityChange={(productId, delta) => handleQuantityChange(productId, delta, 'products')}
-                        isLoading={isLoading}
-                    />
+                    <div className="flex flex-col gap-[16px] w-full">
+                        {(isLoading || hasPromotions) && (
+                            <PromotionsList
+                                promotions={event?.promotions || []}
+                                selectedQuantities={selectedQuantities.promotions}
+                                onQuantityChange={(promotionId, delta) => handleQuantityChange(promotionId, delta, 'promotions')}
+                                onMoreInfo={(promotion) => handleOpenInfoModal(promotion, null, 'promotion')}
+                                isLoading={isLoading}
+                                eventStartDate={event?.startDate}
+                                eventStartTime={event?.startTime}
+                            />
+                        )}
+                        {(isLoading || hasProducts) && (
+                            <ProductsList
+                                products={event?.products || []}
+                                selectedQuantities={selectedQuantities.products}
+                                onQuantityChange={(productId, delta) => handleQuantityChange(productId, delta, 'products')}
+                                isLoading={isLoading}
+                            />
+                        )}
+                    </div>
                 );
+            }
 
             default:
                 return null;

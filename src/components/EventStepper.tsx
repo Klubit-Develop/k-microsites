@@ -36,7 +36,7 @@ const EventStepper = ({
 
     if (isLoading) {
         return (
-            <div className={`flex items-center justify-center w-full px-4 md:px-[470px] animate-pulse ${className}`}>
+            <div className={`flex items-center justify-center w-full max-w-[600px] mx-auto px-4 md:px-8 animate-pulse ${className}`}>
                 {steps.map((_, index) => (
                     <div key={index} className="contents">
                         <div className="flex items-center gap-[7px] px-3 md:px-6">
@@ -53,7 +53,7 @@ const EventStepper = ({
     }
 
     return (
-        <div className={`flex items-center justify-center w-full px-4 md:px-[470px] ${className}`}>
+        <div className={`flex items-center justify-center w-full max-w-[600px] mx-auto px-4 md:px-8 ${className}`}>
             {steps.map((step, index) => {
                 const stepNumber = index + 1;
                 const isActive = stepNumber <= currentStep;

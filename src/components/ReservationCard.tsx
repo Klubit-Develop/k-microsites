@@ -1,9 +1,5 @@
 import { useTranslation } from 'react-i18next';
 
-// ============================================
-// TYPES
-// ============================================
-
 interface ReservationPrice {
     id: string;
     name: string;
@@ -44,11 +40,8 @@ interface ReservationCardProps {
     reservation: Reservation;
     selectedQuantities: Record<string, number>;
     onQuantityChange: (priceId: string, delta: number) => void;
+    onMoreInfo?: (reservation: Reservation, price: ReservationPrice) => void;
 }
-
-// ============================================
-// ICONS
-// ============================================
 
 const PersonIcon = () => (
     <svg width="12" height="13" viewBox="0 0 12 13" fill="none">
@@ -70,17 +63,13 @@ const PlusIcon = () => (
     </svg>
 );
 
-// Color cyan para reservas
 const RESERVATION_COLOR = '#3fe8e8';
-
-// ============================================
-// RESERVATION CARD - Diseño ticket con semicírculos
-// ============================================
 
 const ReservationCard = ({
     reservation,
     selectedQuantities,
     onQuantityChange,
+    onMoreInfo,
 }: ReservationCardProps) => {
     const { t } = useTranslation();
 
@@ -94,9 +83,8 @@ const ReservationCard = ({
             className="relative flex flex-col bg-[#141414] border-2 rounded-[16px] w-full overflow-visible"
             style={{ borderColor }}
         >
-            {/* Top semicircle - en el lado derecho */}
             <div
-                className="absolute right-[148px] top-[-2px] w-[18px] h-[10px] bg-[#050505] rounded-b-full z-10"
+                className="absolute right-[145px] md:right-[165px] top-[-2px] w-[18px] h-[10px] bg-[#050505] rounded-b-full z-10"
                 style={{
                     borderLeft: `2px solid ${borderColor}`,
                     borderRight: `2px solid ${borderColor}`,
@@ -104,9 +92,8 @@ const ReservationCard = ({
                 }}
             />
 
-            {/* Bottom semicircle - en el lado derecho */}
             <div
-                className="absolute right-[148px] bottom-[-2px] w-[18px] h-[10px] bg-[#050505] rounded-t-full z-10"
+                className="absolute right-[145px] md:right-[165px] bottom-[-2px] w-[18px] h-[10px] bg-[#050505] rounded-t-full z-10"
                 style={{
                     borderLeft: `2px solid ${borderColor}`,
                     borderRight: `2px solid ${borderColor}`,
@@ -114,13 +101,10 @@ const ReservationCard = ({
                 }}
             />
 
-            {/* Dashed vertical line */}
-            <div className="absolute right-[156px] top-[8px] bottom-[8px] w-0 border-l-[1.5px] border-dashed border-[#232323] z-0" />
+            <div className="absolute right-[153px] md:right-[173px] top-[8px] bottom-[8px] w-0 border-l-[1.5px] border-dashed border-[#232323] z-0" />
 
-            {/* Header row */}
             <div className="flex items-center justify-between h-[56px] px-[16px] border-b-[1.5px] border-[#232323]">
-                {/* Left side: indicator + name */}
-                <div className="flex items-center gap-[6px] flex-1 min-w-0">
+                <div className="flex items-center gap-[6px] flex-1 min-w-0 pr-[170px] md:pr-[190px]">
                     <div
                         className="w-[6px] h-[6px] rounded-full shrink-0"
                         style={{ backgroundColor: RESERVATION_COLOR }}
@@ -130,8 +114,7 @@ const ReservationCard = ({
                     </span>
                 </div>
 
-                {/* Right side: capacity pill */}
-                <div className="flex items-center gap-[4px] px-[10px] py-[4px] bg-[#232323] rounded-[25px] shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)] shrink-0 ml-4">
+                <div className="absolute right-[16px] flex items-center gap-[4px] px-[10px] py-[4px] bg-[#232323] rounded-[25px] shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]">
                     <span className="text-[#939393] text-[16px] font-medium font-helvetica">
                         {reservation.maxPersonsPerReservation}
                     </span>
@@ -139,7 +122,6 @@ const ReservationCard = ({
                 </div>
             </div>
 
-            {/* Prices rows */}
             {reservation.prices?.map((price, priceIndex) => {
                 const quantity = selectedQuantities[price.id] || 0;
                 const isLast = priceIndex === (reservation.prices?.length ?? 0) - 1;
@@ -150,32 +132,26 @@ const ReservationCard = ({
                         key={price.id}
                         className={`flex items-center justify-between px-[16px] py-[12px] ${!isLast ? 'border-b-[1.5px] border-[#232323]' : ''}`}
                     >
-                        {/* Price info */}
-                        <div className="flex flex-col gap-[10px] flex-1 min-w-0">
+                        <div className="flex flex-col gap-[10px] flex-1 min-w-0 pr-[170px] md:pr-[190px]">
                             {showPriceName && (
                                 <span className="text-[#939393] text-[14px] font-normal font-helvetica">
                                     {price.name}
                                 </span>
                             )}
-                            <div className="flex items-center gap-[8px]">
+                            <div className="flex items-center gap-[8px] flex-wrap">
                                 <span className="text-[#f6f6f6] text-[16px] font-bold font-helvetica">
                                     {price.finalPrice.toFixed(2).replace('.', ',')}€
                                 </span>
-                                {price.maxQuantity && (price.maxQuantity - price.soldQuantity) < 5 && !price.isSoldOut && (
-                                    <div className="flex items-center px-[8px] py-[2px] bg-[#232323] rounded-[25px] shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]">
-                                        <span className="text-[#f6f6f6] text-[12px] font-medium font-helvetica">
-                                            Hot ðŸ”¥
-                                        </span>
-                                    </div>
-                                )}
                             </div>
-                            <span className="text-[#939393] text-[12px] font-medium font-helvetica cursor-pointer">
+                            <span
+                                className="text-[#939393] text-[12px] font-medium font-helvetica cursor-pointer hover:text-[#f6f6f6] transition-colors"
+                                onClick={() => onMoreInfo?.(reservation, price)}
+                            >
                                 {t('event.more_info', 'Más información')}
                             </span>
                         </div>
 
-                        {/* Quantity selector */}
-                        <div className="flex items-center gap-[6px] w-[130px] justify-center shrink-0">
+                        <div className="absolute right-[16px] flex items-center gap-[6px] w-[120px] md:w-[140px] justify-center">
                             <button
                                 onClick={() => onQuantityChange(price.id, -1)}
                                 disabled={quantity === 0}
@@ -183,7 +159,7 @@ const ReservationCard = ({
                             >
                                 <MinusIcon />
                             </button>
-                            <span className={`w-[32px] text-center text-[24px] font-bold font-helvetica leading-none ${quantity > 0 ? 'text-[#e5ff88]' : 'text-[#f6f6f6]'}`}>
+                            <span className={`w-[40px] text-center text-[32px] font-semibold font-borna leading-none ${quantity > 0 ? 'text-[#e5ff88]' : 'text-[#f6f6f6]'}`}>
                                 {quantity}
                             </span>
                             <button
@@ -200,10 +176,6 @@ const ReservationCard = ({
         </div>
     );
 };
-
-// ============================================
-// SKELETON
-// ============================================
 
 const ReservationCardSkeleton = () => (
     <div className="flex flex-col bg-[#141414] border-2 border-[#232323] rounded-[16px] w-full animate-pulse">
