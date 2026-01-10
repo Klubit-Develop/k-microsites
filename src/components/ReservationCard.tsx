@@ -41,6 +41,7 @@ interface ReservationCardProps {
     selectedQuantities: Record<string, number>;
     onQuantityChange: (priceId: string, delta: number) => void;
     onMoreInfo?: (reservation: Reservation, price: ReservationPrice) => void;
+    partySize?: number;
 }
 
 const PersonIcon = () => (
@@ -70,21 +71,19 @@ const ReservationCard = ({
     selectedQuantities,
     onQuantityChange,
     onMoreInfo,
+    partySize = 1,
 }: ReservationCardProps) => {
     const { t } = useTranslation();
 
-    const maxPerUser = reservation.maxPerUser || 1;
-    const maxPersonsPerReservation = reservation.maxPersonsPerReservation || 1;
+    const maxPerUser = Number(reservation.maxPerUser) || 1;
+    const maxPersonsPerReservation = Number(reservation.maxPersonsPerReservation) || 1;
+
+    const tablesRequiredForParty = Math.ceil(partySize / maxPersonsPerReservation);
 
     const getTotalSelectedQuantity = (): number => {
         return reservation.prices?.reduce((sum, price) => {
             return sum + (selectedQuantities[price.id] || 0);
         }, 0) || 0;
-    };
-
-    const getReservationsRequired = (quantity: number): number => {
-        if (quantity <= 0) return 0;
-        return Math.ceil(quantity / maxPersonsPerReservation);
     };
 
     const getAvailability = (price: ReservationPrice): number => {
@@ -103,8 +102,8 @@ const ReservationCard = ({
     );
 
     const totalSelected = getTotalSelectedQuantity();
-    const reservationsRequired = getReservationsRequired(totalSelected);
-    const showMultiplier = reservationsRequired > 1;
+    const showMultiplier = tablesRequiredForParty > 1 || totalSelected > 1;
+    const displayMultiplier = Math.max(tablesRequiredForParty, totalSelected);
 
     const getBorderColor = () => {
         if (isReservationSoldOut) return '#232323';
@@ -146,7 +145,7 @@ const ReservationCard = ({
                 <div className="absolute top-[-12px] right-[-8px] z-20">
                     <div className="flex items-center justify-center px-3 py-1.5 bg-[#e5ff88] rounded-full shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]">
                         <span className="text-[#141414] text-base font-bold font-helvetica">
-                            x{reservationsRequired}
+                            x{displayMultiplier}
                         </span>
                     </div>
                 </div>
@@ -188,8 +187,8 @@ const ReservationCard = ({
 
                 const available = getAvailability(price);
                 const isPriceSoldOut = available <= 0;
-                const maxAllowed = Math.min(maxPerUser, available);
-                const isAtMax = quantity >= maxAllowed;
+                const maxTablesAllowed = Math.floor(available / tablesRequiredForParty);
+                const isAtMax = quantity >= maxTablesAllowed || quantity >= Math.floor(maxPerUser / tablesRequiredForParty);
 
                 const isLowStock = !isPriceSoldOut && available > 0 && available < 5;
 

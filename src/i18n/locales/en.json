@@ -197,6 +197,7 @@
         "party_size_label": "Number of people in your party",
         "select_reservations_label": "Select the number of reservations",
         "no_reservations_for_party_size": "No reservations available for {{count}} people",
+        "no_tables_for_party_size": "No tables available for this number of people",
         "zone_floor_plan": "Zone floor plan",
         "reservations_zone": "Reservations",
         "from_price": "From",

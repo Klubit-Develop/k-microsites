@@ -86,6 +86,7 @@ const ZoneCard = ({ zoneData, onClick, hasSelectedItems = false }: ZoneCardProps
 
     return (
         <button
+            type="button"
             onClick={onClick}
             className={`w-full bg-[#141414] border-2 rounded-[16px] px-[16px] py-[16px] cursor-pointer transition-colors group text-left ${borderClass}`}
         >
@@ -154,21 +155,32 @@ const SelectionStep = ({
     const maxPersonsAvailable = useMemo(() => {
         let maxPersons = 1;
         zoneData.reservations.forEach(reservation => {
-            const availableStock = getAvailableStock(reservation);
-            if (availableStock > 0 && reservation.maxPersonsPerReservation > maxPersons) {
-                maxPersons = reservation.maxPersonsPerReservation;
+            const rawValue = reservation.maxPerUser;
+            let reservationMax = 1;
+            if (typeof rawValue === 'bigint') {
+                reservationMax = Number(rawValue);
+            } else if (typeof rawValue === 'string') {
+                reservationMax = parseInt(rawValue, 10);
+            } else if (typeof rawValue === 'number') {
+                reservationMax = rawValue;
+            }
+            if (!isNaN(reservationMax) && reservationMax > 0 && reservationMax > maxPersons) {
+                maxPersons = reservationMax;
             }
         });
-        return maxPersons;
+        return Math.max(maxPersons, 1);
     }, [zoneData.reservations]);
 
     const filteredReservations = useMemo(() => {
         return zoneData.reservations.filter(reservation => {
             const hasStock = getAvailableStock(reservation) > 0;
-            const fitsPartySize = reservation.maxPersonsPerReservation >= partySize;
+            const maxPerUser = Number(reservation.maxPerUser) || 1;
+            const fitsPartySize = maxPerUser >= partySize;
             return hasStock && fitsPartySize;
         });
     }, [zoneData.reservations, partySize]);
+
+    const noTablesForPartySize = filteredReservations.length === 0 && partySize > 1;
 
     const selectedReservationId = useMemo(() => {
         for (const reservation of zoneData.reservations) {
@@ -205,6 +217,7 @@ const SelectionStep = ({
     return (
         <div className="flex flex-col gap-[32px]">
             <button
+                type="button"
                 onClick={onBack}
                 className="flex items-center gap-2 text-[#939393] hover:text-[#f6f6f6] transition-colors self-start"
             >
@@ -239,7 +252,12 @@ const SelectionStep = ({
                 </div>
                 <div className="bg-[#141414] border-[1.5px] border-[#232323] rounded-[12px] px-[16px] py-[12px] flex items-center gap-[24px]">
                     <button
-                        onClick={() => handlePartySizeChange(-1)}
+                        type="button"
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handlePartySizeChange(-1);
+                        }}
                         disabled={partySize <= 1}
                         className={`shrink-0 ${partySize <= 1 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                     >
@@ -249,13 +267,25 @@ const SelectionStep = ({
                         {partySize}
                     </span>
                     <button
-                        onClick={() => handlePartySizeChange(1)}
+                        type="button"
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handlePartySizeChange(1);
+                        }}
                         disabled={partySize >= maxPersonsAvailable}
                         className={`shrink-0 ${partySize >= maxPersonsAvailable ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                     >
                         <PlusIcon />
                     </button>
                 </div>
+                {noTablesForPartySize && (
+                    <div className="px-[6px] mt-[4px]">
+                        <span className="text-[#e5ff88] text-[12px] font-medium font-helvetica">
+                            {t('event.no_tables_for_party_size', 'No hay mesas disponibles para este número de personas')}
+                        </span>
+                    </div>
+                )}
             </div>
 
             <div className="flex flex-col gap-[16px]">
@@ -279,6 +309,7 @@ const SelectionStep = ({
                                     selectedQuantities={selectedQuantities}
                                     onQuantityChange={handleQuantityChange}
                                     onMoreInfo={onMoreInfo}
+                                    partySize={partySize}
                                 />
                             </div>
                         );
@@ -293,6 +324,7 @@ const SelectionStep = ({
             </div>
 
             <button
+                type="button"
                 onClick={onContinue}
                 disabled={!hasSelection}
                 className={`w-full h-[48px] rounded-[12px] flex items-center justify-center font-bold text-[16px] font-helvetica transition-opacity ${hasSelection ? 'bg-[#ff336d] text-[#f6f6f6] cursor-pointer hover:opacity-90' : 'bg-[#232323] text-[#939393] cursor-not-allowed'}`}
@@ -377,7 +409,11 @@ const ReservationSummaryCard = ({ reservation, priceId, quantity, onMoreInfo }: 
                     </div>
                     <span
                         className="text-[#939393] text-[12px] font-medium font-helvetica cursor-pointer hover:text-[#f6f6f6] transition-colors"
-                        onClick={() => onMoreInfo?.(reservation, price)}
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            onMoreInfo?.(reservation, price);
+                        }}
                     >
                         {t('event.more_info', 'Más información')}
                     </span>
@@ -425,6 +461,7 @@ const FormStep = ({
     return (
         <div className="flex flex-col gap-[32px]">
             <button
+                type="button"
                 onClick={onBack}
                 className="flex items-center gap-2 text-[#939393] hover:text-[#f6f6f6] transition-colors self-start"
             >
@@ -472,6 +509,7 @@ const FormStep = ({
             </div>
 
             <button
+                type="button"
                 onClick={onContinue}
                 disabled={!isFormValid}
                 className={`w-full h-[48px] rounded-[12px] flex items-center justify-center font-bold text-[16px] font-helvetica transition-opacity ${isFormValid ? 'bg-[#ff336d] text-[#f6f6f6] cursor-pointer hover:opacity-90' : 'bg-[#232323] text-[#939393] cursor-not-allowed'}`}
