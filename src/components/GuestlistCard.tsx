@@ -179,8 +179,8 @@ const GuestlistCard = ({
 
             {showMultiplier && (
                 <div className="absolute top-[-12px] right-[-8px] z-20">
-                    <div className="flex items-center justify-center px-3 py-1.5 bg-[#232323] rounded-full shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]">
-                        <span className="text-[#e5ff88] text-base font-bold font-helvetica">
+                    <div className="flex items-center justify-center px-3 py-1.5 bg-[#e5ff88] rounded-full shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]">
+                        <span className="text-[#141414] text-base font-bold font-helvetica">
                             x{listsRequired}
                         </span>
                     </div>
@@ -268,7 +268,12 @@ const GuestlistCard = ({
 
                         <div className="flex items-center gap-1.5 shrink-0">
                             <button
-                                onClick={() => onQuantityChange(price.id, -1)}
+                                type="button"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    onQuantityChange(price.id, -1);
+                                }}
                                 disabled={quantity === 0 || isPriceSoldOut}
                                 className={`
                                     flex items-center justify-center w-9 h-9 bg-[#232323] rounded-lg
@@ -284,7 +289,14 @@ const GuestlistCard = ({
                                 {quantity}
                             </span>
                             <button
-                                onClick={() => !isAtMax && !isPriceSoldOut && onQuantityChange(price.id, 1)}
+                                type="button"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    if (!isAtMax && !isPriceSoldOut) {
+                                        onQuantityChange(price.id, 1);
+                                    }
+                                }}
                                 disabled={isAtMax || isPriceSoldOut}
                                 className={`
                                     flex items-center justify-center w-9 h-9 bg-[#232323] rounded-lg

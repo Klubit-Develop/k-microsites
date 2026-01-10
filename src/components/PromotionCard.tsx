@@ -198,7 +198,12 @@ const PromotionCard = ({
 
                 <div className="flex items-center gap-[6px]">
                     <button
-                        onClick={() => onQuantityChange(promotion.id, -1)}
+                        type="button"
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            onQuantityChange(promotion.id, -1);
+                        }}
                         disabled={quantity === 0}
                         className={`
                             flex items-center justify-center w-[36px] h-[36px] bg-[#232323] rounded-[8px]
@@ -214,7 +219,12 @@ const PromotionCard = ({
                         {quantity}
                     </span>
                     <button
-                        onClick={() => onQuantityChange(promotion.id, 1)}
+                        type="button"
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            onQuantityChange(promotion.id, 1);
+                        }}
                         className="flex items-center justify-center w-[36px] h-[36px] bg-[#232323] rounded-[8px] cursor-pointer"
                     >
                         <PlusIcon />

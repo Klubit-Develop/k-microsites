@@ -359,6 +359,7 @@ const Event = () => {
             to: '.',
             search: newParams as Record<string, unknown>,
             replace: !addToHistory,
+            resetScroll: false,
         } as const);
     }, [navigate, searchParams]);
 
@@ -1167,6 +1168,7 @@ const Event = () => {
                 { key: 'tickets', label: t('event.tabs.tickets', 'Entradas') },
                 { key: 'guestlists', label: t('event.tabs.guestlists', 'Guestlists') },
                 { key: 'reservations', label: t('event.tabs.reservations', 'Reservados') },
+                { key: 'promotions', label: t('event.tabs.promotions', 'Promociones') },
                 { key: 'products', label: t('event.tabs.products', 'Productos') },
             ];
         }
@@ -1182,9 +1184,10 @@ const Event = () => {
         if (event?.reservations && event.reservations.length > 0) {
             tabs.push({ key: 'reservations', label: t('event.tabs.reservations', 'Reservados') });
         }
-        const hasProductsOrPromotions = (event?.products && event.products.length > 0) || 
-                                         (event?.promotions && event.promotions.length > 0);
-        if (hasProductsOrPromotions) {
+        if (event?.promotions && event.promotions.length > 0) {
+            tabs.push({ key: 'promotions', label: t('event.tabs.promotions', 'Promociones') });
+        }
+        if (event?.products && event.products.length > 0) {
             tabs.push({ key: 'products', label: t('event.tabs.products', 'Productos') });
         }
 
@@ -1261,11 +1264,29 @@ const Event = () => {
                 );
 
             case 'promotions':
-            case 'products': {
-                const hasPromotions = event?.promotions && event.promotions.length > 0;
-                const hasProducts = event?.products && event.products.length > 0;
-                
-                if (!isLoading && !hasPromotions && !hasProducts) {
+                if (!isLoading && (!event?.promotions || event.promotions.length === 0)) {
+                    return (
+                        <div className="flex items-center justify-center py-12">
+                            <p className="text-[#939393] text-[14px] font-helvetica">
+                                {t('event.no_promotions', 'No hay promociones disponibles')}
+                            </p>
+                        </div>
+                    );
+                }
+                return (
+                    <PromotionsList
+                        promotions={event?.promotions || []}
+                        selectedQuantities={selectedQuantities.promotions}
+                        onQuantityChange={(promotionId, delta) => handleQuantityChange(promotionId, delta, 'promotions')}
+                        onMoreInfo={(promotion) => handleOpenInfoModal(promotion, null, 'promotion')}
+                        isLoading={isLoading}
+                        eventStartDate={event?.startDate}
+                        eventStartTime={event?.startTime}
+                    />
+                );
+
+            case 'products':
+                if (!isLoading && (!event?.products || event.products.length === 0)) {
                     return (
                         <div className="flex items-center justify-center py-12">
                             <p className="text-[#939393] text-[14px] font-helvetica">
@@ -1274,31 +1295,14 @@ const Event = () => {
                         </div>
                     );
                 }
-                
                 return (
-                    <div className="flex flex-col gap-[16px] w-full">
-                        {(isLoading || hasPromotions) && (
-                            <PromotionsList
-                                promotions={event?.promotions || []}
-                                selectedQuantities={selectedQuantities.promotions}
-                                onQuantityChange={(promotionId, delta) => handleQuantityChange(promotionId, delta, 'promotions')}
-                                onMoreInfo={(promotion) => handleOpenInfoModal(promotion, null, 'promotion')}
-                                isLoading={isLoading}
-                                eventStartDate={event?.startDate}
-                                eventStartTime={event?.startTime}
-                            />
-                        )}
-                        {(isLoading || hasProducts) && (
-                            <ProductsList
-                                products={event?.products || []}
-                                selectedQuantities={selectedQuantities.products}
-                                onQuantityChange={(productId, delta) => handleQuantityChange(productId, delta, 'products')}
-                                isLoading={isLoading}
-                            />
-                        )}
-                    </div>
+                    <ProductsList
+                        products={event?.products || []}
+                        selectedQuantities={selectedQuantities.products}
+                        onQuantityChange={(productId, delta) => handleQuantityChange(productId, delta, 'products')}
+                        isLoading={isLoading}
+                    />
                 );
-            }
 
             default:
                 return null;
