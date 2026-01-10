@@ -73,14 +73,53 @@ const ReservationCard = ({
 }: ReservationCardProps) => {
     const { t } = useTranslation();
 
+    const maxPerUser = reservation.maxPerUser || 1;
+    const maxPersonsPerReservation = reservation.maxPersonsPerReservation || 1;
+
+    const getTotalSelectedQuantity = (): number => {
+        return reservation.prices?.reduce((sum, price) => {
+            return sum + (selectedQuantities[price.id] || 0);
+        }, 0) || 0;
+    };
+
+    const getReservationsRequired = (quantity: number): number => {
+        if (quantity <= 0) return 0;
+        return Math.ceil(quantity / maxPersonsPerReservation);
+    };
+
+    const getAvailability = (price: ReservationPrice): number => {
+        if (price.isSoldOut) return 0;
+        if (price.maxQuantity === null) return maxPerUser;
+        return Math.max(0, price.maxQuantity - price.soldQuantity);
+    };
+
+    const isReservationSoldOut = reservation.prices?.every(price => {
+        const available = getAvailability(price);
+        return available <= 0;
+    });
+
     const hasSelectedQuantity = reservation.prices?.some(
         price => (selectedQuantities[price.id] || 0) > 0
     );
-    const borderColor = hasSelectedQuantity ? '#e5ff88' : '#232323';
+
+    const totalSelected = getTotalSelectedQuantity();
+    const reservationsRequired = getReservationsRequired(totalSelected);
+    const showMultiplier = reservationsRequired > 1;
+
+    const getBorderColor = () => {
+        if (isReservationSoldOut) return '#232323';
+        if (hasSelectedQuantity) return '#e5ff88';
+        return '#232323';
+    };
+
+    const borderColor = getBorderColor();
 
     return (
         <div
-            className="relative flex flex-col bg-[#141414] border-2 rounded-[16px] w-full overflow-visible"
+            className={`
+                relative flex flex-col bg-[#141414] border-2 rounded-[16px] w-full overflow-visible
+                ${isReservationSoldOut ? 'opacity-50 pointer-events-none' : ''}
+            `}
             style={{ borderColor }}
         >
             <div
@@ -103,6 +142,26 @@ const ReservationCard = ({
 
             <div className="absolute right-[153px] md:right-[173px] top-[8px] bottom-[8px] w-0 border-l-[1.5px] border-dashed border-[#232323] z-0" />
 
+            {showMultiplier && (
+                <div className="absolute top-[-12px] right-[-8px] z-20">
+                    <div className="flex items-center justify-center px-3 py-1.5 bg-[#e5ff88] rounded-full shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]">
+                        <span className="text-[#141414] text-base font-bold font-helvetica">
+                            x{reservationsRequired}
+                        </span>
+                    </div>
+                </div>
+            )}
+
+            {isReservationSoldOut && (
+                <div className="absolute top-[-12px] right-[-8px] z-20">
+                    <div className="flex items-center px-3 py-1.5 bg-[#232323] rounded-full shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]">
+                        <span className="text-[#ff4d4d] text-sm font-medium font-helvetica">
+                            {t('event.sold_out', 'Agotado')}
+                        </span>
+                    </div>
+                </div>
+            )}
+
             <div className="flex items-center justify-between h-[56px] px-[16px] border-b-[1.5px] border-[#232323]">
                 <div className="flex items-center gap-[6px] flex-1 min-w-0 pr-[170px] md:pr-[190px]">
                     <div
@@ -116,7 +175,7 @@ const ReservationCard = ({
 
                 <div className="absolute right-[16px] flex items-center gap-[4px] px-[10px] py-[4px] bg-[#232323] rounded-[25px] shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]">
                     <span className="text-[#939393] text-[16px] font-medium font-helvetica">
-                        {reservation.maxPersonsPerReservation}
+                        {maxPersonsPerReservation}
                     </span>
                     <PersonIcon />
                 </div>
@@ -126,6 +185,13 @@ const ReservationCard = ({
                 const quantity = selectedQuantities[price.id] || 0;
                 const isLast = priceIndex === (reservation.prices?.length ?? 0) - 1;
                 const showPriceName = reservation.prices.length > 1;
+
+                const available = getAvailability(price);
+                const isPriceSoldOut = available <= 0;
+                const maxAllowed = Math.min(maxPerUser, available);
+                const isAtMax = quantity >= maxAllowed;
+
+                const isLowStock = !isPriceSoldOut && available > 0 && available < 5;
 
                 return (
                     <div
@@ -142,10 +208,21 @@ const ReservationCard = ({
                                 <span className="text-[#f6f6f6] text-[16px] font-bold font-helvetica">
                                     {price.finalPrice.toFixed(2).replace('.', ',')}€
                                 </span>
+                                {isLowStock && (
+                                    <div className="flex items-center px-2 py-0.5 bg-[#232323] rounded-[25px] shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]">
+                                        <span className="text-[#f6f6f6] text-xs font-medium font-helvetica">
+                                            Hot 🔥
+                                        </span>
+                                    </div>
+                                )}
                             </div>
                             <span
                                 className="text-[#939393] text-[12px] font-medium font-helvetica cursor-pointer hover:text-[#f6f6f6] transition-colors"
-                                onClick={() => onMoreInfo?.(reservation, price)}
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    onMoreInfo?.(reservation, price);
+                                }}
                             >
                                 {t('event.more_info', 'Más información')}
                             </span>
@@ -153,9 +230,14 @@ const ReservationCard = ({
 
                         <div className="absolute right-[16px] flex items-center gap-[6px] w-[120px] md:w-[140px] justify-center">
                             <button
-                                onClick={() => onQuantityChange(price.id, -1)}
-                                disabled={quantity === 0}
-                                className={`flex-1 flex items-center justify-center h-[36px] bg-[#232323] rounded-[8px] ${quantity === 0 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                                type="button"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    onQuantityChange(price.id, -1);
+                                }}
+                                disabled={quantity === 0 || isPriceSoldOut}
+                                className={`flex-1 flex items-center justify-center h-[36px] bg-[#232323] rounded-[8px] ${quantity === 0 || isPriceSoldOut ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                             >
                                 <MinusIcon />
                             </button>
@@ -163,9 +245,14 @@ const ReservationCard = ({
                                 {quantity}
                             </span>
                             <button
-                                onClick={() => onQuantityChange(price.id, 1)}
-                                disabled={price.isSoldOut}
-                                className={`flex-1 flex items-center justify-center h-[36px] bg-[#232323] rounded-[8px] ${price.isSoldOut ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                                type="button"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    onQuantityChange(price.id, 1);
+                                }}
+                                disabled={isAtMax || isPriceSoldOut}
+                                className={`flex-1 flex items-center justify-center h-[36px] bg-[#232323] rounded-[8px] ${isAtMax || isPriceSoldOut ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                             >
                                 <PlusIcon />
                             </button>
