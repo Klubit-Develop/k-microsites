@@ -1,19 +1,13 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { toast } from 'sonner';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuthStore } from '@/stores/authStore';
 import { useTranslation } from 'react-i18next';
 import { getCheckoutReturnState, clearCheckoutReturnState } from '@/components/AuthModal';
+import axiosInstance from '@/config/axiosConfig';
 
 interface SearchParams {
-    status?: string;
-    provider?: string;
-    email?: string;
-    exists?: string;
-    user?: string;
-    profile?: string;
-    redirectTo?: string;
-    token?: string;
+    oauthToken?: string;
 }
 
 interface OAuthProfile {
@@ -38,19 +32,30 @@ interface OAuthUser {
     clubRoles: unknown[];
 }
 
+interface OAuthVerifyResponse {
+    status: string;
+    provider: string;
+    email: string;
+    exists: boolean;
+    redirectTo: string;
+    token: string | null;
+    user: OAuthUser | null;
+    profile: OAuthProfile | null;
+}
+
 const AuthSuccessComponent = () => {
     const navigate = useNavigate();
     const { t } = useTranslation();
     const { setUser, setToken } = useAuthStore();
     const searchParams = Route.useSearch();
+    const [isProcessing, setIsProcessing] = useState(true);
 
-    const { status, provider, email, user, profile, token } = searchParams;
+    const { oauthToken } = searchParams;
 
     useEffect(() => {
         const authenticateUser = async () => {
             try {
-                if (status !== 'success') {
-                    console.error('OAuth failed');
+                if (!oauthToken) {
                     toast.error(t('auth_success.authentication_error'));
                     setTimeout(() => {
                         navigate({ to: '/' });
@@ -58,65 +63,41 @@ const AuthSuccessComponent = () => {
                     return;
                 }
 
-                let userData: OAuthUser | null = null;
+                const response = await axiosInstance.get<OAuthVerifyResponse>(
+                    `/v2/oauth/verify/${oauthToken}`
+                );
 
-                if (user) {
-                    if (typeof user === 'string') {
-                        const trimmed = user.trim();
-                        if (trimmed !== '' && trimmed !== '{}') {
-                            try {
-                                userData = JSON.parse(trimmed);
-                            } catch (e) {
-                                console.error('Error parsing user data:', e);
-                            }
-                        }
-                    } else if (typeof user === 'object' && user !== null) {
-                        userData = user as unknown as OAuthUser;
-                    }
+                const data = response.data;
+
+                if (data.status !== 'success') {
+                    toast.error(t('auth_success.authentication_error'));
+                    setTimeout(() => {
+                        navigate({ to: '/' });
+                    }, 2000);
+                    return;
                 }
 
-                const hasValidUser = userData && userData.id && userData.id.trim() !== '';
-                const hasValidToken = token && token.trim() !== '';
-
-                console.log('Parsed userData:', userData);
-                console.log('Has valid user:', hasValidUser);
-                console.log('Has valid token:', hasValidToken);
+                const hasValidUser = data.user && data.user.id;
+                const hasValidToken = data.token && data.token.trim() !== '';
 
                 if (!hasValidUser) {
-                    let profileData: OAuthProfile | null = null;
-
-                    if (profile) {
-                        if (typeof profile === 'string') {
-                            const trimmed = profile.trim();
-                            if (trimmed !== '' && trimmed !== '{}') {
-                                try {
-                                    profileData = JSON.parse(trimmed);
-                                } catch (e) {
-                                    console.error('Error parsing profile data:', e);
-                                }
-                            }
-                        } else if (typeof profile === 'object' && profile !== null) {
-                            profileData = profile as unknown as OAuthProfile;
-                        }
-                    }
-
                     setTimeout(() => {
                         navigate({
                             to: '/oauth',
                             search: {
-                                email: email || profileData?.email || '',
-                                provider: provider || '',
-                                firstName: profileData?.firstName || '',
-                                lastName: profileData?.lastName || ''
-                            }
+                                email: data.email || data.profile?.email || '',
+                                provider: data.provider || '',
+                                firstName: data.profile?.firstName || '',
+                                lastName: data.profile?.lastName || '',
+                            },
                         });
                     }, 1500);
                     return;
                 }
 
                 if (hasValidUser && hasValidToken) {
-                    setToken(token!);
-                    setUser(userData!);
+                    setToken(data.token!);
+                    setUser(data.user!);
 
                     toast.success(t('auth_success.login_success'));
 
@@ -139,29 +120,31 @@ const AuthSuccessComponent = () => {
                     return;
                 }
 
-                console.error('User exists but no token provided');
                 toast.error(t('auth_success.authentication_error'));
                 setTimeout(() => {
                     navigate({ to: '/' });
                 }, 2000);
-
-            } catch (error: unknown) {
+            } catch (error) {
                 console.error('Error in auth-success:', error);
                 toast.error(t('auth_success.authentication_error'));
                 setTimeout(() => {
                     navigate({ to: '/' });
                 }, 2000);
+            } finally {
+                setIsProcessing(false);
             }
         };
 
         authenticateUser();
-    }, [status, provider, email, user, profile, token, navigate, setToken, setUser, t]);
+    }, [oauthToken, navigate, setToken, setUser, t]);
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-black">
             <div className="text-center">
                 <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#ff336d]"></div>
-                <p className="mt-4 text-[#939393] font-helvetica">{t('auth_success.authenticating')}</p>
+                <p className="mt-4 text-[#939393] font-helvetica">
+                    {t('auth_success.authenticating')}
+                </p>
             </div>
         </div>
     );
@@ -169,14 +152,7 @@ const AuthSuccessComponent = () => {
 
 export const Route = createFileRoute('/auth-success')({
     validateSearch: (search: Record<string, unknown>): SearchParams => ({
-        status: (search.status as string) || '',
-        provider: (search.provider as string) || '',
-        email: (search.email as string) || '',
-        exists: (search.exists as string) || '',
-        user: (search.user as string) || '',
-        profile: (search.profile as string) || '',
-        redirectTo: (search.redirectTo as string) || '',
-        token: (search.token as string) || ''
+        oauthToken: (search.oauthToken as string) || '',
     }),
-    component: AuthSuccessComponent
+    component: AuthSuccessComponent,
 });
