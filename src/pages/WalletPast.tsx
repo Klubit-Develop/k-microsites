@@ -108,7 +108,7 @@ const WalletEventCard = ({ title, date, time, location, imageUrl, onClick }: Wal
             onClick={onClick}
             className="flex items-center gap-3 w-full p-3 bg-[#141414] border-2 border-[#232323] rounded-2xl shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)] cursor-pointer text-left"
         >
-            <div className="relative shrink-0 w-[54px] h-[68px] rounded-[4px] border-2 border-[#232323] overflow-hidden shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]">
+            <div className="relative shrink-0 w-[54px] h-[68px] rounded-sm border-2 border-[#232323] overflow-hidden shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]">
                 <img
                     src={imageUrl}
                     alt={title}

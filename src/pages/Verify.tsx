@@ -4,12 +4,12 @@ import { useTranslation } from 'react-i18next';
 import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import { Route } from '@/routes/verify';
+import { useAuthStore } from '@/stores/authStore';
 
-import { LogoIcon, LogoCutIcon } from '@/components/icons';
+import axiosInstance from '@/config/axiosConfig';
 import OTPInput from '@/components/ui/OTPInput';
 import Button from '@/components/ui/Button';
-import axiosInstance from '@/config/axiosConfig';
-import { useAuthStore } from '@/stores/authStore';
+import { LogoIcon, LogoCutIcon } from '@/components/icons';
 
 interface BackendResponse {
     status: 'success' | 'error';
@@ -19,245 +19,164 @@ interface BackendResponse {
     details: string;
 }
 
-const VerifyPage = () => {
+const cleanQuotes = (value: string | undefined): string => {
+    if (!value) return '';
+    return value.replace(/^["']|["']$/g, '');
+};
+
+const Verify = () => {
     const navigate = useNavigate();
-    const { t } = useTranslation();
+    const { i18n, t } = useTranslation();
     const searchParams = Route.useSearch();
-    const { setAuth } = useAuthStore();
+    const { setToken, setUser } = useAuthStore();
 
-    const {
-        verification,
-        country,
-        phone,
-        email,
-        isForgot,
-        oauthEmail,
-        oauthProvider,
-        oauthFirstName,
-        oauthLastName
-    } = searchParams;
+    const verificationType = cleanQuotes(searchParams?.verification) || '';
+    const isForgot = searchParams?.isForgot === 'true';
 
-    const [otp, setOtp] = useState('');
-    const [error, setError] = useState('');
-    const [countdown, setCountdown] = useState(60);
-    const [canResend, setCanResend] = useState(false);
+    const email = cleanQuotes(searchParams?.email) || '';
+    const country = cleanQuotes(searchParams?.country) || '';
+    const phone = cleanQuotes(searchParams?.phone) || '';
+    const oauthEmail = cleanQuotes(searchParams?.oauthEmail) || '';
+    const oauthProvider = cleanQuotes(searchParams?.oauthProvider) || '';
+    const oauthFirstName = cleanQuotes(searchParams?.oauthFirstName) || '';
+    const oauthLastName = cleanQuotes(searchParams?.oauthLastName) || '';
+
+    const [otpValue, setOtpValue] = useState('');
+    const [countdown, setCountdown] = useState(0);
 
     useEffect(() => {
-        if (!verification) {
+        if (!verificationType) {
             navigate({ to: '/auth' });
             return;
         }
 
-        if (verification === 'sms' && (!country || !phone)) {
+        if (verificationType === 'sms' && (!country || !phone)) {
             navigate({ to: '/auth' });
         }
 
-        if (verification === 'email' && !email) {
+        if (verificationType === 'email' && !email) {
             navigate({ to: '/auth' });
         }
-    }, [verification, country, phone, email, navigate]);
+    }, [verificationType, country, phone, email, navigate]);
 
     useEffect(() => {
+        let timer: NodeJS.Timeout;
         if (countdown > 0) {
-            const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
-            return () => clearTimeout(timer);
-        } else {
-            setCanResend(true);
+            timer = setInterval(() => {
+                setCountdown((prev) => prev - 1);
+            }, 1000);
         }
+        return () => clearInterval(timer);
     }, [countdown]);
 
-    const validateSMSMutation = useMutation({
-        mutationFn: async (data: { country: string; phone: string; code: string; isForgot?: boolean }) => {
-            const response = await axiosInstance.post<BackendResponse>('/v2/sms/validate', data);
-            return response.data;
+    const verifyMutation = useMutation({
+        mutationFn: async (code: string) => {
+            const lang = i18n.language === 'en' ? 'en' : 'es';
+
+            if (verificationType === 'email') {
+                const response = await axiosInstance.post<BackendResponse>(`/v2/email/validate?lang=${lang}`, {
+                    email,
+                    code
+                });
+                return response.data;
+            } else {
+                const response = await axiosInstance.post<BackendResponse>(`/v2/sms/validate?lang=${lang}`, {
+                    country,
+                    phone: phone.replace(/\s/g, ''),
+                    code,
+                    isForgot
+                });
+                return response.data;
+            }
         },
-        onSuccess: (response: BackendResponse) => {
-            if (response.status === 'success') {
-                toast.success(t('verify.verification_success'));
-                
-                if (isForgot === 'true') {
-                    const responseData = response.data as { 
-                        token?: string;
-                        user?: {
-                            id?: string;
-                            email?: string;
-                        };
-                    };
+        onSuccess: (response) => {
+            if (response.status !== 'success') {
+                toast.error(response.message || response.details);
+                return;
+            }
+
+            const { token, user } = response.data as { token?: string; user?: { id: string; email?: string } };
+
+            if (verificationType === 'email') {
+                if (token && user) {
+                    setToken(token);
+                    setUser(user);
+                }
+                navigate({ to: '/' });
+            } else {
+                if (isForgot && user && token) {
                     navigate({
                         to: '/forgot-change',
                         search: {
-                            id: responseData?.user?.id || '',
-                            token: responseData?.token || '',
-                            currentEmail: responseData?.user?.email || ''
-                        }
-                    });
-                } else if (oauthProvider) {
-                    navigate({
-                        to: '/register',
-                        search: {
-                            country: country || '',
-                            phone: phone || '',
-                            oauthEmail: oauthEmail || '',
-                            oauthProvider: oauthProvider || '',
-                            oauthFirstName: oauthFirstName || '',
-                            oauthLastName: oauthLastName || ''
+                            id: user.id,
+                            token: token,
+                            currentEmail: user.email || ''
                         }
                     });
                 } else {
                     navigate({
                         to: '/register',
                         search: {
-                            country: country || '',
-                            phone: phone || ''
+                            country,
+                            phone,
+                            oauthEmail,
+                            oauthProvider,
+                            oauthFirstName,
+                            oauthLastName
                         }
                     });
                 }
-            } else {
-                setError(response.message || response.details);
             }
         },
-        onError: (error: { backendError?: { message: string } }) => {
-            if (error.backendError) {
-                setError(error.backendError.message);
-            } else {
-                toast.error(t('common.error_connection'));
-            }
+        onError: () => {
+            toast.error(t('verify.error_generic'));
         }
     });
 
-    const validateEmailMutation = useMutation({
-        mutationFn: async (data: { email: string; code: string; isForgot?: boolean }) => {
-            const response = await axiosInstance.post<BackendResponse>('/v2/email/validate', data);
-            return response.data;
-        },
-        onSuccess: (response: BackendResponse) => {
-            if (response.status === 'success') {
-                toast.success(t('verify.verification_success'));
-                
-                const responseData = response.data as { token?: string; user?: any };
-                
-                if (responseData?.token && responseData?.user) {
-                    setAuth(responseData.token, responseData.user);
-                }
-                
-                navigate({ to: '/' });
+    const resendMutation = useMutation({
+        mutationFn: async () => {
+            const lang = i18n.language === 'en' ? 'en' : 'es';
+
+            if (verificationType === 'email') {
+                const response = await axiosInstance.post<BackendResponse>(`/v2/email/resend?lang=${lang}`, { email });
+                return response.data;
             } else {
-                setError(response.message || response.details);
+                const response = await axiosInstance.post<BackendResponse>(`/v2/sms/resend?lang=${lang}`, {
+                    country,
+                    phone: phone.replace(/\s/g, '')
+                });
+                return response.data;
             }
         },
-        onError: (error: { backendError?: { message: string } }) => {
-            if (error.backendError) {
-                setError(error.backendError.message);
-            } else {
-                toast.error(t('common.error_connection'));
-            }
+        onSuccess: () => {
+            setOtpValue('');
+            setCountdown(30);
+        },
+        onError: () => {
+            toast.error(t('verify.error_resend'));
         }
     });
 
-    const resendSMSMutation = useMutation({
-        mutationFn: async (data: { country: string; phone: string }) => {
-            const response = await axiosInstance.post<BackendResponse>('/v2/sms/resend', data);
-            return response.data;
-        },
-        onSuccess: (response) => {
-            if (response.status === 'success') {
-                toast.success(t('verify.code_resent'));
-                setCountdown(60);
-                setCanResend(false);
-                setOtp('');
-                setError('');
-            } else {
-                toast.error(response.message || response.details);
-            }
-        },
-        onError: (error: { backendError?: { message: string } }) => {
-            if (error.backendError) {
-                toast.error(error.backendError.message);
-            } else {
-                toast.error(t('common.error_connection'));
-            }
-        }
-    });
-
-    const resendEmailMutation = useMutation({
-        mutationFn: async (data: { email: string; currentEmail?: string }) => {
-            const response = await axiosInstance.post<BackendResponse>('/v2/email/resend', data);
-            return response.data;
-        },
-        onSuccess: (response) => {
-            if (response.status === 'success') {
-                toast.success(t('verify.code_resent'));
-                setCountdown(60);
-                setCanResend(false);
-                setOtp('');
-                setError('');
-            } else {
-                toast.error(response.message || response.details);
-            }
-        },
-        onError: (error: { backendError?: { message: string } }) => {
-            if (error.backendError) {
-                toast.error(error.backendError.message);
-            } else {
-                toast.error(t('common.error_connection'));
-            }
-        }
-    });
-
-    const handleOTPComplete = (code: string) => {
-        setOtp(code);
-        setError('');
-    };
-
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleVerify = (e: React.FormEvent) => {
         e.preventDefault();
-
-        if (otp.length !== 6) {
-            setError(t('verify.code_required'));
+        if (!otpValue || otpValue.length !== 6) {
+            toast.error(t('verify.enter_valid_code'));
             return;
         }
-
-        if (verification === 'sms') {
-            validateSMSMutation.mutate({
-                country: country || '',
-                phone: phone || '',
-                code: otp,
-                ...(isForgot === 'true' && { isForgot: true })
-            });
-        } else if (verification === 'email') {
-            validateEmailMutation.mutate({
-                email: email || '',
-                code: otp,
-                ...(isForgot === 'true' && { isForgot: true })
-            });
-        }
+        verifyMutation.mutate(otpValue);
     };
 
     const handleResend = () => {
-        if (!canResend) return;
-
-        if (verification === 'sms') {
-            resendSMSMutation.mutate({
-                country: country || '',
-                phone: phone || ''
-            });
-        } else if (verification === 'email') {
-            resendEmailMutation.mutate({
-                email: email || '',
-                ...(isForgot === 'true' && { currentEmail: email })
-            });
-        }
+        if (countdown > 0) return;
+        resendMutation.mutate();
     };
 
-    const getVerificationTarget = () => {
-        if (verification === 'sms') {
+    const getContactDisplay = () => {
+        if (verificationType === 'sms') {
             return `+${country} ${phone}`;
         }
-        return email || '';
+        return email;
     };
-
-    const isLoading = validateSMSMutation.isPending || validateEmailMutation.isPending;
-    const isResending = resendSMSMutation.isPending || resendEmailMutation.isPending;
 
     return (
         <div className="min-h-screen overflow-hidden lg:grid lg:grid-cols-12 lg:gap-2">
@@ -272,65 +191,62 @@ const VerifyPage = () => {
 
             <div className="col-span-12 lg:col-span-4 min-h-screen flex items-center justify-center bg-[#050505] px-4 sm:px-6 md:px-8 py-8">
                 <div className="w-full max-w-[500px]">
-                    <div className="flex flex-col gap-8 items-center text-center">
+                    <div className="flex flex-col gap-12 items-center">
                         <div className="lg:hidden">
                             <LogoIcon width={160} height={90} />
                         </div>
 
-                        <div className="flex flex-col gap-4 w-full">
-                            <h1 className="text-[28px] md:text-[30px] font-medium font-n27 text-center text-[#ff336d]">
-                                {t('verify.title')}
-                            </h1>
+                        <div className="flex flex-col gap-10 w-full items-center">
+                            <div className="flex flex-col gap-4 w-full">
+                                <h1 className="text-[28px] md:text-[30px] text-center font-medium font-n27 text-[#ff336d]">
+                                    {t('verify.account_verification')}{' '}
+                                    {verificationType === 'sms' ? t('verify.sms') : t('verify.email')}
+                                </h1>
 
-                            <p className="text-[14px] md:text-[16px] font-normal font-helvetica text-center text-[#F6F6F6]">
-                                {verification === 'sms'
-                                    ? t('verify.subtitle_sms', { phone: getVerificationTarget() })
-                                    : t('verify.subtitle_email', { email: getVerificationTarget() })
-                                }
-                            </p>
-                        </div>
-
-                        <div className="flex flex-col gap-6 w-full">
-                            <form onSubmit={handleSubmit}>
-                                <div className="flex flex-col gap-6">
-                                    <OTPInput
-                                        length={6}
-                                        value={otp}
-                                        onChange={handleOTPComplete}
-                                        error={error}
-                                        disabled={isLoading}
-                                    />
-
-                                    <Button
-                                        type="submit"
-                                        variant="cta"
-                                        disabled={isLoading || otp.length !== 6}
-                                        isLoading={isLoading}
-                                    >
-                                        {t('verify.verify')}
-                                    </Button>
-                                </div>
-                            </form>
-
-                            <div className="flex flex-col gap-4 items-center">
-                                <p className="text-[14px] font-helvetica text-[#F6F6F6]">
-                                    {t('verify.didnt_receive')}
+                                <p className="text-[14px] md:text-[16px] text-center font-normal font-helvetica text-[#888888]">
+                                    {verificationType === 'sms'
+                                        ? `${t('verify.code_sent_to_phone')} ${getContactDisplay()}`
+                                        : `${t('verify.code_sent_to_email')} ${getContactDisplay()}`}
                                 </p>
+                            </div>
 
-                                {canResend ? (
+                            <div className="w-full max-w-[365px]">
+                                <OTPInput
+                                    length={6}
+                                    value={otpValue}
+                                    onChange={setOtpValue}
+                                    disabled={verifyMutation.isPending}
+                                    autoFocus={true}
+                                />
+                            </div>
+
+                            {countdown > 0 ? (
+                                <p className="text-[14px] md:text-[16px] font-medium font-helvetica text-[#888888]">
+                                    {t('verify.can_request_new_code')} {countdown}s
+                                </p>
+                            ) : (
+                                <p className="text-[14px] md:text-[16px] font-medium font-helvetica text-[#888888]">
+                                    {t('verify.didnt_receive_code')}
                                     <button
-                                        type="button"
                                         onClick={handleResend}
-                                        disabled={isResending}
-                                        className="text-[#ff336d] font-medium hover:underline disabled:opacity-50"
+                                        disabled={resendMutation.isPending}
+                                        className="ml-1 text-[#ff336d] cursor-pointer no-underline hover:underline font-medium font-helvetica"
                                     >
-                                        {isResending ? t('verify.resending') : t('verify.resend')}
+                                        {t('verify.resend_code')}
                                     </button>
-                                ) : (
-                                    <p className="text-[14px] font-helvetica text-[#888888]">
-                                        {t('verify.resend_in', { seconds: countdown })}
-                                    </p>
-                                )}
+                                </p>
+                            )}
+
+                            <div className="flex flex-col gap-3 w-full">
+                                <Button
+                                    type="button"
+                                    variant="cta"
+                                    onClick={handleVerify}
+                                    disabled={otpValue.length !== 6}
+                                    isLoading={verifyMutation.isPending}
+                                >
+                                    {t('verify.continue')}
+                                </Button>
                             </div>
                         </div>
                     </div>
@@ -340,4 +256,4 @@ const VerifyPage = () => {
     );
 };
 
-export default VerifyPage;
+export default Verify;

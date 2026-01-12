@@ -131,9 +131,9 @@ const ForgotChangePage = () => {
         }
 
         if (!confirmEmail.trim()) {
-            newErrors.confirmEmail = t('forgot_change.confirm_email_required');
+            newErrors.confirmEmail = t('forgot_change.repeat_email_required');
         } else if (email.trim().toLowerCase() !== confirmEmail.trim().toLowerCase()) {
-            newErrors.confirmEmail = t('forgot_change.emails_do_not_match');
+            newErrors.confirmEmail = t('forgot_change.emails_not_match');
         }
 
         if (Object.keys(newErrors).length > 0) {
@@ -163,7 +163,7 @@ const ForgotChangePage = () => {
 
             <div className="col-span-12 lg:col-span-4 min-h-screen flex items-center justify-center bg-[#050505] px-4 sm:px-6 md:px-8 py-8">
                 <div className="w-full max-w-[500px]">
-                    <div className="flex flex-col gap-8 items-center text-center lg:text-left">
+                    <div className="flex flex-col gap-12 items-center text-center lg:text-left">
                         <div className="lg:hidden">
                             <LogoIcon width={160} height={90} />
                         </div>
@@ -173,7 +173,7 @@ const ForgotChangePage = () => {
                                 {t('forgot_change.title')}
                             </h1>
 
-                            <p className="text-[14px] md:text-[16px] font-normal font-helvetica text-center text-[#F6F6F6]">
+                            <p className="text-[14px] md:text-[16px] font-normal font-helvetica text-center text-[#888888]">
                                 {t('forgot_change.subtitle')}
                             </p>
                         </div>
@@ -182,8 +182,7 @@ const ForgotChangePage = () => {
                             <form onSubmit={handleSubmit}>
                                 <div className="flex flex-col gap-5">
                                     <InputText
-                                        label={`${t('forgot_change.new_email')}*`}
-                                        placeholder={t('forgot_change.new_email_placeholder')}
+                                        label={`${t('forgot_change.email')}*`}
                                         value={email}
                                         onChange={(val) => {
                                             setEmail(val);
@@ -196,8 +195,7 @@ const ForgotChangePage = () => {
                                     />
 
                                     <InputText
-                                        label={`${t('forgot_change.confirm_email')}*`}
-                                        placeholder={t('forgot_change.confirm_email_placeholder')}
+                                        label={`${t('forgot_change.repeat_email')}*`}
                                         value={confirmEmail}
                                         onChange={(val) => {
                                             setConfirmEmail(val);
