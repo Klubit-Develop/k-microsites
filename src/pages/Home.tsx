@@ -104,6 +104,29 @@ const DAY_MAP: Record<string, { es: string; en: string; order: number }> = {
 // Mínimo de eventos para mostrar el arrow clickeable
 const MIN_EVENTS_FOR_ARROW = 5;
 
+/**
+ * Obtiene el slug del club desde la URL
+ * - En desarrollo (localhost): usa variable de entorno o slug por defecto
+ * - En producción: extrae el subdominio de xxx.klubit.io
+ */
+const getClubSlug = (): string => {
+    const hostname = window.location.hostname;
+
+    // Desarrollo local: usar variable de entorno o slug por defecto
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+        return import.meta.env.VITE_DEV_CLUB_SLUG || 'teatro-kapital';
+    }
+
+    // Producción: extraer subdominio de xxx.klubit.io
+    const parts = hostname.split('.');
+    if (parts.length >= 3) {
+        return parts[0]; // opium-madrid, teatro-kapital, etc.
+    }
+
+    // Fallback
+    return 'teatro-kapital';
+};
+
 const Home = () => {
     const { i18n, t } = useTranslation();
     const queryClient = useQueryClient();
@@ -116,12 +139,15 @@ const Home = () => {
     const locale = i18n.language === 'en' ? 'en' : 'es';
     const showUpcomingEvents = view === 'events';
 
+    // Obtener el slug del club dinámicamente
+    const clubSlug = getClubSlug();
+
     const clubQuery = useQuery({
-        queryKey: ['club', 'localhost'],
+        queryKey: ['club', clubSlug],
         queryFn: async (): Promise<Club> => {
             const fields = 'id,logo,name,venueType,openingDays,openingTime,closingTime,images,contactNumber,email';
             const response = await axiosInstance.get<ClubResponse>(
-                `/v2/clubs/slug/localhost?includeInactive=true&fields=${fields}`
+                `/v2/clubs/slug/${clubSlug}?includeInactive=true&fields=${fields}`
             );
             return response.data.data.club;
         },
