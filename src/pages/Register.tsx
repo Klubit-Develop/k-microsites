@@ -213,7 +213,7 @@ const RegisterPage = () => {
             lastName: lastName.trim(),
             username,
             email: email.trim().toLowerCase(),
-            birthdate: birthDate,
+            birthdate: new Date(birthDate).toISOString(),
             gender: gender.toUpperCase(),
             country: country || '',
             phone: phone || '',
