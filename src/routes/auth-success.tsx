@@ -48,7 +48,7 @@ const AuthSuccessComponent = () => {
     const { t } = useTranslation();
     const { setUser, setToken } = useAuthStore();
     const searchParams = Route.useSearch();
-    const [isProcessing, setIsProcessing] = useState(true);
+    const [, setIsProcessing] = useState(true);
 
     const { oauthToken } = searchParams;
 
