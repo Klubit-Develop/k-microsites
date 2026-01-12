@@ -124,7 +124,7 @@ const VerifyPage = () => {
     });
 
     const validateEmailMutation = useMutation({
-        mutationFn: async (data: { email: string; code: string }) => {
+        mutationFn: async (data: { email: string; code: string; isForgot?: boolean }) => {
             const response = await axiosInstance.post<BackendResponse>('/v2/email/validate', data);
             return response.data;
         },
@@ -132,10 +132,19 @@ const VerifyPage = () => {
             if (response.status === 'success') {
                 toast.success(t('verify.verification_success'));
                 
-                const responseData = response.data as { token?: string; user?: Record<string, unknown> };
+                const responseData = response.data as { 
+                    token?: string; 
+                    user?: {
+                        id: string;
+                        firstName: string;
+                        lastName: string;
+                        email: string;
+                        [key: string]: unknown;
+                    };
+                };
                 
                 if (responseData?.token && responseData?.user) {
-                    setAuth(responseData.token, responseData.user as Parameters<typeof setAuth>[1]);
+                    setAuth(responseData.token, responseData.user);
                 }
                 
                 navigate({ to: '/' });
@@ -225,7 +234,8 @@ const VerifyPage = () => {
         } else if (verification === 'email') {
             validateEmailMutation.mutate({
                 email: email || '',
-                code: otp
+                code: otp,
+                ...(isForgot === 'true' && { isForgot: true })
             });
         }
     };
