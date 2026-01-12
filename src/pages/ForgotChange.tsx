@@ -77,7 +77,7 @@ const ForgotChangePage = () => {
     });
 
     const changeEmailMutation = useMutation({
-        mutationFn: async (data: { newEmail: string }) => {
+        mutationFn: async (data: { email: string }) => {
             const response = await axiosInstance.post<BackendResponse>('/v2/auth/forgot-change', data, {
                 headers: {
                     Authorization: `Bearer ${token}`
@@ -144,7 +144,7 @@ const ForgotChangePage = () => {
         setErrors({});
 
         changeEmailMutation.mutate({
-            newEmail: email.trim().toLowerCase()
+            email: email.trim().toLowerCase()
         });
     };
 
