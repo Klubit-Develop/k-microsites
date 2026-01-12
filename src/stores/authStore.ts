@@ -1,27 +1,16 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-interface User {
-    id: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone?: string;
-    country?: string;
-    avatar?: string;
-    [key: string]: unknown;
-}
-
 interface AuthState {
-    user: User | null;
+    user: any | null;
     token: string | null;
-    clubs: unknown[];
+    clubs: any[];
     _hasHydrated: boolean;
 
-    setUser: (user: User | null) => void;
+    setUser: (user: any | null) => void;
     setToken: (token: string | null) => void;
-    setAuth: (token: string, user: User) => void;
-    setClubs: (clubs: unknown[]) => void;
+    setAuth: (token: string, user: any) => void;
+    setClubs: (clubs: any[]) => void;
     logout: () => void;
     setHasHydrated: (state: boolean) => void;
 }

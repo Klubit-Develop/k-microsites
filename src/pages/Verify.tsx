@@ -132,16 +132,7 @@ const VerifyPage = () => {
             if (response.status === 'success') {
                 toast.success(t('verify.verification_success'));
                 
-                const responseData = response.data as { 
-                    token?: string; 
-                    user?: {
-                        id: string;
-                        firstName: string;
-                        lastName: string;
-                        email: string;
-                        [key: string]: unknown;
-                    };
-                };
+                const responseData = response.data as { token?: string; user?: any };
                 
                 if (responseData?.token && responseData?.user) {
                     setAuth(responseData.token, responseData.user);
