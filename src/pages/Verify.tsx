@@ -47,11 +47,11 @@ const VerifyPage = () => {
             navigate({ to: '/auth' });
             return;
         }
-        
+
         if (verification === 'sms' && (!country || !phone)) {
             navigate({ to: '/auth' });
         }
-        
+
         if (verification === 'email' && !email) {
             navigate({ to: '/auth' });
         }
@@ -77,16 +77,18 @@ const VerifyPage = () => {
                 
                 if (isForgot === 'true') {
                     const responseData = response.data as { 
-                        token?: string; 
-                        id?: string; 
-                        currentEmail?: string;
+                        token?: string;
+                        user?: {
+                            id?: string;
+                            email?: string;
+                        };
                     };
                     navigate({
                         to: '/forgot-change',
                         search: {
-                            id: responseData?.id || '',
+                            id: responseData?.user?.id || '',
                             token: responseData?.token || '',
-                            currentEmail: responseData?.currentEmail || ''
+                            currentEmail: responseData?.user?.email || ''
                         }
                     });
                 } else if (oauthProvider) {

@@ -18,6 +18,10 @@ interface BackendResponse {
     details: string;
 }
 
+interface PendingNavigation {
+    email: string;
+}
+
 const ForgotChangePage = () => {
     const navigate = useNavigate();
     const { t } = useTranslation();
@@ -27,7 +31,7 @@ const ForgotChangePage = () => {
 
     const [email, setEmail] = useState('');
     const [confirmEmail, setConfirmEmail] = useState('');
-    const [pendingEmail, setPendingEmail] = useState<string | null>(null);
+    const [pendingNavigation, setPendingNavigation] = useState<PendingNavigation | null>(null);
 
     const [errors, setErrors] = useState<{
         email?: string;
@@ -47,23 +51,23 @@ const ForgotChangePage = () => {
         },
         onSuccess: (response) => {
             if (response.status === 'success') {
-                if (pendingEmail) {
+                if (pendingNavigation) {
                     navigate({
                         to: '/verify',
                         search: {
                             verification: 'email',
                             isForgot: 'true',
-                            email: pendingEmail
+                            email: pendingNavigation.email
                         }
                     });
                 }
             } else {
                 toast.error(response.message || response.details);
             }
-            setPendingEmail(null);
+            setPendingNavigation(null);
         },
         onError: (error: { backendError?: { message: string } }) => {
-            setPendingEmail(null);
+            setPendingNavigation(null);
             if (error.backendError) {
                 toast.error(error.backendError.message);
             } else {
@@ -73,7 +77,7 @@ const ForgotChangePage = () => {
     });
 
     const changeEmailMutation = useMutation({
-        mutationFn: async (data: { userId: string; newEmail: string }) => {
+        mutationFn: async (data: { newEmail: string }) => {
             const response = await axiosInstance.post<BackendResponse>('/v2/auth/forgot-change', data, {
                 headers: {
                     Authorization: `Bearer ${token}`
@@ -85,7 +89,9 @@ const ForgotChangePage = () => {
             if (response.status === 'success') {
                 const newEmail = email.trim().toLowerCase();
                 
-                setPendingEmail(newEmail);
+                setPendingNavigation({
+                    email: newEmail
+                });
                 
                 sendEmailMutation.mutate({
                     email: newEmail,
@@ -97,7 +103,7 @@ const ForgotChangePage = () => {
         },
         onError: (error: { backendError?: { message: string; code?: string } }) => {
             if (error.backendError) {
-                if (error.backendError.code === 'EMAIL_ALREADY_EXISTS') {
+                if (error.backendError.code === 'EMAIL_ALREADY_EXISTS' || error.backendError.code === 'EMAIL_ALREADY_IN_USE') {
                     setErrors(prev => ({ ...prev, email: t('forgot_change.email_already_exists') }));
                 } else {
                     toast.error(error.backendError.message);
@@ -138,7 +144,6 @@ const ForgotChangePage = () => {
         setErrors({});
 
         changeEmailMutation.mutate({
-            userId: id || '',
             newEmail: email.trim().toLowerCase()
         });
     };

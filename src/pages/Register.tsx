@@ -26,6 +26,22 @@ interface PendingNavigation {
     phone: string;
 }
 
+const generateUsername = (firstName: string, lastName: string): string => {
+    const base = `${firstName}_${lastName}`
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .trim()
+        .replace(/\s+/g, '_')
+        .replace(/[^\w]+/g, '')
+        .replace(/__+/g, '_')
+        .replace(/^_+/, '')
+        .replace(/_+$/, '');
+    
+    const randomNum = Math.floor(Math.random() * 1000);
+    return `${base}${randomNum}`;
+};
+
 const RegisterPage = () => {
     const navigate = useNavigate();
     const { t } = useTranslation();
@@ -91,8 +107,9 @@ const RegisterPage = () => {
         mutationFn: async (data: {
             firstName: string;
             lastName: string;
+            username: string;
             email: string;
-            birthDate: string;
+            birthdate: string;
             gender: string;
             country: string;
             phone: string;
@@ -189,12 +206,15 @@ const RegisterPage = () => {
 
         setErrors({});
 
+        const username = generateUsername(firstName.trim(), lastName.trim());
+
         registerMutation.mutate({
             firstName: firstName.trim(),
             lastName: lastName.trim(),
+            username,
             email: email.trim().toLowerCase(),
-            birthDate,
-            gender,
+            birthdate: birthDate,
+            gender: gender.toUpperCase(),
             country: country || '',
             phone: phone || '',
             ...(oauthProvider && { oauthProvider })
