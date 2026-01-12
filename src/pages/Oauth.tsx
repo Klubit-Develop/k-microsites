@@ -19,6 +19,15 @@ interface BackendResponse {
     details: string;
 }
 
+interface PendingNavigation {
+    country: string;
+    phone: string;
+    oauthEmail: string;
+    oauthProvider: string;
+    oauthFirstName: string;
+    oauthLastName: string;
+}
+
 const Oauth = () => {
     const navigate = useNavigate();
     const { i18n, t } = useTranslation();
@@ -29,13 +38,36 @@ const Oauth = () => {
     const [country, setCountry] = useState('34');
     const [phone, setPhone] = useState('');
     const [error, setError] = useState('');
+    const [pendingNavigation, setPendingNavigation] = useState<PendingNavigation | null>(null);
 
     const sendSMSMutation = useMutation({
         mutationFn: async (data: { country: string; phone: string }) => {
             const response = await axiosInstance.post<BackendResponse>('/v2/sms/send', data);
             return response.data;
         },
+        onSuccess: (response) => {
+            if (response.status === 'success') {
+                if (pendingNavigation) {
+                    navigate({
+                        to: '/verify',
+                        search: {
+                            verification: 'sms',
+                            country: pendingNavigation.country,
+                            phone: pendingNavigation.phone,
+                            oauthEmail: pendingNavigation.oauthEmail,
+                            oauthProvider: pendingNavigation.oauthProvider,
+                            oauthFirstName: pendingNavigation.oauthFirstName,
+                            oauthLastName: pendingNavigation.oauthLastName,
+                        }
+                    });
+                }
+            } else {
+                toast.error(response.message || response.details);
+            }
+            setPendingNavigation(null);
+        },
         onError: (error: { backendError?: { message: string } }) => {
+            setPendingNavigation(null);
             if (error.backendError) {
                 toast.error(error.backendError.message);
             } else {
@@ -64,28 +96,24 @@ const Oauth = () => {
                     return;
                 }
                 
+                setPendingNavigation({
+                    country,
+                    phone,
+                    oauthEmail: oauthEmail || '',
+                    oauthProvider: provider || '',
+                    oauthFirstName: firstName || '',
+                    oauthLastName: lastName || '',
+                });
+                
                 sendSMSMutation.mutate({
                     country,
                     phone: phone.replace(/\s/g, '')
-                });
-
-                navigate({
-                    to: '/verify',
-                    search: {
-                        verification: 'sms',
-                        country,
-                        phone,
-                        oauthEmail,
-                        oauthProvider: provider,
-                        oauthFirstName: firstName,
-                        oauthLastName: lastName,
-                    }
                 });
             } else {
                 toast.error(response.message || response.details);
             }
         },
-        onError: (error: any) => {
+        onError: (error: { backendError?: { message: string } }) => {
             if (error.backendError) {
                 toast.error(error.backendError.message);
             } else {
@@ -151,6 +179,8 @@ const Oauth = () => {
         });
     };
 
+    const isLoading = loginMutation.isPending || sendSMSMutation.isPending;
+
     return (
         <div className="min-h-screen overflow-hidden lg:grid lg:grid-cols-12 lg:gap-2">
             <div className="hidden lg:flex lg:col-span-8 bg-black items-center h-screen relative">
@@ -180,7 +210,6 @@ const Oauth = () => {
                                 <div>
                                     <form onSubmit={handleSubmit}>
                                         <div className="flex flex-col gap-6">
-                                            {/* Input Phone Component */}
                                             <InputTextPhone
                                                 label={`${t('oauth.phone')}*`}
                                                 placeholder={t('oauth.phone')}
@@ -191,14 +220,14 @@ const Oauth = () => {
                                                 onCountryChange={handleCountryChange}
                                                 countries={countries}
                                                 language={i18n.language as 'es' | 'en'}
-                                                disabled={loginMutation.isPending}
+                                                disabled={isLoading}
                                             />
 
                                             <Button
                                                 type="submit"
                                                 variant="cta"
-                                                disabled={loginMutation.isPending}
-                                                isLoading={loginMutation.isPending}
+                                                disabled={isLoading}
+                                                isLoading={isLoading}
                                             >
                                                 {t('oauth.continue')}
                                             </Button>

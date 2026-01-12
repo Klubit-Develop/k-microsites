@@ -1,15 +1,27 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+interface User {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone?: string;
+    country?: string;
+    avatar?: string;
+    [key: string]: unknown;
+}
+
 interface AuthState {
-    user: any | null;
+    user: User | null;
     token: string | null;
-    clubs: any[];
+    clubs: unknown[];
     _hasHydrated: boolean;
 
-    setUser: (user: any | null) => void;
+    setUser: (user: User | null) => void;
     setToken: (token: string | null) => void;
-    setClubs: (clubs: any[]) => void;
+    setAuth: (token: string, user: User) => void;
+    setClubs: (clubs: unknown[]) => void;
     logout: () => void;
     setHasHydrated: (state: boolean) => void;
 }
@@ -24,6 +36,7 @@ export const useAuthStore = create<AuthState>()(
 
             setUser: (user) => set({ user }),
             setToken: (token) => set({ token }),
+            setAuth: (token, user) => set({ token, user }),
             setClubs: (clubs) => set({ clubs }),
             logout: () => set({ user: null, token: null, clubs: [] }),
             setHasHydrated: (state) => set({ _hasHydrated: state }),

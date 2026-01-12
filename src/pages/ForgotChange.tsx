@@ -1,59 +1,69 @@
 import { toast } from 'sonner';
-import { useForm } from '@tanstack/react-form';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { LogoIcon, LogoCutIcon } from '@/components/icons';
 import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import { Route } from '@/routes/forgot-change';
 
-import axiosInstance from '@/config/axiosConfig';
+import { LogoIcon, LogoCutIcon } from '@/components/icons';
 import InputText from '@/components/ui/InputText';
 import Button from '@/components/ui/Button';
+import axiosInstance from '@/config/axiosConfig';
 
-const ForgotChange = () => {
+interface BackendResponse {
+    status: 'success' | 'error';
+    code: string;
+    data: Record<string, unknown>;
+    message: string;
+    details: string;
+}
+
+const ForgotChangePage = () => {
     const navigate = useNavigate();
     const { t } = useTranslation();
     const searchParams = Route.useSearch();
 
-    const cleanString = (value: string | undefined): string => {
-        if (!value) return '';
-        return value.replace(/^"|"$/g, '');
-    };
+    const { id, token, currentEmail } = searchParams;
 
-    const id = cleanString(searchParams.id);
-    const token = cleanString(searchParams.token);
-    const currentEmail = cleanString(searchParams.currentEmail);
+    const [email, setEmail] = useState('');
+    const [confirmEmail, setConfirmEmail] = useState('');
+    const [pendingEmail, setPendingEmail] = useState<string | null>(null);
 
-    const validators = {
-        email: (value: string) => {
-            if (!value) return t('forgot_change.email_required');
-            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return t('forgot_change.email_invalid');
-        },
-        repeatEmail: (email: string, repeatEmail: string) => {
-            if (!repeatEmail) return t('forgot_change.repeat_email_required');
-            if (email !== repeatEmail) return t('forgot_change.emails_not_match');
+    const [errors, setErrors] = useState<{
+        email?: string;
+        confirmEmail?: string;
+    }>({});
+
+    useEffect(() => {
+        if (!id || !token) {
+            navigate({ to: '/forgot' });
         }
-    };
+    }, [id, token, navigate]);
 
     const sendEmailMutation = useMutation({
-        mutationFn: async (data: { currentEmail: string, email: string }) => {
-            const response = await axiosInstance.post('/v2/email/send', data);
+        mutationFn: async (data: { email: string; currentEmail?: string }) => {
+            const response = await axiosInstance.post<BackendResponse>('/v2/email/send', data);
             return response.data;
         },
-        onSuccess: (_data, variables) => {
-            navigate({
-                to: '/verify',
-                search: {
-                    verification: 'email',
-                    isForgot: 'true',
-                    userId: id,
-                    token: token,
-                    currentEmail: currentEmail,
-                    email: variables.email
+        onSuccess: (response) => {
+            if (response.status === 'success') {
+                if (pendingEmail) {
+                    navigate({
+                        to: '/verify',
+                        search: {
+                            verification: 'email',
+                            isForgot: 'true',
+                            email: pendingEmail
+                        }
+                    });
                 }
-            });
+            } else {
+                toast.error(response.message || response.details);
+            }
+            setPendingEmail(null);
         },
         onError: (error: { backendError?: { message: string } }) => {
+            setPendingEmail(null);
             if (error.backendError) {
                 toast.error(error.backendError.message);
             } else {
@@ -62,33 +72,77 @@ const ForgotChange = () => {
         }
     });
 
-    const form = useForm({
-        defaultValues: {
-            email: '',
-            repeatEmail: ''
-        },
-        validators: {
-            onSubmit: ({ value }) => {
-                const validationErrors: Record<string, string> = {};
-
-                const emailError = validators.email(value.email);
-                if (emailError) validationErrors.email = emailError;
-
-                const repeatEmailError = validators.repeatEmail(value.email, value.repeatEmail);
-                if (repeatEmailError) validationErrors.repeatEmail = repeatEmailError;
-
-                if (Object.keys(validationErrors).length > 0) {
-                    return validationErrors;
+    const changeEmailMutation = useMutation({
+        mutationFn: async (data: { newEmail: string }) => {
+            const response = await axiosInstance.post<BackendResponse>('/v2/auth/forgot-change', data, {
+                headers: {
+                    Authorization: `Bearer ${token}`
                 }
+            });
+            return response.data;
+        },
+        onSuccess: (response: BackendResponse) => {
+            if (response.status === 'success') {
+                const newEmail = email.trim().toLowerCase();
+                
+                setPendingEmail(newEmail);
+                
+                sendEmailMutation.mutate({
+                    email: newEmail,
+                    currentEmail: currentEmail || undefined
+                });
+            } else {
+                toast.error(response.message || response.details);
             }
         },
-        onSubmit: async ({ value }) => {
-            sendEmailMutation.mutate({
-                currentEmail: currentEmail,
-                email: value.email,
-            });
+        onError: (error: { backendError?: { message: string; code?: string } }) => {
+            if (error.backendError) {
+                if (error.backendError.code === 'EMAIL_ALREADY_EXISTS') {
+                    setErrors(prev => ({ ...prev, email: t('forgot_change.email_already_exists') }));
+                } else {
+                    toast.error(error.backendError.message);
+                }
+            } else {
+                toast.error(t('common.error_connection'));
+            }
         }
     });
+
+    const validateEmail = (email: string): boolean => {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    };
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+
+        const newErrors: typeof errors = {};
+
+        if (!email.trim()) {
+            newErrors.email = t('forgot_change.email_required');
+        } else if (!validateEmail(email)) {
+            newErrors.email = t('forgot_change.email_invalid');
+        }
+
+        if (!confirmEmail.trim()) {
+            newErrors.confirmEmail = t('forgot_change.confirm_email_required');
+        } else if (email.trim().toLowerCase() !== confirmEmail.trim().toLowerCase()) {
+            newErrors.confirmEmail = t('forgot_change.emails_do_not_match');
+        }
+
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
+            return;
+        }
+
+        setErrors({});
+
+        changeEmailMutation.mutate({
+            newEmail: email.trim().toLowerCase()
+        });
+    };
+
+    const isLoading = changeEmailMutation.isPending || sendEmailMutation.isPending;
 
     return (
         <div className="min-h-screen overflow-hidden lg:grid lg:grid-cols-12 lg:gap-2">
@@ -101,61 +155,59 @@ const ForgotChange = () => {
                 </div>
             </div>
 
-            <div className="col-span-12 lg:col-span-4 min-h-screen flex items-center justify-center lg:bg-[#050505] px-4 sm:px-6 md:px-8 py-8">
+            <div className="col-span-12 lg:col-span-4 min-h-screen flex items-center justify-center bg-[#050505] px-4 sm:px-6 md:px-8 py-8">
                 <div className="w-full max-w-[500px]">
-                    <div className="flex flex-col gap-12 items-center text-center lg:text-left">
+                    <div className="flex flex-col gap-8 items-center text-center lg:text-left">
                         <div className="lg:hidden">
                             <LogoIcon width={160} height={90} />
                         </div>
 
                         <div className="flex flex-col gap-4 w-full">
-                            <h1 className="text-[28px] md:text-[30px] font-medium text-center font-n27 text-[#ff336d]">
+                            <h1 className="text-[28px] md:text-[30px] font-medium font-n27 text-center text-[#ff336d]">
                                 {t('forgot_change.title')}
                             </h1>
 
-                            <p className="text-[14px] md:text-[16px] font-normal text-center font-helvetica text-[#F6F6F6]">
+                            <p className="text-[14px] md:text-[16px] font-normal font-helvetica text-center text-[#F6F6F6]">
                                 {t('forgot_change.subtitle')}
                             </p>
                         </div>
 
-                        <div className="flex flex-col gap-10 w-full">
-                            <form onSubmit={(e) => { e.preventDefault(); form.handleSubmit(); }} className="w-full">
+                        <div className="flex flex-col gap-6 w-full">
+                            <form onSubmit={handleSubmit}>
                                 <div className="flex flex-col gap-5">
-                                    <div className="flex flex-col gap-8">
-                                        <form.Field name="email">
-                                            {(field) => (
-                                                <InputText
-                                                    type="email"
-                                                    label={`${t('forgot_change.email')}*`}
-                                                    value={field.state.value || ''}
-                                                    onChange={field.handleChange}
-                                                    error={field.state.meta.errors?.[0]}
-                                                    maxLength={80}
-                                                    inputMode="email"
-                                                />
-                                            )}
-                                        </form.Field>
+                                    <InputText
+                                        label={`${t('forgot_change.new_email')}*`}
+                                        placeholder={t('forgot_change.new_email_placeholder')}
+                                        value={email}
+                                        onChange={(val) => {
+                                            setEmail(val);
+                                            if (errors.email) {
+                                                setErrors(prev => ({ ...prev, email: undefined }));
+                                            }
+                                        }}
+                                        error={errors.email}
+                                        disabled={isLoading}
+                                    />
 
-                                        <form.Field name="repeatEmail">
-                                            {(field) => (
-                                                <InputText
-                                                    type="email"
-                                                    label={`${t('forgot_change.repeat_email')}*`}
-                                                    value={field.state.value || ''}
-                                                    onChange={field.handleChange}
-                                                    error={field.state.meta.errors?.[0]}
-                                                    maxLength={80}
-                                                    inputMode="email"
-                                                />
-                                            )}
-                                        </form.Field>
-                                    </div>
+                                    <InputText
+                                        label={`${t('forgot_change.confirm_email')}*`}
+                                        placeholder={t('forgot_change.confirm_email_placeholder')}
+                                        value={confirmEmail}
+                                        onChange={(val) => {
+                                            setConfirmEmail(val);
+                                            if (errors.confirmEmail) {
+                                                setErrors(prev => ({ ...prev, confirmEmail: undefined }));
+                                            }
+                                        }}
+                                        error={errors.confirmEmail}
+                                        disabled={isLoading}
+                                    />
 
                                     <Button
                                         type="submit"
                                         variant="cta"
-                                        disabled={form.state.isSubmitting}
-                                        isLoading={form.state.isSubmitting}
+                                        disabled={isLoading}
+                                        isLoading={isLoading}
                                     >
                                         {t('forgot_change.continue')}
                                     </Button>
@@ -169,4 +221,4 @@ const ForgotChange = () => {
     );
 };
 
-export default ForgotChange;
+export default ForgotChangePage;

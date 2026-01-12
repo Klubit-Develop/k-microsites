@@ -18,6 +18,13 @@ interface BackendResponse {
     details: string;
 }
 
+interface PendingNavigation {
+    type: 'email' | 'sms';
+    email?: string;
+    country: string;
+    phone: string;
+}
+
 const Auth = () => {
     const navigate = useNavigate();
     const { i18n, t } = useTranslation();
@@ -25,13 +32,33 @@ const Auth = () => {
     const [country, setCountry] = useState('34');
     const [phone, setPhone] = useState('');
     const [error, setError] = useState('');
+    const [pendingNavigation, setPendingNavigation] = useState<PendingNavigation | null>(null);
 
     const sendEmailMutation = useMutation({
         mutationFn: async (data: { email: string }) => {
             const response = await axiosInstance.post<BackendResponse>('/v2/email/send', data);
             return response.data;
         },
+        onSuccess: (response) => {
+            if (response.status === 'success') {
+                if (pendingNavigation?.type === 'email') {
+                    navigate({
+                        to: '/verify',
+                        search: {
+                            verification: 'email',
+                            email: pendingNavigation.email || '',
+                            country: pendingNavigation.country,
+                            phone: pendingNavigation.phone
+                        }
+                    });
+                }
+            } else {
+                toast.error(response.message || response.details);
+            }
+            setPendingNavigation(null);
+        },
         onError: (error: { backendError?: { message: string } }) => {
+            setPendingNavigation(null);
             if (error.backendError) {
                 toast.error(error.backendError.message);
             } else {
@@ -45,7 +72,25 @@ const Auth = () => {
             const response = await axiosInstance.post<BackendResponse>('/v2/sms/send', data);
             return response.data;
         },
+        onSuccess: (response) => {
+            if (response.status === 'success') {
+                if (pendingNavigation?.type === 'sms') {
+                    navigate({
+                        to: '/verify',
+                        search: {
+                            verification: 'sms',
+                            country: pendingNavigation.country,
+                            phone: pendingNavigation.phone
+                        }
+                    });
+                }
+            } else {
+                toast.error(response.message || response.details);
+            }
+            setPendingNavigation(null);
+        },
         onError: (error: { backendError?: { message: string } }) => {
+            setPendingNavigation(null);
             if (error.backendError) {
                 toast.error(error.backendError.message);
             } else {
@@ -64,32 +109,24 @@ const Auth = () => {
                 const responseData = response.data as { exists?: boolean; email?: string };
                 
                 if (responseData?.exists) {
+                    setPendingNavigation({
+                        type: 'email',
+                        email: responseData.email || '',
+                        country,
+                        phone
+                    });
                     sendEmailMutation.mutate({
                         email: responseData.email || '',
                     });
-
-                    navigate({
-                        to: '/verify',
-                        search: {
-                            verification: 'email',
-                            email: responseData.email || '',
-                            country,
-                            phone
-                        }
-                    });
                 } else {
+                    setPendingNavigation({
+                        type: 'sms',
+                        country,
+                        phone
+                    });
                     sendSMSMutation.mutate({
                         country,
                         phone: phone.replace(/\s/g, '')
-                    });
-
-                    navigate({
-                        to: '/verify',
-                        search: {
-                            verification: 'sms',
-                            country,
-                            phone
-                        }
                     });
                 }
             } else {
@@ -172,9 +209,10 @@ const Auth = () => {
         window.location.href = `${import.meta.env.VITE_API_URL || 'https://api.klubit.io'}/v2/oauth/apple/microsites?origin=${encodeURIComponent(currentOrigin)}`;
     };
 
+    const isLoading = loginMutation.isPending || sendEmailMutation.isPending || sendSMSMutation.isPending;
+
     return (
         <div className="min-h-screen overflow-hidden lg:grid lg:grid-cols-12 lg:gap-2">
-            {/* Left Section - Logo (Desktop only) */}
             <div className="hidden lg:flex lg:col-span-8 bg-black items-center h-full relative">
                 <div className="h-full w-auto relative -translate-x-20">
                     <LogoCutIcon style={{ height: '100%', width: 'auto', objectFit: 'cover' }} />
@@ -184,23 +222,19 @@ const Auth = () => {
                 </div>
             </div>
 
-            {/* Right Section - Form */}
             <div className="col-span-12 lg:col-span-4 min-h-screen flex items-center justify-center bg-[#050505] px-6 sm:px-8 py-8">
                 <div className="w-full max-w-[400px] lg:max-w-[500px]">
                     <div className="flex flex-col gap-8 items-center">
-                        {/* Logo (Mobile only) */}
                         <div className="lg:hidden">
                             <LogoIcon width={140} height={80} />
                         </div>
 
-                        {/* Title */}
                         <div className="flex flex-col gap-3 w-full">
                             <h1 className="text-[24px] sm:text-[26px] md:text-[28px] font-medium font-n27 text-center text-[#ff336d]">
                                 {t('login.title')}
                             </h1>
                         </div>
 
-                        {/* Form */}
                         <div className="flex flex-col gap-5 w-full">
                             <form onSubmit={handleSubmit}>
                                 <div className="flex flex-col gap-5">
@@ -214,30 +248,29 @@ const Auth = () => {
                                         onCountryChange={handleCountryChange}
                                         countries={countries}
                                         language={i18n.language as 'es' | 'en'}
-                                        disabled={loginMutation.isPending}
+                                        disabled={isLoading}
                                     />
 
                                     <Button
                                         type="submit"
                                         variant="cta"
-                                        disabled={loginMutation.isPending}
-                                        isLoading={loginMutation.isPending}
+                                        disabled={isLoading}
+                                        isLoading={isLoading}
                                     >
                                         {t('login.continue')}
                                     </Button>
                                 </div>
                             </form>
 
-                            {/* Divider */}
                             <div className="flex items-center justify-center">
                                 <div className="border-t border-[#232323] w-full max-w-[100px]" />
                             </div>
 
-                            {/* Social Login */}
                             <div className="flex flex-col gap-3">
                                 <Button
                                     onClick={initiateGoogleLogin}
                                     icon={<GoogleIcon />}
+                                    disabled={isLoading}
                                 >
                                     {t('login.continueWithGoogle')}
                                 </Button>
@@ -245,12 +278,12 @@ const Auth = () => {
                                 <Button
                                     onClick={initiateAppleLogin}
                                     icon={<AppleIcon />}
+                                    disabled={isLoading}
                                 >
                                     {t('login.continueWithApple')}
                                 </Button>
                             </div>
 
-                            {/* Links */}
                             <div className="flex flex-col gap-3">
                                 <div className="flex items-center justify-center text-center">
                                     <span className="text-[14px] font-helvetica font-normal text-[#F6F6F6]">
