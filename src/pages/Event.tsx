@@ -167,6 +167,7 @@ interface Club {
     slug: string;
     logo: string;
     venueType: string;
+    termsAndConditions: string | null;
 }
 
 interface Event {
@@ -963,6 +964,10 @@ const Event = () => {
         toggleFavoriteMutation.mutate(eventId);
     };
 
+    const handleLegalClick = () => {
+        navigate({ to: '/terms-and-conditions-club' });
+    };
+
     const handleCheckout = useCallback(() => {
         const event = eventQuery.data;
         if (!event) return;
@@ -1251,7 +1256,7 @@ const Event = () => {
             case 'products':
                 const hasProducts = event?.products && event.products.length > 0;
                 const hasPromotions = event?.promotions && event.promotions.length > 0;
-
+                
                 if (!isLoading && !hasProducts && !hasPromotions) {
                     return (
                         <div className="flex items-center justify-center py-12">
@@ -1350,8 +1355,8 @@ const Event = () => {
     };
 
     return (
-        <div className="bg-[#050505] min-h-screen flex flex-col items-center pt-[120px] pb-[100px] md:pt-24 md:pb-24">
-            <div className="w-full mb-6 md:mb-[60px]">
+        <div className="bg-[#050505] min-h-screen flex flex-col items-center pt-[40px] pb-[50px] md:pt-24 md:pb-24">
+            <div className="w-full mb-10 md:mb-[60px]">
                 <EventStepper
                     currentStep={currentStep}
                     onStepClick={handleStepChange}
@@ -1420,7 +1425,8 @@ const Event = () => {
                                     lat: event.addressLocation?.coordinates?.[1] ?? 0,
                                     lng: event.addressLocation?.coordinates?.[0] ?? 0,
                                 }}
-                                legalText={t('club.legal_terms', 'Leer los términos legales del klub')}
+                                legalText={event.club?.termsAndConditions ? t('club.legal_terms', 'Leer los términos legales del klub') : undefined}
+                                onLegalClick={event.club?.termsAndConditions ? handleLegalClick : undefined}
                             />
                         ) : null}
                     </>
@@ -1481,7 +1487,8 @@ const Event = () => {
                                 lat: event.addressLocation?.coordinates?.[1] ?? 0,
                                 lng: event.addressLocation?.coordinates?.[0] ?? 0,
                             }}
-                            legalText={t('club.legal_terms', 'Leer los términos legales del klub')}
+                            legalText={event.club?.termsAndConditions ? t('club.legal_terms', 'Leer los términos legales del klub') : undefined}
+                            onLegalClick={event.club?.termsAndConditions ? handleLegalClick : undefined}
                         />
                     ) : null}
                 </div>

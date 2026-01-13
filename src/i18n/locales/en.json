@@ -9,7 +9,9 @@
         "email": "Email",
         "like": "Like",
         "likes": "Likes",
-        "favorite_error": "Error updating favorite"
+        "favorite_error": "Error updating favorite",
+        "location": "Location",
+        "legal_terms": "Read the club's legal terms"
     },
     "events": {
         "today": "Today",
@@ -293,5 +295,10 @@
         "error_title": "Transaction not found",
         "error_description": "We couldn't find this transaction",
         "back_to_wallet": "Back to Wallet"
+    },
+    "policies": {
+        "terms_and_conditions": "Terms and Conditions",
+        "club_terms": "Club Terms and Conditions",
+        "no_content": "No content available."
     }
 }

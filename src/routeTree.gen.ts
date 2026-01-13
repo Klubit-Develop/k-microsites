@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VerifyRouteImport } from './routes/verify'
+import { Route as TermsAndConditionsClubRouteImport } from './routes/terms-and-conditions-club'
 import { Route as TermsAndConditionsRouteImport } from './routes/terms-and-conditions'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
@@ -39,6 +40,11 @@ import { Route as AuthenticatedWalletTransactionIdItemIdRouteImport } from './ro
 const VerifyRoute = VerifyRouteImport.update({
   id: '/verify',
   path: '/verify',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsAndConditionsClubRoute = TermsAndConditionsClubRouteImport.update({
+  id: '/terms-and-conditions-club',
+  path: '/terms-and-conditions-club',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TermsAndConditionsRoute = TermsAndConditionsRouteImport.update({
@@ -183,6 +189,7 @@ export interface FileRoutesByFullPath {
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/register': typeof RegisterRoute
   '/terms-and-conditions': typeof TermsAndConditionsRoute
+  '/terms-and-conditions-club': typeof TermsAndConditionsClubRoute
   '/verify': typeof VerifyRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/wallet': typeof AuthenticatedWalletRouteWithChildren
@@ -210,6 +217,7 @@ export interface FileRoutesByTo {
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/register': typeof RegisterRoute
   '/terms-and-conditions': typeof TermsAndConditionsRoute
+  '/terms-and-conditions-club': typeof TermsAndConditionsClubRoute
   '/verify': typeof VerifyRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/wallet': typeof AuthenticatedWalletRouteWithChildren
@@ -239,6 +247,7 @@ export interface FileRoutesById {
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/register': typeof RegisterRoute
   '/terms-and-conditions': typeof TermsAndConditionsRoute
+  '/terms-and-conditions-club': typeof TermsAndConditionsClubRoute
   '/verify': typeof VerifyRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/wallet': typeof AuthenticatedWalletRouteWithChildren
@@ -268,6 +277,7 @@ export interface FileRouteTypes {
     | '/privacy-policy'
     | '/register'
     | '/terms-and-conditions'
+    | '/terms-and-conditions-club'
     | '/verify'
     | '/profile'
     | '/wallet'
@@ -295,6 +305,7 @@ export interface FileRouteTypes {
     | '/privacy-policy'
     | '/register'
     | '/terms-and-conditions'
+    | '/terms-and-conditions-club'
     | '/verify'
     | '/profile'
     | '/wallet'
@@ -323,6 +334,7 @@ export interface FileRouteTypes {
     | '/privacy-policy'
     | '/register'
     | '/terms-and-conditions'
+    | '/terms-and-conditions-club'
     | '/verify'
     | '/_authenticated/profile'
     | '/_authenticated/wallet'
@@ -352,6 +364,7 @@ export interface RootRouteChildren {
   PrivacyPolicyRoute: typeof PrivacyPolicyRoute
   RegisterRoute: typeof RegisterRoute
   TermsAndConditionsRoute: typeof TermsAndConditionsRoute
+  TermsAndConditionsClubRoute: typeof TermsAndConditionsClubRoute
   VerifyRoute: typeof VerifyRoute
   ArtistSlugRoute: typeof ArtistSlugRoute
   CheckoutCancelRoute: typeof CheckoutCancelRoute
@@ -367,6 +380,13 @@ declare module '@tanstack/react-router' {
       path: '/verify'
       fullPath: '/verify'
       preLoaderRoute: typeof VerifyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms-and-conditions-club': {
+      id: '/terms-and-conditions-club'
+      path: '/terms-and-conditions-club'
+      fullPath: '/terms-and-conditions-club'
+      preLoaderRoute: typeof TermsAndConditionsClubRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/terms-and-conditions': {
@@ -608,6 +628,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacyPolicyRoute: PrivacyPolicyRoute,
   RegisterRoute: RegisterRoute,
   TermsAndConditionsRoute: TermsAndConditionsRoute,
+  TermsAndConditionsClubRoute: TermsAndConditionsClubRoute,
   VerifyRoute: VerifyRoute,
   ArtistSlugRoute: ArtistSlugRoute,
   CheckoutCancelRoute: CheckoutCancelRoute,

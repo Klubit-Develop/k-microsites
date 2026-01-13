@@ -28,6 +28,7 @@ interface Club {
     images: string[];
     contactNumber: string;
     email: string;
+    termsAndConditions: string | null;
 }
 
 interface Event {
@@ -94,20 +95,20 @@ const VENUE_TYPE_MAP: Record<string, string> = {
 const DAY_MAP: Record<string, { es: string; en: string; order: number }> = {
     MONDAY: { es: 'Lunes', en: 'Monday', order: 1 },
     TUESDAY: { es: 'Martes', en: 'Tuesday', order: 2 },
-    WEDNESDAY: { es: 'Miércoles', en: 'Wednesday', order: 3 },
+    WEDNESDAY: { es: 'MiÃ©rcoles', en: 'Wednesday', order: 3 },
     THURSDAY: { es: 'Jueves', en: 'Thursday', order: 4 },
     FRIDAY: { es: 'Viernes', en: 'Friday', order: 5 },
-    SATURDAY: { es: 'Sábado', en: 'Saturday', order: 6 },
+    SATURDAY: { es: 'SÃ¡bado', en: 'Saturday', order: 6 },
     SUNDAY: { es: 'Domingo', en: 'Sunday', order: 7 },
 };
 
-// Mínimo de eventos para mostrar el arrow clickeable
+// MÃ­nimo de eventos para mostrar el arrow clickeable
 const MIN_EVENTS_FOR_ARROW = 5;
 
 /**
  * Obtiene el slug del club desde la URL
  * - En desarrollo (localhost): usa variable de entorno o slug por defecto
- * - En producción: extrae el subdominio de xxx.klubit.io
+ * - En producciÃ³n: extrae el subdominio de xxx.klubit.io
  */
 const getClubSlug = (): string => {
     const hostname = window.location.hostname;
@@ -117,7 +118,7 @@ const getClubSlug = (): string => {
         return import.meta.env.VITE_DEV_CLUB_SLUG || 'localhost';
     }
 
-    // Producción: extraer subdominio de xxx.klubit.io
+    // ProducciÃ³n: extraer subdominio de xxx.klubit.io
     const parts = hostname.split('.');
     if (parts.length >= 3) {
         return parts[0];
@@ -139,7 +140,7 @@ const Home = () => {
     const locale = i18n.language === 'en' ? 'en' : 'es';
     const showUpcomingEvents = view === 'events';
 
-    // Obtener el slug del club dinámicamente
+    // Obtener el slug del club dinÃ¡micamente
     const clubSlug = getClubSlug();
 
     const clubQuery = useQuery({
@@ -312,6 +313,10 @@ const Home = () => {
         navigate({ to: '/', search: { view: 'events' } });
     };
 
+    const handleLegalClick = () => {
+        navigate({ to: '/terms-and-conditions-club' });
+    };
+
     if (clubQuery.isError) {
         return <PageError />;
     }
@@ -422,7 +427,8 @@ const Home = () => {
                         lat: 40.425935536837265,
                         lng: -3.6897071108489854,
                     }}
-                    legalText={t('club.legal_terms', 'Leer los términos legales del klub')}
+                    legalText={club?.termsAndConditions ? t('club.legal_terms', 'Leer los términos legales del klub') : undefined}
+                    onLegalClick={club?.termsAndConditions ? handleLegalClick : undefined}
                 />
             </div>
 
@@ -469,7 +475,8 @@ const Home = () => {
                             lat: 40.425935536837265,
                             lng: -3.6897071108489854,
                         }}
-                        legalText={t('club.legal_terms', 'Leer los términos legales del klub')}
+                        legalText={club?.termsAndConditions ? t('club.legal_terms', 'Leer los términos legales del klub') : undefined}
+                        onLegalClick={club?.termsAndConditions ? handleLegalClick : undefined}
                     />
                 </div>
 
