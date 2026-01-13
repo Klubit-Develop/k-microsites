@@ -20,13 +20,15 @@ const ArtistsList = ({
                 <div className="flex items-center gap-[8px] px-[6px]">
                     <div className="h-7 w-24 bg-[#232323] rounded animate-pulse" />
                 </div>
-                {[1, 2].map((index) => (
-                    <ArtistCard
-                        key={index}
-                        artist={{} as Artist}
-                        isLoading={true}
-                    />
-                ))}
+                <div className="flex flex-col gap-[8px]">
+                    {[1, 2].map((index) => (
+                        <ArtistCard
+                            key={index}
+                            artist={{} as Artist}
+                            isLoading={true}
+                        />
+                    ))}
+                </div>
             </div>
         );
     }
@@ -45,12 +47,14 @@ const ArtistsList = ({
                     {t('event.artists', 'Artistas')}
                 </h2>
             </div>
-            {artists.map(artist => (
-                <ArtistCard
-                    key={artist.id}
-                    artist={artist}
-                />
-            ))}
+            <div className="flex flex-col gap-[8px]">
+                {artists.map(artist => (
+                    <ArtistCard
+                        key={artist.id}
+                        artist={artist}
+                    />
+                ))}
+            </div>
         </div>
     );
 };

@@ -664,7 +664,7 @@ const ReservationsFlow = ({
         return (
             <div className="flex items-center justify-center py-12">
                 <p className="text-[#939393] text-[14px] font-helvetica">
-                    {t('event.no_reservations', 'No hay reservados disponibles')}
+                    {t('event.no_reservations', 'No hay reservas disponibles')}
                 </p>
             </div>
         );

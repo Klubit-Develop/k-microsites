@@ -114,17 +114,17 @@ const getClubSlug = (): string => {
 
     // Desarrollo local: usar variable de entorno o slug por defecto
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
-        return import.meta.env.VITE_DEV_CLUB_SLUG || 'teatro-kapital';
+        return import.meta.env.VITE_DEV_CLUB_SLUG || 'localhost';
     }
 
     // Producción: extraer subdominio de xxx.klubit.io
     const parts = hostname.split('.');
     if (parts.length >= 3) {
-        return parts[0]; // opium-madrid, teatro-kapital, etc.
+        return parts[0];
     }
 
     // Fallback
-    return 'teatro-kapital';
+    return 'localhost';
 };
 
 const Home = () => {
@@ -375,7 +375,7 @@ const Home = () => {
                 ) : (
                     <>
                         {todayEvents.length > 0 && (
-                            <EventSection 
+                            <EventSection
                                 title={t('events.today')}
                                 onHeaderClick={showTodayArrow ? handleTodayEventsClick : undefined}
                             >
@@ -481,7 +481,7 @@ const Home = () => {
                     ) : (
                         <>
                             {todayEvents.length > 0 && (
-                                <EventSection 
+                                <EventSection
                                     title={t('events.today')}
                                     onHeaderClick={showTodayArrow ? handleTodayEventsClick : undefined}
                                 >

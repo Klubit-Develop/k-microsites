@@ -1167,7 +1167,7 @@ const Event = () => {
             return [
                 { key: 'tickets', label: t('event.tabs.tickets', 'Entradas') },
                 { key: 'guestlists', label: t('event.tabs.guestlists', 'Guestlists') },
-                { key: 'reservations', label: t('event.tabs.reservations', 'Reservados') },
+                { key: 'reservations', label: t('event.tabs.reservations', 'Reservas') },
                 { key: 'promotions', label: t('event.tabs.promotions', 'Promociones') },
                 { key: 'products', label: t('event.tabs.products', 'Productos') },
             ];
@@ -1182,7 +1182,7 @@ const Event = () => {
             tabs.push({ key: 'guestlists', label: t('event.tabs.guestlists', 'Guestlists') });
         }
         if (event?.reservations && event.reservations.length > 0) {
-            tabs.push({ key: 'reservations', label: t('event.tabs.reservations', 'Reservados') });
+            tabs.push({ key: 'reservations', label: t('event.tabs.reservations', 'Reservas') });
         }
         if (event?.promotions && event.promotions.length > 0) {
             tabs.push({ key: 'promotions', label: t('event.tabs.promotions', 'Promociones') });
