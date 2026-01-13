@@ -130,7 +130,7 @@ const Home = () => {
 
     const isAuthenticated = !!token;
     const locale = i18n.language === 'en' ? 'en' : 'es';
-    const showUpcomingEvents = view === 'events';
+    const showUpcomingEventsPanel = view === 'events';
 
     const clubSlug = getClubSlug();
 
@@ -316,14 +316,14 @@ const Home = () => {
     const upcomingEvents = upcomingEventsQuery.data ?? [];
 
     const showUpcomingArrow = upcomingEvents.length >= MIN_EVENTS_FOR_ARROW;
-    const displayedUpcomingEvents = showUpcomingArrow 
-        ? upcomingEvents.slice(0, MAX_EVENTS_TO_SHOW) 
+    const displayedUpcomingEvents = showUpcomingArrow
+        ? upcomingEvents.slice(0, MAX_EVENTS_TO_SHOW)
         : upcomingEvents;
 
     return (
         <>
             {/* Mobile Layout */}
-            <div className="flex flex-col gap-8 px-4 pt-[40px] pb-[50px] md:hidden bg-[#050505] min-h-screen">
+            <div className="flex flex-col gap-8 px-4 pt-[120px] pb-[360px] md:hidden bg-[#050505] min-h-screen">
                 {/* Club Profile Section */}
                 <div className="flex flex-col gap-6 items-center">
                     <ClubProfile
@@ -360,7 +360,7 @@ const Home = () => {
                 </div>
 
                 {/* Events Sections */}
-                {showUpcomingEvents ? (
+                {showUpcomingEventsPanel ? (
                     <UpcomingEventsPanel
                         clubId={clubId || ''}
                         onEventClick={handleEventClick}
@@ -466,7 +466,7 @@ const Home = () => {
                 </div>
 
                 <div className="flex-1 flex flex-col gap-9 px-4 py-6">
-                    {showUpcomingEvents ? (
+                    {showUpcomingEventsPanel ? (
                         <UpcomingEventsPanel
                             clubId={clubId || ''}
                             onEventClick={handleEventClick}

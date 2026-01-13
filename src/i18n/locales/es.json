@@ -13,6 +13,17 @@
         "location": "Ubicación",
         "legal_terms": "Leer los términos legales del klub"
     },
+    "artist": {
+        "today": "Hoy",
+        "upcoming_events": "Próximos eventos",
+        "no_events": "No hay eventos próximos",
+        "favorite_error": "Error al actualizar favorito"
+    },
+    "rrpp": {
+        "today": "Hoy",
+        "upcoming_events": "Próximos eventos",
+        "no_events": "No hay eventos próximos para este club"
+    },
     "events": {
         "today": "Hoy",
         "upcoming": "Próximos eventos"

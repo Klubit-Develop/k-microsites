@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { toast } from 'sonner';
 import dayjs from 'dayjs';
 import 'dayjs/locale/es';
@@ -74,6 +74,9 @@ interface UserFavoritesResponse {
     };
 }
 
+const MAX_EVENTS_TO_SHOW = 5;
+const MIN_EVENTS_FOR_ARROW = 6;
+
 const Artist = () => {
     const { slug } = useParams({ strict: false });
     const { i18n, t } = useTranslation();
@@ -81,10 +84,11 @@ const Artist = () => {
     const queryClient = useQueryClient();
     const navigate = useNavigate();
 
+    const [showAllUpcoming, setShowAllUpcoming] = useState(false);
+
     const isAuthenticated = !!token;
     const locale = i18n.language === 'en' ? 'en' : 'es';
 
-    // Artist Query
     const artistQuery = useQuery({
         queryKey: ['artist', slug],
         queryFn: async (): Promise<Artist> => {
@@ -129,7 +133,6 @@ const Artist = () => {
         refetchOnWindowFocus: false,
     });
 
-    // Favorites Count Query
     const favoritesCountQuery = useQuery({
         queryKey: ['favorites', 'count', 'artist', artistId],
         queryFn: async (): Promise<number> => {
@@ -143,7 +146,6 @@ const Artist = () => {
         refetchOnWindowFocus: false,
     });
 
-    // User Favorite Query
     const userFavoriteQuery = useQuery({
         queryKey: ['favorites', 'user', 'artist', artistId],
         queryFn: async (): Promise<boolean> => {
@@ -157,7 +159,6 @@ const Artist = () => {
         refetchOnWindowFocus: false,
     });
 
-    // Toggle Favorite Mutation
     const toggleFavoriteMutation = useMutation({
         mutationFn: async (id: string) => {
             await axiosInstance.post('/v2/favorites/toggle', { artistId: id });
@@ -171,7 +172,6 @@ const Artist = () => {
         },
     });
 
-    // Sort upcoming events by date
     const sortedUpcomingEvents = useMemo(() => {
         const events = upcomingEventsQuery.data || [];
         return [...events].sort((a, b) => dayjs(a.startDate).diff(dayjs(b.startDate)));
@@ -195,6 +195,10 @@ const Artist = () => {
         navigate({ to: `/event/${eventSlug}` });
     };
 
+    const handleShowAllUpcoming = () => {
+        setShowAllUpcoming(true);
+    };
+
     if (artistQuery.isError) {
         return <PageError />;
     }
@@ -210,6 +214,13 @@ const Artist = () => {
 
     const todayEvents = todayEventsQuery.data || [];
     const upcomingEvents = sortedUpcomingEvents;
+
+    const showUpcomingArrow = upcomingEvents.length >= MIN_EVENTS_FOR_ARROW && !showAllUpcoming;
+    const displayedUpcomingEvents = showAllUpcoming
+        ? upcomingEvents
+        : upcomingEvents.length >= MIN_EVENTS_FOR_ARROW
+            ? upcomingEvents.slice(0, MAX_EVENTS_TO_SHOW)
+            : upcomingEvents;
 
     const renderEventCard = (event: Event) => (
         <EventCardHz
@@ -260,10 +271,9 @@ const Artist = () => {
                     isLikeDisabled={toggleFavoriteMutation.isPending}
                 />
 
-                {/* Today's Events */}
+                {/* Today's Events - Never shows arrow */}
                 {(isTodayLoading || todayEvents.length > 0) && (
                     <div className="flex flex-col gap-4 w-full">
-                        {/* Header */}
                         <div className="flex gap-0.5 items-center px-1.5 w-full">
                             {isLoading ? (
                                 <div className="h-6 w-16 bg-[#232323] rounded animate-pulse" />
@@ -273,34 +283,41 @@ const Artist = () => {
                                 </h2>
                             )}
                         </div>
-                        {/* Events */}
                         <div className="flex flex-col gap-2 w-full">
                             {isTodayLoading ? renderSkeletonCards(1) : todayEvents.map(renderEventCard)}
                         </div>
                     </div>
                 )}
 
-                {/* Upcoming Events */}
+                {/* Upcoming Events - Shows arrow only if 6+ events and not expanded */}
                 {(isUpcomingLoading || upcomingEvents.length > 0) && (
                     <div className="flex flex-col gap-4 w-full">
-                        {/* Header with arrow */}
                         <div className="flex gap-2 items-center px-1.5 w-full">
                             {isLoading ? (
                                 <div className="h-6 w-40 bg-[#232323] rounded animate-pulse" />
                             ) : (
-                                <div className="flex gap-2 items-center">
+                                <button
+                                    type="button"
+                                    onClick={showUpcomingArrow ? handleShowAllUpcoming : undefined}
+                                    className={`flex gap-2 items-center ${showUpcomingArrow ? 'cursor-pointer' : 'cursor-default'}`}
+                                    disabled={!showUpcomingArrow}
+                                >
                                     <h2 className="text-[#ff336d] text-2xl font-semibold font-borna">
                                         {t('artist.upcoming_events', 'Próximos eventos')}
                                     </h2>
-                                    <div className="flex items-center pt-1">
-                                        <ChevronRightIcon />
-                                    </div>
-                                </div>
+                                    {showUpcomingArrow && (
+                                        <div className="flex items-center pt-1">
+                                            <ChevronRightIcon />
+                                        </div>
+                                    )}
+                                </button>
                             )}
                         </div>
-                        {/* Events */}
                         <div className="flex flex-col gap-2 w-full">
-                            {isUpcomingLoading ? renderSkeletonCards(3) : upcomingEvents.map(renderEventCard)}
+                            {isUpcomingLoading 
+                                ? renderSkeletonCards(3) 
+                                : displayedUpcomingEvents.map(renderEventCard)
+                            }
                         </div>
                     </div>
                 )}

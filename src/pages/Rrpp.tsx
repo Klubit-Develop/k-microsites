@@ -72,6 +72,9 @@ interface EventsResponse {
     message: string;
 }
 
+const MAX_EVENTS_TO_SHOW = 5;
+const MIN_EVENTS_FOR_ARROW = 6;
+
 const Rrpp = () => {
     const { slug } = useParams({ from: '/rrpp/$slug' });
     const { i18n, t } = useTranslation();
@@ -79,10 +82,10 @@ const Rrpp = () => {
 
     const [selectedClub, setSelectedClub] = useState<Club | null>(null);
     const [isClubSelectorOpen, setIsClubSelectorOpen] = useState(false);
+    const [showAllUpcoming, setShowAllUpcoming] = useState(false);
 
     const locale = i18n.language === 'en' ? 'en' : 'es';
 
-    // User/RRPP Query - fetch user by username (slug is the username)
     const userQuery = useQuery({
         queryKey: ['rrpp', slug],
         queryFn: async (): Promise<User> => {
@@ -99,18 +102,20 @@ const Rrpp = () => {
     const user = userQuery.data;
     const userId = user?.id;
 
-    // Extract clubs from clubRoles (backend already filters by RRPP role)
     const rrppClubs = useMemo(() => {
         if (!user?.clubRoles) return [];
         return user.clubRoles.map(cr => cr.club);
     }, [user?.clubRoles]);
 
-    // Set first club as selected when data loads
     useEffect(() => {
         if (rrppClubs.length > 0 && !selectedClub) {
             setSelectedClub(rrppClubs[0]);
         }
     }, [rrppClubs, selectedClub]);
+
+    useEffect(() => {
+        setShowAllUpcoming(false);
+    }, [selectedClub]);
 
     const todayEventsQuery = useQuery({
         queryKey: ['rrpp-events-today', userId],
@@ -143,7 +148,6 @@ const Rrpp = () => {
         refetchOnWindowFocus: false,
     });
 
-    // Filter events by selected club
     const todayEvents = useMemo(() => {
         const events = todayEventsQuery.data || [];
         if (!selectedClub) return events;
@@ -154,9 +158,15 @@ const Rrpp = () => {
         const events = upcomingEventsQuery.data || [];
         if (!selectedClub) return events;
         const filtered = events.filter(event => event.club?.id === selectedClub.id);
-        // Sort by date
         return filtered.sort((a, b) => dayjs(a.startDate).diff(dayjs(b.startDate)));
     }, [upcomingEventsQuery.data, selectedClub]);
+
+    const showUpcomingArrow = upcomingEvents.length >= MIN_EVENTS_FOR_ARROW && !showAllUpcoming;
+    const displayedUpcomingEvents = showAllUpcoming
+        ? upcomingEvents
+        : upcomingEvents.length >= MIN_EVENTS_FOR_ARROW
+            ? upcomingEvents.slice(0, MAX_EVENTS_TO_SHOW)
+            : upcomingEvents;
 
     const formatEventDate = (dateString: string): string => {
         const formatted = dayjs(dateString).locale(locale).format('ddd, D MMMM');
@@ -173,6 +183,10 @@ const Rrpp = () => {
 
     const handleClubSelect = (club: Club) => {
         setSelectedClub(club);
+    };
+
+    const handleShowAllUpcoming = () => {
+        setShowAllUpcoming(true);
     };
 
     if (userQuery.isError) {
@@ -235,10 +249,9 @@ const Rrpp = () => {
                     onToggle={() => setIsClubSelectorOpen(!isClubSelectorOpen)}
                 />
 
-                {/* Today's Events */}
+                {/* Today's Events - Never shows arrow */}
                 {(isTodayLoading || todayEvents.length > 0) && (
                     <div className="flex flex-col gap-4 w-full">
-                        {/* Header */}
                         <div className="flex gap-0.5 items-center px-1.5 w-full">
                             {isLoading ? (
                                 <div className="h-6 w-16 bg-[#232323] rounded animate-pulse" />
@@ -248,34 +261,41 @@ const Rrpp = () => {
                                 </h2>
                             )}
                         </div>
-                        {/* Events */}
                         <div className="flex flex-col gap-2 w-full">
                             {isTodayLoading ? renderSkeletonCards(1) : todayEvents.map(renderEventCard)}
                         </div>
                     </div>
                 )}
 
-                {/* Upcoming Events */}
+                {/* Upcoming Events - Shows arrow only if 6+ events and not expanded */}
                 {(isUpcomingLoading || upcomingEvents.length > 0) && (
                     <div className="flex flex-col gap-4 w-full">
-                        {/* Header with arrow */}
                         <div className="flex gap-2 items-center px-1.5 w-full">
                             {isLoading ? (
                                 <div className="h-6 w-40 bg-[#232323] rounded animate-pulse" />
                             ) : (
-                                <div className="flex gap-2 items-center">
+                                <button
+                                    type="button"
+                                    onClick={showUpcomingArrow ? handleShowAllUpcoming : undefined}
+                                    className={`flex gap-2 items-center ${showUpcomingArrow ? 'cursor-pointer' : 'cursor-default'}`}
+                                    disabled={!showUpcomingArrow}
+                                >
                                     <h2 className="text-[#ff336d] text-2xl font-semibold font-borna">
                                         {t('rrpp.upcoming_events', 'Próximos eventos')}
                                     </h2>
-                                    <div className="flex items-center pt-1">
-                                        <ChevronRightIcon />
-                                    </div>
-                                </div>
+                                    {showUpcomingArrow && (
+                                        <div className="flex items-center pt-1">
+                                            <ChevronRightIcon />
+                                        </div>
+                                    )}
+                                </button>
                             )}
                         </div>
-                        {/* Events */}
                         <div className="flex flex-col gap-2 w-full">
-                            {isUpcomingLoading ? renderSkeletonCards(5) : upcomingEvents.map(renderEventCard)}
+                            {isUpcomingLoading 
+                                ? renderSkeletonCards(3) 
+                                : displayedUpcomingEvents.map(renderEventCard)
+                            }
                         </div>
                     </div>
                 )}

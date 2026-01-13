@@ -13,6 +13,17 @@
         "location": "Location",
         "legal_terms": "Read the club's legal terms"
     },
+    "artist": {
+        "today": "Today",
+        "upcoming_events": "Upcoming events",
+        "no_events": "No upcoming events",
+        "favorite_error": "Error updating favorite"
+    },
+    "rrpp": {
+        "today": "Today",
+        "upcoming_events": "Upcoming events",
+        "no_events": "No upcoming events for this club"
+    },
     "events": {
         "today": "Today",
         "upcoming": "Upcoming events"
