@@ -409,8 +409,6 @@ const Event = () => {
             setCheckoutStep('summary');
         } else {
             setCheckoutStep('selection');
-            // Si estamos en step 1 y no hay items en la URL pero sÃ­ en el store,
-            // limpiar el carrito (el usuario navegÃ³ fuera y volviÃ³)
             const hasUrlItems = !!(searchParams.tickets || searchParams.guestlists ||
                 searchParams.reservations || searchParams.products || searchParams.promotions);
             if (!hasUrlItems && checkoutHasItems()) {
@@ -432,7 +430,6 @@ const Event = () => {
 
     const eventId = eventQuery.data?.id;
 
-    // Reset checkout if visiting a different event or if timer expired from previous session
     useEffect(() => {
         if (eventId) {
             resetForNewEvent(eventId);
@@ -494,7 +491,6 @@ const Event = () => {
         },
     });
 
-    // Create transaction mutation
     const createTransactionMutation = useMutation({
         mutationFn: async (data: {
             eventId: string;
@@ -529,14 +525,15 @@ const Event = () => {
                 goToPayment();
                 updateSearchParams({ step: 3 }, true);
             } else {
-                toast.error(response.message || t('checkout.transaction_error', 'Error al crear la transacciÃ³n'));
+                toast.error(response.message || t('checkout.transaction_error', 'Error al crear la transacción'));
             }
         },
-        onError: (error: any) => {
-            if (error.backendError) {
-                toast.error(error.backendError.message);
+        onError: (error: unknown) => {
+            const err = error as { backendError?: { message: string } };
+            if (err.backendError) {
+                toast.error(err.backendError.message);
             } else {
-                toast.error(t('common.error_connection', 'Error de conexiÃ³n'));
+                toast.error(t('common.error_connection', 'Error de conexión'));
             }
         },
     });
@@ -654,7 +651,7 @@ const Event = () => {
             const precompraPrice = guestlist.prices.find(p => p.finalPrice > 0 && p.id !== price.id);
             if (precompraPrice) {
                 precompraData = {
-                    products: [{ name: 'ConsumiciÃ³n', quantity: 1 }],
+                    products: [{ name: 'Consumición', quantity: 1 }],
                     startTime: '00:00',
                     endTime: '06:00',
                     price: precompraPrice.finalPrice,
@@ -682,7 +679,7 @@ const Event = () => {
             finalPrice: price.finalPrice,
             currency: price.currency || 'EUR',
             isLowStock,
-            lowStockLabel: isLowStock ? 'Ãºltimas ðŸ‘£' : undefined,
+            lowStockLabel: isLowStock ? 'últimas 👣' : undefined,
             isFree,
             hasPrecompra,
             precompraData,
@@ -859,7 +856,6 @@ const Event = () => {
             return;
         }
 
-        // Verificar autenticaciÃ³n antes de continuar
         if (!isAuthenticated) {
             handleCloseInfoModal();
             setAuthModalOpen(true);
@@ -980,13 +976,11 @@ const Event = () => {
             return;
         }
 
-        // Verificar autenticaciÃ³n antes de continuar
         if (!isAuthenticated) {
             setAuthModalOpen(true);
             return;
         }
 
-        // Limpiar solo los tipos que vamos a procesar (no reservations, eso lo maneja handleReservationCheckout)
         clearItemsByType('ticket');
         clearItemsByType('guestlist');
         clearItemsByType('product');
@@ -1081,7 +1075,6 @@ const Event = () => {
         t,
     ]);
 
-    // Handler especÃ­fico para reservas que incluye los datos del formulario
     const handleReservationCheckout = useCallback((formData: ReservationFormData) => {
         const event = eventQuery.data;
         if (!event) return;
@@ -1093,13 +1086,11 @@ const Event = () => {
             return;
         }
 
-        // Verificar autenticaciÃ³n antes de continuar
         if (!isAuthenticated) {
             setAuthModalOpen(true);
             return;
         }
 
-        // Solo limpiar reservations, mantener otros tipos (tickets, guestlists, etc.)
         clearItemsByType('reservation');
 
         setEvent(
@@ -1112,7 +1103,6 @@ const Event = () => {
             }
         );
 
-        // AÃ±adir las reservas seleccionadas al carrito
         event.reservations?.forEach(reservation => {
             reservation.prices?.forEach(price => {
                 const quantity = selectedQuantities.reservations[price.id];
@@ -1131,7 +1121,6 @@ const Event = () => {
             });
         });
 
-        // Guardar formData en el store para recuperarlo si el usuario vuelve
         setReservationFormData(formData);
 
         goToSummary();
@@ -1168,7 +1157,6 @@ const Event = () => {
                 { key: 'tickets', label: t('event.tabs.tickets', 'Entradas') },
                 { key: 'guestlists', label: t('event.tabs.guestlists', 'Guestlists') },
                 { key: 'reservations', label: t('event.tabs.reservations', 'Reservas') },
-                { key: 'promotions', label: t('event.tabs.promotions', 'Promociones') },
                 { key: 'products', label: t('event.tabs.products', 'Productos') },
             ];
         }
@@ -1184,10 +1172,7 @@ const Event = () => {
         if (event?.reservations && event.reservations.length > 0) {
             tabs.push({ key: 'reservations', label: t('event.tabs.reservations', 'Reservas') });
         }
-        if (event?.promotions && event.promotions.length > 0) {
-            tabs.push({ key: 'promotions', label: t('event.tabs.promotions', 'Promociones') });
-        }
-        if (event?.products && event.products.length > 0) {
+        if ((event?.products && event.products.length > 0) || (event?.promotions && event.promotions.length > 0)) {
             tabs.push({ key: 'products', label: t('event.tabs.products', 'Productos') });
         }
 
@@ -1204,8 +1189,8 @@ const Event = () => {
     const allTags = event ? [
         ...(event.minimumAge ? [`+${event.minimumAge}`] : []),
         ...(event.club?.venueType ? [VENUE_TYPE_MAP[event.club.venueType] || event.club.venueType] : []),
-        ...event.vibes.map(v => v.name),
-        ...event.musics.map(m => m.name),
+        ...event.vibes.slice(0, 2).map(v => v.name),
+        ...event.musics.slice(0, 2).map(m => m.name),
     ] : [];
 
     const renderTabContent = () => {
@@ -1263,30 +1248,11 @@ const Event = () => {
                     />
                 );
 
-            case 'promotions':
-                if (!isLoading && (!event?.promotions || event.promotions.length === 0)) {
-                    return (
-                        <div className="flex items-center justify-center py-12">
-                            <p className="text-[#939393] text-[14px] font-helvetica">
-                                {t('event.no_promotions', 'No hay promociones disponibles')}
-                            </p>
-                        </div>
-                    );
-                }
-                return (
-                    <PromotionsList
-                        promotions={event?.promotions || []}
-                        selectedQuantities={selectedQuantities.promotions}
-                        onQuantityChange={(promotionId, delta) => handleQuantityChange(promotionId, delta, 'promotions')}
-                        onMoreInfo={(promotion) => handleOpenInfoModal(promotion, null, 'promotion')}
-                        isLoading={isLoading}
-                        eventStartDate={event?.startDate}
-                        eventStartTime={event?.startTime}
-                    />
-                );
-
             case 'products':
-                if (!isLoading && (!event?.products || event.products.length === 0)) {
+                const hasProducts = event?.products && event.products.length > 0;
+                const hasPromotions = event?.promotions && event.promotions.length > 0;
+
+                if (!isLoading && !hasProducts && !hasPromotions) {
                     return (
                         <div className="flex items-center justify-center py-12">
                             <p className="text-[#939393] text-[14px] font-helvetica">
@@ -1296,12 +1262,27 @@ const Event = () => {
                     );
                 }
                 return (
-                    <ProductsList
-                        products={event?.products || []}
-                        selectedQuantities={selectedQuantities.products}
-                        onQuantityChange={(productId, delta) => handleQuantityChange(productId, delta, 'products')}
-                        isLoading={isLoading}
-                    />
+                    <div className="flex flex-col gap-[16px] w-full">
+                        {(isLoading || hasPromotions) && (
+                            <PromotionsList
+                                promotions={event?.promotions || []}
+                                selectedQuantities={selectedQuantities.promotions}
+                                onQuantityChange={(promotionId, delta) => handleQuantityChange(promotionId, delta, 'promotions')}
+                                onMoreInfo={(promotion) => handleOpenInfoModal(promotion, null, 'promotion')}
+                                isLoading={isLoading}
+                                eventStartDate={event?.startDate}
+                                eventStartTime={event?.startTime}
+                            />
+                        )}
+                        {(isLoading || hasProducts) && (
+                            <ProductsList
+                                products={event?.products || []}
+                                selectedQuantities={selectedQuantities.products}
+                                onQuantityChange={(productId, delta) => handleQuantityChange(productId, delta, 'products')}
+                                isLoading={isLoading}
+                            />
+                        )}
+                    </div>
                 );
 
             default:
@@ -1310,7 +1291,6 @@ const Event = () => {
     };
 
     const renderRightColumn = () => {
-        // Step 3: Payment
         if (checkoutStep === 'payment' && transactionId) {
             return (
                 <StripePayment
@@ -1323,7 +1303,6 @@ const Event = () => {
             );
         }
 
-        // Step 2: Summary
         if (checkoutStep === 'summary' && checkoutEventId) {
             return (
                 <CheckoutSummary
@@ -1345,7 +1324,6 @@ const Event = () => {
             );
         }
 
-        // Step 1: Selection
         return (
             <>
                 <div className="w-full">
@@ -1373,8 +1351,7 @@ const Event = () => {
 
     return (
         <div className="bg-[#050505] min-h-screen flex flex-col items-center pt-[120px] pb-[100px] md:pt-24 md:pb-24">
-            {/* Stepper - Always shown on desktop, shown on mobile only for step > 1 */}
-            <div className={`w-full mb-6 md:mb-[60px] ${currentStep > 1 ? 'block' : 'hidden md:block'}`}>
+            <div className="w-full mb-6 md:mb-[60px]">
                 <EventStepper
                     currentStep={currentStep}
                     onStepClick={handleStepChange}
@@ -1382,9 +1359,7 @@ const Event = () => {
                 />
             </div>
 
-            {/* Mobile Layout - Single Column */}
             <div className="flex flex-col gap-8 w-full px-4 md:hidden">
-                {/* Event Header - Solo mostrar en step 1 */}
                 {currentStep === 1 && (
                     <>
                         <EventHeader
@@ -1409,10 +1384,8 @@ const Event = () => {
                     </>
                 )}
 
-                {/* Tab content / Checkout */}
                 {renderRightColumn()}
 
-                {/* Event details - Solo mostrar en step 1 */}
                 {currentStep === 1 && (
                     <>
                         <EventDescription
@@ -1453,9 +1426,7 @@ const Event = () => {
                 )}
             </div>
 
-            {/* Desktop Layout - Two Columns */}
             <div className="hidden md:flex items-start justify-center w-full px-8 lg:px-16 xl:px-24 2xl:px-96 gap-8">
-                {/* LEFT COLUMN - Event Info */}
                 <div className="flex flex-col gap-9 w-full max-w-[500px]">
                     <EventHeader
                         name={event?.name || ''}
@@ -1509,17 +1480,16 @@ const Event = () => {
                                 lat: event.addressLocation?.coordinates?.[1] ?? 0,
                                 lng: event.addressLocation?.coordinates?.[0] ?? 0,
                             }}
+                            legalText={t('club.legal_terms', 'Leer los términos legales del klub')}
                         />
                     ) : null}
                 </div>
 
-                {/* RIGHT COLUMN - Rates & Checkout */}
                 <div className="flex flex-col gap-9 w-full max-w-[500px]">
                     {renderRightColumn()}
                 </div>
             </div>
 
-            {/* Ticket/Guestlist/Promotion Info Modal */}
             <ItemInfoModal
                 isOpen={infoModalOpen}
                 onClose={handleCloseInfoModal}
@@ -1530,13 +1500,11 @@ const Event = () => {
                 onConfirm={handleInfoModalConfirm}
             />
 
-            {/* Time Expired Modal */}
             <TimeExpiredModal
                 isOpen={isTimerExpired}
                 onRetry={handleRetryAfterExpired}
             />
 
-            {/* Auth Modal */}
             <AuthModal
                 isOpen={authModalOpen}
                 onClose={() => setAuthModalOpen(false)}

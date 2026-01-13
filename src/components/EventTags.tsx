@@ -11,12 +11,12 @@ const EventTags = ({
 }: EventTagsProps) => {
     if (isLoading) {
         return (
-            <div className={`w-full overflow-hidden ${className}`}>
-                <div className="flex gap-[8px] items-center justify-center w-full animate-pulse">
+            <div className={`w-full overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] ${className}`}>
+                <div className="flex gap-[8px] animate-pulse">
                     {[1, 2, 3, 4, 5].map((index) => (
                         <div
                             key={index}
-                            className="h-9 w-20 bg-[#232323] rounded-[20px] shrink-0"
+                            className="shrink-0 h-[36px] w-20 bg-[#232323] rounded-[20px]"
                         />
                     ))}
                 </div>
@@ -29,12 +29,12 @@ const EventTags = ({
     }
 
     return (
-        <div className={`w-full overflow-hidden ${className}`}>
-            <div className="w-0 min-w-full flex gap-[8px] items-center justify-center md:justify-center overflow-x-auto pb-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        <div className={`w-full mt-8 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] ${className}`}>
+            <div className="flex gap-[8px] w-max">
                 {tags.map((tag, index) => (
                     <div
                         key={index}
-                        className="flex items-center justify-center h-[36px] px-[14px] border-[1.5px] border-[#232323] rounded-[20px] shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)] shrink-0"
+                        className="shrink-0 flex items-center justify-center h-[36px] px-3.5 border-[1.5px] border-[#232323] rounded-[20px] shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)]"
                     >
                         <span className="text-[#f6f6f6] text-[14px] font-normal font-helvetica whitespace-nowrap">
                             {tag}

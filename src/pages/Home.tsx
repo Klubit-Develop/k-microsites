@@ -145,7 +145,7 @@ const Home = () => {
     const clubQuery = useQuery({
         queryKey: ['club', clubSlug],
         queryFn: async (): Promise<Club> => {
-            const fields = 'id,logo,name,venueType,openingDays,openingTime,closingTime,images,contactNumber,email';
+            const fields = 'id,logo,name,venueType,openingDays,openingTime,closingTime,images,contactNumber,email,termsAndConditions';
             const response = await axiosInstance.get<ClubResponse>(
                 `/v2/clubs/slug/${clubSlug}?includeInactive=true&fields=${fields}`
             );
