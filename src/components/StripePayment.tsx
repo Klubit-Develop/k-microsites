@@ -16,7 +16,7 @@ import Button from '@/components/ui/Button';
 const STRIPE_PUBLISHABLE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
 
 if (!STRIPE_PUBLISHABLE_KEY) {
-    console.error('❌ VITE_STRIPE_PUBLISHABLE_KEY is not defined in environment variables');
+    console.error('âŒ VITE_STRIPE_PUBLISHABLE_KEY is not defined in environment variables');
 }
 
 const stripePromise = STRIPE_PUBLISHABLE_KEY ? loadStripe(STRIPE_PUBLISHABLE_KEY) : null;
@@ -112,16 +112,16 @@ const CheckoutForm = ({ transactionId, onSuccess, onCancel, timerSeconds, onTime
                 console.log('PaymentIntent status:', paymentIntent.status);
                 
                 if (paymentIntent.status === 'succeeded') {
-                    console.log('✅ Payment succeeded! Calling onSuccess...');
+                    console.log('âœ… Payment succeeded! Calling onSuccess...');
                     onSuccess();
                 } else if (paymentIntent.status === 'processing') {
-                    console.log('⏳ Payment processing! Calling onSuccess...');
+                    console.log('â³ Payment processing! Calling onSuccess...');
                     onSuccess();
                 } else if (paymentIntent.status === 'requires_action') {
-                    console.log('🔐 Payment requires action (3D Secure)');
+                    console.log('ðŸ” Payment requires action (3D Secure)');
                     setIsProcessing(false);
                 } else {
-                    console.log('❓ Unexpected payment status:', paymentIntent.status);
+                    console.log('â“ Unexpected payment status:', paymentIntent.status);
                     setErrorMessage(t('payment.generic_error', 'Estado de pago inesperado'));
                     setIsProcessing(false);
                 }
@@ -159,6 +159,10 @@ const CheckoutForm = ({ transactionId, onSuccess, onCancel, timerSeconds, onTime
                     options={{
                         layout: 'tabs',
                         paymentMethodOrder: ['apple_pay', 'google_pay', 'card'],
+                        wallets: {
+                            applePay: 'auto',
+                            googlePay: 'auto',
+                        },
                         defaultValues: {
                             billingDetails: {
                                 address: {
@@ -255,13 +259,13 @@ const StripePayment = ({
                     const secret = response.data.data.clientSecret;
                     
                     console.log('ClientSecret received:', secret ? 'Yes (length: ' + secret.length + ')' : 'No');
-                    console.log('ClientSecret format check:', secret?.includes('_secret_') ? '✅ Valid format' : '❌ Invalid format');
+                    console.log('ClientSecret format check:', secret?.includes('_secret_') ? 'âœ… Valid format' : 'âŒ Invalid format');
                     
                     if (secret && secret.includes('_secret_')) {
                         setClientSecret(secret);
                     } else {
                         console.error('Invalid clientSecret format:', secret);
-                        setError(t('payment.invalid_secret', 'Error en la configuración del pago'));
+                        setError(t('payment.invalid_secret', 'Error en la configuraciÃ³n del pago'));
                     }
                 } else {
                     setError(response.data.message || t('payment.intent_error', 'Error al iniciar el pago'));
@@ -271,7 +275,7 @@ const StripePayment = ({
                 if (err.backendError) {
                     setError(err.backendError.message);
                 } else {
-                    setError(t('common.error_connection', 'Error de conexión'));
+                    setError(t('common.error_connection', 'Error de conexiÃ³n'));
                 }
             } finally {
                 setIsLoading(false);
@@ -281,12 +285,12 @@ const StripePayment = ({
         createPaymentIntent();
     }, [transactionId, t]);
 
-    // Verificar que Stripe está configurado
+    // Verificar que Stripe estÃ¡ configurado
     if (!stripePromise) {
         return (
             <div className="flex flex-col gap-6 bg-[#111111] rounded-2xl p-6">
                 <div className="bg-[rgba(255,35,35,0.15)] text-[#FF2323] px-4 py-3 rounded-xl text-[14px] font-helvetica text-center">
-                    {t('payment.stripe_not_configured', 'Error: Stripe no está configurado correctamente')}
+                    {t('payment.stripe_not_configured', 'Error: Stripe no estÃ¡ configurado correctamente')}
                 </div>
                 <Button variant="secondary" onClick={onCancel}>
                     {t('common.go_back', 'Volver')}
@@ -304,7 +308,7 @@ const StripePayment = ({
                     <div className="h-12 w-full bg-[#232323] rounded-xl animate-pulse" />
                 </div>
                 <p className="text-center text-[#666666] text-[14px] font-helvetica">
-                    {t('payment.loading', 'Cargando método de pago...')}
+                    {t('payment.loading', 'Cargando mÃ©todo de pago...')}
                 </p>
             </div>
         );
@@ -390,7 +394,7 @@ const StripePayment = ({
     return (
         <div className="flex flex-col gap-6 bg-[#111111] rounded-2xl p-6">
             <h2 className="text-[20px] font-helvetica font-bold text-[#F6F6F6]">
-                {t('payment.title', 'Método de pago')}
+                {t('payment.title', 'MÃ©todo de pago')}
             </h2>
 
             <Elements
