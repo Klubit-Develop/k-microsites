@@ -469,6 +469,7 @@ const Home = () => {
                             lat: 40.425935536837265,
                             lng: -3.6897071108489854,
                         }}
+                        legalText={t('club.legal_terms', 'Leer los términos legales del klub')}
                     />
                 </div>
 

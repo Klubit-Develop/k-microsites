@@ -1420,6 +1420,7 @@ const Event = () => {
                                     lat: event.addressLocation?.coordinates?.[1] ?? 0,
                                     lng: event.addressLocation?.coordinates?.[0] ?? 0,
                                 }}
+                                legalText={t('club.legal_terms', 'Leer los términos legales del klub')}
                             />
                         ) : null}
                     </>
