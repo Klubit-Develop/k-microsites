@@ -137,11 +137,14 @@ export const LocationCard: React.FC<LocationCardProps> = ({
   }
 
   return (
-    <div className={`flex flex-col gap-4 items-start w-full ${className}`}>
+    <div className={`flex gap-4 flex-col items-start w-full ${className}`}>
       {/* Título */}
       {title && (
         <div className="flex gap-0.5 items-center px-1.5 w-full">
-          <h2 className="text-[#ff336d] text-2xl font-semibold leading-[100%] whitespace-nowrap overflow-hidden text-ellipsis font-borna">
+          <h2
+            className="text-[#ff336d] text-[24px] font-bold leading-normal whitespace-nowrap overflow-hidden text-ellipsis"
+            style={{ fontFamily: "'N27', sans-serif" }}
+          >
             {title}
           </h2>
         </div>
@@ -177,7 +180,7 @@ export const LocationCard: React.FC<LocationCardProps> = ({
 
       {/* Texto legal */}
       {legalText && (
-        <div className="flex gap-0.5 items-center px-1.5 w-full">
+        <div className="flex gap-0.5 items-center px-1.5 py-2 w-full">
           <button
             onClick={onLegalClick}
             className="text-[#939393] text-xs font-medium leading-[100%] flex-1 text-left hover:text-[#b0b0b0] transition-colors cursor-pointer bg-transparent border-none p-0 font-helvetica"

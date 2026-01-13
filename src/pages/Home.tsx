@@ -95,36 +95,28 @@ const VENUE_TYPE_MAP: Record<string, string> = {
 const DAY_MAP: Record<string, { es: string; en: string; order: number }> = {
     MONDAY: { es: 'Lunes', en: 'Monday', order: 1 },
     TUESDAY: { es: 'Martes', en: 'Tuesday', order: 2 },
-    WEDNESDAY: { es: 'MiÃ©rcoles', en: 'Wednesday', order: 3 },
+    WEDNESDAY: { es: 'Miércoles', en: 'Wednesday', order: 3 },
     THURSDAY: { es: 'Jueves', en: 'Thursday', order: 4 },
     FRIDAY: { es: 'Viernes', en: 'Friday', order: 5 },
-    SATURDAY: { es: 'SÃ¡bado', en: 'Saturday', order: 6 },
+    SATURDAY: { es: 'Sábado', en: 'Saturday', order: 6 },
     SUNDAY: { es: 'Domingo', en: 'Sunday', order: 7 },
 };
 
-// MÃ­nimo de eventos para mostrar el arrow clickeable
-const MIN_EVENTS_FOR_ARROW = 5;
+const MAX_EVENTS_TO_SHOW = 5;
+const MIN_EVENTS_FOR_ARROW = 6;
 
-/**
- * Obtiene el slug del club desde la URL
- * - En desarrollo (localhost): usa variable de entorno o slug por defecto
- * - En producciÃ³n: extrae el subdominio de xxx.klubit.io
- */
 const getClubSlug = (): string => {
     const hostname = window.location.hostname;
 
-    // Desarrollo local: usar variable de entorno o slug por defecto
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
         return import.meta.env.VITE_DEV_CLUB_SLUG || 'localhost';
     }
 
-    // ProducciÃ³n: extraer subdominio de xxx.klubit.io
     const parts = hostname.split('.');
     if (parts.length >= 3) {
         return parts[0];
     }
 
-    // Fallback
     return 'localhost';
 };
 
@@ -140,7 +132,6 @@ const Home = () => {
     const locale = i18n.language === 'en' ? 'en' : 'es';
     const showUpcomingEvents = view === 'events';
 
-    // Obtener el slug del club dinÃ¡micamente
     const clubSlug = getClubSlug();
 
     const clubQuery = useQuery({
@@ -309,10 +300,6 @@ const Home = () => {
         navigate({ to: '/', search: { view: 'events' } });
     };
 
-    const handleTodayEventsClick = () => {
-        navigate({ to: '/', search: { view: 'events' } });
-    };
-
     const handleLegalClick = () => {
         navigate({ to: '/terms-and-conditions-club' });
     };
@@ -328,14 +315,15 @@ const Home = () => {
     const todayEvents = todayEventsQuery.data ?? [];
     const upcomingEvents = upcomingEventsQuery.data ?? [];
 
-    // Determinar si mostrar el arrow clickeable basado en cantidad de eventos
-    const showTodayArrow = todayEvents.length > MIN_EVENTS_FOR_ARROW;
-    const showUpcomingArrow = upcomingEvents.length > MIN_EVENTS_FOR_ARROW;
+    const showUpcomingArrow = upcomingEvents.length >= MIN_EVENTS_FOR_ARROW;
+    const displayedUpcomingEvents = showUpcomingArrow 
+        ? upcomingEvents.slice(0, MAX_EVENTS_TO_SHOW) 
+        : upcomingEvents;
 
     return (
         <>
             {/* Mobile Layout */}
-            <div className="flex flex-col gap-8 px-4 pt-[120px] pb-[360px] md:hidden bg-[#050505] min-h-screen">
+            <div className="flex flex-col gap-8 px-4 pt-[40px] pb-[50px] md:hidden bg-[#050505] min-h-screen">
                 {/* Club Profile Section */}
                 <div className="flex flex-col gap-6 items-center">
                     <ClubProfile
@@ -380,10 +368,7 @@ const Home = () => {
                 ) : (
                     <>
                         {todayEvents.length > 0 && (
-                            <EventSection
-                                title={t('events.today')}
-                                onHeaderClick={showTodayArrow ? handleTodayEventsClick : undefined}
-                            >
+                            <EventSection title={t('events.today')}>
                                 {todayEvents.map((event) => (
                                     <EventCardHz
                                         key={event.id}
@@ -403,7 +388,7 @@ const Home = () => {
                                 title={t('events.upcoming')}
                                 onHeaderClick={showUpcomingArrow ? handleUpcomingEventsClick : undefined}
                             >
-                                {upcomingEvents.map((event) => (
+                                {displayedUpcomingEvents.map((event) => (
                                     <EventCardHz
                                         key={event.id}
                                         title={event.name}
@@ -421,13 +406,13 @@ const Home = () => {
 
                 {/* Location Section */}
                 <LocationCard
-                    title={t('club.location', 'Ubicación')}
+                    title={t('club.location')}
                     address="Calle de Fortuny, 34, 28010. Madrid, España"
                     coordinates={{
                         lat: 40.425935536837265,
                         lng: -3.6897071108489854,
                     }}
-                    legalText={club?.termsAndConditions ? t('club.legal_terms', 'Leer los términos legales del klub') : undefined}
+                    legalText={club?.termsAndConditions ? t('club.legal_terms') : undefined}
                     onLegalClick={club?.termsAndConditions ? handleLegalClick : undefined}
                 />
             </div>
@@ -475,7 +460,7 @@ const Home = () => {
                             lat: 40.425935536837265,
                             lng: -3.6897071108489854,
                         }}
-                        legalText={club?.termsAndConditions ? t('club.legal_terms', 'Leer los términos legales del klub') : undefined}
+                        legalText={club?.termsAndConditions ? t('club.legal_terms') : undefined}
                         onLegalClick={club?.termsAndConditions ? handleLegalClick : undefined}
                     />
                 </div>
@@ -489,10 +474,7 @@ const Home = () => {
                     ) : (
                         <>
                             {todayEvents.length > 0 && (
-                                <EventSection
-                                    title={t('events.today')}
-                                    onHeaderClick={showTodayArrow ? handleTodayEventsClick : undefined}
-                                >
+                                <EventSection title={t('events.today')}>
                                     {todayEvents.map((event) => (
                                         <EventCardHz
                                             key={event.id}
@@ -512,7 +494,7 @@ const Home = () => {
                                     title={t('events.upcoming')}
                                     onHeaderClick={showUpcomingArrow ? handleUpcomingEventsClick : undefined}
                                 >
-                                    {upcomingEvents.map((event) => (
+                                    {displayedUpcomingEvents.map((event) => (
                                         <EventCardHz
                                             key={event.id}
                                             title={event.name}
