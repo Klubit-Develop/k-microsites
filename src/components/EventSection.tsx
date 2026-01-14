@@ -24,7 +24,7 @@ const EventSection = ({
                     >
                         <h2
                             className="text-[#ff336d] text-[24px] font-bold leading-normal whitespace-nowrap overflow-hidden text-ellipsis"
-                            style={{ fontFamily: "'N27', sans-serif" }}
+                            style={{ fontFamily: "'Borna', sans-serif" }}
                         >
                             {title}
                         </h2>
@@ -35,7 +35,7 @@ const EventSection = ({
                 ) : (
                     <h2
                         className="text-[#ff336d] text-[24px] font-bold leading-normal whitespace-nowrap overflow-hidden text-ellipsis"
-                        style={{ fontFamily: "'N27', sans-serif" }}
+                        style={{ fontFamily: "'Borna', sans-serif" }}
                     >
                         {title}
                     </h2>

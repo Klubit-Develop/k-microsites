@@ -112,7 +112,7 @@ const KlubKard = ({
 
             {/* Bottom Content */}
             <div className="flex flex-col items-start gap-0 w-full">
-                <h3 className="text-[24px] font-n27 font-semibold text-[#F6F6F6] leading-none truncate w-full text-left">
+                <h3 className="text-[24px] font-borna font-semibold text-[#F6F6F6] leading-none truncate w-full text-left">
                     {clubName}
                 </h3>
                 <div className="flex items-center gap-2">

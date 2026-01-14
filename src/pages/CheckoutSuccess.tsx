@@ -188,7 +188,7 @@ const CheckoutSuccess = () => {
                         <span className="text-[48px] md:text-[64px]">😕</span>
                     </div>
                     <div className="flex flex-col gap-4 items-center text-center">
-                        <h1 className="text-xl md:text-2xl font-semibold font-n27 text-[#f6f6f6]">
+                        <h1 className="text-xl md:text-2xl font-semibold font-borna text-[#f6f6f6]">
                             {t('checkout_success.error_title', 'Algo salió mal')}
                         </h1>
                         <p className="text-sm font-normal font-helvetica text-[#f6f6f6]">
@@ -211,7 +211,7 @@ const CheckoutSuccess = () => {
                         <div className="size-14 md:size-16 border-4 border-[#FF336D] border-t-transparent rounded-full animate-spin" />
                     </div>
                     <div className="flex flex-col gap-4 items-center text-center px-6">
-                        <h1 className="text-xl md:text-2xl font-semibold font-n27 text-[#f6f6f6]">
+                        <h1 className="text-xl md:text-2xl font-semibold font-borna text-[#f6f6f6]">
                             {t('checkout_success.processing_title', 'Procesando pago...')}
                         </h1>
                         <p className="text-sm font-normal font-helvetica text-[#f6f6f6]">
@@ -231,7 +231,7 @@ const CheckoutSuccess = () => {
                         <span className="text-[48px] md:text-[64px]">❌</span>
                     </div>
                     <div className="flex flex-col gap-4 items-center text-center px-6">
-                        <h1 className="text-xl md:text-2xl font-semibold font-n27 text-[#f6f6f6]">
+                        <h1 className="text-xl md:text-2xl font-semibold font-borna text-[#f6f6f6]">
                             {t('checkout_success.failed_title', 'Pago no completado')}
                         </h1>
                         <p className="text-sm font-normal font-helvetica text-[#f6f6f6]">
@@ -258,7 +258,7 @@ const CheckoutSuccess = () => {
                 </div>
 
                 <div className="flex flex-col gap-4 items-center w-full px-1.5">
-                    <h1 className="text-xl md:text-2xl font-semibold font-n27 text-[#f6f6f6] text-center">
+                    <h1 className="text-xl md:text-2xl font-semibold font-borna text-[#f6f6f6] text-center">
                         {t('checkout_success.title', '¡Compra realizada correctamente!')}
                     </h1>
                     <p className="text-sm font-normal font-helvetica text-[#f6f6f6] text-center">
@@ -288,7 +288,7 @@ const CheckoutSuccess = () => {
                                 </div>
 
                                 <div className="flex flex-col gap-2 w-full">
-                                    <h2 className="text-xl md:text-2xl font-semibold font-n27 text-[#f6f6f6]">
+                                    <h2 className="text-xl md:text-2xl font-semibold font-borna text-[#f6f6f6]">
                                         {transaction.event.name}
                                     </h2>
 

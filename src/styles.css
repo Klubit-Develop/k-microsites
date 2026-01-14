@@ -5,50 +5,70 @@
 }
 
 @font-face {
-  font-family: 'N27';
-  src: url('/assets/fonts/N27/N27-Regular.woff2') format('woff2'),
-    url('/assets/fonts/N27/N27-Regular.woff') format('woff'),
-    url('/assets/fonts/N27/N27-Regular.ttf') format('truetype');
+  font-family: 'Borna';
+  src: url('/assets/fonts/Borna/borna-regular-webfont.woff2') format('woff2'),
+    url('/assets/fonts/Borna/borna-regular-webfont.woff') format('woff'),
+    url('/assets/fonts/Borna/borna-regular-webfont.ttf') format('truetype');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'N27';
-  src: url('/assets/fonts/N27/N27-Bold.woff2') format('woff2'),
-    url('/assets/fonts/N27/N27-Bold.woff') format('woff'),
-    url('/assets/fonts/N27/N27-Bold.ttf') format('truetype');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Helvetica Neue';
-  src: url('/assets/fonts/Helvetica/HelveticaNeue.woff2') format('woff2'),
-    url('/assets/fonts/Helvetica/HelveticaNeue.woff') format('woff'),
-    url('/assets/fonts/Helvetica/HelveticaNeue.ttf') format('truetype');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Helvetica Neue';
-  src: url('/assets/fonts/Helvetica/HelveticaNeue-Medium.woff2') format('woff2'),
-    url('/assets/fonts/Helvetica/HelveticaNeue-Medium.woff') format('woff'),
-    url('/assets/fonts/Helvetica/HelveticaNeue-Medium.ttf') format('truetype');
+  font-family: 'Borna';
+  src: url('/assets/fonts/Borna/borna-medium-webfont.woff2') format('woff2'),
+    url('/assets/fonts/Borna/borna-medium-webfont.woff') format('woff'),
+    url('/assets/fonts/Borna/borna-medium-webfont.ttf') format('truetype');
   font-weight: 500;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Helvetica Neue';
-  src: url('/assets/fonts/Helvetica/HelveticaNeue-Bold.woff2') format('woff2'),
-    url('/assets/fonts/Helvetica/HelveticaNeue-Bold.woff') format('woff'),
-    url('/assets/fonts/Helvetica/HelveticaNeue-Bold.ttf') format('truetype');
+  font-family: 'Borna';
+  src: url('/assets/fonts/Borna/borna-semibold-webfont.woff2') format('woff2'),
+    url('/assets/fonts/Borna/borna-semibold-webfont.woff') format('woff'),
+    url('/assets/fonts/Borna/borna-semibold-webfont.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Borna';
+  src: url('/assets/fonts/Borna/borna-bold-webfont.woff2') format('woff2'),
+    url('/assets/fonts/Borna/borna-bold-webfont.woff') format('woff'),
+    url('/assets/fonts/Borna/borna-bold-webfont.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Helvetica Now Display';
+  src: url('/assets/fonts/HelveticaNowDisplay/HelveticaNowDisplay-Regular.woff2') format('woff2'),
+    url('/assets/fonts/HelveticaNowDisplay/HelveticaNowDisplay-Regular.woff') format('woff'),
+    url('/assets/fonts/HelveticaNowDisplay/HelveticaNowDisplay-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Helvetica Now Display';
+  src: url('/assets/fonts/HelveticaNowDisplay/HelveticaNowDisplay-Medium.woff2') format('woff2'),
+    url('/assets/fonts/HelveticaNowDisplay/HelveticaNowDisplay-Medium.woff') format('woff'),
+    url('/assets/fonts/HelveticaNowDisplay/HelveticaNowDisplay-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Helvetica Now Display';
+  src: url('/assets/fonts/HelveticaNowDisplay/HelveticaNowDisplay-Bold.woff2') format('woff2'),
+    url('/assets/fonts/HelveticaNowDisplay/HelveticaNowDisplay-Bold.woff') format('woff'),
+    url('/assets/fonts/HelveticaNowDisplay/HelveticaNowDisplay-Bold.ttf') format('truetype');
   font-weight: 700;
   font-style: normal;
   font-display: swap;

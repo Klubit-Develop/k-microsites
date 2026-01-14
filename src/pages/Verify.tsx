@@ -207,7 +207,7 @@ const Verify = () => {
 
                         <div className="flex flex-col gap-10 w-full items-center">
                             <div className="flex flex-col gap-4 w-full">
-                                <h1 className="text-[28px] md:text-[30px] text-center font-medium font-n27 text-[#ff336d]">
+                                <h1 className="text-[28px] md:text-[30px] text-center font-medium font-borna text-[#ff336d]">
                                     {t('verify.account_verification')}{' '}
                                     {verificationType === 'sms' ? t('verify.sms') : t('verify.email')}
                                 </h1>

@@ -143,7 +143,7 @@ export const LocationCard: React.FC<LocationCardProps> = ({
         <div className="flex gap-0.5 items-center px-1.5 w-full">
           <h2
             className="text-[#ff336d] text-[24px] font-bold leading-normal whitespace-nowrap overflow-hidden text-ellipsis"
-            style={{ fontFamily: "'N27', sans-serif" }}
+            style={{ fontFamily: "'Borna', sans-serif" }}
           >
             {title}
           </h2>

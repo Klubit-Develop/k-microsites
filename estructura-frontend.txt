@@ -51,10 +51,14 @@
 │   │       ├── google_es.svg
 │   │       └── logo-footer.png
 │   ├── favicon.ico
+│   ├── favicon.png
+│   ├── logo.png
+│   ├── logo.svg
 │   ├── logo192.png
 │   ├── logo512.png
 │   ├── manifest.json
 │   ├── robots.txt
+│   ├── social.png
 │   ├── tanstack-circle-logo.png
 │   └── tanstack-word-logo-white.svg
 ├── src
@@ -85,7 +89,9 @@
 │   │   ├── OrganizerCard.tsx
 │   │   ├── PhotoCarousel.tsx
 │   │   ├── Policypage.tsx
+│   │   ├── ProductCard.tsx
 │   │   ├── ProductsList.tsx
+│   │   ├── PromotionCard.tsx
 │   │   ├── PromotionsList.tsx
 │   │   ├── ReservationCard.tsx
 │   │   ├── ReservationModal.tsx
@@ -191,6 +197,7 @@
 │   │   ├── Register.tsx
 │   │   ├── Rrpp.tsx
 │   │   ├── TermsAndConditions.tsx
+│   │   ├── TermsAndConditionsClub.tsx
 │   │   ├── TransactionItems.tsx
 │   │   ├── Verify.tsx
 │   │   ├── Wallet.tsx
@@ -226,6 +233,7 @@
 │   │   ├── privacy-policy.tsx
 │   │   ├── register.tsx
 │   │   ├── rrpp.$slug.tsx
+│   │   ├── terms-and-conditions-club.tsx
 │   │   ├── terms-and-conditions.tsx
 │   │   └── verify.tsx
 │   ├── sonner-custom.css
@@ -240,4 +248,4 @@
 ├── tsconfig.json
 └── vite.config.ts
 
-22 directories, 219 files
+22 directories, 227 files

@@ -198,7 +198,7 @@ const TicketWallet = ({ transaction, isLive = false }: TicketWalletProps) => {
                 </div>
 
                 <div className="flex flex-col gap-2 w-full">
-                    <h2 className="text-[24px] font-n27 font-semibold text-[#F6F6F6] leading-none">
+                    <h2 className="text-[24px] font-borna font-semibold text-[#F6F6F6] leading-none">
                         {event.name}
                     </h2>
 
@@ -297,7 +297,7 @@ const SectionHeader = ({ title, to, showArrow = false }: SectionHeaderProps) => 
                     onClick={handleClick}
                     className="flex gap-2 items-center cursor-pointer"
                 >
-                    <h3 className="text-[24px] font-n27 font-bold text-[#FF336D]">
+                    <h3 className="text-[24px] font-borna font-bold text-[#FF336D]">
                         {title}
                     </h3>
                     <div className="flex items-center pt-1">
@@ -305,7 +305,7 @@ const SectionHeader = ({ title, to, showArrow = false }: SectionHeaderProps) => 
                     </div>
                 </button>
             ) : (
-                <h3 className="text-[24px] font-n27 font-bold text-[#FF336D]">
+                <h3 className="text-[24px] font-borna font-bold text-[#FF336D]">
                     {title}
                 </h3>
             )}
@@ -405,7 +405,7 @@ const KlubKard = ({
             </div>
 
             <div className="flex flex-col items-start gap-0 w-full">
-                <h3 className="text-[24px] font-n27 font-semibold text-[#F6F6F6] leading-none truncate w-full text-left">
+                <h3 className="text-[24px] font-borna font-semibold text-[#F6F6F6] leading-none truncate w-full text-left">
                     {clubName}
                 </h3>
                 <div className="flex items-center gap-2">

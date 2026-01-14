@@ -117,7 +117,7 @@ const Incident = () => {
                         </div>
 
                         <div className="flex flex-col gap-4 w-full">
-                            <h1 className="text-[28px] md:text-[30px] font-medium font-n27 text-center text-[#ff336d]">
+                            <h1 className="text-[28px] md:text-[30px] font-medium font-borna text-center text-[#ff336d]">
                                 {t('incident.title')}
                             </h1>
 

@@ -7,8 +7,8 @@ export default {
     theme: {
         extend: {
             fontFamily: {
-                'n27': ['N27', 'sans-serif'],
-                'helvetica': ['Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif'],
+                'borna': ['Borna', 'sans-serif'],
+                'helvetica': ['Helvetica Now Display', 'Helvetica', 'Arial', 'sans-serif'],
             },
         },
     },

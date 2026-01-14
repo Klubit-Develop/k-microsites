@@ -186,8 +186,8 @@ const Header = ({
                 <div className="hidden md:flex items-center justify-between h-[68px] px-4 sm:px-6 lg:px-34">
                     <Link to="/" className="shrink-0">
                         <LogoIcon
-                            width={87}
-                            height={20}
+                            width={120}
+                            height={25}
                         />
                     </Link>
 
@@ -241,8 +241,8 @@ const Header = ({
                 <div className="flex md:hidden items-center justify-between h-[94px] px-6 pt-[42px] pb-[32px] bg-[#050505]">
                     <Link to="/" className="shrink-0">
                         <LogoIcon
-                            width={87}
-                            height={20}
+                            width={120}
+                            height={25}
                         />
                     </Link>
 
@@ -272,8 +272,8 @@ const Header = ({
                                 className="shrink-0"
                             >
                                 <LogoIcon
-                                    width={87}
-                                    height={20}
+                                    width={120}
+                                    height={25}
                                 />
                             </button>
 

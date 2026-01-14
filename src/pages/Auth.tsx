@@ -230,7 +230,7 @@ const Auth = () => {
                         </div>
 
                         <div className="flex flex-col gap-3 w-full">
-                            <h1 className="text-[24px] sm:text-[26px] md:text-[28px] font-medium font-n27 text-center text-[#ff336d]">
+                            <h1 className="text-[24px] sm:text-[26px] md:text-[28px] font-medium font-borna text-center text-[#ff336d]">
                                 {t('login.title')}
                             </h1>
                         </div>
