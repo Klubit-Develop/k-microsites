@@ -120,6 +120,33 @@ const getClubSlug = (): string => {
     return 'localhost';
 };
 
+const EventsSkeleton = () => (
+    <div className="flex flex-col gap-8 w-full">
+        {[1, 2].map((section) => (
+            <div key={section} className="flex flex-col gap-4 items-start w-full animate-pulse">
+                <div className="flex gap-0.5 items-center px-1.5 w-full">
+                    <div className="h-7 w-40 bg-[#232323] rounded" />
+                </div>
+                <div className="flex flex-col gap-2 w-full">
+                    {[1, 2].map((card) => (
+                        <div
+                            key={card}
+                            className="flex items-center gap-3 p-3 bg-[#141414] border-2 border-[#232323] rounded-2xl"
+                        >
+                            <div className="w-[54px] h-[68px] shrink-0 bg-[#232323] rounded-sm" />
+                            <div className="flex-1 flex flex-col gap-2 min-w-0">
+                                <div className="h-4 w-3/4 bg-[#232323] rounded" />
+                                <div className="h-3.5 w-1/2 bg-[#232323] rounded" />
+                                <div className="h-3.5 w-1/3 bg-[#232323] rounded" />
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        ))}
+    </div>
+);
+
 const Home = () => {
     const { i18n, t } = useTranslation();
     const queryClient = useQueryClient();
@@ -314,17 +341,83 @@ const Home = () => {
     const isLiked = userFavoriteQuery.data ?? false;
     const todayEvents = todayEventsQuery.data ?? [];
     const upcomingEvents = upcomingEventsQuery.data ?? [];
+    const isEventsLoading = clubQuery.isLoading || todayEventsQuery.isLoading || upcomingEventsQuery.isLoading;
 
     const showUpcomingArrow = upcomingEvents.length >= MIN_EVENTS_FOR_ARROW;
     const displayedUpcomingEvents = showUpcomingArrow
         ? upcomingEvents.slice(0, MAX_EVENTS_TO_SHOW)
         : upcomingEvents;
 
+    const renderEventsContent = () => {
+        if (showUpcomingEventsPanel) {
+            return (
+                <UpcomingEventsPanel
+                    clubId={clubId || ''}
+                    onEventClick={handleEventClick}
+                />
+            );
+        }
+
+        if (isEventsLoading) {
+            return <EventsSkeleton />;
+        }
+
+        const hasNoEvents = todayEvents.length === 0 && upcomingEvents.length === 0;
+
+        if (hasNoEvents) {
+            return (
+                <div className="flex flex-col items-center justify-center py-12 w-full">
+                    <p className="text-[#939393] text-[14px] font-helvetica text-center">
+                        {t('events.no_events', 'No hay eventos próximos')}
+                    </p>
+                </div>
+            );
+        }
+
+        return (
+            <>
+                {todayEvents.length > 0 && (
+                    <EventSection title={t('events.today')}>
+                        {todayEvents.map((event) => (
+                            <EventCardHz
+                                key={event.id}
+                                title={event.name}
+                                date={formatEventDate(event.startDate)}
+                                time={formatEventTime(event.startTime, event.endTime)}
+                                location={event.club?.name || ''}
+                                imageUrl={event.flyer}
+                                onClick={() => handleEventClick(event.slug)}
+                            />
+                        ))}
+                    </EventSection>
+                )}
+
+                {upcomingEvents.length > 0 && (
+                    <EventSection
+                        title={t('events.upcoming')}
+                        onHeaderClick={showUpcomingArrow ? handleUpcomingEventsClick : undefined}
+                    >
+                        {displayedUpcomingEvents.map((event) => (
+                            <EventCardHz
+                                key={event.id}
+                                title={event.name}
+                                date={formatEventDate(event.startDate)}
+                                time={formatEventTime(event.startTime, event.endTime)}
+                                location={event.club?.name || ''}
+                                imageUrl={event.flyer}
+                                onClick={() => handleEventClick(event.slug)}
+                            />
+                        ))}
+                    </EventSection>
+                )}
+            </>
+        );
+    };
+
     return (
         <>
             {/* Mobile Layout */}
             <div className="flex flex-col gap-8 px-4 pt-[120px] pb-[360px] md:hidden bg-[#050505] min-h-screen">
-                {/* Club Profile Section */}
                 <div className="flex flex-col gap-6 items-center">
                     <ClubProfile
                         name={club?.name || ''}
@@ -359,52 +452,8 @@ const Home = () => {
                     />
                 </div>
 
-                {/* Events Sections */}
-                {showUpcomingEventsPanel ? (
-                    <UpcomingEventsPanel
-                        clubId={clubId || ''}
-                        onEventClick={handleEventClick}
-                    />
-                ) : (
-                    <>
-                        {todayEvents.length > 0 && (
-                            <EventSection title={t('events.today')}>
-                                {todayEvents.map((event) => (
-                                    <EventCardHz
-                                        key={event.id}
-                                        title={event.name}
-                                        date={formatEventDate(event.startDate)}
-                                        time={formatEventTime(event.startTime, event.endTime)}
-                                        location={event.club?.name || ''}
-                                        imageUrl={event.flyer}
-                                        onClick={() => handleEventClick(event.slug)}
-                                    />
-                                ))}
-                            </EventSection>
-                        )}
+                {renderEventsContent()}
 
-                        {upcomingEvents.length > 0 && (
-                            <EventSection
-                                title={t('events.upcoming')}
-                                onHeaderClick={showUpcomingArrow ? handleUpcomingEventsClick : undefined}
-                            >
-                                {displayedUpcomingEvents.map((event) => (
-                                    <EventCardHz
-                                        key={event.id}
-                                        title={event.name}
-                                        date={formatEventDate(event.startDate)}
-                                        time={formatEventTime(event.startTime, event.endTime)}
-                                        location={event.club?.name || ''}
-                                        imageUrl={event.flyer}
-                                        onClick={() => handleEventClick(event.slug)}
-                                    />
-                                ))}
-                            </EventSection>
-                        )}
-                    </>
-                )}
-
-                {/* Location Section */}
                 <LocationCard
                     title={t('club.location')}
                     address="Calle de Fortuny, 34, 28010. Madrid, España"
@@ -466,49 +515,7 @@ const Home = () => {
                 </div>
 
                 <div className="flex-1 flex flex-col gap-9 px-4 py-6">
-                    {showUpcomingEventsPanel ? (
-                        <UpcomingEventsPanel
-                            clubId={clubId || ''}
-                            onEventClick={handleEventClick}
-                        />
-                    ) : (
-                        <>
-                            {todayEvents.length > 0 && (
-                                <EventSection title={t('events.today')}>
-                                    {todayEvents.map((event) => (
-                                        <EventCardHz
-                                            key={event.id}
-                                            title={event.name}
-                                            date={formatEventDate(event.startDate)}
-                                            time={formatEventTime(event.startTime, event.endTime)}
-                                            location={event.club?.name || ''}
-                                            imageUrl={event.flyer}
-                                            onClick={() => handleEventClick(event.slug)}
-                                        />
-                                    ))}
-                                </EventSection>
-                            )}
-
-                            {upcomingEvents.length > 0 && (
-                                <EventSection
-                                    title={t('events.upcoming')}
-                                    onHeaderClick={showUpcomingArrow ? handleUpcomingEventsClick : undefined}
-                                >
-                                    {displayedUpcomingEvents.map((event) => (
-                                        <EventCardHz
-                                            key={event.id}
-                                            title={event.name}
-                                            date={formatEventDate(event.startDate)}
-                                            time={formatEventTime(event.startTime, event.endTime)}
-                                            location={event.club?.name || ''}
-                                            imageUrl={event.flyer}
-                                            onClick={() => handleEventClick(event.slug)}
-                                        />
-                                    ))}
-                                </EventSection>
-                            )}
-                        </>
-                    )}
+                    {renderEventsContent()}
                 </div>
             </div>
         </>
