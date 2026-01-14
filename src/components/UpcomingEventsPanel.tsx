@@ -6,7 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import axiosInstance from '@/config/axiosConfig';
 import MonthSelector from '@/components/MonthSelector';
-import EventCardHz from '@/components/EventCardHz';
+import EventCardHz, { EventCardHzSkeleton } from '@/components/EventCardHz';
 import Button from '@/components/ui/Button';
 
 interface Event {
@@ -128,10 +128,7 @@ const UpcomingEventsPanel = ({
     return (
         <div className={`flex flex-col gap-4 items-start w-full rounded-[10px] ${className}`}>
             <div className="flex gap-2 items-center px-1.5 w-full">
-                <h2
-                    className="text-[#ff336d] text-[24px] font-semibold leading-normal whitespace-nowrap overflow-hidden text-ellipsis"
-                    style={{ fontFamily: "'Borna', sans-serif" }}
-                >
+                <h2 className="text-[#ff336d] text-[24px] font-semibold leading-normal whitespace-nowrap overflow-hidden text-ellipsis font-borna">
                     {t('events.upcoming', 'Próximos eventos')}
                 </h2>
             </div>
@@ -147,10 +144,7 @@ const UpcomingEventsPanel = ({
                 <div className="flex flex-col gap-2 w-full">
                     {eventsQuery.isLoading && page === 1 ? (
                         [...Array(3)].map((_, index) => (
-                            <div
-                                key={index}
-                                className="h-[92px] bg-[#141414] border-2 border-[#232323] rounded-2xl animate-pulse"
-                            />
+                            <EventCardHzSkeleton key={index} />
                         ))
                     ) : allEvents.length > 0 ? (
                         allEvents.map((event) => (
