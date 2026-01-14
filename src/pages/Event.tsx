@@ -30,6 +30,7 @@ import CheckoutSummary from '@/components/CheckoutSummary';
 import TimeExpiredModal from '@/components/TimeExpiredModal';
 import StripePayment from '@/components/StripePayment';
 import AuthModal from '@/components/AuthModal';
+import Button from '@/components/ui/Button';
 
 interface Artist {
     id: string;
@@ -334,6 +335,7 @@ const Event = () => {
     const [infoModalPriceId, setInfoModalPriceId] = useState<string | null>(null);
     const [infoModalVariant, setInfoModalVariant] = useState<ModalVariant>('ticket');
     const [authModalOpen, setAuthModalOpen] = useState(false);
+    const [mobileShowRates, setMobileShowRates] = useState(false);
 
     const selectedQuantities = useMemo<SelectedQuantities>(() => ({
         tickets: parseQuantitiesFromUrl(searchParams.tickets),
@@ -402,12 +404,14 @@ const Event = () => {
                 return;
             }
             setCheckoutStep('payment');
+            setMobileShowRates(true);
         } else if (currentStep === 2) {
             if (!checkoutHasItems()) {
                 updateSearchParams({ step: 1 }, true);
                 return;
             }
             setCheckoutStep('summary');
+            setMobileShowRates(true);
         } else {
             setCheckoutStep('selection');
             const hasUrlItems = !!(searchParams.tickets || searchParams.guestlists ||
@@ -554,6 +558,7 @@ const Event = () => {
                 goBackCheckout();
             }
             updateSearchParams({ step: 1 }, true);
+            setMobileShowRates(true);
         } else if (step === 2) {
             if (!isAuthenticated) {
                 setAuthModalOpen(true);
@@ -680,7 +685,7 @@ const Event = () => {
             finalPrice: price.finalPrice,
             currency: price.currency || 'EUR',
             isLowStock,
-            lowStockLabel: isLowStock ? 'últimas 👣' : undefined,
+            lowStockLabel: isLowStock ? 'últimas 💣' : undefined,
             isFree,
             hasPrecompra,
             precompraData,
@@ -1143,6 +1148,14 @@ const Event = () => {
         t,
     ]);
 
+    const handleMobileBuyClick = useCallback(() => {
+        setMobileShowRates(true);
+    }, []);
+
+    const handleMobileBackToInfo = useCallback(() => {
+        setMobileShowRates(false);
+    }, []);
+
     if (eventQuery.isError) {
         return <PageError />;
     }
@@ -1190,6 +1203,26 @@ const Event = () => {
         }
         return (availableTabs[0]?.key as TabKey) || 'tickets';
     }, [availableTabs, activeTab]);
+
+    const tabsWithItems = useMemo(() => {
+        const tabs: string[] = [];
+        
+        if (Object.values(selectedQuantities.tickets).some(qty => qty > 0)) {
+            tabs.push('tickets');
+        }
+        if (Object.values(selectedQuantities.guestlists).some(qty => qty > 0)) {
+            tabs.push('guestlists');
+        }
+        if (Object.values(selectedQuantities.reservations).some(qty => qty > 0)) {
+            tabs.push('reservations');
+        }
+        if (Object.values(selectedQuantities.products).some(qty => qty > 0) || 
+            Object.values(selectedQuantities.promotions).some(qty => qty > 0)) {
+            tabs.push('products');
+        }
+        
+        return tabs;
+    }, [selectedQuantities]);
 
     const allTags = event ? [
         ...(event.minimumAge ? [`+${event.minimumAge}`] : []),
@@ -1337,6 +1370,7 @@ const Event = () => {
                         activeTab={effectiveActiveTab}
                         onTabChange={handleTabChange}
                         isLoading={isLoading}
+                        tabsWithItems={tabsWithItems}
                     />
                 </div>
 
@@ -1354,18 +1388,43 @@ const Event = () => {
         );
     };
 
+    const showMobileDetailView = currentStep === 1 && !mobileShowRates;
+    const showMobileRatesView = currentStep === 1 && mobileShowRates;
+
     return (
         <div className="bg-[#050505] min-h-screen flex flex-col items-center pt-[40px] pb-[50px] md:pt-24 md:pb-24">
-            <div className="w-full mb-10 md:mb-[60px]">
-                <EventStepper
-                    currentStep={currentStep}
-                    onStepClick={handleStepChange}
-                    isLoading={isLoading}
-                />
+            {/* Mobile: Back button above stepper */}
+            {showMobileRatesView && (
+                <div className="w-full px-4 mb-8 md:hidden">
+                    <button
+                        onClick={handleMobileBackToInfo}
+                        className="flex items-center gap-2 text-[#939393] hover:text-[#F6F6F6] transition-colors cursor-pointer"
+                    >
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                        <span className="text-[14px] font-helvetica font-medium">
+                            {t('common.back', 'Volver')}
+                        </span>
+                    </button>
+                </div>
+            )}
+
+            {/* Stepper - Hidden on mobile when showing event details, full width on mobile */}
+            <div className={`w-full mb-10 md:mb-[60px] ${showMobileDetailView ? 'hidden md:block' : ''}`}>
+                <div className="w-full md:w-auto">
+                    <EventStepper
+                        currentStep={currentStep}
+                        onStepClick={handleStepChange}
+                        isLoading={isLoading}
+                    />
+                </div>
             </div>
 
+            {/* Mobile Layout */}
             <div className="flex flex-col gap-8 w-full px-4 md:hidden">
-                {currentStep === 1 && (
+                {/* Event Details View (initial mobile state) */}
+                {showMobileDetailView && (
                     <>
                         <EventHeader
                             name={event?.name || ''}
@@ -1386,13 +1445,7 @@ const Event = () => {
                             tags={allTags}
                             isLoading={isLoading}
                         />
-                    </>
-                )}
 
-                {renderRightColumn()}
-
-                {currentStep === 1 && (
-                    <>
                         <EventDescription
                             title={t('event.about', 'Sobre el evento')}
                             description={event?.description || ''}
@@ -1429,10 +1482,42 @@ const Event = () => {
                                 onLegalClick={event.club?.termsAndConditions ? handleLegalClick : undefined}
                             />
                         ) : null}
+
+                        {/* Spacer for fixed button */}
+                        <div className="h-[100px]" />
+                    </>
+                )}
+
+                {/* Rates View (after pressing "Comprar") - No event info, just tabs and rates */}
+                {showMobileRatesView && (
+                    <>
+                        {renderRightColumn()}
+                    </>
+                )}
+
+                {/* Steps 2 and 3 (summary and payment) - No event info */}
+                {currentStep > 1 && (
+                    <>
+                        {renderRightColumn()}
                     </>
                 )}
             </div>
 
+            {/* Fixed "Comprar" button for mobile - only show in detail view */}
+            {showMobileDetailView && (
+                <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-[#050505] via-[#050505] to-transparent pt-8 md:hidden z-50">
+                    <Button
+                        variant="cta"
+                        onClick={handleMobileBuyClick}
+                        className="w-full h-[48px]"
+                        disabled={isLoading}
+                    >
+                        {t('event.buy', 'Comprar')}
+                    </Button>
+                </div>
+            )}
+
+            {/* Desktop Layout - unchanged */}
             <div className="hidden md:flex items-start justify-center w-full px-8 lg:px-16 xl:px-24 2xl:px-96 gap-8">
                 <div className="flex flex-col gap-9 w-full max-w-[500px]">
                     <EventHeader

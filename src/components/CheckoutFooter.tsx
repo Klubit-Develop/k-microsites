@@ -32,25 +32,45 @@ const CheckoutFooter = ({
         );
     }
 
-    return (
-        <div className={`flex flex-col gap-[16px] w-full ${className}`}>
-            {/* CTA Button */}
-            <Button
-                variant="cta"
-                disabled={totalQuantity === 0 || isProcessing}
-                onClick={onCheckout}
-                className="w-full h-[48px]"
-            >
-                {t('event.continue', 'Continuar')} - {(total ?? 0).toFixed(2).replace('.', ',')}€
-            </Button>
+    const buttonContent = (
+        <Button
+            variant="cta"
+            disabled={totalQuantity === 0 || isProcessing}
+            onClick={onCheckout}
+            className="w-full h-[48px]"
+        >
+            {t('event.continue', 'Continuar')} - {(total ?? 0).toFixed(2).replace('.', ',')}€
+        </Button>
+    );
 
-            {/* Legal text */}
-            <div className="px-[6px]">
-                <p className="text-[rgba(246,246,246,0.5)] text-[12px] font-medium font-helvetica leading-normal">
-                    {t('event.legal_text', 'Comprando esta entrada, abrirás una cuenta y aceptarás nuestras Condiciones de Uso generales, la Política de Privacidad y las Condiciones de Compra de entradas. Procesamos tus datos personales de acuerdo con nuestra Política de Privacidad.')}
-                </p>
+    return (
+        <>
+            {/* Desktop version */}
+            <div className={`hidden md:flex flex-col gap-[16px] w-full ${className}`}>
+                {buttonContent}
+                <div className="px-[6px]">
+                    <p className="text-[rgba(246,246,246,0.5)] text-[12px] font-medium font-helvetica leading-normal">
+                        {t('event.legal_text', 'Comprando esta entrada, abrirás una cuenta y aceptarás nuestras Condiciones de Uso generales, la Política de Privacidad y las Condiciones de Compra de entradas. Procesamos tus datos personales de acuerdo con nuestra Política de Privacidad.')}
+                    </p>
+                </div>
             </div>
-        </div>
+
+            {/* Mobile version - Legal text in flow */}
+            <div className={`md:hidden flex flex-col gap-[16px] w-full ${className}`}>
+                <div className="px-[6px]">
+                    <p className="text-[rgba(246,246,246,0.5)] text-[12px] font-medium font-helvetica leading-normal">
+                        {t('event.legal_text', 'Comprando esta entrada, abrirás una cuenta y aceptarás nuestras Condiciones de Uso generales, la Política de Privacidad y las Condiciones de Compra de entradas. Procesamos tus datos personales de acuerdo con nuestra Política de Privacidad.')}
+                    </p>
+                </div>
+                {/* Spacer for fixed button */}
+                <div className="h-[80px]" />
+            </div>
+
+            {/* Mobile fixed button */}
+            <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-[#050505] via-[#050505] to-transparent pt-8 md:hidden z-50">
+                {buttonContent}
+            </div>
+        </>
     );
 };
 

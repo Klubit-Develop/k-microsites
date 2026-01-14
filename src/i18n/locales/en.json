@@ -219,7 +219,8 @@
         "reservations_zone": "Reservations",
         "from_price": "From",
         "reservation_name": "Reservation name",
-        "observations": "Observations"
+        "observations": "Observations",
+        "buy": "Buy"
     },
     "checkout": {
         "minutes": "minutes",

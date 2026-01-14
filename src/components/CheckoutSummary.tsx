@@ -7,10 +7,6 @@ import { countries } from '@/utils/countries';
 import axiosInstance from '@/config/axiosConfig';
 import { useAuthStore } from '@/stores/authStore';
 
-// ============================================
-// TYPES
-// ============================================
-
 interface EventInfo {
     id: string;
     name: string;
@@ -62,19 +58,10 @@ interface CheckoutSummaryProps {
     isLoading?: boolean;
 }
 
-// ============================================
-// ICONS
-// ============================================
-
 const IndicatorDot = ({ color }: { color: string }) => (
     <div className="w-[6px] h-[6px] rounded-full shrink-0" style={{ backgroundColor: color }} />
 );
 
-// ============================================
-// SUB COMPONENTS
-// ============================================
-
-// Timer Component
 const CheckoutTimer = ({ seconds, isLow }: { seconds: number; isLow: boolean }) => {
     const { t } = useTranslation();
 
@@ -99,7 +86,6 @@ const CheckoutTimer = ({ seconds, isLow }: { seconds: number; isLow: boolean }) 
     );
 };
 
-// Event Info Card
 const EventInfoCard = ({ items }: { event: EventInfo; items: CartItem[] }) => {
     const { t } = useTranslation();
 
@@ -120,7 +106,6 @@ const EventInfoCard = ({ items }: { event: EventInfo; items: CartItem[] }) => {
                 {t('checkout.your_order', 'Tu pedido')}
             </span>
             <div className="bg-[#141414] border-2 border-[#232323] rounded-[16px] w-full">
-                {/* Items */}
                 {items.map((item, index) => (
                     <div
                         key={`${item.priceId}-${index}`}
@@ -146,7 +131,6 @@ const EventInfoCard = ({ items }: { event: EventInfo; items: CartItem[] }) => {
     );
 };
 
-// Coupon Section
 interface CouponSectionProps {
     appliedCoupon: CouponData | null;
     onApplyCoupon: (code: string) => Promise<void>;
@@ -154,18 +138,6 @@ interface CouponSectionProps {
     isLoading: boolean;
     discountAmount: number;
 }
-
-// Gift icon SVG
-const GiftIcon = () => (
-    <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect x="8" y="32" width="64" height="40" rx="4" fill="white" stroke="#E8E8E8" strokeWidth="2" />
-        <rect x="4" y="24" width="72" height="16" rx="4" fill="white" stroke="#E8E8E8" strokeWidth="2" />
-        <rect x="36" y="24" width="8" height="48" fill="#FF336D" />
-        <path d="M40 24C40 24 28 24 28 16C28 8 36 8 40 16" stroke="#FF336D" strokeWidth="4" fill="none" />
-        <path d="M40 24C40 24 52 24 52 16C52 8 44 8 40 16" stroke="#FF336D" strokeWidth="4" fill="none" />
-        <circle cx="40" cy="16" r="4" fill="#FF336D" />
-    </svg>
-);
 
 const CouponSection = ({
     appliedCoupon,
@@ -191,7 +163,6 @@ const CouponSection = ({
         }
     };
 
-    // Applied coupon display
     if (appliedCoupon) {
         return (
             <div className="bg-[#141414] border-2 border-[#232323] rounded-[12px] px-[16px] py-[12px] flex items-center justify-between w-full">
@@ -219,17 +190,15 @@ const CouponSection = ({
 
     return (
         <>
-            {/* Trigger Button */}
             <button
                 onClick={() => setIsModalOpen(true)}
                 className="w-full h-[48px] bg-[#232323] rounded-[12px] flex items-center justify-center cursor-pointer hover:bg-[#2a2a2a] transition-colors"
             >
                 <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica">
-                    {t('checkout.apply_coupon', 'Aplicar cÃ³digo de cupÃ³n')}
+                    {t('checkout.apply_coupon', 'Aplicar código de cupón')}
                 </span>
             </button>
 
-            {/* Coupon Modal */}
             {isModalOpen && (
                 <div
                     className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-[24px]"
@@ -244,25 +213,26 @@ const CouponSection = ({
                         className="bg-[#0a0a0a] border-2 border-[#232323] rounded-[42px] w-full max-w-[400px] px-[24px] py-[42px] flex flex-col items-center gap-[36px] relative animate-in fade-in zoom-in-95 duration-200"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        {/* Grabber */}
                         <div className="absolute top-[14px] left-1/2 -translate-x-1/2">
                             <div className="w-[36px] h-[5px] bg-[#f6f6f6] opacity-25 rounded-full" />
                         </div>
 
-                        {/* Icon + Title */}
                         <div className="flex flex-col items-center gap-[16px] px-[16px] w-full">
                             <div className="w-[120px] h-[120px] flex items-center justify-center">
-                                <GiftIcon />
+                                <img 
+                                    src="https://klubit.fra1.cdn.digitaloceanspaces.com/icon-present.png" 
+                                    alt="Gift"
+                                    className="w-[80px] h-[80px] object-contain"
+                                />
                             </div>
                             <h2 className="text-[#f6f6f6] text-[24px] font-semibold font-borna text-center">
-                                {t('checkout.apply_coupon_title', 'Aplicar cupÃ³n')}
+                                {t('checkout.apply_coupon_title', 'Aplicar cupón')}
                             </h2>
                         </div>
 
-                        {/* Input */}
                         <div className="flex flex-col gap-[4px] w-full">
                             <span className="text-[#939393] text-[14px] font-normal font-helvetica px-[6px]">
-                                {t('checkout.coupon_code_label', 'CÃ³digo de cupÃ³n')}
+                                {t('checkout.coupon_code_label', 'Código de cupón')}
                             </span>
                             <input
                                 type="text"
@@ -275,7 +245,6 @@ const CouponSection = ({
                             />
                         </div>
 
-                        {/* Apply Button */}
                         <button
                             onClick={handleApply}
                             disabled={isLoading || !couponCode.trim()}
@@ -292,7 +261,6 @@ const CouponSection = ({
     );
 };
 
-// Payment Details Card
 interface PaymentDetailsProps {
     subtotal: number;
     serviceFee: number;
@@ -309,7 +277,6 @@ const PaymentDetailsCard = ({ subtotal, serviceFee, discount, total }: PaymentDe
                 {t('checkout.payment_details', 'Detalles pago')}
             </span>
             <div className="bg-[#141414] border-2 border-[#232323] rounded-[16px] w-full">
-                {/* Subtotal */}
                 <div className="flex items-center justify-between px-[16px] h-[56px] border-b-[1.5px] border-[#232323]">
                     <span className="text-[#939393] text-[16px] font-medium font-helvetica">
                         {t('checkout.subtotal', 'Subtotal')}:
@@ -319,19 +286,17 @@ const PaymentDetailsCard = ({ subtotal, serviceFee, discount, total }: PaymentDe
                     </span>
                 </div>
 
-                {/* Service Fee */}
-                <div className={`flex items-center justify-between px-[16px] h-[56px] ${discount > 0 ? 'border-b-[1.5px] border-[#232323]' : ''}`}>
+                <div className="flex items-center justify-between px-[16px] h-[56px]">
                     <span className="text-[#939393] text-[16px] font-medium font-helvetica">
-                        {t('checkout.service_fee', 'Gastos de gestiÃ³n')}:
+                        {t('checkout.service_fee', 'Gastos de gestión')}:
                     </span>
                     <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica">
                         {serviceFee.toFixed(2).replace('.', ',')}€
                     </span>
                 </div>
 
-                {/* Discount (only if applied) */}
                 {discount > 0 && (
-                    <div className="flex items-center justify-between px-[16px] h-[56px] border-b-[1.5px] border-[#232323]">
+                    <div className="flex items-center justify-between px-[16px] h-[56px]">
                         <span className="text-[#939393] text-[16px] font-medium font-helvetica">
                             {t('checkout.discount_label', 'Descuento')}:
                         </span>
@@ -341,8 +306,7 @@ const PaymentDetailsCard = ({ subtotal, serviceFee, discount, total }: PaymentDe
                     </div>
                 )}
 
-                {/* Total */}
-                <div className="flex items-center justify-between px-[16px] h-[56px]">
+                <div className="flex items-center justify-between px-[16px] h-[56px] border-t-[1.5px] border-[#232323]">
                     <span className="text-[#939393] text-[16px] font-medium font-helvetica">
                         {t('checkout.total_price', 'Precio total')}:
                     </span>
@@ -355,14 +319,12 @@ const PaymentDetailsCard = ({ subtotal, serviceFee, discount, total }: PaymentDe
     );
 };
 
-// Nominative Assignment Section
 interface NominativeAssignmentSectionProps {
     items: CartItem[];
     assignments: NominativeAssignment[];
     onAssignmentChange: (assignments: NominativeAssignment[]) => void;
 }
 
-// Checkbox icon component
 const CheckboxIcon = ({ checked }: { checked: boolean }) => (
     <div className={`w-[24px] h-[24px] rounded-full border-2 flex items-center justify-center transition-colors ${checked ? 'bg-[#e5ff88] border-[#e5ff88]' : 'border-[#939393]'
         }`}>
@@ -382,7 +344,6 @@ const NominativeAssignmentSection = ({
     const { i18n, t } = useTranslation();
     const { user } = useAuthStore();
 
-    // Get all nominative items expanded by quantity
     const nominativeEntries = useMemo(() => {
         const entries: Array<{ item: CartItem; index: number; entryIndex: number }> = [];
         let globalIndex = 0;
@@ -454,7 +415,7 @@ const NominativeAssignmentSection = ({
         const assignment = assignments.find(a => a.itemIndex === itemIndex);
         
         if (!assignment?.phone) {
-            toast.error(t('checkout.phone_required', 'Introduce un nÃºmero de telÃ©fono'));
+            toast.error(t('checkout.phone_required', 'Introduce un número de teléfono'));
             return;
         }
 
@@ -463,11 +424,10 @@ const NominativeAssignmentSection = ({
         const phoneDigits = assignment.phone.replace(/\D/g, '');
 
         if (phoneDigits.length !== expectedLength) {
-            toast.error(t('checkout.phone_invalid_length', 'NÃºmero de telÃ©fono invÃ¡lido'));
+            toast.error(t('checkout.phone_invalid_length', 'Número de teléfono inválido'));
             return;
         }
 
-        // Validar que no sea el telÃ©fono del usuario logueado
         if (user?.phone && user?.country) {
             const userPhoneDigits = user.phone.replace(/\D/g, '');
             const userCountry = user.country;
@@ -510,14 +470,14 @@ const NominativeAssignmentSection = ({
             const users = response.data?.data?.users?.data || [];
             
             if (users.length > 0) {
-                const user = users[0];
+                const foundUser = users[0];
                 const newAssignments = assignments.map(a =>
                     a.itemIndex === itemIndex
                         ? {
                             ...a,
                             assignmentType: 'found' as const,
                             isSearching: false,
-                            toUserId: user.id,
+                            toUserId: foundUser.id,
                         }
                         : a
                 );
@@ -547,7 +507,6 @@ const NominativeAssignmentSection = ({
         onAssignmentChange(newAssignments);
     };
 
-    // Format phone number based on country pattern
     const formatPhone = (value: string, pattern: number[] = [3, 3, 3]) => {
         const digits = value.replace(/\D/g, '');
         let result = '';
@@ -621,7 +580,6 @@ const NominativeAssignmentSection = ({
                 {t('checkout.client_assignment', 'Asignación clientes')}*
             </span>
 
-            {/* Botón "Son todas para mí" */}
             <button
                 type="button"
                 onClick={handleToggleAllForMe}
@@ -639,7 +597,6 @@ const NominativeAssignmentSection = ({
                 <CheckboxIcon checked={allForMe} />
             </button>
 
-            {/* Lista de entradas individuales - solo mostrar si NO están todas para mí */}
             {!allForMe && (
             <div className="flex flex-col gap-[8px]">
                 {nominativeEntries.map(({ item, index }) => {
@@ -654,69 +611,39 @@ const NominativeAssignmentSection = ({
                     return (
                         <div
                             key={index}
-                            className="bg-[#141414] border-2 border-[#232323] rounded-[16px] w-full"
+                            className={`bg-[#141414] border-2 rounded-[16px] w-full transition-colors ${
+                                isMe ? 'border-[#e5ff88]' : 'border-[#232323]'
+                            }`}
                         >
-                            {/* Variante 1: "Para mi" seleccionado - Solo header */}
-                            {isMe && (
-                                <div className="flex items-center justify-between px-[16px] h-[56px]">
-                                    <div className="flex items-center gap-[6px]">
-                                        <div
-                                            className="w-[6px] h-[6px] rounded-full shrink-0"
-                                            style={{ backgroundColor: indicatorColor }}
-                                        />
-                                        <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica">
-                                            {item.name}
-                                        </span>
-                                        <span className="text-[#f6f6f6] text-[16px] font-bold font-helvetica">
-                                            x1
-                                        </span>
-                                    </div>
-                                    <button
-                                        onClick={() => handleToggleMe(index)}
-                                        className="flex items-center gap-[8px] cursor-pointer"
-                                    >
-                                        <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica">
-                                            {t('checkout.for_me', 'Para mi')}
-                                        </span>
-                                        <CheckboxIcon checked={true} />
-                                    </button>
+                            <button
+                                type="button"
+                                onClick={() => handleToggleMe(index)}
+                                disabled={!isMe && meAssignedIndex !== null && meAssignedIndex !== index}
+                                className="w-full flex items-center justify-between px-[16px] h-[56px] cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                <div className="flex items-center gap-[6px]">
+                                    <IndicatorDot color={indicatorColor} />
+                                    <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica">
+                                        {item.name}
+                                    </span>
+                                    <span className="text-[#f6f6f6] text-[16px] font-bold font-helvetica">
+                                        x1
+                                    </span>
                                 </div>
-                            )}
+                                <div className="flex items-center gap-[8px]">
+                                    <span className={`text-[14px] font-medium font-helvetica ${isMe ? 'text-[#e5ff88]' : 'text-[#939393]'}`}>
+                                        {t('checkout.for_me', 'Para mi')}
+                                    </span>
+                                    <CheckboxIcon checked={isMe} />
+                                </div>
+                            </button>
 
-                            {/* Variante 2, 3 y 4: No es "Para mi" - Mostrar formulario */}
                             {!isMe && (
                                 <div className="flex flex-col gap-[16px] px-[16px] pb-[16px]">
-                                    {/* Header con border bottom */}
-                                    <div className="flex items-center justify-between h-[56px] border-b-[1.5px] border-[#232323]">
-                                        <div className="flex items-center gap-[6px]">
-                                            <div
-                                                className="w-[6px] h-[6px] rounded-full shrink-0"
-                                                style={{ backgroundColor: indicatorColor }}
-                                            />
-                                            <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica">
-                                                {item.name}
-                                            </span>
-                                            <span className="text-[#f6f6f6] text-[16px] font-bold font-helvetica">
-                                                x1
-                                            </span>
-                                        </div>
-                                        <button
-                                            onClick={() => handleToggleMe(index)}
-                                            disabled={meAssignedIndex !== null}
-                                            className={`flex items-center gap-[8px] ${meAssignedIndex !== null ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-                                        >
-                                            <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica">
-                                                {t('checkout.for_me', 'Para mi')}
-                                            </span>
-                                            <CheckboxIcon checked={false} />
-                                        </button>
-                                    </div>
-
-                                    {/* Phone input con indicador de estado */}
                                     <div className="relative">
                                         <InputTextPhone
-                                            label={`${t('checkout.phone', 'TelÃ©fono')}*`}
-                                            placeholder="000 00 00 00"
+                                            label={`${t('checkout.phone', 'Teléfono')}*`}
+                                            placeholder=""
                                             value={assignment?.phone || ''}
                                             onChange={(value) => handlePhoneChange(index, value)}
                                             country={assignment?.phoneCountry || '34'}
@@ -725,7 +652,6 @@ const NominativeAssignmentSection = ({
                                             language={i18n.language as 'es' | 'en'}
                                             disabled={isFound || isNotFound}
                                         />
-                                        {/* Check verde cuando usuario encontrado */}
                                         {isFound && (
                                             <div className="absolute right-[16px] top-[38px] w-[24px] h-[24px] rounded-full bg-[#e5ff88] flex items-center justify-center z-10">
                                                 <svg width="12" height="9" viewBox="0 0 12 9" fill="none">
@@ -735,7 +661,6 @@ const NominativeAssignmentSection = ({
                                         )}
                                     </div>
 
-                                    {/* Confirm phone button - Solo si aÃºn no estÃ¡ confirmado */}
                                     {isSend && (
                                         <button
                                             type="button"
@@ -751,11 +676,10 @@ const NominativeAssignmentSection = ({
                                                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                                                 </svg>
                                             )}
-                                            {t('checkout.confirm_phone', 'Confirmar telÃ©fono')}
+                                            {t('checkout.confirm_phone', 'Confirmar teléfono')}
                                         </button>
                                     )}
 
-                                    {/* BotÃ³n cambiar nÃºmero para estados found/notfound */}
                                     {(isFound || isNotFound) && (
                                         <button
                                             type="button"
@@ -767,29 +691,27 @@ const NominativeAssignmentSection = ({
                                             })}
                                             className="w-full h-[36px] bg-transparent border border-[#232323] rounded-[8px] flex items-center justify-center font-medium text-[14px] font-helvetica text-[#939393] cursor-pointer hover:border-[#3a3a3a] transition-colors"
                                         >
-                                            {t('checkout.change_number', 'Cambiar nÃºmero')}
+                                            {t('checkout.change_number', 'Cambiar número')}
                                         </button>
                                     )}
 
-                                    {/* Info text */}
                                     <p className="text-[#939393] text-[12px] font-medium font-helvetica px-[6px]">
                                         {isNotFound
-                                            ? t('checkout.assign_auto_number', '**La entrada se asignarÃ¡ automÃ¡ticamente al nÃºmero indicado. Siempre podrÃ¡s cancelar el envÃ­o desde la app.')
-                                            : t('checkout.assign_auto_user', '**La entrada se asignarÃ¡ automÃ¡ticamente al siguiente usuario. Siempre podrÃ¡s cancelar el envÃ­o desde la app.')
+                                            ? t('checkout.assign_auto_number', '**La entrada se asignará automáticamente al número indicado. Siempre podrás cancelar el envío desde la app.')
+                                            : t('checkout.assign_auto_user', '**La entrada se asignará automáticamente al siguiente usuario. Siempre podrás cancelar el envío desde la app.')
                                         }
                                     </p>
 
-                                    {/* Variante: Usuario no encontrado - Mostrar campo email */}
                                     {isNotFound && (
                                         <div className="flex flex-col gap-[4px]">
                                             <span className="text-[#939393] text-[14px] font-normal font-helvetica px-[6px]">
-                                                {t('checkout.email_notification', 'Email para notificaciÃ³n')}*
+                                                {t('checkout.email_notification', 'Email para notificación')}*
                                             </span>
                                             <input
                                                 type="email"
                                                 value={assignment?.email || ''}
                                                 onChange={(e) => handleUpdateAssignment(index, { email: e.target.value })}
-                                                placeholder={t('checkout.email_placeholder', 'ejemplo@correo.com')}
+                                                placeholder=""
                                                 className="w-full h-[48px] border-[1.5px] border-[#232323] rounded-[12px] px-[16px] bg-transparent text-[#f6f6f6] text-[16px] font-medium font-helvetica placeholder:text-[#939393] outline-none focus:border-[#3fe8e8] transition-colors"
                                             />
                                             <span className="text-[#939393] text-[11px] font-normal font-helvetica px-[6px]">
@@ -808,10 +730,6 @@ const NominativeAssignmentSection = ({
     );
 };
 
-// ============================================
-// MAIN COMPONENT
-// ============================================
-
 const CheckoutSummary = ({
     event,
     items,
@@ -823,25 +741,21 @@ const CheckoutSummary = ({
 }: CheckoutSummaryProps) => {
     const { t } = useTranslation();
 
-    // State
     const [timeLeft, setTimeLeft] = useState(timerSeconds);
     const [appliedCoupon, setAppliedCoupon] = useState<CouponData | null>(null);
     const [couponLoading, setCouponLoading] = useState(false);
     const [nominativeAssignments, setNominativeAssignments] = useState<NominativeAssignment[]>([]);
     const [isIncidentModalOpen, setIsIncidentModalOpen] = useState(false);
 
-    // Initialize nominative assignments with 'send' as default
     useEffect(() => {
         const nominativeItems = items.filter(item => item.isNominative);
         if (nominativeItems.length === 0) return;
 
-        // Count total nominative entries
         let totalEntries = 0;
         nominativeItems.forEach(item => {
             totalEntries += item.quantity;
         });
 
-        // Only initialize if we don't have assignments yet
         if (nominativeAssignments.length === 0 && totalEntries > 0) {
             const initialAssignments: NominativeAssignment[] = [];
             let globalIndex = 0;
@@ -863,7 +777,6 @@ const CheckoutSummary = ({
         }
     }, [items, nominativeAssignments.length]);
 
-    // Timer countdown
     useEffect(() => {
         if (timeLeft <= 0) {
             onTimerExpired();
@@ -884,7 +797,6 @@ const CheckoutSummary = ({
         return () => clearInterval(interval);
     }, [timeLeft, onTimerExpired]);
 
-    // Calculations
     const subtotal = useMemo(() => {
         return items.reduce((acc, item) => acc + (item.unitPrice * item.quantity), 0);
     }, [items]);
@@ -901,12 +813,10 @@ const CheckoutSummary = ({
         return Math.max(0, subtotal + serviceFee - discountAmount);
     }, [subtotal, serviceFee, discountAmount]);
 
-    // Check if has nominative items
     const hasNominativeItems = useMemo(() => {
         return items.some(item => item.isNominative);
     }, [items]);
 
-    // Check if all nominative assignments are complete
     const nominativeComplete = useMemo(() => {
         if (!hasNominativeItems) return true;
 
@@ -923,12 +833,11 @@ const CheckoutSummary = ({
                 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                 return !!assignment.phone && !!assignment.email && emailRegex.test(assignment.email);
             }
-            if (assignment.assignmentType === 'send') return false; // Debe confirmar telÃ©fono
+            if (assignment.assignmentType === 'send') return false;
             return false;
         });
     }, [hasNominativeItems, items, nominativeAssignments]);
 
-    // Apply coupon
     const handleApplyCoupon = useCallback(async (code: string) => {
         setCouponLoading(true);
         try {
@@ -940,29 +849,26 @@ const CheckoutSummary = ({
             }
 
             if (!data.data.valid) {
-                toast.error(t('checkout.invalid_coupon', 'CupÃ³n no vÃ¡lido'));
+                toast.error(t('checkout.invalid_coupon', 'Cupón no válido'));
                 return;
             }
 
             setAppliedCoupon(data.data.coupon);
-            toast.success(t('checkout.coupon_applied', 'CupÃ³n aplicado correctamente'));
-        } catch (error) {
-            console.error('Coupon validation error:', error);
-            toast.error(t('checkout.coupon_error', 'Error al validar el cupÃ³n'));
+            toast.success(t('checkout.coupon_applied', 'Cupón aplicado correctamente'));
+        } catch {
+            toast.error(t('checkout.coupon_error', 'Error al validar el cupón'));
         } finally {
             setCouponLoading(false);
         }
     }, [t]);
 
-    // Remove coupon
     const handleRemoveCoupon = useCallback(() => {
         setAppliedCoupon(null);
     }, []);
 
-    // Continue to payment
     const handleContinue = useCallback(() => {
         if (hasNominativeItems && !nominativeComplete) {
-            toast.error(t('checkout.complete_assignments', 'Por favor completa la asignaciÃ³n de todas las entradas'));
+            toast.error(t('checkout.complete_assignments', 'Por favor completa la asignación de todas las entradas'));
             return;
         }
 
@@ -975,92 +881,97 @@ const CheckoutSummary = ({
     const isLowTime = timeLeft < 60;
     const canContinue = !hasNominativeItems || nominativeComplete;
 
+    const renderButton = () => (
+        <button
+            onClick={handleContinue}
+            disabled={!canContinue || isLoading}
+            className={`w-full h-[48px] rounded-[12px] flex items-center justify-center font-bold text-[16px] font-helvetica transition-opacity ${canContinue && !isLoading
+                    ? 'bg-[#ff336d] text-[#f6f6f6] cursor-pointer hover:opacity-90'
+                    : 'bg-[#ff336d] text-[#f6f6f6] opacity-50 cursor-not-allowed'
+                }`}
+        >
+            {isLoading ? (
+                <div className="flex items-center gap-[8px]">
+                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    <span>{t('checkout.creating_order', 'Creando pedido...')}</span>
+                </div>
+            ) : total === 0 ? (
+                <span>{t('checkout.confirm_free', 'Confirmar')} - {t('checkout.free', 'Gratis')}</span>
+            ) : (
+                <span>{t('checkout.continue_to_payment', 'Continuar al pago')} - {total.toFixed(2).replace('.', ',')}€</span>
+            )}
+        </button>
+    );
+
     return (
-        <div className="flex flex-col gap-[36px] w-full max-w-[480px] mx-auto px-[24px] py-[24px]">
-            {/* Timer */}
-            <CheckoutTimer seconds={timeLeft} isLow={isLowTime} />
+        <>
+            <div className="flex flex-col gap-[36px] w-full max-w-[480px] mx-auto px-[24px] py-[24px] pb-[120px] md:pb-[24px]">
+                <CheckoutTimer seconds={timeLeft} isLow={isLowTime} />
 
-            {/* Cart Items */}
-            <EventInfoCard event={event} items={items} />
+                <EventInfoCard event={event} items={items} />
 
-            {/* Coupon Section - Solo mostrar si subtotal > 0 */}
-            {subtotal > 0 && (
-                <CouponSection
-                    appliedCoupon={appliedCoupon}
-                    onApplyCoupon={handleApplyCoupon}
-                    onRemoveCoupon={handleRemoveCoupon}
-                    isLoading={couponLoading}
-                    discountAmount={discountAmount}
-                />
-            )}
-
-            {/* Payment Details */}
-            <PaymentDetailsCard
-                subtotal={subtotal}
-                serviceFee={serviceFee}
-                discount={discountAmount}
-                total={total}
-            />
-
-            {/* Nominative Assignment (only for tickets with isNominative) */}
-            {hasNominativeItems && (
-                <NominativeAssignmentSection
-                    items={items}
-                    assignments={nominativeAssignments}
-                    onAssignmentChange={setNominativeAssignments}
-                />
-            )}
-
-            {/* Info Text */}
-            <p className="text-[#f6f6f6] text-[14px] font-normal font-helvetica px-[6px] leading-[1.4]">
-                {t('checkout.incident_info_prefix', 'En caso de incidencia, por favor notifÃ­quela mediante el ')}
-                <button
-                    onClick={() => setIsIncidentModalOpen(true)}
-                    className="text-[#ff336d] underline hover:opacity-80 transition-opacity cursor-pointer bg-transparent border-none p-0 font-normal text-[14px] font-helvetica"
-                >
-                    {t('checkout.incident_info_link', 'siguiente formulario')}
-                </button>
-                {t('checkout.incident_info_suffix', '. Nuestro equipo analizarÃ¡ la informaciÃ³n y trabajarÃ¡ en la soluciÃ³n a la mayor brevedad posible.')}
-            </p>
-
-            {/* Continue Button */}
-            <button
-                onClick={handleContinue}
-                disabled={!canContinue || isLoading}
-                className={`w-full h-[48px] rounded-[12px] flex items-center justify-center font-bold text-[16px] font-helvetica transition-opacity ${canContinue && !isLoading
-                        ? 'bg-[#ff336d] text-[#f6f6f6] cursor-pointer hover:opacity-90'
-                        : 'bg-[#ff336d] text-[#f6f6f6] opacity-50 cursor-not-allowed'
-                    }`}
-            >
-                {isLoading ? (
-                    <div className="flex items-center gap-[8px]">
-                        <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                        </svg>
-                        <span>{t('checkout.creating_order', 'Creando pedido...')}</span>
-                    </div>
-                ) : total === 0 ? (
-                    <span>{t('checkout.confirm_free', 'Confirmar')} - {t('checkout.free', 'Gratis')}</span>
-                ) : (
-                    <span>{t('checkout.continue_to_payment', 'Continuar al pago')} - {total.toFixed(2).replace('.', ',')}€</span>
+                {subtotal > 0 && (
+                    <CouponSection
+                        appliedCoupon={appliedCoupon}
+                        onApplyCoupon={handleApplyCoupon}
+                        onRemoveCoupon={handleRemoveCoupon}
+                        isLoading={couponLoading}
+                        discountAmount={discountAmount}
+                    />
                 )}
-            </button>
 
-            {/* Legal Text */}
-            <p className="text-[rgba(246,246,246,0.5)] text-[12px] font-medium font-helvetica px-[6px] leading-[1.4]">
-                {t('checkout.legal_text', 'Comprando esta entrada, abrirÃ¡s una cuenta y aceptarÃ¡s nuestras Condiciones de Uso generales, la PolÃ­tica de Privacidad y las Condiciones de Compra de entradas. Procesamos tus datos personales de acuerdo con nuestra PolÃ­tica de Privacidad.')}
-            </p>
+                <PaymentDetailsCard
+                    subtotal={subtotal}
+                    serviceFee={serviceFee}
+                    discount={discountAmount}
+                    total={total}
+                />
 
-            {/* Incident Modal */}
-            <IncidentModal
-                isOpen={isIncidentModalOpen}
-                onClose={() => setIsIncidentModalOpen(false)}
-                context={{
-                    eventName: event.name,
-                }}
-            />
-        </div>
+                {hasNominativeItems && (
+                    <NominativeAssignmentSection
+                        items={items}
+                        assignments={nominativeAssignments}
+                        onAssignmentChange={setNominativeAssignments}
+                    />
+                )}
+
+                <p className="text-[#f6f6f6] text-[14px] font-normal font-helvetica px-[6px] leading-[1.4]">
+                    {t('checkout.incident_info_prefix', 'En caso de incidencia, por favor notifíquela mediante el ')}
+                    <button
+                        onClick={() => setIsIncidentModalOpen(true)}
+                        className="text-[#ff336d] underline hover:opacity-80 transition-opacity cursor-pointer bg-transparent border-none p-0 font-normal text-[14px] font-helvetica"
+                    >
+                        {t('checkout.incident_info_link', 'siguiente formulario')}
+                    </button>
+                    {t('checkout.incident_info_suffix', '. Nuestro equipo analizará la información y trabajará en la solución a la mayor brevedad posible.')}
+                </p>
+
+                {/* Desktop button */}
+                <div className="hidden md:block">
+                    {renderButton()}
+                </div>
+
+                <p className="text-[rgba(246,246,246,0.5)] text-[12px] font-medium font-helvetica px-[6px] leading-[1.4]">
+                    {t('checkout.legal_text', 'Comprando esta entrada, abrirás una cuenta y aceptarás nuestras Condiciones de Uso generales, la Política de Privacidad y las Condiciones de Compra de entradas. Procesamos tus datos personales de acuerdo con nuestra Política de Privacidad.')}
+                </p>
+
+                <IncidentModal
+                    isOpen={isIncidentModalOpen}
+                    onClose={() => setIsIncidentModalOpen(false)}
+                    context={{
+                        eventName: event.name,
+                    }}
+                />
+            </div>
+
+            {/* Mobile fixed button */}
+            <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-[#050505] via-[#050505] to-transparent pt-8 md:hidden z-50">
+                {renderButton()}
+            </div>
+        </>
     );
 };
 

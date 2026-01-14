@@ -2,7 +2,6 @@ import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearch } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
-import { PartyPopper } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 import axiosInstance from '@/config/axiosConfig';
@@ -86,7 +85,6 @@ const CheckoutSuccess = () => {
         refetchIntervalInBackground: false,
     });
 
-    // Trigger confetti when payment is completed
     useEffect(() => {
         if (transaction?.status === 'COMPLETED') {
             const duration = 3000;
@@ -154,7 +152,6 @@ const CheckoutSuccess = () => {
         navigate({ to: '/' });
     };
 
-    // Group items by type and name for display
     const groupedItems = transaction?.items.reduce((acc, item) => {
         const name = getItemName(item);
         const key = `${item.itemType}-${name}`;
@@ -169,7 +166,6 @@ const CheckoutSuccess = () => {
         return acc;
     }, {} as Record<string, { itemType: string; name: string; quantity: number }>);
 
-    // Loading state
     if (isLoading || !transaction) {
         return (
             <div className="bg-[#050505] min-h-screen flex items-center justify-center px-4 pt-[120px] pb-[100px] md:pt-24 md:pb-24">
@@ -179,14 +175,11 @@ const CheckoutSuccess = () => {
                         <div className="h-8 w-64 bg-[#232323] rounded animate-pulse" />
                         <div className="h-5 w-48 bg-[#232323] rounded animate-pulse" />
                     </div>
-                    <div className="h-[200px] md:h-[240px] w-full bg-[#232323] rounded-2xl animate-pulse" />
-                    <div className="h-12 w-full bg-[#232323] rounded-xl animate-pulse" />
                 </div>
             </div>
         );
     }
 
-    // Error or no transaction
     if (isError || !transactionId) {
         return (
             <div className="bg-[#050505] min-h-screen flex items-center justify-center px-4 pt-[120px] pb-[100px] md:pt-24 md:pb-24">
@@ -210,7 +203,6 @@ const CheckoutSuccess = () => {
         );
     }
 
-    // Payment still processing
     if (transaction.status === 'PENDING') {
         return (
             <div className="bg-[#050505] min-h-screen flex items-center justify-center px-4 pt-[120px] pb-[100px] md:pt-24 md:pb-24">
@@ -231,7 +223,6 @@ const CheckoutSuccess = () => {
         );
     }
 
-    // Payment failed
     if (transaction.status === 'CANCELLED' || transaction.status === 'EXPIRED') {
         return (
             <div className="bg-[#050505] min-h-screen flex items-center justify-center px-4 pt-[120px] pb-[100px] md:pt-24 md:pb-24">
@@ -255,20 +246,17 @@ const CheckoutSuccess = () => {
         );
     }
 
-    // Success!
     return (
         <div className="bg-[#050505] min-h-screen flex items-center justify-center px-4 pt-[120px] pb-[100px] md:pt-24 md:pb-24">
             <div className="flex flex-col gap-8 md:gap-9 items-center w-full max-w-[500px]">
-                {/* Confetti Icon */}
-                <div className="size-[100px] md:size-[120px] flex items-center justify-center p-1">
-                    <PartyPopper 
-                        size={80} 
-                        className="text-[#FFCE1F] md:w-24 md:h-24" 
-                        strokeWidth={1.5}
+                <div className="size-[100px] md:size-[120px] flex items-center justify-center">
+                    <img 
+                        src="https://klubit.fra1.cdn.digitaloceanspaces.com/icon-confeti.png" 
+                        alt="Confetti"
+                        className="w-[80px] h-[80px] md:w-[96px] md:h-[96px] object-contain"
                     />
                 </div>
 
-                {/* Text */}
                 <div className="flex flex-col gap-4 items-center w-full px-1.5">
                     <h1 className="text-xl md:text-2xl font-semibold font-n27 text-[#f6f6f6] text-center">
                         {t('checkout_success.title', '¡Compra realizada correctamente!')}
@@ -278,43 +266,33 @@ const CheckoutSuccess = () => {
                     </p>
                 </div>
 
-                {/* Ticket Cards */}
                 {groupedItems && Object.values(groupedItems).map((item, index) => (
                     <div
                         key={index}
                         className="w-full rounded-2xl border-2 border-[#232323] overflow-hidden shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)]"
                     >
-                        {/* Background Image with Gradient */}
                         <div className="relative h-[200px] md:h-[240px] w-full">
-                            {/* Event Flyer */}
                             <img
                                 src={transaction.event.flyer}
                                 alt={transaction.event.name}
                                 className="absolute inset-0 w-full h-full object-cover"
                             />
                             
-                            {/* Gradient Overlay */}
                             <div className="absolute inset-0 bg-gradient-to-t from-[#141414] from-50% to-transparent" />
 
-                            {/* Content */}
                             <div className="absolute inset-0 flex flex-col justify-end p-4">
-                                {/* Quantity Pill */}
                                 <div className="absolute top-3 right-3 bg-[#141414] rounded-[25px] px-2 py-1 shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]">
                                     <span className="text-sm font-bold font-helvetica text-[#f6f6f6] min-w-[24px] text-center">
                                         x{item.quantity}
                                     </span>
                                 </div>
 
-                                {/* Bottom Content */}
                                 <div className="flex flex-col gap-2 w-full">
-                                    {/* Event Name */}
                                     <h2 className="text-xl md:text-2xl font-semibold font-n27 text-[#f6f6f6]">
                                         {transaction.event.name}
                                     </h2>
 
-                                    {/* Event Info */}
                                     <div className="flex flex-col gap-0.5">
-                                        {/* Date & Time */}
                                         <div className="flex items-center gap-1 flex-wrap">
                                             <span className="text-sm font-normal font-helvetica text-[#E5FF88]">
                                                 {formatDate(transaction.event.startDate)}
@@ -325,7 +303,6 @@ const CheckoutSuccess = () => {
                                             </span>
                                         </div>
 
-                                        {/* Location */}
                                         {(transaction.club?.name || transaction.event.address) && (
                                             <div className="flex items-center gap-1.5 py-px">
                                                 <span className="text-[13px]">📍</span>
@@ -336,7 +313,6 @@ const CheckoutSuccess = () => {
                                         )}
                                     </div>
 
-                                    {/* Divider + Rate Info */}
                                     <div className="flex items-center gap-1.5 pt-2 border-t-[1.5px] border-[#232323]">
                                         <span
                                             className="size-1.5 rounded-full"
@@ -352,7 +328,6 @@ const CheckoutSuccess = () => {
                     </div>
                 ))}
 
-                {/* CTA Button */}
                 <Button variant="cta" onClick={handleGoToWallet} className="w-full">
                     {t('checkout_success.go_to_wallet', 'Ir a la wallet')}
                 </Button>

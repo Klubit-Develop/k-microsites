@@ -219,7 +219,8 @@
         "reservations_zone": "Reservas",
         "from_price": "Desde",
         "reservation_name": "Nombre de la reserva",
-        "observations": "Observaciones"
+        "observations": "Observaciones",
+        "buy": "Comprar"
     },
     "checkout": {
         "minutes": "minutos",
@@ -257,7 +258,7 @@
         "last_name": "Apellidos",
         "last_name_placeholder": "",
         "account_notice": "La entrada se enviará automáticamente al número indicado. Podrás cancelar el envío desde el chat con el otro usuario.",
-        "assign_auto_number": "**La entrada se asignará automáticamente al número indicado. Siempre podrás cancelar el envío desde la app.",
+        "assign_auto_number": "**La entrada se asignará automáticamente al correo electrónico indicado. Siempre podrás cancelar el envío desde la app.",
         "assign_auto_user": "**La entrada se asignará automáticamente al siguiente usuario. Siempre podrás cancelar el envío desde la app.",
         "email_notification": "Email para notificación",
         "email_placeholder": "ejemplo@correo.com",
