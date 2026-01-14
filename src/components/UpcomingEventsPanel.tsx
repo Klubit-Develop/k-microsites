@@ -12,6 +12,7 @@ import Button from '@/components/ui/Button';
 interface Event {
     id: string;
     name: string;
+    slug: string;
     flyer: string;
     startDate: string;
     startTime: string;
@@ -40,7 +41,7 @@ interface EventsResponse {
 
 interface UpcomingEventsPanelProps {
     clubId: string;
-    onEventClick?: (eventId: string) => void;
+    onEventClick?: (eventSlug: string) => void;
     className?: string;
 }
 
@@ -66,7 +67,7 @@ const UpcomingEventsPanel = ({
             const startOfMonth = currentMonth.startOf('month').toISOString();
             const endOfMonth = currentMonth.endOf('month').toISOString();
 
-            const fields = 'id,name,flyer,startDate,startTime,endTime,club';
+            const fields = 'id,name,slug,flyer,startDate,startTime,endTime,club';
             const response = await axiosInstance.get<EventsResponse>(
                 `/v2/events/club/${clubId}?startDateFrom=${startOfMonth}&startDateTo=${endOfMonth}&fields=${fields}&limit=${EVENTS_PER_PAGE}&page=${page}`
             );
@@ -131,7 +132,7 @@ const UpcomingEventsPanel = ({
                     className="text-[#ff336d] text-[24px] font-semibold leading-normal whitespace-nowrap overflow-hidden text-ellipsis"
                     style={{ fontFamily: "'Borna', sans-serif" }}
                 >
-                    {t('events.upcoming')}
+                    {t('events.upcoming', 'Próximos eventos')}
                 </h2>
             </div>
 
@@ -160,12 +161,12 @@ const UpcomingEventsPanel = ({
                                 time={formatEventTime(event.startTime, event.endTime)}
                                 location={event.club?.name || ''}
                                 imageUrl={event.flyer}
-                                onClick={() => onEventClick?.(event.id)}
+                                onClick={() => onEventClick?.(event.slug)}
                             />
                         ))
                     ) : (
                         <p className="text-[#939393] text-[14px] text-center py-8 font-helvetica">
-                            {t('events.no_events')}
+                            {t('events.no_events', 'No hay eventos este mes')}
                         </p>
                     )}
                 </div>
@@ -177,7 +178,7 @@ const UpcomingEventsPanel = ({
                         className="w-full h-[48px]"
                         disabled={eventsQuery.isFetching}
                     >
-                        {t('common.view_more')}
+                        {t('common.view_more', 'Ver más')}
                     </Button>
                 )}
             </div>

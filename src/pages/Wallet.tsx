@@ -9,10 +9,7 @@ import { Link, useNavigate } from '@tanstack/react-router';
 import axiosInstance from '@/config/axiosConfig';
 import { useAuthStore } from '@/stores/authStore';
 import { ChevronRightIcon } from '@/components/icons';
-
-// =============================================================================
-// INTERFACES
-// =============================================================================
+import Button from '@/components/ui/Button';
 
 interface Transaction {
     id: string;
@@ -104,10 +101,6 @@ interface PassbooksResponse {
     message: string;
 }
 
-// =============================================================================
-// HELPER FUNCTIONS
-// =============================================================================
-
 const isEventToday = (startDate: string): boolean => {
     const eventDate = dayjs(startDate);
     const today = dayjs();
@@ -159,10 +152,6 @@ const formatEventTimeRange = (startDate: string, startTime?: string, endTime?: s
     return `${startFormatted} - ${endFormatted}`;
 };
 
-// =============================================================================
-// SUB-COMPONENTS
-// =============================================================================
-
 interface TicketWalletProps {
     transaction: Transaction;
     isLive?: boolean;
@@ -184,7 +173,6 @@ const TicketWallet = ({ transaction, isLive = false }: TicketWalletProps) => {
             params={{ transactionId: transaction.id }}
             className="relative flex flex-col w-full rounded-2xl border-2 border-[#232323] overflow-hidden shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)]"
         >
-            {/* Background Image */}
             <div className="absolute inset-0">
                 <img
                     src={event.flyer}
@@ -193,9 +181,7 @@ const TicketWallet = ({ transaction, isLive = false }: TicketWalletProps) => {
                 />
             </div>
 
-            {/* Gradient Overlay & Content */}
             <div className="relative flex flex-col items-start justify-end h-[240px] p-4 bg-gradient-to-t from-[#141414] from-50% to-transparent">
-                {/* Live Badge - Top Left */}
                 {isLive && (
                     <div className="absolute top-[13px] left-[13px] flex items-center gap-1.5 px-2.5 py-1 bg-[#141414] rounded-full shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]">
                         <span className="text-[14px] font-helvetica text-[#F6F6F6]">
@@ -205,14 +191,12 @@ const TicketWallet = ({ transaction, isLive = false }: TicketWalletProps) => {
                     </div>
                 )}
 
-                {/* Quantity Badge - Top Right */}
                 <div className="absolute top-[13px] right-[13px] flex items-center justify-center min-w-[24px] px-2 py-1 bg-[#141414] rounded-full shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]">
                     <span className="text-[14px] font-helvetica font-bold text-[#F6F6F6]">
                         x{totalQuantity}
                     </span>
                 </div>
 
-                {/* Bottom Content */}
                 <div className="flex flex-col gap-2 w-full">
                     <h2 className="text-[24px] font-n27 font-semibold text-[#F6F6F6] leading-none">
                         {event.name}
@@ -230,7 +214,7 @@ const TicketWallet = ({ transaction, isLive = false }: TicketWalletProps) => {
                         </div>
 
                         <div className="flex items-center gap-1.5 py-px">
-                            <span className="text-[13px]">ðŸ“</span>
+                            <span className="text-[13px]">📍</span>
                             <span className="text-[14px] font-helvetica text-[#939393] truncate">
                                 {club.address || club.name}
                             </span>
@@ -242,7 +226,6 @@ const TicketWallet = ({ transaction, isLive = false }: TicketWalletProps) => {
     );
 };
 
-// Wallet Event Card - Diseño según Figma
 interface WalletEventCardProps {
     title: string;
     date: string;
@@ -282,7 +265,7 @@ const WalletEventCard = ({ title, date, time, location, imageUrl, onClick }: Wal
                 </div>
 
                 <div className="flex items-center gap-1.5 py-px">
-                    <span className="text-[13px]">ðŸ“</span>
+                    <span className="text-[13px]">📍</span>
                     <span className="text-[14px] font-helvetica text-[#939393] truncate">
                         {location}
                     </span>
@@ -292,7 +275,6 @@ const WalletEventCard = ({ title, date, time, location, imageUrl, onClick }: Wal
     );
 };
 
-// Section Header con navegación
 interface SectionHeaderProps {
     title: string;
     to?: string;
@@ -331,7 +313,6 @@ const SectionHeader = ({ title, to, showArrow = false }: SectionHeaderProps) => 
     );
 };
 
-// Skeleton
 const WalletSkeleton = () => (
     <div className="flex flex-col gap-9 w-full max-w-[500px] mx-auto px-4 pt-[120px] pb-[100px] md:py-8 animate-pulse">
         <div className="h-[240px] w-full bg-[#232323] rounded-2xl" />
@@ -342,34 +323,31 @@ const WalletSkeleton = () => (
     </div>
 );
 
-// Empty State
 const WalletEmpty = () => {
     const { t } = useTranslation();
+    const navigate = useNavigate();
 
     return (
-        <div className="flex flex-col items-center justify-center gap-4 w-full max-w-[500px] mx-auto px-4 pt-[120px] pb-[100px] md:py-16">
-            <div className="flex items-center justify-center size-20 bg-[#232323] rounded-full">
-                <span className="text-4xl">ðŸŽ«</span>
-            </div>
+        <div className="flex flex-col items-center justify-center gap-6 w-full max-w-[500px] mx-auto px-4 min-h-[calc(100vh-200px)]">
             <div className="flex flex-col items-center gap-2 text-center">
                 <h2 className="text-[20px] font-helvetica font-bold text-[#F6F6F6]">
-                    {t('wallet.empty_title', 'No tienes entradas')}
+                    {t('wallet.empty_title', 'Tu wallet está vacía')}
                 </h2>
                 <p className="text-[14px] font-helvetica text-[#939393]">
                     {t('wallet.empty_description', 'Cuando compres entradas, aparecerán aquí')}
                 </p>
             </div>
-            <Link
-                to="/"
-                className="mt-4 px-6 py-3 bg-[#FF336D] text-[#F6F6F6] text-[16px] font-helvetica font-bold rounded-xl"
+            <Button
+                variant="primary"
+                onClick={() => navigate({ to: '/' })}
+                className="!w-auto !px-8"
             >
                 {t('wallet.explore_events', 'Explorar eventos')}
-            </Link>
+            </Button>
         </div>
     );
 };
 
-// Venue Type helper
 const getVenueTypeLabel = (venueType: VenueType): string => {
     switch (venueType) {
         case 'CLUB': return 'Discoteca';
@@ -383,7 +361,6 @@ const getVenueTypeLabel = (venueType: VenueType): string => {
     }
 };
 
-// KlubKard - Tarjeta grande para el carrusel (estilo Figma)
 interface KlubKardProps {
     clubName: string;
     clubLogo: string;
@@ -410,7 +387,6 @@ const KlubKard = ({
                 background: `linear-gradient(135deg, ${backgroundColor} 0%, #141414 100%)`,
             }}
         >
-            {/* Club Logo */}
             <div
                 className="relative size-[54px] rounded-full border-[1.5px] border-[#232323] overflow-hidden shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]"
                 style={{ backgroundColor: `${backgroundColor}80` }}
@@ -423,12 +399,11 @@ const KlubKard = ({
                     />
                 ) : (
                     <div className="absolute inset-0 flex items-center justify-center">
-                        <span className="text-[20px]">ðŸ </span>
+                        <span className="text-[20px]">🏠</span>
                     </div>
                 )}
             </div>
 
-            {/* Bottom Content */}
             <div className="flex flex-col items-start gap-0 w-full">
                 <h3 className="text-[24px] font-n27 font-semibold text-[#F6F6F6] leading-none truncate w-full text-left">
                     {clubName}
@@ -445,7 +420,6 @@ const KlubKard = ({
     );
 };
 
-// Page Control Dots
 interface PageDotsProps {
     total: number;
     current: number;
@@ -467,17 +441,12 @@ const PageDots = ({ total, current }: PageDotsProps) => {
     );
 };
 
-// =============================================================================
-// MAIN COMPONENT
-// =============================================================================
-
 const Wallet = () => {
     const { t, i18n } = useTranslation();
     const navigate = useNavigate();
     const locale = i18n.language === 'en' ? 'en' : 'es';
     const { user } = useAuthStore();
 
-    // Query para transacciones
     const { data, isLoading, error } = useQuery({
         queryKey: ['wallet-transactions'],
         queryFn: async () => {
@@ -488,7 +457,6 @@ const Wallet = () => {
         },
     });
 
-    // Query para kards del usuario
     const { data: kardsData } = useQuery({
         queryKey: ['wallet-kards', user?.id],
         queryFn: async () => {
@@ -500,10 +468,8 @@ const Wallet = () => {
         enabled: !!user?.id,
     });
 
-    // Estado para el carrusel de kards
     const [currentKardIndex, setCurrentKardIndex] = useState(0);
 
-    // Handler para abrir kard en wallet nativo
     const handleKardClick = (passbook: UserPassbook) => {
         const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
         const url = isIOS ? passbook.passbookUrl : passbook.googleWalletUrl;
@@ -513,7 +479,6 @@ const Wallet = () => {
         }
     };
 
-    // Categorize transactions
     const { featuredTransactions, upcomingTransactions, pastTransactions, isLive } = useMemo(() => {
         if (!data || data.length === 0) {
             return {
@@ -532,7 +497,6 @@ const Wallet = () => {
         for (const transaction of data) {
             const { event } = transaction;
 
-            // Eventos de hoy o en vivo van a featured (cards grandes)
             if (isEventLive(event.startDate, event.endDate, event.endTime)) {
                 live = true;
                 featured.push(transaction);
@@ -545,11 +509,8 @@ const Wallet = () => {
             }
         }
 
-        // Sort featured by start time
         featured.sort((a, b) => dayjs(a.event.startDate).diff(dayjs(b.event.startDate)));
-        // Sort upcoming by date (closest first)
         upcoming.sort((a, b) => dayjs(a.event.startDate).diff(dayjs(b.event.startDate)));
-        // Sort past by date (most recent first)
         past.sort((a, b) => dayjs(b.event.startDate).diff(dayjs(a.event.startDate)));
 
         return {
@@ -560,7 +521,6 @@ const Wallet = () => {
         };
     }, [data]);
 
-    // Helper para formatear datos de transacción
     const formatTransactionForCard = (transaction: Transaction) => ({
         title: transaction.event.name,
         date: formatEventDate(transaction.event.startDate, locale),
@@ -569,7 +529,6 @@ const Wallet = () => {
         imageUrl: transaction.event.flyer,
     });
 
-    // Handler para navegar al detalle
     const handleTransactionClick = (transactionId: string) => {
         navigate({ to: '/wallet/$transactionId', params: { transactionId } });
     };
@@ -594,7 +553,6 @@ const Wallet = () => {
 
     return (
         <div className="flex flex-col gap-9 w-full max-w-[500px] mx-auto px-4 pt-[120px] pb-[100px] md:py-8">
-            {/* Botón volver */}
             <button
                 onClick={() => navigate({ to: '/' })}
                 className="flex items-center gap-2 text-[#939393] hover:text-[#F6F6F6] transition-colors self-start cursor-pointer"
@@ -607,7 +565,6 @@ const Wallet = () => {
                 </span>
             </button>
 
-            {/* Featured Tickets (Hoy / Live) - Cards grandes */}
             {featuredTransactions.length > 0 && (
                 <div className="flex flex-col gap-4">
                     {featuredTransactions.map((transaction, index) => (
@@ -620,7 +577,6 @@ const Wallet = () => {
                 </div>
             )}
 
-            {/* Próximos Section */}
             {upcomingTransactions.length > 0 && (
                 <div className="flex flex-col gap-3">
                     <SectionHeader
@@ -647,7 +603,6 @@ const Wallet = () => {
                 </div>
             )}
 
-            {/* Tus Kards Section - Carrusel estilo Figma */}
             {kardsData && kardsData.length > 0 && (
                 <div className="flex flex-col gap-4">
                     <SectionHeader
@@ -656,13 +611,12 @@ const Wallet = () => {
                         showArrow={kardsData.length > 5}
                     />
 
-                    {/* Carrusel de Kards */}
                     <div className="relative -mx-4">
                         <div
                             className="flex gap-4 overflow-x-auto px-4 pb-2 snap-x snap-mandatory [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
                             onScroll={(e) => {
                                 const scrollLeft = e.currentTarget.scrollLeft;
-                                const cardWidth = 336 + 16; // width + gap
+                                const cardWidth = 336 + 16;
                                 const newIndex = Math.round(scrollLeft / cardWidth);
                                 setCurrentKardIndex(Math.min(newIndex, kardsData.length - 1));
                             }}
@@ -680,13 +634,11 @@ const Wallet = () => {
                             ))}
                         </div>
 
-                        {/* Page Dots */}
                         <PageDots total={kardsData.length} current={currentKardIndex} />
                     </div>
                 </div>
             )}
 
-            {/* Pasados Section */}
             {pastTransactions.length > 0 && (
                 <div className="flex flex-col gap-3">
                     <SectionHeader

@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from 'react';
 interface OTPInputProps {
     length?: number;
     onChange: (value: string) => void;
+    onComplete?: (value: string) => void;
     disabled?: boolean;
     autoFocus?: boolean;
     value?: string;
@@ -13,6 +14,7 @@ interface OTPInputProps {
 const OTPInput = ({
     length = 6,
     onChange,
+    onComplete,
     disabled = false,
     autoFocus = false,
     value = '',
@@ -42,10 +44,16 @@ const OTPInput = ({
         const newOtp = [...otp];
         newOtp[index] = inputValue;
         setOtp(newOtp);
-        onChange(newOtp.join(''));
+
+        const completeValue = newOtp.join('');
+        onChange(completeValue);
 
         if (inputValue && index < length - 1) {
             inputsRef.current[index + 1]?.focus();
+        }
+
+        if (completeValue.length === length && onComplete) {
+            onComplete(completeValue);
         }
     };
 
@@ -71,10 +79,16 @@ const OTPInput = ({
         });
 
         setOtp(newOtp);
-        onChange(newOtp.join(''));
+
+        const completeValue = newOtp.join('');
+        onChange(completeValue);
 
         const focusIndex = Math.min(digits.length, length - 1);
         inputsRef.current[focusIndex]?.focus();
+
+        if (completeValue.length === length && onComplete) {
+            onComplete(completeValue);
+        }
     };
 
     const getBorderColor = () => {
@@ -89,7 +103,6 @@ const OTPInput = ({
 
     return (
         <div className="flex flex-col gap-1 w-full">
-            {/* Label */}
             {label && (
                 <div className="flex items-center px-1.5">
                     <span className="font-helvetica text-sm font-normal text-[#939393] leading-none">
@@ -98,7 +111,6 @@ const OTPInput = ({
                 </div>
             )}
 
-            {/* OTP Inputs Container */}
             <div className={`flex items-start justify-between w-full ${getContainerBg()}`}>
                 {otp.map((digit, index) => (
                     <input
@@ -129,7 +141,6 @@ const OTPInput = ({
                 ))}
             </div>
 
-            {/* Error Message */}
             {error && (
                 <div className="flex items-center px-1.5 py-0.5">
                     <span className="font-helvetica font-medium text-xs text-[#FF2323] leading-none">

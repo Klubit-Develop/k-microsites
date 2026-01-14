@@ -2,7 +2,10 @@
     "common": {
         "error_connection": "Connection error. Please try again",
         "retry": "Retry",
-        "back": "Back"
+        "back": "Back",
+        "cancel": "Cancel",
+        "loading": "Loading...",
+        "view_more": "View more"
     },
     "club": {
         "phone": "Phone",
@@ -26,7 +29,8 @@
     },
     "events": {
         "today": "Today",
-        "upcoming": "Upcoming events"
+        "upcoming": "Upcoming events",
+        "no_events": "No events this month"
     },
     "header": {
         "my_wallet": "My wallet",
@@ -311,5 +315,46 @@
         "terms_and_conditions": "Terms and Conditions",
         "club_terms": "Club Terms and Conditions",
         "no_content": "No content available."
+    },
+    "profile": {
+        "personal_info": "Personal information",
+        "first_name": "First name*",
+        "last_name": "Last name*",
+        "birthdate": "Date of birth*",
+        "gender": "Gender*",
+        "select": "Select...",
+        "email": "Email*",
+        "username": "Username*",
+        "save": "Save",
+        "save_success": "Profile updated successfully",
+        "save_error": "Error updating profile",
+        "change_phone": "Change phone",
+        "phone": "Phone*",
+        "change_phone_btn": "Change phone",
+        "phone_success": "Phone updated successfully",
+        "phone_error": "Error sending code",
+        "verify_phone_title": "Verify your phone",
+        "verify_phone_description": "We have sent an SMS code to",
+        "verify_phone_error": "Invalid code",
+        "verification_code": "Verification code*",
+        "code_resent": "Code resent",
+        "account": "Account",
+        "logout": "Log out",
+        "logout_title": "Log out",
+        "logout_description": "You will be logged out only on this device.",
+        "delete_account": "Delete account",
+        "delete_title": "Delete account",
+        "delete_description": "By deleting your account, all your data will be permanently erased and this action cannot be undone.",
+        "delete": "Delete",
+        "delete_success": "Account deleted successfully",
+        "delete_error": "Error deleting account",
+        "avatar_modal_title": "Upload a profile picture",
+        "avatar_modal_description": "Upload an image in JPG or PNG format (max. 5 MB). For best quality, use a square photo of at least 400x400 px.",
+        "avatar_upload": "Upload",
+        "avatar_remove": "Remove",
+        "avatar_success": "Avatar updated successfully",
+        "avatar_error": "Error uploading avatar",
+        "avatar_removed": "Avatar removed successfully",
+        "avatar_remove_error": "Error removing avatar"
     }
 }

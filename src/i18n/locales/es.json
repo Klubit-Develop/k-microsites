@@ -2,7 +2,10 @@
     "common": {
         "error_connection": "Error de conexión. Inténtalo de nuevo",
         "retry": "Reintentar",
-        "back": "Volver"
+        "back": "Volver",
+        "cancel": "Cancelar",
+        "loading": "Cargando...",
+        "view_more": "Ver más"
     },
     "club": {
         "phone": "Teléfono",
@@ -26,7 +29,8 @@
     },
     "events": {
         "today": "Hoy",
-        "upcoming": "Próximos eventos"
+        "upcoming": "Próximos eventos",
+        "no_events": "No hay eventos este mes"
     },
     "header": {
         "my_wallet": "Mi wallet",
@@ -311,5 +315,46 @@
         "terms_and_conditions": "Términos y condiciones",
         "club_terms": "Términos y condiciones del club",
         "no_content": "No hay contenido disponible."
+    },
+    "profile": {
+        "personal_info": "Información personal",
+        "first_name": "Nombre*",
+        "last_name": "Apellidos*",
+        "birthdate": "Fecha de nacimiento*",
+        "gender": "Género*",
+        "select": "Selecciona...",
+        "email": "Email*",
+        "username": "Username*",
+        "save": "Guardar",
+        "save_success": "Perfil actualizado correctamente",
+        "save_error": "Error al actualizar el perfil",
+        "change_phone": "Cambiar teléfono",
+        "phone": "Teléfono*",
+        "change_phone_btn": "Cambiar teléfono",
+        "phone_success": "Teléfono actualizado correctamente",
+        "phone_error": "Error al enviar el código",
+        "verify_phone_title": "Verifica tu teléfono",
+        "verify_phone_description": "Hemos enviado un código SMS al",
+        "verify_phone_error": "Código inválido",
+        "verification_code": "Código de verificación*",
+        "code_resent": "Código reenviado",
+        "account": "Cuenta",
+        "logout": "Cerrar sesión",
+        "logout_title": "Cerrar sesión",
+        "logout_description": "Se cerrará tu sesión solo en este dispositivo.",
+        "delete_account": "Eliminar cuenta",
+        "delete_title": "Eliminar cuenta",
+        "delete_description": "Al eliminar tu cuenta, todos tus datos se borrarán de forma permanente y esta acción no se puede deshacer.",
+        "delete": "Eliminar",
+        "delete_success": "Cuenta eliminada correctamente",
+        "delete_error": "Error al eliminar la cuenta",
+        "avatar_modal_title": "Sube una imagen de perfil",
+        "avatar_modal_description": "Sube una imagen en formato JPG o PNG (máx. 5 MB). Para mejor calidad, usa una foto cuadrada de al menos 400x400 px.",
+        "avatar_upload": "Subir",
+        "avatar_remove": "Quitar",
+        "avatar_success": "Avatar actualizado correctamente",
+        "avatar_error": "Error al subir el avatar",
+        "avatar_removed": "Avatar eliminado correctamente",
+        "avatar_remove_error": "Error al eliminar el avatar"
     }
 }

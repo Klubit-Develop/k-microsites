@@ -17,9 +17,8 @@ import Select from '@/components/ui/Select';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import OTPInput from '@/components/ui/OTPInput';
-import { PlusIcon, TrashIcon } from '@/components/icons';
+import { PlusIcon } from '@/components/icons';
 
-// Modal para subir/eliminar avatar
 interface AvatarModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -36,6 +35,14 @@ const AvatarModal = ({ isOpen, onClose, hasAvatar, onUpload, onRemove, isLoading
         <Modal isOpen={isOpen} onClose={onClose}>
             <div className="flex flex-col gap-6 w-full">
                 <div className="flex flex-col gap-4 items-center px-4 w-full">
+                    <div className="flex items-center justify-center size-[120px] p-1">
+                        <img 
+                            src="https://klubit.fra1.cdn.digitaloceanspaces.com/icon-camera.png" 
+                            alt="" 
+                            className="w-full h-full object-contain" 
+                        />
+                    </div>
+
                     <h2
                         className="text-[#F6F6F6] text-[24px] font-semibold text-center w-full"
                         style={{ fontFamily: "'Borna', sans-serif" }}
@@ -165,6 +172,14 @@ const VerifyPhoneModal = ({ isOpen, onClose, country, phone, onSuccess }: Verify
         <Modal isOpen={isOpen} onClose={onClose}>
             <div className="flex flex-col gap-6 w-full">
                 <div className="flex flex-col gap-4 items-center px-4 w-full">
+                    <div className="flex items-center justify-center size-[120px] p-1">
+                        <img 
+                            src="https://klubit.fra1.cdn.digitaloceanspaces.com/icon-phone.png" 
+                            alt="" 
+                            className="w-full h-full object-contain" 
+                        />
+                    </div>
+
                     <h2
                         className="text-[#F6F6F6] text-[24px] font-semibold text-center w-full"
                         style={{ fontFamily: "'Borna', sans-serif" }}
@@ -192,7 +207,7 @@ const VerifyPhoneModal = ({ isOpen, onClose, country, phone, onSuccess }: Verify
                     </p>
                 ) : (
                     <p className="text-[14px] font-medium font-helvetica text-[#939393] text-center">
-                        {t('verify.didnt_receive_code', 'Â¿No has recibido el código?')}
+                        {t('verify.didnt_receive_code', '¿No has recibido el código?')}
                         <button
                             onClick={handleResend}
                             disabled={resendMutation.isPending}
@@ -305,13 +320,14 @@ const Profile = () => {
     const [country, setCountry] = useState('34');
     const [avatar, setAvatar] = useState<string | null>(null);
 
-    // Estado original para detectar cambios
     const [originalData, setOriginalData] = useState({
         firstName: '',
         lastName: '',
         birthdate: '',
         gender: '',
-        username: ''
+        username: '',
+        phone: '',
+        country: '34'
     });
 
     const genderOptions = [
@@ -352,13 +368,15 @@ const Profile = () => {
         setPhone('');
     };
 
-    // Detectar si hay cambios pendientes
     const hasChanges = 
         firstName !== originalData.firstName ||
         lastName !== originalData.lastName ||
         birthdate !== originalData.birthdate ||
         gender !== originalData.gender ||
         username !== originalData.username;
+
+    const currentPhoneDigits = phone.replace(/\s/g, '');
+    const isPhoneSame = currentPhoneDigits === originalData.phone && country === originalData.country;
 
     useEffect(() => {
         const fetchAndSyncUser = async () => {
@@ -374,7 +392,6 @@ const Profile = () => {
                 setUser(userData);
                 setIsLoading(false);
             } catch (error) {
-                console.error('Error fetching user:', error);
                 setHasError(true);
                 setIsLoading(false);
             }
@@ -401,16 +418,16 @@ const Profile = () => {
             setCountry(userCountry);
             setAvatar(user.avatar);
 
-            // Guardar datos originales para detectar cambios
             setOriginalData({
                 firstName: userFirstName,
                 lastName: userLastName,
                 birthdate: userBirthdate,
                 gender: userGender,
-                username: userUsername
+                username: userUsername,
+                phone: user.phone || '',
+                country: userCountry
             });
             
-            // Formatear el teléfono al cargar con el patrón del país
             if (user.phone) {
                 const countryData = countries.find((c) => c.phone === userCountry);
                 const pattern = countryData?.phoneFormat || [3, 3, 3];
@@ -428,13 +445,14 @@ const Profile = () => {
         },
         onSuccess: (updatedUser) => {
             setUser(updatedUser);
-            // Actualizar datos originales para resetear detección de cambios
             setOriginalData({
                 firstName,
                 lastName,
                 birthdate,
                 gender,
-                username
+                username,
+                phone: originalData.phone,
+                country: originalData.country
             });
             toast.success(t('profile.save_success', 'Perfil actualizado correctamente'));
         },
@@ -491,7 +509,6 @@ const Profile = () => {
         if (file) {
             uploadAvatarMutation.mutate(file);
         }
-        // Reset input para permitir subir el mismo archivo
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
         }
@@ -521,7 +538,6 @@ const Profile = () => {
         const newCountry = updatedUser.country || '34';
         setCountry(newCountry);
         
-        // Formatear el teléfono actualizado
         if (updatedUser.phone) {
             const countryData = countries.find((c) => c.phone === newCountry);
             const pattern = countryData?.phoneFormat || [3, 3, 3];
@@ -529,6 +545,12 @@ const Profile = () => {
         } else {
             setPhone('');
         }
+
+        setOriginalData(prev => ({
+            ...prev,
+            phone: updatedUser.phone || '',
+            country: newCountry
+        }));
     };
 
     const deleteAccountMutation = useMutation({
@@ -597,7 +619,6 @@ const Profile = () => {
         <div className="bg-[#050505] min-h-screen flex justify-center py-24">
             <div className="flex flex-col gap-[36px] w-full max-w-[600px] px-6">
 
-                {/* Botón volver */}
                 <button
                     onClick={() => navigate({ to: '/' })}
                     className="flex items-center gap-2 text-[#939393] hover:text-[#F6F6F6] transition-colors self-start cursor-pointer"
@@ -614,7 +635,6 @@ const Profile = () => {
                     <SectionHeader title={t('profile.personal_info', 'Información personal')} />
 
                     <div className="flex flex-col gap-[24px] items-center w-full">
-                        {/* Hidden file input */}
                         <input
                             ref={fileInputRef}
                             type="file"
@@ -706,9 +726,9 @@ const Profile = () => {
                     />
 
                     <Button
-                        variant="secondary"
+                        variant="primary"
                         onClick={() => changePhoneMutation.mutate()}
-                        disabled={changePhoneMutation.isPending}
+                        disabled={changePhoneMutation.isPending || isPhoneSame || !currentPhoneDigits}
                         isLoading={changePhoneMutation.isPending}
                     >
                         {t('profile.change_phone_btn', 'Cambiar teléfono')}
@@ -720,7 +740,7 @@ const Profile = () => {
 
                     <div className="grid grid-cols-2 gap-[8px] w-full">
                         <Button
-                            variant="secondary"
+                            variant="primary"
                             onClick={() => setShowLogoutModal(true)}
                             className="!px-4"
                         >
@@ -754,7 +774,7 @@ const Profile = () => {
                 onClose={() => setShowDeleteModal(false)}
                 title={t('profile.delete_title', 'Eliminar cuenta')}
                 description={t('profile.delete_description', 'Al eliminar tu cuenta, todos tus datos se borrarán de forma permanente y esta acción no se puede deshacer.')}
-                icon={<TrashIcon />}
+                icon={<img src="https://klubit.fra1.cdn.digitaloceanspaces.com/icon-trash.png" alt="" className="w-full h-full object-contain" />}
                 cancelText={t('common.cancel', 'Cancelar')}
                 confirmText={t('profile.delete', 'Eliminar')}
                 onConfirm={handleDeleteAccount}

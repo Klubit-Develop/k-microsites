@@ -1,5 +1,5 @@
 import { toast } from 'sonner';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
@@ -157,13 +157,22 @@ const Verify = () => {
         }
     });
 
-    const handleVerify = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!otpValue || otpValue.length !== 6) {
+    const handleVerify = useCallback((code: string) => {
+        if (!code || code.length !== 6) {
             toast.error(t('verify.enter_valid_code'));
             return;
         }
-        verifyMutation.mutate(otpValue);
+        verifyMutation.mutate(code);
+    }, [verifyMutation, t]);
+
+    const handleOtpComplete = useCallback((code: string) => {
+        if (verifyMutation.isPending) return;
+        handleVerify(code);
+    }, [verifyMutation.isPending, handleVerify]);
+
+    const handleButtonClick = (e: React.FormEvent) => {
+        e.preventDefault();
+        handleVerify(otpValue);
     };
 
     const handleResend = () => {
@@ -215,6 +224,7 @@ const Verify = () => {
                                     length={6}
                                     value={otpValue}
                                     onChange={setOtpValue}
+                                    onComplete={handleOtpComplete}
                                     disabled={verifyMutation.isPending}
                                     autoFocus={true}
                                 />
@@ -241,7 +251,7 @@ const Verify = () => {
                                 <Button
                                     type="button"
                                     variant="cta"
-                                    onClick={handleVerify}
+                                    onClick={handleButtonClick}
                                     disabled={otpValue.length !== 6}
                                     isLoading={verifyMutation.isPending}
                                 >
