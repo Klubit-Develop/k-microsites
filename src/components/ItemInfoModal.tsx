@@ -78,8 +78,8 @@ const PersonIcon = () => (
 
 const PromoTagIcon = () => (
     <svg width="100" height="100" viewBox="0 0 100 100" fill="none" style={{ transform: 'rotate(12deg)', filter: 'drop-shadow(0px 0px 30px rgba(0,0,0,1))' }}>
-        <path d="M70 15H30C26.134 15 23 18.134 23 22V78C23 81.866 26.134 85 30 85H70C73.866 85 77 81.866 77 78V22C77 18.134 73.866 15 70 15Z" fill="#FF336D"/>
-        <circle cx="50" cy="10" r="5" fill="#FF336D"/>
+        <path d="M70 15H30C26.134 15 23 18.134 23 22V78C23 81.866 26.134 85 30 85H70C73.866 85 77 81.866 77 78V22C77 18.134 73.866 15 70 15Z" fill="#FF336D" />
+        <circle cx="50" cy="10" r="5" fill="#FF336D" />
         <text x="50" y="58" textAnchor="middle" fill="white" fontSize="28" fontWeight="bold">%</text>
     </svg>
 );
@@ -114,6 +114,8 @@ const InfoRowMultiline = ({ label, value, hasBorder = true }: { label: string; v
         <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica">{value}</span>
     </div>
 );
+
+const PROMOTION_ICON_URL = 'https://klubit.fra1.cdn.digitaloceanspaces.com/icon-promotion.png';
 
 // ============================================
 // MAIN COMPONENT
@@ -267,11 +269,11 @@ const ItemInfoModal = ({
     const renderPromotionContent = () => (
         <div className="flex flex-col gap-[16px] items-center px-[16px] w-full">
             <div className="w-[120px] h-[120px] flex items-center justify-center p-[4px]">
-                {data.promoImage ? (
-                    <img src={data.promoImage} alt={data.name} className="max-w-full max-h-full object-contain" style={{ filter: 'drop-shadow(0px 0px 30px rgba(0,0,0,1))', transform: 'rotate(12deg)' }} />
-                ) : (
-                    <PromoTagIcon />
-                )}
+                <img
+                    src={PROMOTION_ICON_URL}
+                    alt={data.name}
+                    className="max-w-full max-h-full object-contain"
+                />
             </div>
             <h2 className="text-[#f6f6f6] text-[24px] font-semibold font-borna text-center w-full">{data.name}</h2>
             {data.description && (
@@ -306,11 +308,10 @@ const ItemInfoModal = ({
             <button
                 onClick={onConfirm}
                 disabled={quantity === 0 && !(data.isFree && variant === 'guestlist' && !isPrecompraActive)}
-                className={`w-full h-[48px] rounded-[12px] flex items-center justify-center font-bold text-[16px] font-helvetica transition-opacity ${
-                    (quantity > 0 || (data.isFree && variant === 'guestlist' && !isPrecompraActive))
-                        ? 'bg-[#ff336d] text-[#f6f6f6] cursor-pointer hover:opacity-90' 
+                className={`w-full h-[48px] rounded-[12px] flex items-center justify-center font-bold text-[16px] font-helvetica transition-opacity ${(quantity > 0 || (data.isFree && variant === 'guestlist' && !isPrecompraActive))
+                        ? 'bg-[#ff336d] text-[#f6f6f6] cursor-pointer hover:opacity-90'
                         : 'bg-[#ff336d] text-[#f6f6f6] opacity-50 cursor-not-allowed'
-                }`}
+                    }`}
             >
                 {getButtonText()}
             </button>

@@ -31,7 +31,7 @@ interface ReservationsFlowProps {
     storedFormData?: ReservationFormData | null;
 }
 
-const RESERVATION_COLOR = '#3fe8e8';
+const RESERVATION_COLOR = '#939393';
 
 const ChevronLeftIcon = () => (
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -82,7 +82,7 @@ const ZoneCard = ({ zoneData, onClick, hasSelectedItems = false }: ZoneCardProps
     const { t } = useTranslation();
     const borderClass = hasSelectedItems
         ? 'border-[#e5ff88]'
-        : 'border-[#232323] hover:border-[#3fe8e8]';
+        : 'border-[#232323] hover:border-[#939393]';
 
     return (
         <button
@@ -92,15 +92,11 @@ const ZoneCard = ({ zoneData, onClick, hasSelectedItems = false }: ZoneCardProps
         >
             <div className="flex flex-col gap-[2px]">
                 <div className="flex items-center gap-[6px]">
-                    <div
-                        className="w-[6px] h-[6px] rounded-full shrink-0"
-                        style={{ backgroundColor: RESERVATION_COLOR }}
-                    />
                     <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica truncate">
                         {t('event.reservations_zone', 'Reservas')}: {zoneData.zone.name}
                     </span>
                 </div>
-                <span className="text-[#939393] text-[14px] font-normal font-helvetica ml-[12px]">
+                <span className="text-[#939393] text-[14px] font-normal font-helvetica">
                     {t('event.from_price', 'Desde')} {zoneData.minPrice.toFixed(2).replace('.', ',')}€
                 </span>
             </div>
@@ -489,7 +485,7 @@ const FormStep = ({
                         type="text"
                         value={formData.reservationName}
                         onChange={(e) => onFormChange({ ...formData, reservationName: e.target.value })}
-                        className="border-[1.5px] border-[#232323] rounded-[12px] px-[16px] py-[12px] bg-transparent text-[#f6f6f6] text-[16px] font-medium font-helvetica outline-none focus:border-[#3fe8e8] transition-colors"
+                        className="border-[1.5px] border-[#232323] rounded-[12px] px-[16px] py-[12px] bg-transparent text-[#f6f6f6] text-[16px] font-medium font-helvetica outline-none focus:border-[#939393] transition-colors"
                     />
                 </div>
 
@@ -503,7 +499,7 @@ const FormStep = ({
                         value={formData.observations}
                         onChange={(e) => onFormChange({ ...formData, observations: e.target.value })}
                         rows={5}
-                        className="border-[1.5px] border-[#232323] rounded-[12px] px-[16px] py-[12px] bg-transparent text-[#f6f6f6] text-[16px] font-medium font-helvetica outline-none resize-none focus:border-[#3fe8e8] transition-colors h-[144px]"
+                        className="border-[1.5px] border-[#232323] rounded-[12px] px-[16px] py-[12px] bg-transparent text-[#f6f6f6] text-[16px] font-medium font-helvetica outline-none resize-none focus:border-[#939393] transition-colors h-[144px]"
                     />
                 </div>
             </div>

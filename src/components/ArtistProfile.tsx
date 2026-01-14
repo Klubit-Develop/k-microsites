@@ -63,7 +63,7 @@ const ArtistProfile = ({
                         <img
                             src={BADGE_URL}
                             alt="Artist badge"
-                            className="w-[30px] h-[28px] shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)]"
+                            className="w-[30px] h-[28px]"
                         />
                     </div>
                 </div>

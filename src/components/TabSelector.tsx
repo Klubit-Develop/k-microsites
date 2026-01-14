@@ -53,7 +53,7 @@ const TabSelector = ({
                     >
                         <span className="truncate">{tab.label}</span>
                         {hasItems && (
-                            <span className="w-[8px] h-[8px] rounded-full bg-[#e5ff88] shrink-0" />
+                            <span className="w-[6px] h-[6px] rounded-full bg-[#e5ff88] shrink-0" />
                         )}
                     </button>
                 );
