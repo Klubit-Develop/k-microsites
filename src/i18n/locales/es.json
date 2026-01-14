@@ -171,7 +171,7 @@
         "emails_not_match": "Los correos electrónicos no coinciden",
         "continue": "Continuar",
         "submitting": "Procesando",
-        "success": "Solicitud de cambio de correo electrónico enviada exitosamente"
+        "success": "Solicitud de cambio de correo enviada exitosamente"
     },
     "oauth": {
         "title": "Introduce tu número de teléfono",
@@ -191,7 +191,7 @@
         },
         "tabs": {
             "tickets": "Entradas",
-            "guestlists": "Guestlists",
+            "guestlists": "Listas",
             "reservations": "Reservas",
             "products": "Productos",
             "promotions": "Promociones"
@@ -211,13 +211,17 @@
         "select_items": "Selecciona al menos un item",
         "select_quantity": "Selecciona una cantidad",
         "favorite_error": "Error al actualizar favorito",
+        "sold_out": "Agotado",
+        "zone": "Zona",
+        "zone_floor_plan": "Plano zona",
+        "attendees_count": "Cantidad de asistentes",
         "party_size_label": "Cantidad de personas que sois",
         "select_reservations_label": "Indica la cantidad de reservas",
         "no_reservations_for_party_size": "No hay reservas disponibles para {{count}} personas",
         "no_tables_for_party_size": "No hay mesas disponibles para este número de personas",
-        "zone_floor_plan": "Plano zona",
         "reservations_zone": "Reservas",
         "from_price": "Desde",
+        "reservation": "Reserva",
         "reservation_name": "Nombre de la reserva",
         "observations": "Observaciones",
         "buy": "Comprar"

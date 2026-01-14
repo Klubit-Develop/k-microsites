@@ -59,19 +59,6 @@ const PersonIcon = () => (
     </svg>
 );
 
-const MinusIconSmall = () => (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-        <path d="M4 10H16" stroke="#F6F6F6" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-);
-
-const PlusIconSmall = () => (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-        <path d="M4 10H16" stroke="#F6F6F6" strokeWidth="2" strokeLinecap="round" />
-        <path d="M10 4V16" stroke="#F6F6F6" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-);
-
 interface ZoneCardProps {
     zoneData: ZoneWithReservations;
     onClick: () => void;
@@ -170,8 +157,8 @@ const SelectionStep = ({
     const filteredReservations = useMemo(() => {
         return zoneData.reservations.filter(reservation => {
             const hasStock = getAvailableStock(reservation) > 0;
-            const maxPerUser = Number(reservation.maxPerUser) || 1;
-            const fitsPartySize = maxPerUser >= partySize;
+            const maxPersonsPerReservation = Number(reservation.maxPersonsPerReservation) || 1;
+            const fitsPartySize = maxPersonsPerReservation >= partySize;
             return hasStock && fitsPartySize;
         });
     }, [zoneData.reservations, partySize]);
@@ -223,6 +210,17 @@ const SelectionStep = ({
                 </span>
             </button>
 
+            <div className="bg-[#141414] border-2 border-[#232323] rounded-[16px]">
+                <div className="flex items-center justify-between px-[16px] h-[56px]">
+                    <span className="text-[#939393] text-[16px] font-medium font-helvetica">
+                        {t('event.zone', 'Zona')}:
+                    </span>
+                    <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica">
+                        {zoneData.zone.name}
+                    </span>
+                </div>
+            </div>
+
             {zoneData.zone.floorPlan && (
                 <div className="flex flex-col gap-[4px]">
                     <div className="px-[6px]">
@@ -243,10 +241,10 @@ const SelectionStep = ({
             <div className="flex flex-col gap-[4px]">
                 <div className="px-[6px]">
                     <span className="text-[#939393] text-[14px] font-normal font-helvetica">
-                        {t('event.party_size_label', 'Cantidad de personas que sois')}*
+                        {t('event.attendees_count', 'Cantidad de asistentes')}*
                     </span>
                 </div>
-                <div className="bg-[#141414] border-[1.5px] border-[#232323] rounded-[12px] px-[16px] py-[12px] flex items-center gap-[24px]">
+                <div className="bg-[#141414] border-[1.5px] border-[#232323] rounded-[12px] px-[16px] py-[8px] flex items-center gap-[24px]">
                     <button
                         type="button"
                         onClick={(e) => {
@@ -255,11 +253,11 @@ const SelectionStep = ({
                             handlePartySizeChange(-1);
                         }}
                         disabled={partySize <= 1}
-                        className={`shrink-0 ${partySize <= 1 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                        className={`shrink-0 flex items-center justify-center size-[36px] bg-[#232323] rounded-full ${partySize <= 1 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                     >
                         <MinusIcon />
                     </button>
-                    <span className="flex-1 text-center text-[#f6f6f6] text-[16px] font-medium font-helvetica">
+                    <span className="flex-1 text-center text-[#f6f6f6] text-[32px] font-semibold font-borna leading-none">
                         {partySize}
                     </span>
                     <button
@@ -270,7 +268,7 @@ const SelectionStep = ({
                             handlePartySizeChange(1);
                         }}
                         disabled={partySize >= maxPersonsAvailable}
-                        className={`shrink-0 ${partySize >= maxPersonsAvailable ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                        className={`shrink-0 flex items-center justify-center size-[36px] bg-[#232323] rounded-full ${partySize >= maxPersonsAvailable ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                     >
                         <PlusIcon />
                     </button>
@@ -278,19 +276,13 @@ const SelectionStep = ({
                 {noTablesForPartySize && (
                     <div className="px-[6px] mt-[4px]">
                         <span className="text-[#e5ff88] text-[12px] font-medium font-helvetica">
-                            {t('event.no_tables_for_party_size', 'No hay mesas disponibles para este número de personas')}
+                            {t('event.no_tables_for_party_size', 'No hay mesas disponibles para este nÃºmero de personas')}
                         </span>
                     </div>
                 )}
             </div>
 
             <div className="flex flex-col gap-[16px]">
-                <div className="px-[6px]">
-                    <span className="text-[#939393] text-[14px] font-normal font-helvetica">
-                        {t('event.select_reservations_label', 'Indica la cantidad de reservas')}
-                    </span>
-                </div>
-
                 {filteredReservations.length > 0 ? (
                     filteredReservations.map(reservation => {
                         const isDisabled = selectedReservationId !== null && selectedReservationId !== reservation.id;
@@ -306,6 +298,7 @@ const SelectionStep = ({
                                     onQuantityChange={handleQuantityChange}
                                     onMoreInfo={onMoreInfo}
                                     partySize={partySize}
+                                    selectionMode="checkbox"
                                 />
                             </div>
                         );
@@ -330,7 +323,7 @@ const SelectionStep = ({
 
             <div className="px-[6px]">
                 <p className="text-[12px] font-medium font-helvetica text-[rgba(246,246,246,0.5)]">
-                    {t('event.purchase_terms', 'Comprando esta entrada, abrirás una cuenta y aceptarás nuestras Condiciones de Uso generales, la Política de Privacidad y las Condiciones de Compra de entradas. Procesamos tus datos personales de acuerdo con nuestra Política de Privacidad.')}
+                    {t('event.purchase_terms', 'Comprando esta entrada, abrirÃ¡s una cuenta y aceptarÃ¡s nuestras Condiciones de Uso generales, la PolÃ­tica de Privacidad y las Condiciones de Compra de entradas. Procesamos tus datos personales de acuerdo con nuestra PolÃ­tica de Privacidad.')}
                 </p>
             </div>
         </div>
@@ -341,44 +334,25 @@ interface ReservationSummaryCardProps {
     reservation: Reservation;
     priceId: string;
     quantity: number;
-    onMoreInfo?: (reservation: Reservation, price: ReservationPrice) => void;
+    zoneName?: string;
+    partySize?: number;
 }
 
-const ReservationSummaryCard = ({ reservation, priceId, quantity, onMoreInfo }: ReservationSummaryCardProps) => {
+const ReservationSummaryCard = ({ reservation, priceId, quantity, zoneName, partySize = 1 }: ReservationSummaryCardProps) => {
     const { t } = useTranslation();
 
     const price = reservation.prices?.find(p => p.id === priceId);
     if (!price) return null;
 
-    const borderColor = '#e5ff88';
+    const maxPersonsPerReservation = Number(reservation.maxPersonsPerReservation) || 1;
+    const tablesRequired = Math.ceil(partySize / maxPersonsPerReservation);
+    const showMultiplier = tablesRequired > 1 || quantity > 1;
+    const displayMultiplier = Math.max(tablesRequired, quantity);
 
     return (
-        <div
-            className="relative flex flex-col bg-[#141414] border-2 rounded-[16px] w-full overflow-visible"
-            style={{ borderColor }}
-        >
-            <div
-                className="absolute right-[145px] md:right-[165px] top-[-2px] w-[18px] h-[10px] bg-[#050505] rounded-b-full z-10"
-                style={{
-                    borderLeft: `2px solid ${borderColor}`,
-                    borderRight: `2px solid ${borderColor}`,
-                    borderBottom: `2px solid ${borderColor}`,
-                }}
-            />
-
-            <div
-                className="absolute right-[145px] md:right-[165px] bottom-[-2px] w-[18px] h-[10px] bg-[#050505] rounded-t-full z-10"
-                style={{
-                    borderLeft: `2px solid ${borderColor}`,
-                    borderRight: `2px solid ${borderColor}`,
-                    borderTop: `2px solid ${borderColor}`,
-                }}
-            />
-
-            <div className="absolute right-[153px] md:right-[173px] top-[8px] bottom-[8px] w-0 border-l-[1.5px] border-dashed border-[#232323] z-0" />
-
-            <div className="flex items-center justify-between h-[56px] px-[16px] border-b-[1.5px] border-[#232323]">
-                <div className="flex items-center gap-[6px] flex-1 min-w-0 pr-[170px] md:pr-[190px]">
+        <div className="flex flex-col bg-[#141414] border-[1.5px] border-[#232323] rounded-[16px] w-full overflow-hidden">
+            <div className="flex items-center justify-between px-[16px] py-[16px] border-b-[1.5px] border-[#232323]">
+                <div className="flex items-center gap-[6px] flex-1 min-w-0">
                     <div
                         className="w-[6px] h-[6px] rounded-full shrink-0"
                         style={{ backgroundColor: RESERVATION_COLOR }}
@@ -386,47 +360,31 @@ const ReservationSummaryCard = ({ reservation, priceId, quantity, onMoreInfo }: 
                     <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica truncate">
                         {reservation.name}
                     </span>
+                    {showMultiplier && (
+                        <span className="text-[#e5ff88] text-[16px] font-medium font-helvetica ml-1">
+                            x{displayMultiplier}
+                        </span>
+                    )}
                 </div>
 
-                <div className="absolute right-[16px] flex items-center gap-[4px] px-[10px] py-[4px] bg-[#232323] rounded-[25px] shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]">
-                    <span className="text-[#939393] text-[16px] font-medium font-helvetica">
-                        {reservation.maxPersonsPerReservation}
+                <div className="flex items-center gap-[4px] px-[10px] py-[4px] bg-[#232323] rounded-[25px] shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]">
+                    <span className="text-[#939393] text-[14px] font-normal font-helvetica">
+                        {maxPersonsPerReservation}
                     </span>
                     <PersonIcon />
                 </div>
             </div>
 
-            <div className="flex items-center justify-between px-[16px] py-[12px]">
-                <div className="flex flex-col gap-[10px] flex-1 min-w-0 pr-[170px] md:pr-[190px]">
-                    <div className="flex items-center gap-[8px] flex-wrap">
-                        <span className="text-[#f6f6f6] text-[16px] font-bold font-helvetica">
-                            {price.finalPrice.toFixed(2).replace('.', ',')}€
-                        </span>
-                    </div>
-                    <span
-                        className="text-[#939393] text-[12px] font-medium font-helvetica cursor-pointer hover:text-[#f6f6f6] transition-colors"
-                        onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            onMoreInfo?.(reservation, price);
-                        }}
-                    >
-                        {t('event.more_info', 'Más información')}
+            {zoneName && (
+                <div className="flex items-center justify-between px-[16px] py-[12px]">
+                    <span className="text-[#939393] text-[14px] font-normal font-helvetica">
+                        {t('event.zone', 'Zona')}:
+                    </span>
+                    <span className="text-[#f6f6f6] text-[14px] font-medium font-helvetica">
+                        {zoneName}
                     </span>
                 </div>
-
-                <div className="absolute right-[16px] flex items-center gap-[6px] w-[120px] md:w-[140px] justify-center">
-                    <div className="flex-1 flex items-center justify-center h-[36px] bg-[#232323] rounded-[8px] opacity-50">
-                        <MinusIconSmall />
-                    </div>
-                    <span className="w-[40px] text-center text-[32px] font-semibold font-borna leading-none text-[#e5ff88]">
-                        {quantity}
-                    </span>
-                    <div className="flex-1 flex items-center justify-center h-[36px] bg-[#232323] rounded-[8px] opacity-50">
-                        <PlusIconSmall />
-                    </div>
-                </div>
-            </div>
+            )}
         </div>
     );
 };
@@ -435,20 +393,22 @@ interface FormStepProps {
     selectedReservation: SelectedReservationInfo;
     formData: ReservationFormData;
     onFormChange: (data: ReservationFormData) => void;
-    onMoreInfo?: (reservation: Reservation, price: ReservationPrice) => void;
     onBack: () => void;
     onContinue: () => void;
     total: number;
+    zoneName?: string;
+    partySize?: number;
 }
 
 const FormStep = ({
     selectedReservation,
     formData,
     onFormChange,
-    onMoreInfo,
     onBack,
     onContinue,
     total,
+    zoneName,
+    partySize,
 }: FormStepProps) => {
     const { t } = useTranslation();
 
@@ -467,12 +427,20 @@ const FormStep = ({
                 </span>
             </button>
 
-            <ReservationSummaryCard
-                reservation={selectedReservation.reservation}
-                priceId={selectedReservation.priceId}
-                quantity={selectedReservation.quantity}
-                onMoreInfo={onMoreInfo}
-            />
+            <div className="flex flex-col gap-[4px]">
+                <div className="px-[6px]">
+                    <span className="text-[#939393] text-[14px] font-normal font-helvetica">
+                        {t('event.reservation', 'Reserva')}
+                    </span>
+                </div>
+                <ReservationSummaryCard
+                    reservation={selectedReservation.reservation}
+                    priceId={selectedReservation.priceId}
+                    quantity={selectedReservation.quantity}
+                    zoneName={zoneName}
+                    partySize={partySize}
+                />
+            </div>
 
             <div className="flex flex-col gap-[24px]">
                 <div className="flex flex-col gap-[4px]">
@@ -515,7 +483,7 @@ const FormStep = ({
 
             <div className="px-[6px]">
                 <p className="text-[12px] font-medium font-helvetica text-[rgba(246,246,246,0.5)]">
-                    {t('event.purchase_terms', 'Comprando esta entrada, abrirás una cuenta y aceptarás nuestras Condiciones de Uso generales, la Política de Privacidad y las Condiciones de Compra de entradas. Procesamos tus datos personales de acuerdo con nuestra Política de Privacidad.')}
+                    {t('event.purchase_terms', 'Comprando esta entrada, abrirÃ¡s una cuenta y aceptarÃ¡s nuestras Condiciones de Uso generales, la PolÃ­tica de Privacidad y las Condiciones de Compra de entradas. Procesamos tus datos personales de acuerdo con nuestra PolÃ­tica de Privacidad.')}
                 </p>
             </div>
         </div>
@@ -708,10 +676,11 @@ const ReservationsFlow = ({
                     selectedReservation={selectedReservationInfo}
                     formData={formData}
                     onFormChange={setFormData}
-                    onMoreInfo={onMoreInfo}
                     onBack={handleBackToSelection}
                     onContinue={handleSubmit}
                     total={total}
+                    zoneName={selectedZone.zone.name}
+                    partySize={partySize}
                 />
             );
 

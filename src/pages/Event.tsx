@@ -334,6 +334,7 @@ const Event = () => {
     const [infoModalData, setInfoModalData] = useState<ItemInfoData | null>(null);
     const [infoModalPriceId, setInfoModalPriceId] = useState<string | null>(null);
     const [infoModalVariant, setInfoModalVariant] = useState<ModalVariant>('ticket');
+    const [infoModalMaxQuantity, setInfoModalMaxQuantity] = useState<number | undefined>(undefined);
     const [authModalOpen, setAuthModalOpen] = useState(false);
     const [mobileShowRates, setMobileShowRates] = useState(false);
 
@@ -530,7 +531,7 @@ const Event = () => {
                 goToPayment();
                 updateSearchParams({ step: 3 }, true);
             } else {
-                toast.error(response.message || t('checkout.transaction_error', 'Error al crear la transacción'));
+                toast.error(response.message || t('checkout.transaction_error', 'Error al crear la transacciÃ³n'));
             }
         },
         onError: (error: unknown) => {
@@ -538,7 +539,7 @@ const Event = () => {
             if (err.backendError) {
                 toast.error(err.backendError.message);
             } else {
-                toast.error(t('common.error_connection', 'Error de conexión'));
+                toast.error(t('common.error_connection', 'Error de conexiÃ³n'));
             }
         },
     });
@@ -635,6 +636,7 @@ const Event = () => {
             setInfoModalData(infoData);
             setInfoModalPriceId(promo.id);
             setInfoModalVariant('promotion');
+            setInfoModalMaxQuantity(promo.maxPurchasePerUser || undefined);
             setInfoModalOpen(true);
             return;
         }
@@ -657,7 +659,7 @@ const Event = () => {
             const precompraPrice = guestlist.prices.find(p => p.finalPrice > 0 && p.id !== price.id);
             if (precompraPrice) {
                 precompraData = {
-                    products: [{ name: 'Consumición', quantity: 1 }],
+                    products: [{ name: 'ConsumiciÃ³n', quantity: 1 }],
                     startTime: '00:00',
                     endTime: '06:00',
                     price: precompraPrice.finalPrice,
@@ -685,15 +687,28 @@ const Event = () => {
             finalPrice: price.finalPrice,
             currency: price.currency || 'EUR',
             isLowStock,
-            lowStockLabel: isLowStock ? 'últimas 💣' : undefined,
+            lowStockLabel: isLowStock ? 'Ãºltimas ðŸ’£' : undefined,
             isFree,
             hasPrecompra,
             precompraData,
         };
 
+        const maxPerUser = type === 'ticket' 
+            ? ((ticketOrGuestlist as Ticket).maxPurchasePerUser || 10)
+            : ((ticketOrGuestlist as Guestlist).maxPerUser || 10);
+        
+        const available = price.isSoldOut 
+            ? 0 
+            : price.maxQuantity !== null && price.maxQuantity !== undefined
+                ? Math.max(0, price.maxQuantity - price.soldQuantity)
+                : maxPerUser;
+        
+        const calculatedMaxQuantity = Math.min(maxPerUser, available);
+
         setInfoModalData(infoData);
         setInfoModalPriceId(price.id);
         setInfoModalVariant(type === 'ticket' ? 'ticket' : 'guestlist');
+        setInfoModalMaxQuantity(calculatedMaxQuantity);
         setInfoModalOpen(true);
     }, []);
 
@@ -703,6 +718,7 @@ const Event = () => {
             setInfoModalData(null);
             setInfoModalPriceId(null);
             setInfoModalVariant('ticket');
+            setInfoModalMaxQuantity(undefined);
         }, 300);
     }, []);
 
@@ -715,6 +731,50 @@ const Event = () => {
         if (!infoModalPriceId) return 0;
         return selectedQuantities[activeTab]?.[infoModalPriceId] || 0;
     }, [infoModalPriceId, selectedQuantities, activeTab]);
+
+    const calculatedInfoModalMaxQuantity = useMemo(() => {
+        const eventData = eventQuery.data;
+        if (!infoModalPriceId || !eventData) return undefined;
+        
+        if (infoModalVariant === 'guestlist') {
+            for (const guestlist of eventData.guestlists || []) {
+                const price = guestlist.prices?.find(p => p.id === infoModalPriceId);
+                if (price) {
+                    const maxPerUser = guestlist.maxPerUser || 10;
+                    const available = price.isSoldOut 
+                        ? 0 
+                        : price.maxQuantity !== null && price.maxQuantity !== undefined
+                            ? Math.max(0, price.maxQuantity - price.soldQuantity)
+                            : maxPerUser;
+                    return Math.min(maxPerUser, available);
+                }
+            }
+        }
+        
+        if (infoModalVariant === 'ticket') {
+            for (const ticket of eventData.tickets || []) {
+                const price = ticket.prices?.find(p => p.id === infoModalPriceId);
+                if (price) {
+                    const maxPerUser = ticket.maxPurchasePerUser || 10;
+                    const available = price.isSoldOut 
+                        ? 0 
+                        : price.maxQuantity !== null && price.maxQuantity !== undefined
+                            ? Math.max(0, price.maxQuantity - price.soldQuantity)
+                            : maxPerUser;
+                    return Math.min(maxPerUser, available);
+                }
+            }
+        }
+        
+        if (infoModalVariant === 'promotion') {
+            const promo = eventData.promotions?.find(p => p.id === infoModalPriceId);
+            if (promo) {
+                return promo.maxPurchasePerUser || 10;
+            }
+        }
+        
+        return infoModalMaxQuantity;
+    }, [infoModalPriceId, infoModalVariant, eventQuery.data, infoModalMaxQuantity]);
 
     const { remainingTime } = useCheckoutTimer();
 
@@ -1478,7 +1538,7 @@ const Event = () => {
                                     lat: event.addressLocation?.coordinates?.[1] ?? 0,
                                     lng: event.addressLocation?.coordinates?.[0] ?? 0,
                                 }}
-                                legalText={event.club?.termsAndConditions ? t('club.legal_terms', 'Leer los términos legales del klub') : undefined}
+                                legalText={event.club?.termsAndConditions ? t('club.legal_terms', 'Leer los tÃ©rminos legales del klub') : undefined}
                                 onLegalClick={event.club?.termsAndConditions ? handleLegalClick : undefined}
                             />
                         ) : null}
@@ -1572,7 +1632,7 @@ const Event = () => {
                                 lat: event.addressLocation?.coordinates?.[1] ?? 0,
                                 lng: event.addressLocation?.coordinates?.[0] ?? 0,
                             }}
-                            legalText={event.club?.termsAndConditions ? t('club.legal_terms', 'Leer los términos legales del klub') : undefined}
+                            legalText={event.club?.termsAndConditions ? t('club.legal_terms', 'Leer los tÃ©rminos legales del klub') : undefined}
                             onLegalClick={event.club?.termsAndConditions ? handleLegalClick : undefined}
                         />
                     ) : null}
@@ -1589,6 +1649,7 @@ const Event = () => {
                 data={infoModalData}
                 variant={infoModalVariant}
                 quantity={infoModalQuantity}
+                maxQuantity={calculatedInfoModalMaxQuantity}
                 onQuantityChange={handleInfoModalQuantityChange}
                 onConfirm={handleInfoModalConfirm}
             />

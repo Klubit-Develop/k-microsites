@@ -42,6 +42,7 @@ interface ReservationCardProps {
     onQuantityChange: (priceId: string, delta: number) => void;
     onMoreInfo?: (reservation: Reservation, price: ReservationPrice) => void;
     partySize?: number;
+    selectionMode?: 'quantity' | 'checkbox';
 }
 
 const PersonIcon = () => (
@@ -64,6 +65,13 @@ const PlusIcon = () => (
     </svg>
 );
 
+const CheckIcon = () => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="11" fill="#e5ff88" />
+        <path d="M7 12L10.5 15.5L17 9" stroke="#141414" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+);
+
 const RESERVATION_COLOR = '#3fe8e8';
 
 const ReservationCard = ({
@@ -72,6 +80,7 @@ const ReservationCard = ({
     onQuantityChange,
     onMoreInfo,
     partySize = 1,
+    selectionMode = 'quantity',
 }: ReservationCardProps) => {
     const { t } = useTranslation();
 
@@ -102,7 +111,7 @@ const ReservationCard = ({
     );
 
     const totalSelected = getTotalSelectedQuantity();
-    const showMultiplier = tablesRequiredForParty > 1 || totalSelected > 1;
+    const showMultiplier = selectionMode === 'quantity' && (tablesRequiredForParty > 1 || totalSelected > 1);
     const displayMultiplier = Math.max(tablesRequiredForParty, totalSelected);
 
     const getBorderColor = () => {
@@ -112,6 +121,118 @@ const ReservationCard = ({
     };
 
     const borderColor = getBorderColor();
+
+    const handleCardClick = (priceId: string, currentQuantity: number) => {
+        if (currentQuantity > 0) {
+            onQuantityChange(priceId, -currentQuantity);
+        } else {
+            onQuantityChange(priceId, 1);
+        }
+    };
+
+    const handleMoreInfoClick = (e: React.MouseEvent, price: ReservationPrice) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onMoreInfo?.(reservation, price);
+    };
+
+    if (selectionMode === 'checkbox') {
+        const price = reservation.prices?.[0];
+        if (!price) return null;
+
+        const quantity = selectedQuantities[price.id] || 0;
+        const isSelected = quantity > 0;
+        const available = getAvailability(price);
+        const isPriceSoldOut = available <= 0;
+
+        const handleCardSelection = () => {
+            if (!isPriceSoldOut && !isReservationSoldOut) {
+                handleCardClick(price.id, quantity);
+            }
+        };
+
+        return (
+            <div
+                role="button"
+                tabIndex={0}
+                onClick={handleCardSelection}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        handleCardSelection();
+                    }
+                }}
+                className={`
+                    relative flex flex-col bg-[#141414] border-[1.5px] rounded-[16px] w-full overflow-visible text-left
+                    ${isReservationSoldOut || isPriceSoldOut ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+                `}
+                style={{ borderColor }}
+            >
+                <div
+                    className="absolute right-[135px] top-[-1.5px] w-[16px] h-[8px] bg-[#050505] rounded-b-full z-10"
+                    style={{
+                        borderLeft: `1.5px solid ${borderColor}`,
+                        borderRight: `1.5px solid ${borderColor}`,
+                        borderBottom: `1.5px solid ${borderColor}`,
+                    }}
+                />
+
+                <div
+                    className="absolute right-[135px] bottom-[-1.5px] w-[16px] h-[8px] bg-[#050505] rounded-t-full z-10"
+                    style={{
+                        borderLeft: `1.5px solid ${borderColor}`,
+                        borderRight: `1.5px solid ${borderColor}`,
+                        borderTop: `1.5px solid ${borderColor}`,
+                    }}
+                />
+
+                <div className="absolute right-[142px] top-[8px] bottom-[8px] w-0 border-l-[1.5px] border-dashed border-[#232323] z-0" />
+
+                <div className="flex items-center h-[56px] px-[16px] border-b-[1.5px] border-[#232323]">
+                    <div className="flex items-center gap-[6px] flex-1 min-w-0 pr-[140px]">
+                        <div
+                            className="w-[6px] h-[6px] rounded-full shrink-0"
+                            style={{ backgroundColor: RESERVATION_COLOR }}
+                        />
+                        <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica truncate">
+                            {reservation.name}
+                        </span>
+                    </div>
+
+                    <div className="absolute right-[16px] flex items-center gap-[4px] px-[10px] py-[4px] bg-[#232323] rounded-[25px] shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]">
+                        <span className="text-[#939393] text-[14px] font-normal font-helvetica">
+                            {maxPersonsPerReservation}
+                        </span>
+                        <PersonIcon />
+                    </div>
+                </div>
+
+                <div className="flex items-center px-[16px] py-[16px]">
+                    <div className="flex flex-col gap-[10px] flex-1 min-w-0 pr-[140px]">
+                        <div className="flex items-center gap-[8px] flex-wrap">
+                            <span className="text-[#f6f6f6] text-[16px] font-bold font-helvetica">
+                                {price.finalPrice.toFixed(2).replace('.', ',')}€
+                            </span>
+                        </div>
+                        <button
+                            type="button"
+                            className="text-[#939393] text-[12px] font-medium font-helvetica cursor-pointer hover:text-[#f6f6f6] transition-colors text-left w-fit"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                onMoreInfo?.(reservation, price);
+                            }}
+                        >
+                            {t('event.more_info', 'Más información')}
+                        </button>
+                    </div>
+
+                    <div className="absolute right-[16px] flex items-center justify-end w-[120px]">
+                        {isSelected && <CheckIcon />}
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div
@@ -217,11 +338,7 @@ const ReservationCard = ({
                             </div>
                             <span
                                 className="text-[#939393] text-[12px] font-medium font-helvetica cursor-pointer hover:text-[#f6f6f6] transition-colors"
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    onMoreInfo?.(reservation, price);
-                                }}
+                                onClick={(e) => handleMoreInfoClick(e, price)}
                             >
                                 {t('event.more_info', 'Más información')}
                             </span>
