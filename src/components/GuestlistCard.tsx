@@ -176,16 +176,6 @@ const GuestlistCard = ({
 
             <div className="absolute right-[128px] md:right-[160px] top-[8px] bottom-[8px] w-0 border-l-[1.5px] border-dashed border-[#232323] z-0" />
 
-            {showMultiplier && (
-                <div className="absolute top-[-12px] right-[-8px] z-20">
-                    <div className="flex items-center justify-center px-3 py-1.5 bg-[#e5ff88] rounded-full shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]">
-                        <span className="text-[#141414] text-base font-bold font-helvetica">
-                            x{listsRequired}
-                        </span>
-                    </div>
-                </div>
-            )}
-
             {isGuestlistSoldOut && (
                 <div className="absolute top-[-12px] right-[-8px] z-20">
                     <div className="flex items-center px-3 py-1.5 bg-[#232323] rounded-full shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]">

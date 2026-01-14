@@ -2,10 +2,6 @@ import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import Modal from '@/components/ui/Modal';
 
-// ============================================
-// TYPES
-// ============================================
-
 type ModalVariant = 'ticket' | 'guestlist' | 'promotion';
 
 interface ProductIncluded {
@@ -48,13 +44,10 @@ interface ItemInfoModalProps {
     data: ItemInfoData | null;
     variant: ModalVariant;
     quantity: number;
+    maxQuantity?: number;
     onQuantityChange: (delta: number) => void;
     onConfirm: () => void;
 }
-
-// ============================================
-// ICONS
-// ============================================
 
 const MinusIcon = () => (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -69,24 +62,7 @@ const PlusIcon = () => (
     </svg>
 );
 
-const PersonIcon = () => (
-    <svg width="12" height="13" viewBox="0 0 12 13" fill="none">
-        <path d="M6 6.5C7.38071 6.5 8.5 5.38071 8.5 4C8.5 2.61929 7.38071 1.5 6 1.5C4.61929 1.5 3.5 2.61929 3.5 4C3.5 5.38071 4.61929 6.5 6 6.5Z" fill="#939393" />
-        <path d="M6 8C3.79086 8 2 9.79086 2 12H10C10 9.79086 8.20914 8 6 8Z" fill="#939393" />
-    </svg>
-);
-
-const PromoTagIcon = () => (
-    <svg width="100" height="100" viewBox="0 0 100 100" fill="none" style={{ transform: 'rotate(12deg)', filter: 'drop-shadow(0px 0px 30px rgba(0,0,0,1))' }}>
-        <path d="M70 15H30C26.134 15 23 18.134 23 22V78C23 81.866 26.134 85 30 85H70C73.866 85 77 81.866 77 78V22C77 18.134 73.866 15 70 15Z" fill="#FF336D" />
-        <circle cx="50" cy="10" r="5" fill="#FF336D" />
-        <text x="50" y="58" textAnchor="middle" fill="white" fontSize="28" fontWeight="bold">%</text>
-    </svg>
-);
-
-// ============================================
-// INFO ROW COMPONENTS
-// ============================================
+const PROMOTION_ICON_URL = 'https://klubit.fra1.cdn.digitaloceanspaces.com/icon-promotion.png';
 
 const InfoRow = ({ label, value, hasBorder = true }: { label: string; value: React.ReactNode; hasBorder?: boolean }) => (
     <div className={`flex items-center justify-between px-[16px] py-[12px] min-h-[56px] ${hasBorder ? 'border-b-[1.5px] border-[#232323]' : ''}`}>
@@ -115,18 +91,13 @@ const InfoRowMultiline = ({ label, value, hasBorder = true }: { label: string; v
     </div>
 );
 
-const PROMOTION_ICON_URL = 'https://klubit.fra1.cdn.digitaloceanspaces.com/icon-promotion.png';
-
-// ============================================
-// MAIN COMPONENT
-// ============================================
-
 const ItemInfoModal = ({
     isOpen,
     onClose,
     data,
     variant,
     quantity,
+    maxQuantity,
     onQuantityChange,
     onConfirm,
 }: ItemInfoModalProps) => {
@@ -166,26 +137,20 @@ const ItemInfoModal = ({
 
     const renderDetailContent = () => (
         <div className="flex flex-col w-full">
-            {/* Header */}
             <div className="flex items-center justify-between px-[16px] py-[12px] min-h-[56px] border-b-[1.5px] border-[#232323]">
                 <div className="flex flex-col gap-[2px] flex-1">
                     <div className="flex items-center gap-[6px]">
                         <div className="w-[6px] h-[6px] rounded-full shrink-0" style={{ backgroundColor: data.indicatorColor }} />
                         <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica truncate">{data.name}</span>
                     </div>
-                    {data.priceName && (
+                    {data.priceName && data.priceName !== 'Precio único' && (
                         <div className="pl-[12px]">
                             <span className="text-[#939393] text-[14px] font-normal font-helvetica">{data.priceName}</span>
                         </div>
                     )}
                 </div>
-                <div className="flex items-center gap-[4px] px-[10px] py-[4px] bg-[#232323] rounded-[25px] shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)] shrink-0">
-                    <span className="text-[#939393] text-[16px] font-medium font-helvetica">{data.maxPersons}</span>
-                    <PersonIcon />
-                </div>
             </div>
 
-            {/* Products - Tickets */}
             {variant === 'ticket' && data.products && data.products.length > 0 && (
                 <InfoRow
                     label={t('item_info.product', 'Producto:')}
@@ -198,21 +163,16 @@ const ItemInfoModal = ({
                 />
             )}
 
-            {/* Products - Guestlist with precompra */}
             {variant === 'guestlist' && isPrecompraActive && data.precompraData?.products && (
                 <InfoRowPrecompra
                     label={t('item_info.product', 'Producto:')}
                     oldValue={t('item_info.no_consumption', 'Sin consumición')}
                     newValue={
-                        <span className="flex items-center gap-[6px]">
-                            <span>{data.precompraData.products.map(p => p.name).join(', ')}</span>
-                            <span className="font-bold">x{data.precompraData.products.reduce((acc, p) => acc + p.quantity, 0)}</span>
-                        </span>
+                        <span>{data.precompraData.products.map(p => p.name).join(', ')}</span>
                     }
                 />
             )}
 
-            {/* Zones */}
             {data.zones && data.zones.length > 0 && (
                 <InfoRow
                     label={t('item_info.zones', 'Zonas:')}
@@ -220,7 +180,6 @@ const ItemInfoModal = ({
                 />
             )}
 
-            {/* Schedule */}
             {(data.startTime || data.endTime) && (
                 isPrecompraActive && data.precompraData?.startTime ? (
                     <InfoRowPrecompra
@@ -236,12 +195,10 @@ const ItemInfoModal = ({
                 )
             )}
 
-            {/* Benefits - Tickets only */}
             {variant === 'ticket' && data.benefits && data.benefits.length > 0 && (
                 <InfoRowMultiline label={t('item_info.benefits', 'Otros beneficios:')} value={data.benefits.join(', ')} />
             )}
 
-            {/* Total Price */}
             <div className="flex items-center justify-between px-[16px] py-[12px] min-h-[56px]">
                 <span className="text-[#939393] text-[16px] font-medium font-helvetica">{t('item_info.total_price', 'Precio total:')}</span>
                 <div className="flex items-center gap-[8px]">
@@ -269,10 +226,10 @@ const ItemInfoModal = ({
     const renderPromotionContent = () => (
         <div className="flex flex-col gap-[16px] items-center px-[16px] w-full">
             <div className="w-[120px] h-[120px] flex items-center justify-center p-[4px]">
-                <img
-                    src={PROMOTION_ICON_URL}
-                    alt={data.name}
-                    className="max-w-full max-h-full object-contain"
+                <img 
+                    src={PROMOTION_ICON_URL} 
+                    alt={data.name} 
+                    className="max-w-full max-h-full object-contain" 
                 />
             </div>
             <h2 className="text-[#f6f6f6] text-[24px] font-semibold font-borna text-center w-full">{data.name}</h2>
@@ -282,9 +239,10 @@ const ItemInfoModal = ({
         </div>
     );
 
+    const isAtMax = maxQuantity !== undefined && quantity >= maxQuantity;
+
     const renderButtons = () => (
         <div className="flex flex-col gap-[8px] w-full">
-            {/* Quantity selector */}
             <div className="flex items-center gap-[24px] justify-center">
                 <button
                     onClick={() => onQuantityChange(-1)}
@@ -298,25 +256,25 @@ const ItemInfoModal = ({
                 </span>
                 <button
                     onClick={() => onQuantityChange(1)}
-                    className="flex-1 flex items-center justify-center h-[48px] bg-[#232323] rounded-[8px] cursor-pointer hover:opacity-80 transition-opacity"
+                    disabled={isAtMax}
+                    className={`flex-1 flex items-center justify-center h-[48px] bg-[#232323] rounded-[8px] transition-opacity ${isAtMax ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:opacity-80'}`}
                 >
                     <PlusIcon />
                 </button>
             </div>
 
-            {/* Primary button */}
             <button
                 onClick={onConfirm}
                 disabled={quantity === 0 && !(data.isFree && variant === 'guestlist' && !isPrecompraActive)}
-                className={`w-full h-[48px] rounded-[12px] flex items-center justify-center font-bold text-[16px] font-helvetica transition-opacity ${(quantity > 0 || (data.isFree && variant === 'guestlist' && !isPrecompraActive))
-                        ? 'bg-[#ff336d] text-[#f6f6f6] cursor-pointer hover:opacity-90'
+                className={`w-full h-[48px] rounded-[12px] flex items-center justify-center font-bold text-[16px] font-helvetica transition-opacity ${
+                    (quantity > 0 || (data.isFree && variant === 'guestlist' && !isPrecompraActive))
+                        ? 'bg-[#ff336d] text-[#f6f6f6] cursor-pointer hover:opacity-90' 
                         : 'bg-[#ff336d] text-[#f6f6f6] opacity-50 cursor-not-allowed'
-                    }`}
+                }`}
             >
                 {getButtonText()}
             </button>
 
-            {/* View precompra button */}
             {variant === 'guestlist' && data.hasPrecompra && !showPrecompra && (
                 <button
                     onClick={handleTogglePrecompra}
@@ -326,7 +284,6 @@ const ItemInfoModal = ({
                 </button>
             )}
 
-            {/* Back to free button */}
             {variant === 'guestlist' && showPrecompra && (
                 <button
                     onClick={handleTogglePrecompra}

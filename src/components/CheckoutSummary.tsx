@@ -76,8 +76,8 @@ const CheckoutTimer = ({ seconds, isLow }: { seconds: number; isLow: boolean }) 
 
     return (
         <div className={`w-full h-[36px] flex items-center justify-center rounded-[12px] border-[1.5px] ${isLow
-                ? 'bg-[rgba(255,35,35,0.05)] border-[rgba(255,35,35,0.25)]'
-                : 'bg-[rgba(229,255,136,0.05)] border-[rgba(229,255,136,0.25)]'
+            ? 'bg-[rgba(255,35,35,0.05)] border-[rgba(255,35,35,0.25)]'
+            : 'bg-[rgba(229,255,136,0.05)] border-[rgba(229,255,136,0.25)]'
             }`}>
             <span className={`text-[14px] font-normal font-helvetica ${isLow ? 'text-[#ff2323]' : 'text-[#e5ff88]'}`}>
                 {formatTime(seconds)}
@@ -219,8 +219,8 @@ const CouponSection = ({
 
                         <div className="flex flex-col items-center gap-[16px] px-[16px] w-full">
                             <div className="w-[120px] h-[120px] flex items-center justify-center">
-                                <img 
-                                    src="https://klubit.fra1.cdn.digitaloceanspaces.com/icon-present.png" 
+                                <img
+                                    src="https://klubit.fra1.cdn.digitaloceanspaces.com/icon-present.png"
                                     alt="Gift"
                                     className="w-[80px] h-[80px] object-contain"
                                 />
@@ -393,7 +393,7 @@ const NominativeAssignmentSection = ({
         if (!existing || existing.assignmentType !== 'me') {
             const newAssignments = assignments
                 .filter(a => a.itemIndex !== itemIndex)
-                .map(a => a.assignmentType === 'me' 
+                .map(a => a.assignmentType === 'me'
                     ? { ...a, assignmentType: 'send' as const, phoneCountry: '34' }
                     : a
                 );
@@ -413,7 +413,7 @@ const NominativeAssignmentSection = ({
 
     const handleConfirmPhone = async (itemIndex: number) => {
         const assignment = assignments.find(a => a.itemIndex === itemIndex);
-        
+
         if (!assignment?.phone) {
             toast.error(t('checkout.phone_required', 'Introduce un número de teléfono'));
             return;
@@ -431,7 +431,7 @@ const NominativeAssignmentSection = ({
         if (user?.phone && user?.country) {
             const userPhoneDigits = user.phone.replace(/\D/g, '');
             const userCountry = user.country;
-            
+
             if (phoneDigits === userPhoneDigits && assignment.phoneCountry === userCountry) {
                 toast.error(t('checkout.cannot_send_to_self', 'No puedes enviar una entrada a ti mismo'));
                 return;
@@ -468,7 +468,7 @@ const NominativeAssignmentSection = ({
             });
 
             const users = response.data?.data?.users?.data || [];
-            
+
             if (users.length > 0) {
                 const foundUser = users[0];
                 const newAssignments = assignments.map(a =>
@@ -535,8 +535,8 @@ const NominativeAssignmentSection = ({
 
         const currentType = assignment?.assignmentType;
         if (currentType === 'found' || currentType === 'notfound') {
-            handleUpdateAssignment(itemIndex, { 
-                phone: formattedValue, 
+            handleUpdateAssignment(itemIndex, {
+                phone: formattedValue,
                 assignmentType: 'send',
                 toUserId: undefined,
                 email: undefined
@@ -549,10 +549,10 @@ const NominativeAssignmentSection = ({
     const handleCountryChange = (itemIndex: number, newCountry: string) => {
         const assignment = assignments.find(a => a.itemIndex === itemIndex);
         const currentType = assignment?.assignmentType;
-        
+
         if (currentType === 'found' || currentType === 'notfound') {
-            handleUpdateAssignment(itemIndex, { 
-                phoneCountry: newCountry, 
+            handleUpdateAssignment(itemIndex, {
+                phoneCountry: newCountry,
                 phone: '',
                 assignmentType: 'send',
                 toUserId: undefined,
@@ -585,8 +585,8 @@ const NominativeAssignmentSection = ({
                 onClick={handleToggleAllForMe}
                 className={`
                     w-full h-[56px] rounded-[16px] border-2 flex items-center justify-between px-[16px] mb-[4px] transition-all
-                    ${allForMe 
-                        ? 'bg-[#141414] border-[#e5ff88]' 
+                    ${allForMe
+                        ? 'bg-[#141414] border-[#e5ff88]'
                         : 'bg-[#141414] border-[#232323] hover:border-[#3a3a3a]'
                     }
                 `}
@@ -598,133 +598,131 @@ const NominativeAssignmentSection = ({
             </button>
 
             {!allForMe && (
-            <div className="flex flex-col gap-[8px]">
-                {nominativeEntries.map(({ item, index }) => {
-                    const assignment = assignments.find(a => a.itemIndex === index);
-                    const isMe = assignment?.assignmentType === 'me';
-                    const isSend = assignment?.assignmentType === 'send';
-                    const isFound = assignment?.assignmentType === 'found';
-                    const isNotFound = assignment?.assignmentType === 'notfound';
-                    const isSearching = assignment?.isSearching;
-                    const indicatorColor = getIndicatorColor(item.type);
+                <div className="flex flex-col gap-[8px]">
+                    {nominativeEntries.map(({ item, index }) => {
+                        const assignment = assignments.find(a => a.itemIndex === index);
+                        const isMe = assignment?.assignmentType === 'me';
+                        const isSend = assignment?.assignmentType === 'send';
+                        const isFound = assignment?.assignmentType === 'found';
+                        const isNotFound = assignment?.assignmentType === 'notfound';
+                        const isSearching = assignment?.isSearching;
+                        const indicatorColor = getIndicatorColor(item.type);
 
-                    return (
-                        <div
-                            key={index}
-                            className={`bg-[#141414] border-2 rounded-[16px] w-full transition-colors ${
-                                isMe ? 'border-[#e5ff88]' : 'border-[#232323]'
-                            }`}
-                        >
-                            <button
-                                type="button"
-                                onClick={() => handleToggleMe(index)}
-                                disabled={!isMe && meAssignedIndex !== null && meAssignedIndex !== index}
-                                className="w-full flex items-center justify-between px-[16px] h-[56px] cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                        return (
+                            <div
+                                key={index}
+                                className={`bg-[#141414] border-2 rounded-[16px] w-full transition-colors ${isMe ? 'border-[#e5ff88]' : 'border-[#232323]'
+                                    }`}
                             >
-                                <div className="flex items-center gap-[6px]">
-                                    <IndicatorDot color={indicatorColor} />
-                                    <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica">
-                                        {item.name}
-                                    </span>
-                                    <span className="text-[#f6f6f6] text-[16px] font-bold font-helvetica">
-                                        x1
-                                    </span>
-                                </div>
-                                <div className="flex items-center gap-[8px]">
-                                    <span className={`text-[14px] font-medium font-helvetica ${isMe ? 'text-[#e5ff88]' : 'text-[#939393]'}`}>
-                                        {t('checkout.for_me', 'Para mi')}
-                                    </span>
-                                    <CheckboxIcon checked={isMe} />
-                                </div>
-                            </button>
+                                <button
+                                    type="button"
+                                    onClick={() => handleToggleMe(index)}
+                                    disabled={!isMe && meAssignedIndex !== null && meAssignedIndex !== index}
+                                    className="w-full flex items-center justify-between px-[16px] h-[56px] cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                    <div className="flex items-center gap-[6px]">
+                                        <IndicatorDot color={indicatorColor} />
+                                        <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica">
+                                            {item.name}
+                                        </span>
+                                        <span className="text-[#f6f6f6] text-[16px] font-bold font-helvetica">
+                                            x1
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center gap-[8px]">
+                                        <span className={`text-[14px] font-medium font-helvetica ${isMe ? 'text-[#e5ff88]' : 'text-[#939393]'}`}>
+                                            {t('checkout.for_me', 'Para mi')}
+                                        </span>
+                                        <CheckboxIcon checked={isMe} />
+                                    </div>
+                                </button>
 
-                            {!isMe && (
-                                <div className="flex flex-col gap-[16px] px-[16px] pb-[16px]">
-                                    <div className="relative">
-                                        <InputTextPhone
-                                            label={`${t('checkout.phone', 'Teléfono')}*`}
-                                            placeholder=""
-                                            value={assignment?.phone || ''}
-                                            onChange={(value) => handlePhoneChange(index, value)}
-                                            country={assignment?.phoneCountry || '34'}
-                                            onCountryChange={(country) => handleCountryChange(index, country)}
-                                            countries={countries}
-                                            language={i18n.language as 'es' | 'en'}
-                                            disabled={isFound || isNotFound}
-                                        />
-                                        {isFound && (
-                                            <div className="absolute right-[16px] top-[38px] w-[24px] h-[24px] rounded-full bg-[#e5ff88] flex items-center justify-center z-10">
-                                                <svg width="12" height="9" viewBox="0 0 12 9" fill="none">
-                                                    <path d="M1 4L4.5 7.5L11 1" stroke="#0a0a0a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                                </svg>
+                                {!isMe && (
+                                    <div className="flex flex-col gap-[16px] px-[16px] pb-[16px]">
+                                        <div className="relative">
+                                            <InputTextPhone
+                                                label={`${t('checkout.phone', 'Teléfono')}*`}
+                                                placeholder=""
+                                                value={assignment?.phone || ''}
+                                                onChange={(value) => handlePhoneChange(index, value)}
+                                                country={assignment?.phoneCountry || '34'}
+                                                onCountryChange={(country) => handleCountryChange(index, country)}
+                                                countries={countries}
+                                                language={i18n.language as 'es' | 'en'}
+                                                disabled={isFound || isNotFound}
+                                            />
+                                            {isFound && (
+                                                <div className="absolute right-[16px] top-[38px] w-[24px] h-[24px] rounded-full bg-[#e5ff88] flex items-center justify-center z-10">
+                                                    <svg width="12" height="9" viewBox="0 0 12 9" fill="none">
+                                                        <path d="M1 4L4.5 7.5L11 1" stroke="#0a0a0a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                                    </svg>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {isSend && (
+                                            <button
+                                                type="button"
+                                                onClick={() => handleConfirmPhone(index)}
+                                                disabled={isSearching}
+                                                className={`w-full h-[36px] bg-[#232323] rounded-[8px] flex items-center justify-center gap-[8px] font-bold text-[14px] font-helvetica text-[#f6f6f6] transition-colors ${isSearching ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-[#2a2a2a]'
+                                                    }`}
+                                            >
+                                                {isSearching && (
+                                                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                                    </svg>
+                                                )}
+                                                {t('checkout.confirm_phone', 'Confirmar teléfono')}
+                                            </button>
+                                        )}
+
+                                        {(isFound || isNotFound) && (
+                                            <button
+                                                type="button"
+                                                onClick={() => handleUpdateAssignment(index, {
+                                                    assignmentType: 'send',
+                                                    phone: '',
+                                                    toUserId: undefined,
+                                                    email: undefined
+                                                })}
+                                                className="w-full h-[36px] bg-transparent border border-[#232323] rounded-[8px] flex items-center justify-center font-medium text-[14px] font-helvetica text-[#939393] cursor-pointer hover:border-[#3a3a3a] transition-colors"
+                                            >
+                                                {t('checkout.change_number', 'Cambiar número')}
+                                            </button>
+                                        )}
+
+                                        <p className="text-[#939393] text-[12px] font-medium font-helvetica px-[6px]">
+                                            {isNotFound
+                                                ? t('checkout.assign_auto_number', '**La entrada se asignará automáticamente al número indicado. Siempre podrás cancelar el envío desde la app.')
+                                                : t('checkout.assign_auto_user', '**La entrada se asignará automáticamente al siguiente usuario. Siempre podrás cancelar el envío desde la app.')
+                                            }
+                                        </p>
+
+                                        {isNotFound && (
+                                            <div className="flex flex-col gap-[4px]">
+                                                <span className="text-[#939393] text-[14px] font-normal font-helvetica px-[6px]">
+                                                    {t('checkout.email_notification', 'Email para notificación')}*
+                                                </span>
+                                                <input
+                                                    type="email"
+                                                    value={assignment?.email || ''}
+                                                    onChange={(e) => handleUpdateAssignment(index, { email: e.target.value })}
+                                                    placeholder=""
+                                                    className="w-full h-[48px] border-[1.5px] border-[#232323] rounded-[12px] px-[16px] bg-transparent text-[#f6f6f6] text-[16px] font-medium font-helvetica placeholder:text-[#939393] outline-none focus:border-[#3fe8e8] transition-colors"
+                                                />
+                                                <span className="text-[#939393] text-[11px] font-normal font-helvetica px-[6px]">
+                                                    {t('checkout.email_hint', 'Le enviaremos un email para que pueda reclamar su entrada al registrarse')}
+                                                </span>
                                             </div>
                                         )}
                                     </div>
-
-                                    {isSend && (
-                                        <button
-                                            type="button"
-                                            onClick={() => handleConfirmPhone(index)}
-                                            disabled={isSearching}
-                                            className={`w-full h-[36px] bg-[#232323] rounded-[8px] flex items-center justify-center gap-[8px] font-bold text-[14px] font-helvetica text-[#f6f6f6] transition-colors ${
-                                                isSearching ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-[#2a2a2a]'
-                                            }`}
-                                        >
-                                            {isSearching && (
-                                                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                                                </svg>
-                                            )}
-                                            {t('checkout.confirm_phone', 'Confirmar teléfono')}
-                                        </button>
-                                    )}
-
-                                    {(isFound || isNotFound) && (
-                                        <button
-                                            type="button"
-                                            onClick={() => handleUpdateAssignment(index, { 
-                                                assignmentType: 'send', 
-                                                phone: '', 
-                                                toUserId: undefined, 
-                                                email: undefined 
-                                            })}
-                                            className="w-full h-[36px] bg-transparent border border-[#232323] rounded-[8px] flex items-center justify-center font-medium text-[14px] font-helvetica text-[#939393] cursor-pointer hover:border-[#3a3a3a] transition-colors"
-                                        >
-                                            {t('checkout.change_number', 'Cambiar número')}
-                                        </button>
-                                    )}
-
-                                    <p className="text-[#939393] text-[12px] font-medium font-helvetica px-[6px]">
-                                        {isNotFound
-                                            ? t('checkout.assign_auto_number', '**La entrada se asignará automáticamente al número indicado. Siempre podrás cancelar el envío desde la app.')
-                                            : t('checkout.assign_auto_user', '**La entrada se asignará automáticamente al siguiente usuario. Siempre podrás cancelar el envío desde la app.')
-                                        }
-                                    </p>
-
-                                    {isNotFound && (
-                                        <div className="flex flex-col gap-[4px]">
-                                            <span className="text-[#939393] text-[14px] font-normal font-helvetica px-[6px]">
-                                                {t('checkout.email_notification', 'Email para notificación')}*
-                                            </span>
-                                            <input
-                                                type="email"
-                                                value={assignment?.email || ''}
-                                                onChange={(e) => handleUpdateAssignment(index, { email: e.target.value })}
-                                                placeholder=""
-                                                className="w-full h-[48px] border-[1.5px] border-[#232323] rounded-[12px] px-[16px] bg-transparent text-[#f6f6f6] text-[16px] font-medium font-helvetica placeholder:text-[#939393] outline-none focus:border-[#3fe8e8] transition-colors"
-                                            />
-                                            <span className="text-[#939393] text-[11px] font-normal font-helvetica px-[6px]">
-                                                {t('checkout.email_hint', 'Le enviaremos un email para que pueda reclamar su entrada al registrarse')}
-                                            </span>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-                    );
-                })}
-            </div>
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
             )}
         </div>
     );
@@ -844,7 +842,7 @@ const CheckoutSummary = ({
             const response = await fetch(`${import.meta.env.VITE_API_URL}/v2/coupons/validate/${code}`);
             const data = await response.json();
 
-            if (!response.ok || !data.success) {
+            if (!response.ok || data.status !== 'success') {
                 throw new Error(data.message || 'Coupon validation failed');
             }
 
@@ -886,8 +884,8 @@ const CheckoutSummary = ({
             onClick={handleContinue}
             disabled={!canContinue || isLoading}
             className={`w-full h-[48px] rounded-[12px] flex items-center justify-center font-bold text-[16px] font-helvetica transition-opacity ${canContinue && !isLoading
-                    ? 'bg-[#ff336d] text-[#f6f6f6] cursor-pointer hover:opacity-90'
-                    : 'bg-[#ff336d] text-[#f6f6f6] opacity-50 cursor-not-allowed'
+                ? 'bg-[#ff336d] text-[#f6f6f6] cursor-pointer hover:opacity-90'
+                : 'bg-[#ff336d] text-[#f6f6f6] opacity-50 cursor-not-allowed'
                 }`}
         >
             {isLoading ? (
