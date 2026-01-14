@@ -107,18 +107,6 @@ const GuestlistCard = ({
     }
 
     const maxPerUser = guestlist.maxPerUser || 1;
-    const maxPersonsPerGuestlist = guestlist.maxPersonsPerGuestlist || 1;
-
-    const getTotalSelectedQuantity = (): number => {
-        return guestlist.prices?.reduce((sum, price) => {
-            return sum + (selectedQuantities[price.id] || 0);
-        }, 0) || 0;
-    };
-
-    const getListsRequired = (quantity: number): number => {
-        if (quantity <= 0) return 0;
-        return Math.ceil(quantity / maxPersonsPerGuestlist);
-    };
 
     const getAvailability = (price: GuestlistPrice): number => {
         if (price.isSoldOut) return 0;
@@ -134,10 +122,6 @@ const GuestlistCard = ({
     const hasSelectedQuantity = guestlist.prices?.some(
         price => (selectedQuantities[price.id] || 0) > 0
     );
-
-    const totalSelected = getTotalSelectedQuantity();
-    const listsRequired = getListsRequired(totalSelected);
-    const showMultiplier = listsRequired > 1;
 
     const getBorderColor = () => {
         if (isGuestlistSoldOut) return '#232323';
@@ -238,7 +222,7 @@ const GuestlistCard = ({
                                     {isLowStock && (
                                         <div className="flex items-center px-2 py-0.5 bg-[#232323] rounded-[25px] shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]">
                                             <span className="text-[#f6f6f6] text-xs font-medium font-helvetica">
-                                                Hot 🔥
+                                                Hot ðŸ”¥
                                             </span>
                                         </div>
                                     )}
@@ -248,7 +232,7 @@ const GuestlistCard = ({
                                 className="text-[#939393] text-xs font-medium font-helvetica cursor-pointer hover:text-[#f6f6f6] transition-colors"
                                 onClick={() => onMoreInfo?.(guestlist, price)}
                             >
-                                {t('event.more_info', 'Más información')}
+                                {t('event.more_info', 'MÃ¡s informaciÃ³n')}
                             </span>
                         </div>
 
