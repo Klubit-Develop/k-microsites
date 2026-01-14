@@ -722,6 +722,63 @@ const Event = () => {
         }, 300);
     }, []);
 
+    const handleOpenReservationInfoModal = useCallback((
+        reservation: { 
+            id: string; 
+            name: string; 
+            maxPersonsPerReservation?: number;
+            termsAndConditions?: string | null;
+            zones?: Array<{ id: string; name: string }>;
+            benefits?: Array<{ id: string; name: string; type?: string }>;
+        },
+        price: { 
+            id: string; 
+            name: string; 
+            finalPrice: number; 
+            currency?: string;
+            maxQuantity?: number | null;
+            soldQuantity?: number;
+            isSoldOut?: boolean;
+        }
+    ) => {
+        const RESERVATION_COLOR = '#50DD77';
+        
+        const maxPersons = Number(reservation.maxPersonsPerReservation) || 1;
+        
+        const infoData: ItemInfoData = {
+            id: price.id,
+            name: reservation.name,
+            priceName: price.name !== reservation.name ? price.name : undefined,
+            indicatorColor: RESERVATION_COLOR,
+            maxPersons,
+            products: reservation.benefits
+                ?.filter(b => b.type === 'PRODUCT')
+                .map(b => ({ name: b.name, quantity: 1 })) || [],
+            zones: reservation.zones?.map(z => z.name) || [],
+            benefits: reservation.benefits
+                ?.filter(b => b.type !== 'PRODUCT')
+                .map(b => b.name) || [],
+            finalPrice: price.finalPrice,
+            currency: price.currency || 'EUR',
+            description: reservation.termsAndConditions || undefined,
+        };
+
+        const maxPerUser = 10;
+        const available = price.isSoldOut 
+            ? 0 
+            : price.maxQuantity !== null && price.maxQuantity !== undefined
+                ? Math.max(0, (price.maxQuantity || 0) - (price.soldQuantity || 0))
+                : maxPerUser;
+        
+        const calculatedMaxQuantity = Math.min(maxPerUser, available);
+
+        setInfoModalData(infoData);
+        setInfoModalPriceId(price.id);
+        setInfoModalVariant('guestlist');
+        setInfoModalMaxQuantity(calculatedMaxQuantity);
+        setInfoModalOpen(true);
+    }, []);
+
     const handleInfoModalQuantityChange = useCallback((delta: number) => {
         if (!infoModalPriceId) return;
         handleQuantityChange(infoModalPriceId, delta, activeTab);
@@ -1340,6 +1397,7 @@ const Event = () => {
                         selectedQuantities={selectedQuantities.reservations}
                         onQuantityChange={(priceId, delta) => handleQuantityChange(priceId, delta, 'reservations')}
                         onContinue={handleReservationCheckout}
+                        onMoreInfo={handleOpenReservationInfoModal}
                         total={total}
                         isLoading={isLoading}
                         storedFormData={storedReservationFormData}
