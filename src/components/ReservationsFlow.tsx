@@ -198,133 +198,196 @@ const SelectionStep = ({
     }, [partySize, maxPersonsAvailable, onPartySizeChange]);
 
     return (
-        <div className="flex flex-col gap-[32px]">
-            <button
-                type="button"
-                onClick={onBack}
-                className="flex items-center gap-2 text-[#939393] hover:text-[#f6f6f6] transition-colors self-start"
-            >
-                <ChevronLeftIcon />
-                <span className="text-[14px] font-medium font-helvetica">
-                    {t('common.back', 'Volver')}
-                </span>
-            </button>
-
-            <div className="bg-[#141414] border-2 border-[#232323] rounded-[16px]">
-                <div className="flex items-center justify-between px-[16px] h-[56px]">
-                    <span className="text-[#939393] text-[16px] font-medium font-helvetica">
-                        {t('event.zone', 'Zona')}:
+        <div className="flex flex-col md:gap-[32px]">
+            {/* Scrollable content area - with padding bottom on mobile for fixed footer */}
+            <div className="flex flex-col gap-[32px] md:pb-0 pb-[180px]">
+                <button
+                    type="button"
+                    onClick={onBack}
+                    className="flex items-center gap-2 text-[#939393] hover:text-[#f6f6f6] transition-colors self-start"
+                >
+                    <ChevronLeftIcon />
+                    <span className="text-[14px] font-medium font-helvetica">
+                        {t('common.back', 'Volver')}
                     </span>
-                    <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica">
-                        {zoneData.zone.name}
-                    </span>
-                </div>
-            </div>
+                </button>
 
-            {zoneData.zone.floorPlan && (
-                <div className="flex flex-col gap-[4px]">
-                    <div className="px-[6px]">
+                <div className="bg-[#141414] border-2 border-[#232323] rounded-[16px]">
+                    <div className="flex items-center justify-between px-[16px] h-[56px]">
                         <span className="text-[#939393] text-[16px] font-medium font-helvetica">
-                            {t('event.zone_floor_plan', 'Plano zona')}
+                            {t('event.zone', 'Zona')}:
+                        </span>
+                        <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica">
+                            {zoneData.zone.name}
                         </span>
                     </div>
-                    <div className="bg-[#141414] border-2 border-[#232323] rounded-[16px] p-[12px] shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)]">
-                        <img
-                            src={zoneData.zone.floorPlan}
-                            alt={zoneData.zone.name}
-                            className="w-full h-auto rounded-[4px] border-[1.5px] border-[#252e39]"
-                        />
-                    </div>
                 </div>
-            )}
 
-            <div className="flex flex-col gap-[4px]">
+                {zoneData.zone.floorPlan && (
+                    <div className="flex flex-col gap-[4px]">
+                        <div className="px-[6px]">
+                            <span className="text-[#939393] text-[16px] font-medium font-helvetica">
+                                {t('event.zone_floor_plan', 'Plano zona')}
+                            </span>
+                        </div>
+                        <div className="bg-[#141414] border-2 border-[#232323] rounded-[16px] p-[12px] shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)]">
+                            <img
+                                src={zoneData.zone.floorPlan}
+                                alt={zoneData.zone.name}
+                                className="w-full h-auto rounded-[4px] border-[1.5px] border-[#252e39]"
+                            />
+                        </div>
+                    </div>
+                )}
+
+                {/* Desktop only: Quantity selector inline */}
+                <div className="hidden md:flex flex-col gap-[4px]">
+                    <div className="px-[6px]">
+                        <span className="text-[#939393] text-[14px] font-normal font-helvetica">
+                            {t('event.attendees_count', 'Cantidad de asistentes')}*
+                        </span>
+                    </div>
+                    <div className="bg-[#141414] border-[1.5px] border-[#232323] rounded-[12px] px-[16px] py-[8px] flex items-center gap-[24px]">
+                        <button
+                            type="button"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handlePartySizeChange(-1);
+                            }}
+                            disabled={partySize <= 1}
+                            className={`shrink-0 flex items-center justify-center size-[36px] bg-[#232323] rounded-full ${partySize <= 1 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                        >
+                            <MinusIcon />
+                        </button>
+                        <span className="flex-1 text-center text-[#f6f6f6] text-[32px] font-semibold font-borna leading-none">
+                            {partySize}
+                        </span>
+                        <button
+                            type="button"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handlePartySizeChange(1);
+                            }}
+                            disabled={partySize >= maxPersonsAvailable}
+                            className={`shrink-0 flex items-center justify-center size-[36px] bg-[#232323] rounded-full ${partySize >= maxPersonsAvailable ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                        >
+                            <PlusIcon />
+                        </button>
+                    </div>
+                    {noTablesForPartySize && (
+                        <div className="px-[6px] mt-[4px]">
+                            <span className="text-[#e5ff88] text-[12px] font-medium font-helvetica">
+                                {t('event.no_tables_for_party_size', 'No hay mesas disponibles para este número de personas')}
+                            </span>
+                        </div>
+                    )}
+                </div>
+
+                <div className="flex flex-col gap-[16px]">
+                    {filteredReservations.length > 0 ? (
+                        filteredReservations.map(reservation => {
+                            const isDisabled = selectedReservationId !== null && selectedReservationId !== reservation.id;
+
+                            return (
+                                <div
+                                    key={reservation.id}
+                                    className={isDisabled ? 'opacity-50 pointer-events-none' : ''}
+                                >
+                                    <ReservationCard
+                                        reservation={reservation}
+                                        selectedQuantities={selectedQuantities}
+                                        onQuantityChange={handleQuantityChange}
+                                        onMoreInfo={onMoreInfo}
+                                        partySize={partySize}
+                                        selectionMode="checkbox"
+                                    />
+                                </div>
+                            );
+                        })
+                    ) : (
+                        <div className="flex items-center justify-center py-8">
+                            <p className="text-[#939393] text-[14px] font-helvetica text-center">
+                                {t('event.no_reservations_for_party_size', 'No hay reservas disponibles para {{count}} personas', { count: partySize })}
+                            </p>
+                        </div>
+                    )}
+                </div>
+
+                {/* Desktop only: Continue button inline */}
+                <button
+                    type="button"
+                    onClick={onContinue}
+                    disabled={!hasSelection}
+                    className={`hidden md:flex w-full h-[48px] rounded-[12px] items-center justify-center font-bold text-[16px] font-helvetica transition-opacity ${hasSelection ? 'bg-[#ff336d] text-[#f6f6f6] cursor-pointer hover:opacity-90' : 'bg-[#232323] text-[#939393] cursor-not-allowed'}`}
+                >
+                    {t('event.continue', 'Continuar')}
+                </button>
+
                 <div className="px-[6px]">
-                    <span className="text-[#939393] text-[14px] font-normal font-helvetica">
-                        {t('event.attendees_count', 'Cantidad de asistentes')}*
-                    </span>
+                    <p className="text-[12px] font-medium font-helvetica text-[rgba(246,246,246,0.5)]">
+                        {t('event.purchase_terms', 'Comprando esta entrada, abrirás una cuenta y aceptarás nuestras Condiciones de Uso generales, la Política de Privacidad y las Condiciones de Compra de entradas. Procesamos tus datos personales de acuerdo con nuestra Política de Privacidad.')}
+                    </p>
                 </div>
-                <div className="bg-[#141414] border-[1.5px] border-[#232323] rounded-[12px] px-[16px] py-[8px] flex items-center gap-[24px]">
-                    <button
-                        type="button"
-                        onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            handlePartySizeChange(-1);
-                        }}
-                        disabled={partySize <= 1}
-                        className={`shrink-0 flex items-center justify-center size-[36px] bg-[#232323] rounded-full ${partySize <= 1 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-                    >
-                        <MinusIcon />
-                    </button>
-                    <span className="flex-1 text-center text-[#f6f6f6] text-[32px] font-semibold font-borna leading-none">
-                        {partySize}
-                    </span>
-                    <button
-                        type="button"
-                        onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            handlePartySizeChange(1);
-                        }}
-                        disabled={partySize >= maxPersonsAvailable}
-                        className={`shrink-0 flex items-center justify-center size-[36px] bg-[#232323] rounded-full ${partySize >= maxPersonsAvailable ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-                    >
-                        <PlusIcon />
-                    </button>
-                </div>
-                {noTablesForPartySize && (
-                    <div className="px-[6px] mt-[4px]">
-                        <span className="text-[#e5ff88] text-[12px] font-medium font-helvetica">
-                            {t('event.no_tables_for_party_size', 'No hay mesas disponibles para este nÃºmero de personas')}
-                        </span>
-                    </div>
-                )}
             </div>
 
-            <div className="flex flex-col gap-[16px]">
-                {filteredReservations.length > 0 ? (
-                    filteredReservations.map(reservation => {
-                        const isDisabled = selectedReservationId !== null && selectedReservationId !== reservation.id;
-
-                        return (
-                            <div
-                                key={reservation.id}
-                                className={isDisabled ? 'opacity-50 pointer-events-none' : ''}
+            {/* Mobile only: Fixed bottom footer */}
+            <div className="md:hidden fixed bottom-0 left-0 right-0 z-50">
+                <div className="h-[24px] bg-gradient-to-t from-[#050505] to-transparent pointer-events-none" />
+                <div className="bg-[#050505] px-[16px] pb-[24px]">
+                    <div className="flex flex-col gap-[12px]">
+                        <div className="px-[6px]">
+                            <span className="text-[#939393] text-[14px] font-normal font-helvetica">
+                                {t('event.attendees_count', 'Cantidad de asistentes')}*
+                            </span>
+                        </div>
+                        <div className="bg-[#141414] border-[1.5px] border-[#232323] rounded-[12px] px-[16px] py-[8px] flex items-center gap-[24px]">
+                            <button
+                                type="button"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    handlePartySizeChange(-1);
+                                }}
+                                disabled={partySize <= 1}
+                                className={`shrink-0 flex items-center justify-center size-[36px] bg-[#232323] rounded-full ${partySize <= 1 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                             >
-                                <ReservationCard
-                                    reservation={reservation}
-                                    selectedQuantities={selectedQuantities}
-                                    onQuantityChange={handleQuantityChange}
-                                    onMoreInfo={onMoreInfo}
-                                    partySize={partySize}
-                                    selectionMode="checkbox"
-                                />
+                                <MinusIcon />
+                            </button>
+                            <span className="flex-1 text-center text-[#f6f6f6] text-[32px] font-semibold font-borna leading-none">
+                                {partySize}
+                            </span>
+                            <button
+                                type="button"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    handlePartySizeChange(1);
+                                }}
+                                disabled={partySize >= maxPersonsAvailable}
+                                className={`shrink-0 flex items-center justify-center size-[36px] bg-[#232323] rounded-full ${partySize >= maxPersonsAvailable ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                            >
+                                <PlusIcon />
+                            </button>
+                        </div>
+                        {noTablesForPartySize && (
+                            <div className="px-[6px]">
+                                <span className="text-[#e5ff88] text-[12px] font-medium font-helvetica">
+                                    {t('event.no_tables_for_party_size', 'No hay mesas disponibles para este número de personas')}
+                                </span>
                             </div>
-                        );
-                    })
-                ) : (
-                    <div className="flex items-center justify-center py-8">
-                        <p className="text-[#939393] text-[14px] font-helvetica text-center">
-                            {t('event.no_reservations_for_party_size', 'No hay reservas disponibles para {{count}} personas', { count: partySize })}
-                        </p>
+                        )}
+                        <button
+                            type="button"
+                            onClick={onContinue}
+                            disabled={!hasSelection}
+                            className={`w-full h-[48px] rounded-[12px] flex items-center justify-center font-bold text-[16px] font-helvetica transition-opacity ${hasSelection ? 'bg-[#ff336d] text-[#f6f6f6] cursor-pointer hover:opacity-90' : 'bg-[#232323] text-[#939393] cursor-not-allowed'}`}
+                        >
+                            {t('event.continue', 'Continuar')}
+                        </button>
                     </div>
-                )}
-            </div>
-
-            <button
-                type="button"
-                onClick={onContinue}
-                disabled={!hasSelection}
-                className={`w-full h-[48px] rounded-[12px] flex items-center justify-center font-bold text-[16px] font-helvetica transition-opacity ${hasSelection ? 'bg-[#ff336d] text-[#f6f6f6] cursor-pointer hover:opacity-90' : 'bg-[#232323] text-[#939393] cursor-not-allowed'}`}
-            >
-                {t('event.continue', 'Continuar')}
-            </button>
-
-            <div className="px-[6px]">
-                <p className="text-[12px] font-medium font-helvetica text-[rgba(246,246,246,0.5)]">
-                    {t('event.purchase_terms', 'Comprando esta entrada, abrirÃ¡s una cuenta y aceptarÃ¡s nuestras Condiciones de Uso generales, la PolÃ­tica de Privacidad y las Condiciones de Compra de entradas. Procesamos tus datos personales de acuerdo con nuestra PolÃ­tica de Privacidad.')}
-                </p>
+                </div>
             </div>
         </div>
     );
@@ -415,76 +478,95 @@ const FormStep = ({
     const isFormValid = formData.reservationName.trim().length > 0;
 
     return (
-        <div className="flex flex-col gap-[32px]">
-            <button
-                type="button"
-                onClick={onBack}
-                className="flex items-center gap-2 text-[#939393] hover:text-[#f6f6f6] transition-colors self-start"
-            >
-                <ChevronLeftIcon />
-                <span className="text-[14px] font-medium font-helvetica">
-                    {t('common.back', 'Volver')}
-                </span>
-            </button>
-
-            <div className="flex flex-col gap-[4px]">
-                <div className="px-[6px]">
-                    <span className="text-[#939393] text-[14px] font-normal font-helvetica">
-                        {t('event.reservation', 'Reserva')}
+        <div className="flex flex-col md:gap-[32px]">
+            {/* Scrollable content area - with padding bottom on mobile for fixed footer */}
+            <div className="flex flex-col gap-[32px] md:pb-0 pb-[100px]">
+                <button
+                    type="button"
+                    onClick={onBack}
+                    className="flex items-center gap-2 text-[#939393] hover:text-[#f6f6f6] transition-colors self-start"
+                >
+                    <ChevronLeftIcon />
+                    <span className="text-[14px] font-medium font-helvetica">
+                        {t('common.back', 'Volver')}
                     </span>
-                </div>
-                <ReservationSummaryCard
-                    reservation={selectedReservation.reservation}
-                    priceId={selectedReservation.priceId}
-                    quantity={selectedReservation.quantity}
-                    zoneName={zoneName}
-                    partySize={partySize}
-                />
-            </div>
-
-            <div className="flex flex-col gap-[24px]">
-                <div className="flex flex-col gap-[4px]">
-                    <div className="px-[6px]">
-                        <span className="text-[#939393] text-[14px] font-normal font-helvetica">
-                            {t('event.reservation_name', 'Nombre de la reserva')}*
-                        </span>
-                    </div>
-                    <input
-                        type="text"
-                        value={formData.reservationName}
-                        onChange={(e) => onFormChange({ ...formData, reservationName: e.target.value })}
-                        className="border-[1.5px] border-[#232323] rounded-[12px] px-[16px] py-[12px] bg-transparent text-[#f6f6f6] text-[16px] font-medium font-helvetica outline-none focus:border-[#939393] transition-colors"
-                    />
-                </div>
+                </button>
 
                 <div className="flex flex-col gap-[4px]">
                     <div className="px-[6px]">
                         <span className="text-[#939393] text-[14px] font-normal font-helvetica">
-                            {t('event.observations', 'Observaciones')}
+                            {t('event.reservation', 'Reserva')}
                         </span>
                     </div>
-                    <textarea
-                        value={formData.observations}
-                        onChange={(e) => onFormChange({ ...formData, observations: e.target.value })}
-                        rows={5}
-                        className="border-[1.5px] border-[#232323] rounded-[12px] px-[16px] py-[12px] bg-transparent text-[#f6f6f6] text-[16px] font-medium font-helvetica outline-none resize-none focus:border-[#939393] transition-colors h-[144px]"
+                    <ReservationSummaryCard
+                        reservation={selectedReservation.reservation}
+                        priceId={selectedReservation.priceId}
+                        quantity={selectedReservation.quantity}
+                        zoneName={zoneName}
+                        partySize={partySize}
                     />
+                </div>
+
+                <div className="flex flex-col gap-[24px]">
+                    <div className="flex flex-col gap-[4px]">
+                        <div className="px-[6px]">
+                            <span className="text-[#939393] text-[14px] font-normal font-helvetica">
+                                {t('event.reservation_name', 'Nombre de la reserva')}*
+                            </span>
+                        </div>
+                        <input
+                            type="text"
+                            value={formData.reservationName}
+                            onChange={(e) => onFormChange({ ...formData, reservationName: e.target.value })}
+                            className="border-[1.5px] border-[#232323] rounded-[12px] px-[16px] py-[12px] bg-transparent text-[#f6f6f6] text-[16px] font-medium font-helvetica outline-none focus:border-[#939393] transition-colors"
+                        />
+                    </div>
+
+                    <div className="flex flex-col gap-[4px]">
+                        <div className="px-[6px]">
+                            <span className="text-[#939393] text-[14px] font-normal font-helvetica">
+                                {t('event.observations', 'Observaciones')}
+                            </span>
+                        </div>
+                        <textarea
+                            value={formData.observations}
+                            onChange={(e) => onFormChange({ ...formData, observations: e.target.value })}
+                            rows={5}
+                            className="border-[1.5px] border-[#232323] rounded-[12px] px-[16px] py-[12px] bg-transparent text-[#f6f6f6] text-[16px] font-medium font-helvetica outline-none resize-none focus:border-[#939393] transition-colors h-[144px]"
+                        />
+                    </div>
+                </div>
+
+                {/* Desktop only: Pay button inline */}
+                <button
+                    type="button"
+                    onClick={onContinue}
+                    disabled={!isFormValid}
+                    className={`hidden md:flex w-full h-[48px] rounded-[12px] items-center justify-center font-bold text-[16px] font-helvetica transition-opacity ${isFormValid ? 'bg-[#ff336d] text-[#f6f6f6] cursor-pointer hover:opacity-90' : 'bg-[#232323] text-[#939393] cursor-not-allowed'}`}
+                >
+                    {t('event.pay', 'Pagar')} - {total.toFixed(2).replace('.', ',')}€
+                </button>
+
+                <div className="px-[6px]">
+                    <p className="text-[12px] font-medium font-helvetica text-[rgba(246,246,246,0.5)]">
+                        {t('event.purchase_terms', 'Comprando esta entrada, abrirás una cuenta y aceptarás nuestras Condiciones de Uso generales, la Política de Privacidad y las Condiciones de Compra de entradas. Procesamos tus datos personales de acuerdo con nuestra Política de Privacidad.')}
+                    </p>
                 </div>
             </div>
 
-            <button
-                type="button"
-                onClick={onContinue}
-                disabled={!isFormValid}
-                className={`w-full h-[48px] rounded-[12px] flex items-center justify-center font-bold text-[16px] font-helvetica transition-opacity ${isFormValid ? 'bg-[#ff336d] text-[#f6f6f6] cursor-pointer hover:opacity-90' : 'bg-[#232323] text-[#939393] cursor-not-allowed'}`}
-            >
-                {t('event.pay', 'Pagar')} - {total.toFixed(2).replace('.', ',')}€
-            </button>
-
-            <div className="px-[6px]">
-                <p className="text-[12px] font-medium font-helvetica text-[rgba(246,246,246,0.5)]">
-                    {t('event.purchase_terms', 'Comprando esta entrada, abrirÃ¡s una cuenta y aceptarÃ¡s nuestras Condiciones de Uso generales, la PolÃ­tica de Privacidad y las Condiciones de Compra de entradas. Procesamos tus datos personales de acuerdo con nuestra PolÃ­tica de Privacidad.')}
-                </p>
+            {/* Mobile only: Fixed bottom footer */}
+            <div className="md:hidden fixed bottom-0 left-0 right-0 z-50">
+                <div className="h-[24px] bg-gradient-to-t from-[#050505] to-transparent pointer-events-none" />
+                <div className="bg-[#050505] px-[16px] pb-[24px]">
+                    <button
+                        type="button"
+                        onClick={onContinue}
+                        disabled={!isFormValid}
+                        className={`w-full h-[48px] rounded-[12px] flex items-center justify-center font-bold text-[16px] font-helvetica transition-opacity ${isFormValid ? 'bg-[#ff336d] text-[#f6f6f6] cursor-pointer hover:opacity-90' : 'bg-[#232323] text-[#939393] cursor-not-allowed'}`}
+                    >
+                        {t('event.pay', 'Pagar')} - {total.toFixed(2).replace('.', ',')}€
+                    </button>
+                </div>
             </div>
         </div>
     );
