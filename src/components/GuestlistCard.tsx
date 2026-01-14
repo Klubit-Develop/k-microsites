@@ -146,7 +146,6 @@ const GuestlistCard = ({
     };
 
     const borderColor = getBorderColor();
-    const timeRange = `${guestlist.startTime} - ${guestlist.endTime}`;
 
     return (
         <div
@@ -208,9 +207,6 @@ const GuestlistCard = ({
                             {guestlist.name}
                         </span>
                     </div>
-                    <span className="text-[#939393] text-xs font-normal font-helvetica ml-3">
-                        {timeRange}
-                    </span>
                 </div>
             </div>
 
