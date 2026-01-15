@@ -16,7 +16,7 @@ import Button from '@/components/ui/Button';
 const STRIPE_PUBLISHABLE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
 
 if (!STRIPE_PUBLISHABLE_KEY) {
-    console.error('âŒ VITE_STRIPE_PUBLISHABLE_KEY is not defined in environment variables');
+    console.error('VITE_STRIPE_PUBLISHABLE_KEY is not defined in environment variables');
 }
 
 const stripePromise = STRIPE_PUBLISHABLE_KEY ? loadStripe(STRIPE_PUBLISHABLE_KEY) : null;
@@ -73,11 +73,7 @@ const CheckoutForm = ({ transactionId, onSuccess, onCancel, timerSeconds, onTime
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        console.log('=== STRIPE PAYMENT SUBMIT ===');
-        console.log('transactionId prop:', transactionId);
-
         if (!stripe || !elements) {
-            console.log('Stripe or elements not ready');
             return;
         }
 
@@ -87,9 +83,6 @@ const CheckoutForm = ({ transactionId, onSuccess, onCancel, timerSeconds, onTime
         try {
             // Incluir transactionId en la URL de retorno
             const returnUrl = `${window.location.origin}/checkout/success?transactionId=${transactionId}`;
-            
-            console.log('Return URL:', returnUrl);
-
             const { error, paymentIntent } = await stripe.confirmPayment({
                 elements,
                 confirmParams: {
@@ -98,10 +91,7 @@ const CheckoutForm = ({ transactionId, onSuccess, onCancel, timerSeconds, onTime
                 redirect: 'if_required',
             });
 
-            console.log('confirmPayment result:', { error, paymentIntent });
-
             if (error) {
-                console.log('Payment error:', error);
                 if (error.type === 'card_error' || error.type === 'validation_error') {
                     setErrorMessage(error.message || t('payment.generic_error', 'Error en el pago'));
                 } else {
@@ -109,19 +99,13 @@ const CheckoutForm = ({ transactionId, onSuccess, onCancel, timerSeconds, onTime
                 }
                 setIsProcessing(false);
             } else if (paymentIntent) {
-                console.log('PaymentIntent status:', paymentIntent.status);
-                
                 if (paymentIntent.status === 'succeeded') {
-                    console.log('âœ… Payment succeeded! Calling onSuccess...');
                     onSuccess();
                 } else if (paymentIntent.status === 'processing') {
-                    console.log('â³ Payment processing! Calling onSuccess...');
                     onSuccess();
                 } else if (paymentIntent.status === 'requires_action') {
-                    console.log('ðŸ” Payment requires action (3D Secure)');
                     setIsProcessing(false);
                 } else {
-                    console.log('â“ Unexpected payment status:', paymentIntent.status);
                     setErrorMessage(t('payment.generic_error', 'Estado de pago inesperado'));
                     setIsProcessing(false);
                 }
@@ -141,8 +125,8 @@ const CheckoutForm = ({ transactionId, onSuccess, onCancel, timerSeconds, onTime
             {timerSeconds !== undefined && (
                 <div className={`
                     flex items-center justify-center gap-2 py-3 px-4 rounded-xl
-                    ${isTimerCritical 
-                        ? 'bg-[rgba(255,35,35,0.15)] text-[#FF2323]' 
+                    ${isTimerCritical
+                        ? 'bg-[rgba(255,35,35,0.15)] text-[#FF2323]'
                         : 'bg-[#1A1A1A] text-[#F6F6F6]'
                     }
                 `}>
@@ -189,8 +173,8 @@ const CheckoutForm = ({ transactionId, onSuccess, onCancel, timerSeconds, onTime
                     disabled={!stripe || isProcessing}
                     isLoading={isProcessing}
                 >
-                    {isProcessing 
-                        ? t('payment.processing', 'Procesando...') 
+                    {isProcessing
+                        ? t('payment.processing', 'Procesando...')
                         : t('payment.pay', 'Pagar')
                     }
                 </Button>
@@ -216,9 +200,9 @@ const CheckoutForm = ({ transactionId, onSuccess, onCancel, timerSeconds, onTime
     );
 };
 
-const StripePayment = ({ 
-    transactionId, 
-    onSuccess, 
+const StripePayment = ({
+    transactionId,
+    onSuccess,
     onCancel,
     timerSeconds,
     onTimerExpired,
@@ -228,12 +212,9 @@ const StripePayment = ({
     const [clientSecret, setClientSecret] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    
+
     // Prevent double PaymentIntent creation (React StrictMode)
     const hasCreatedIntent = useRef(false);
-
-    console.log('=== STRIPE PAYMENT RENDER ===');
-    console.log('transactionId prop:', transactionId);
 
     useEffect(() => {
         if (hasCreatedIntent.current) {
@@ -242,30 +223,23 @@ const StripePayment = ({
 
         const createPaymentIntent = async () => {
             hasCreatedIntent.current = true;
-            
+
             try {
                 setIsLoading(true);
                 setError(null);
-
-                console.log('Creating PaymentIntent for transaction:', transactionId);
 
                 const response = await axiosInstance.post<PaymentIntentResponse>(
                     `/v2/transactions/${transactionId}/payment-intent`
                 );
 
-                console.log('PaymentIntent response:', response.data);
-
                 if (response.data.status === 'success') {
                     const secret = response.data.data.clientSecret;
-                    
-                    console.log('ClientSecret received:', secret ? 'Yes (length: ' + secret.length + ')' : 'No');
-                    console.log('ClientSecret format check:', secret?.includes('_secret_') ? 'âœ… Valid format' : 'âŒ Invalid format');
-                    
+
                     if (secret && secret.includes('_secret_')) {
                         setClientSecret(secret);
                     } else {
                         console.error('Invalid clientSecret format:', secret);
-                        setError(t('payment.invalid_secret', 'Error en la configuraciÃ³n del pago'));
+                        setError(t('payment.invalid_secret', 'Error en la configuración del pago'));
                     }
                 } else {
                     setError(response.data.message || t('payment.intent_error', 'Error al iniciar el pago'));
@@ -275,7 +249,7 @@ const StripePayment = ({
                 if (err.backendError) {
                     setError(err.backendError.message);
                 } else {
-                    setError(t('common.error_connection', 'Error de conexiÃ³n'));
+                    setError(t('common.error_connection', 'Error de conexión'));
                 }
             } finally {
                 setIsLoading(false);
@@ -285,12 +259,12 @@ const StripePayment = ({
         createPaymentIntent();
     }, [transactionId, t]);
 
-    // Verificar que Stripe estÃ¡ configurado
+    // Verificar que Stripe está configurado
     if (!stripePromise) {
         return (
             <div className="flex flex-col gap-6 bg-[#111111] rounded-2xl p-6">
                 <div className="bg-[rgba(255,35,35,0.15)] text-[#FF2323] px-4 py-3 rounded-xl text-[14px] font-helvetica text-center">
-                    {t('payment.stripe_not_configured', 'Error: Stripe no estÃ¡ configurado correctamente')}
+                    {t('payment.stripe_not_configured', 'Error: Stripe no está configurado correctamente')}
                 </div>
                 <Button variant="secondary" onClick={onCancel}>
                     {t('common.go_back', 'Volver')}
@@ -308,7 +282,7 @@ const StripePayment = ({
                     <div className="h-12 w-full bg-[#232323] rounded-xl animate-pulse" />
                 </div>
                 <p className="text-center text-[#666666] text-[14px] font-helvetica">
-                    {t('payment.loading', 'Cargando mÃ©todo de pago...')}
+                    {t('payment.loading', 'Cargando método de pago...')}
                 </p>
             </div>
         );
@@ -394,7 +368,7 @@ const StripePayment = ({
     return (
         <div className="flex flex-col gap-6 bg-[#111111] rounded-2xl p-6">
             <h2 className="text-[20px] font-helvetica font-bold text-[#F6F6F6]">
-                {t('payment.title', 'MÃ©todo de pago')}
+                {t('payment.title', 'Método de pago')}
             </h2>
 
             <Elements

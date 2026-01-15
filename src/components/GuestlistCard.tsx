@@ -232,7 +232,7 @@ const GuestlistCard = ({
                                 className="text-[#939393] text-xs font-medium font-helvetica cursor-pointer hover:text-[#f6f6f6] transition-colors"
                                 onClick={() => onMoreInfo?.(guestlist, price)}
                             >
-                                {t('event.more_info', 'MÃ¡s informaciÃ³n')}
+                                {t('event.more_info', 'Más información')}
                             </span>
                         </div>
 

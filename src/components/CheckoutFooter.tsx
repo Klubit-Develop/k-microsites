@@ -50,7 +50,7 @@ const CheckoutFooter = ({
                 {buttonContent}
                 <div className="px-[6px]">
                     <p className="text-[rgba(246,246,246,0.5)] text-[12px] font-medium font-helvetica leading-normal">
-                        {t('event.legal_text', 'Comprando esta entrada, abrirÃ¡s una cuenta y aceptarÃ¡s nuestras Condiciones de Uso generales, la PolÃ­tica de Privacidad y las Condiciones de Compra de entradas. Procesamos tus datos personales de acuerdo con nuestra PolÃ­tica de Privacidad.')}
+                        {t('event.legal_text', 'Comprando esta entrada, abrirás una cuenta y aceptarás nuestras Condiciones de Uso generales, la Política de Privacidad y las Condiciones de Compra de entradas. Procesamos tus datos personales de acuerdo con nuestra Política de Privacidad.')}
                     </p>
                 </div>
             </div>
@@ -59,7 +59,7 @@ const CheckoutFooter = ({
             <div className={`md:hidden flex flex-col gap-[16px] w-full ${className}`}>
                 <div className="px-[6px]">
                     <p className="text-[rgba(246,246,246,0.5)] text-[12px] font-medium font-helvetica leading-normal">
-                        {t('event.legal_text', 'Comprando esta entrada, abrirÃ¡s una cuenta y aceptarÃ¡s nuestras Condiciones de Uso generales, la PolÃ­tica de Privacidad y las Condiciones de Compra de entradas. Procesamos tus datos personales de acuerdo con nuestra PolÃ­tica de Privacidad.')}
+                        {t('event.legal_text', 'Comprando esta entrada, abrirás una cuenta y aceptarás nuestras Condiciones de Uso generales, la Política de Privacidad y las Condiciones de Compra de entradas. Procesamos tus datos personales de acuerdo con nuestra Política de Privacidad.')}
                     </p>
                 </div>
                 {/* Spacer for fixed button */}

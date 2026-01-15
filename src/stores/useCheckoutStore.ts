@@ -283,7 +283,7 @@ export const useCheckoutStore = create<CheckoutState>()(
             resetForNewEvent: (newEventId: string) => {
                 const state = get();
 
-                // Si el eventId guardado es diferente al nuevo, o si el timer expirÃƒÆ’Ã‚Â³,
+                // Si el eventId guardado es diferente al nuevo, o si el timer expirá
                 // limpiamos todo el checkout
                 if (state.eventId !== newEventId || state.isTimerExpired) {
                     set({
