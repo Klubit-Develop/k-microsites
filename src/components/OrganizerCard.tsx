@@ -45,10 +45,7 @@ const OrganizerCard = ({
     return (
         <div className={`flex flex-col gap-[16px] w-full ${className}`}>
             <div className="flex items-center gap-[2px] px-[6px]">
-                <h2
-                    className="text-[#ff336d] text-[24px] font-semibold"
-                    style={{ fontFamily: "'Borna', sans-serif" }}
-                >
+                <h2 className="text-[#ff336d] text-[24px] font-semibold font-borna">
                     {t('event.organizer', 'Organizador')}
                 </h2>
             </div>

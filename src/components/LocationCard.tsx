@@ -141,10 +141,7 @@ export const LocationCard: React.FC<LocationCardProps> = ({
       {/* Título */}
       {title && (
         <div className="flex gap-0.5 items-center px-1.5 w-full">
-          <h2
-            className="text-[#ff336d] text-[24px] font-bold leading-normal whitespace-nowrap overflow-hidden text-ellipsis"
-            style={{ fontFamily: "'Borna', sans-serif" }}
-          >
+          <h2 className="text-[#ff336d] text-[24px] font-semibold font-borna leading-normal whitespace-nowrap overflow-hidden text-ellipsis">
             {title}
           </h2>
         </div>
@@ -152,7 +149,7 @@ export const LocationCard: React.FC<LocationCardProps> = ({
 
       {/* Tarjeta del mapa */}
       <div className="flex flex-col gap-3 items-start justify-center w-full p-3 bg-[#141414] border-2 border-[#232323] rounded-2xl shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)]">
-        {/* Dirección */}
+        {/* DirecciÃ³n */}
         <div className="flex gap-0.5 items-center px-1.5 w-full">
           <p className="text-[#f6f6f6] text-sm font-normal leading-[100%] flex-1 font-helvetica">
             {address}

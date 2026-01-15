@@ -13,6 +13,7 @@ import { Route as VerifyRouteImport } from './routes/verify'
 import { Route as TermsAndConditionsClubRouteImport } from './routes/terms-and-conditions-club'
 import { Route as TermsAndConditionsRouteImport } from './routes/terms-and-conditions'
 import { Route as RegisterRouteImport } from './routes/register'
+import { Route as PurchaseTermsRouteImport } from './routes/purchase-terms'
 import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
 import { Route as OauthRouteImport } from './routes/oauth'
 import { Route as LegalNoticeRouteImport } from './routes/legal-notice'
@@ -55,6 +56,11 @@ const TermsAndConditionsRoute = TermsAndConditionsRouteImport.update({
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
   path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PurchaseTermsRoute = PurchaseTermsRouteImport.update({
+  id: '/purchase-terms',
+  path: '/purchase-terms',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacyPolicyRoute = PrivacyPolicyRouteImport.update({
@@ -187,6 +193,7 @@ export interface FileRoutesByFullPath {
   '/legal-notice': typeof LegalNoticeRoute
   '/oauth': typeof OauthRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
+  '/purchase-terms': typeof PurchaseTermsRoute
   '/register': typeof RegisterRoute
   '/terms-and-conditions': typeof TermsAndConditionsRoute
   '/terms-and-conditions-club': typeof TermsAndConditionsClubRoute
@@ -215,6 +222,7 @@ export interface FileRoutesByTo {
   '/legal-notice': typeof LegalNoticeRoute
   '/oauth': typeof OauthRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
+  '/purchase-terms': typeof PurchaseTermsRoute
   '/register': typeof RegisterRoute
   '/terms-and-conditions': typeof TermsAndConditionsRoute
   '/terms-and-conditions-club': typeof TermsAndConditionsClubRoute
@@ -245,6 +253,7 @@ export interface FileRoutesById {
   '/legal-notice': typeof LegalNoticeRoute
   '/oauth': typeof OauthRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
+  '/purchase-terms': typeof PurchaseTermsRoute
   '/register': typeof RegisterRoute
   '/terms-and-conditions': typeof TermsAndConditionsRoute
   '/terms-and-conditions-club': typeof TermsAndConditionsClubRoute
@@ -275,6 +284,7 @@ export interface FileRouteTypes {
     | '/legal-notice'
     | '/oauth'
     | '/privacy-policy'
+    | '/purchase-terms'
     | '/register'
     | '/terms-and-conditions'
     | '/terms-and-conditions-club'
@@ -303,6 +313,7 @@ export interface FileRouteTypes {
     | '/legal-notice'
     | '/oauth'
     | '/privacy-policy'
+    | '/purchase-terms'
     | '/register'
     | '/terms-and-conditions'
     | '/terms-and-conditions-club'
@@ -332,6 +343,7 @@ export interface FileRouteTypes {
     | '/legal-notice'
     | '/oauth'
     | '/privacy-policy'
+    | '/purchase-terms'
     | '/register'
     | '/terms-and-conditions'
     | '/terms-and-conditions-club'
@@ -362,6 +374,7 @@ export interface RootRouteChildren {
   LegalNoticeRoute: typeof LegalNoticeRoute
   OauthRoute: typeof OauthRoute
   PrivacyPolicyRoute: typeof PrivacyPolicyRoute
+  PurchaseTermsRoute: typeof PurchaseTermsRoute
   RegisterRoute: typeof RegisterRoute
   TermsAndConditionsRoute: typeof TermsAndConditionsRoute
   TermsAndConditionsClubRoute: typeof TermsAndConditionsClubRoute
@@ -401,6 +414,13 @@ declare module '@tanstack/react-router' {
       path: '/register'
       fullPath: '/register'
       preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/purchase-terms': {
+      id: '/purchase-terms'
+      path: '/purchase-terms'
+      fullPath: '/purchase-terms'
+      preLoaderRoute: typeof PurchaseTermsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy-policy': {
@@ -626,6 +646,7 @@ const rootRouteChildren: RootRouteChildren = {
   LegalNoticeRoute: LegalNoticeRoute,
   OauthRoute: OauthRoute,
   PrivacyPolicyRoute: PrivacyPolicyRoute,
+  PurchaseTermsRoute: PurchaseTermsRoute,
   RegisterRoute: RegisterRoute,
   TermsAndConditionsRoute: TermsAndConditionsRoute,
   TermsAndConditionsClubRoute: TermsAndConditionsClubRoute,

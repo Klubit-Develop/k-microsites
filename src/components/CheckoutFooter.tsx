@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { Link } from '@tanstack/react-router';
 import Button from '@/components/ui/Button';
 
 interface CheckoutFooterProps {
@@ -39,7 +40,7 @@ const CheckoutFooter = ({
             onClick={onCheckout}
             className="w-full h-[48px]"
         >
-            {t('event.continue', 'Continuar')} - {(total ?? 0).toFixed(2).replace('.', ',')}€
+            {t('event.continue', 'Continuar')} - {(total ?? 0).toFixed(2).replace('.', ',')}â‚¬
         </Button>
     );
 
@@ -50,7 +51,14 @@ const CheckoutFooter = ({
                 {buttonContent}
                 <div className="px-[6px]">
                     <p className="text-[rgba(246,246,246,0.5)] text-[12px] font-medium font-helvetica leading-normal">
-                        {t('event.legal_text', 'Comprando esta entrada, abrirás una cuenta y aceptarás nuestras Condiciones de Uso generales, la Política de Privacidad y las Condiciones de Compra de entradas. Procesamos tus datos personales de acuerdo con nuestra Política de Privacidad.')}
+                        {t('checkout.legal_text_prefix', 'Comprando esta entrada, abrirás una cuenta y aceptarás nuestras Condiciones de Uso generales, la Política de Privacidad y las ')}
+                        <Link
+                            to="/purchase-terms"
+                            className="text-[#ff336d] underline hover:opacity-80 transition-opacity"
+                        >
+                            {t('checkout.purchase_conditions_link', 'Condiciones de Compra')}
+                        </Link>
+                        {t('checkout.legal_text_suffix', ' de entradas. Procesamos tus datos personales de acuerdo con nuestra Política de Privacidad.')}
                     </p>
                 </div>
             </div>
@@ -59,7 +67,14 @@ const CheckoutFooter = ({
             <div className={`md:hidden flex flex-col gap-[16px] w-full ${className}`}>
                 <div className="px-[6px]">
                     <p className="text-[rgba(246,246,246,0.5)] text-[12px] font-medium font-helvetica leading-normal">
-                        {t('event.legal_text', 'Comprando esta entrada, abrirás una cuenta y aceptarás nuestras Condiciones de Uso generales, la Política de Privacidad y las Condiciones de Compra de entradas. Procesamos tus datos personales de acuerdo con nuestra Política de Privacidad.')}
+                        {t('checkout.legal_text_prefix', 'Comprando esta entrada, abrirás una cuenta y aceptarás nuestras Condiciones de Uso generales, la Política de Privacidad y las ')}
+                        <Link
+                            to="/purchase-terms"
+                            className="text-[#ff336d] underline hover:opacity-80 transition-opacity"
+                        >
+                            {t('checkout.purchase_conditions_link', 'Condiciones de Compra')}
+                        </Link>
+                        {t('checkout.legal_text_suffix', ' de entradas. Procesamos tus datos personales de acuerdo con nuestra Política de Privacidad.')}
                     </p>
                 </div>
                 {/* Spacer for fixed button */}

@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Link } from '@tanstack/react-router';
 import ReservationCard, { type Reservation, type ReservationZone, type ReservationPrice } from './ReservationCard';
 
 interface ZoneWithReservations {
@@ -84,7 +85,7 @@ const ZoneCard = ({ zoneData, onClick, hasSelectedItems = false }: ZoneCardProps
                     </span>
                 </div>
                 <span className="text-[#939393] text-[14px] font-normal font-helvetica">
-                    {t('event.from_price', 'Desde')} {zoneData.minPrice.toFixed(2).replace('.', ',')}€
+                    {t('event.from_price', 'Desde')} {zoneData.minPrice.toFixed(2).replace('.', ',')}â‚¬
                 </span>
             </div>
         </button>
@@ -279,7 +280,7 @@ const SelectionStep = ({
                     {noTablesForPartySize && (
                         <div className="px-[6px] mt-[4px]">
                             <span className="text-[#e5ff88] text-[12px] font-medium font-helvetica">
-                                {t('event.no_tables_for_party_size', 'No hay mesas disponibles para este número de personas')}
+                                {t('event.no_tables_for_party_size', 'No hay mesas disponibles para este nÃºmero de personas')}
                             </span>
                         </div>
                     )}
@@ -327,7 +328,14 @@ const SelectionStep = ({
 
                 <div className="px-[6px]">
                     <p className="text-[12px] font-medium font-helvetica text-[rgba(246,246,246,0.5)]">
-                        {t('event.purchase_terms', 'Comprando esta entrada, abrirás una cuenta y aceptarás nuestras Condiciones de Uso generales, la Política de Privacidad y las Condiciones de Compra de entradas. Procesamos tus datos personales de acuerdo con nuestra Política de Privacidad.')}
+                        {t('checkout.legal_text_prefix', 'Comprando esta entrada, abrirás una cuenta y aceptarás nuestras Condiciones de Uso generales, la Política de Privacidad y las ')}
+                        <Link
+                            to="/purchase-terms"
+                            className="text-[#ff336d] underline hover:opacity-80 transition-opacity"
+                        >
+                            {t('checkout.purchase_conditions_link', 'Condiciones de Compra')}
+                        </Link>
+                        {t('checkout.legal_text_suffix', ' de entradas. Procesamos tus datos personales de acuerdo con nuestra Política de Privacidad.')}
                     </p>
                 </div>
             </div>
@@ -374,7 +382,7 @@ const SelectionStep = ({
                         {noTablesForPartySize && (
                             <div className="px-[6px]">
                                 <span className="text-[#e5ff88] text-[12px] font-medium font-helvetica">
-                                    {t('event.no_tables_for_party_size', 'No hay mesas disponibles para este número de personas')}
+                                    {t('event.no_tables_for_party_size', 'No hay mesas disponibles para este nÃºmero de personas')}
                                 </span>
                             </div>
                         )}
@@ -544,12 +552,19 @@ const FormStep = ({
                     disabled={!isFormValid}
                     className={`hidden md:flex w-full h-[48px] rounded-[12px] items-center justify-center font-bold text-[16px] font-helvetica transition-opacity ${isFormValid ? 'bg-[#ff336d] text-[#f6f6f6] cursor-pointer hover:opacity-90' : 'bg-[#232323] text-[#939393] cursor-not-allowed'}`}
                 >
-                    {t('event.pay', 'Pagar')} - {total.toFixed(2).replace('.', ',')}€
+                    {t('event.pay', 'Pagar')} - {total.toFixed(2).replace('.', ',')}â‚¬
                 </button>
 
                 <div className="px-[6px]">
                     <p className="text-[12px] font-medium font-helvetica text-[rgba(246,246,246,0.5)]">
-                        {t('event.purchase_terms', 'Comprando esta entrada, abrirás una cuenta y aceptarás nuestras Condiciones de Uso generales, la Política de Privacidad y las Condiciones de Compra de entradas. Procesamos tus datos personales de acuerdo con nuestra Política de Privacidad.')}
+                        {t('checkout.legal_text_prefix', 'Comprando esta entrada, abrirás una cuenta y aceptarás nuestras Condiciones de Uso generales, la Política de Privacidad y las ')}
+                        <Link
+                            to="/purchase-terms"
+                            className="text-[#ff336d] underline hover:opacity-80 transition-opacity"
+                        >
+                            {t('checkout.purchase_conditions_link', 'Condiciones de Compra')}
+                        </Link>
+                        {t('checkout.legal_text_suffix', ' de entradas. Procesamos tus datos personales de acuerdo con nuestra Política de Privacidad.')}
                     </p>
                 </div>
             </div>
@@ -564,7 +579,7 @@ const FormStep = ({
                         disabled={!isFormValid}
                         className={`w-full h-[48px] rounded-[12px] flex items-center justify-center font-bold text-[16px] font-helvetica transition-opacity ${isFormValid ? 'bg-[#ff336d] text-[#f6f6f6] cursor-pointer hover:opacity-90' : 'bg-[#232323] text-[#939393] cursor-not-allowed'}`}
                     >
-                        {t('event.pay', 'Pagar')} - {total.toFixed(2).replace('.', ',')}€
+                        {t('event.pay', 'Pagar')} - {total.toFixed(2).replace('.', ',')}â‚¬
                     </button>
                 </div>
             </div>

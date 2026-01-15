@@ -531,7 +531,7 @@ const Event = () => {
                 goToPayment();
                 updateSearchParams({ step: 3 }, true);
             } else {
-                toast.error(response.message || t('checkout.transaction_error', 'Error al crear la transacción'));
+                toast.error(response.message || t('checkout.transaction_error', 'Error al crear la transacciÃ³n'));
             }
         },
         onError: (error: unknown) => {
@@ -539,7 +539,7 @@ const Event = () => {
             if (err.backendError) {
                 toast.error(err.backendError.message);
             } else {
-                toast.error(t('common.error_connection', 'Error de conexión'));
+                toast.error(t('common.error_connection', 'Error de conexiÃ³n'));
             }
         },
     });
@@ -659,7 +659,7 @@ const Event = () => {
             const precompraPrice = guestlist.prices.find(p => p.finalPrice > 0 && p.id !== price.id);
             if (precompraPrice) {
                 precompraData = {
-                    products: [{ name: 'Consumición', quantity: 1 }],
+                    products: [{ name: 'ConsumiciÃ³n', quantity: 1 }],
                     startTime: '00:00',
                     endTime: '06:00',
                     price: precompraPrice.finalPrice,
@@ -687,7 +687,7 @@ const Event = () => {
             finalPrice: price.finalPrice,
             currency: price.currency || 'EUR',
             isLowStock,
-            lowStockLabel: isLowStock ? 'últimas' : undefined,
+            lowStockLabel: isLowStock ? 'Ãºltimas' : undefined,
             isFree,
             hasPrecompra,
             precompraData,
@@ -992,6 +992,7 @@ const Event = () => {
             {
                 coverImage: event.flyer,
                 date: dayjs(event.startDate).locale('es').format('ddd, D MMMM'),
+                termsAndConditions: event.termsAndConditions,
             }
         );
 
@@ -1120,6 +1121,7 @@ const Event = () => {
             {
                 coverImage: event.flyer,
                 date: dayjs(event.startDate).locale('es').format('ddd, D MMMM'),
+                termsAndConditions: event.termsAndConditions,
             }
         );
 
@@ -1227,6 +1229,7 @@ const Event = () => {
             {
                 coverImage: event.flyer,
                 date: dayjs(event.startDate).locale('es').format('ddd, D MMMM'),
+                termsAndConditions: event.termsAndConditions,
             }
         );
 
@@ -1596,7 +1599,7 @@ const Event = () => {
                                     lat: event.addressLocation?.coordinates?.[1] ?? 0,
                                     lng: event.addressLocation?.coordinates?.[0] ?? 0,
                                 }}
-                                legalText={event.club?.termsAndConditions ? t('club.legal_terms', 'Leer los términos legales del klub') : undefined}
+                                legalText={event.club?.termsAndConditions ? t('club.legal_terms', 'Leer los tÃ©rminos legales del klub') : undefined}
                                 onLegalClick={event.club?.termsAndConditions ? handleLegalClick : undefined}
                             />
                         ) : null}
@@ -1690,7 +1693,7 @@ const Event = () => {
                                 lat: event.addressLocation?.coordinates?.[1] ?? 0,
                                 lng: event.addressLocation?.coordinates?.[0] ?? 0,
                             }}
-                            legalText={event.club?.termsAndConditions ? t('club.legal_terms', 'Leer los términos legales del klub') : undefined}
+                            legalText={event.club?.termsAndConditions ? t('club.legal_terms', 'Leer los tÃ©rminos legales del klub') : undefined}
                             onLegalClick={event.club?.termsAndConditions ? handleLegalClick : undefined}
                         />
                     ) : null}

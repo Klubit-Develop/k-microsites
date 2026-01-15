@@ -44,6 +44,7 @@ interface Coupon {
 interface EventDisplayInfo {
     coverImage?: string;
     date?: string;
+    termsAndConditions?: string;
 }
 
 interface ReservationFormData {
@@ -283,7 +284,7 @@ export const useCheckoutStore = create<CheckoutState>()(
             resetForNewEvent: (newEventId: string) => {
                 const state = get();
 
-                // Si el eventId guardado es diferente al nuevo, o si el timer expirá
+                // Si el eventId guardado es diferente al nuevo, o si el timer expirÃ¡
                 // limpiamos todo el checkout
                 if (state.eventId !== newEventId || state.isTimerExpired) {
                     set({

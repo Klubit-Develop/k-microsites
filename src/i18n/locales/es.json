@@ -277,7 +277,9 @@
         "free": "Gratis",
         "creating_order": "Creando pedido...",
         "transaction_error": "Error al crear la transacción",
-        "legal_text": "Comprando esta entrada, abrirás una cuenta y aceptarás nuestras Condiciones de Uso generales, la Política de Privacidad y las Condiciones de Compra de entradas. Procesamos tus datos personales de acuerdo con nuestra Política de Privacidad.",
+        "legal_text_prefix": "Comprando esta entrada, abrirás una cuenta y aceptarás nuestras Condiciones de Uso generales, la Política de Privacidad y las ",
+        "purchase_conditions_link": "Condiciones de Compra",
+        "legal_text_suffix": " de entradas. Procesamos tus datos personales de acuerdo con nuestra Política de Privacidad.",
         "invalid_coupon": "Cupón no válido",
         "coupon_applied": "Cupón aplicado correctamente",
         "coupon_error": "Error al validar el cupón",
@@ -302,12 +304,15 @@
     },
     "wallet": {
         "event_live": "Evento en curso",
+        "starts_in": "Empieza en {{hours}}h",
         "today": "Hoy",
         "upcoming": "Próximos",
         "past": "Pasados",
         "empty_title": "No tienes próximos eventos",
         "empty_subtitle": "Descubre planes cerca de ti y organiza tu próxima salida.",
         "empty_description": "Cuando compres entradas, aparecerán aquí",
+        "empty_upcoming_title": "No tienes próximos eventos",
+        "empty_upcoming_subtitle": "Descubre planes cerca de ti y organiza tu próxima salida.",
         "explore_events": "Explorar eventos",
         "discover_events": "Descubrir eventos",
         "item": "entrada",
@@ -364,5 +369,12 @@
         "avatar_error": "Error al subir el avatar",
         "avatar_removed": "Avatar eliminado correctamente",
         "avatar_remove_error": "Error al eliminar el avatar"
+    },
+    "purchase_terms": {
+        "title": "Términos de compra",
+        "important_info_title": "Información importante",
+        "important_info_content": "Lleva tu móvil con la app instalada para acceder al evento.\nPresenta el código QR de tus entradas en la puerta.\nLas entradas son nominativas e intransferibles salvo que el local indique lo contrario.",
+        "your_tickets_title": "Aquí tienes tus entradas",
+        "no_terms": "No hay términos y condiciones disponibles para este evento."
     }
 }
