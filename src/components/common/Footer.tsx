@@ -83,7 +83,7 @@ const Footer: FC<FooterProps> = ({
                             className="h-10 hover:opacity-80 transition-opacity"
                         >
                             <img
-                                src={`/assets/images/apple-store-${lang}.png`}
+                                src={`/assets/images/apple_${lang}.svg`}
                                 alt="Download on the App Store"
                                 className="h-full w-auto object-contain"
                             />
@@ -95,7 +95,7 @@ const Footer: FC<FooterProps> = ({
                             className="h-10 hover:opacity-80 transition-opacity"
                         >
                             <img
-                                src={`/assets/images/google-store-${lang}.png`}
+                                src={`/assets/images/google_${lang}.svg`}
                                 alt="Get it on Google Play"
                                 className="h-full w-auto object-contain"
                             />
@@ -158,7 +158,7 @@ const Footer: FC<FooterProps> = ({
                             className="h-10 hover:opacity-80 transition-opacity"
                         >
                             <img
-                                src={`/assets/images/apple-store-${lang}.png`}
+                                src={`/assets/images/apple_${lang}.svg`}
                                 alt="Download on the App Store"
                                 className="h-full w-auto object-contain"
                             />
@@ -170,7 +170,7 @@ const Footer: FC<FooterProps> = ({
                             className="h-10 hover:opacity-80 transition-opacity"
                         >
                             <img
-                                src={`/assets/images/google-store-${lang}.png`}
+                                src={`/assets/images/google_${lang}.svg`}
                                 alt="Get it on Google Play"
                                 className="h-full w-auto object-contain"
                             />

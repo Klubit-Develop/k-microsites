@@ -9,7 +9,6 @@ import { Link, useNavigate } from '@tanstack/react-router';
 import axiosInstance from '@/config/axiosConfig';
 import { useAuthStore } from '@/stores/authStore';
 import { ChevronRightIcon } from '@/components/icons';
-import Button from '@/components/ui/Button';
 
 interface Transaction {
     id: string;
@@ -255,11 +254,11 @@ const WalletEventCard = ({ title, date, time, location, imageUrl, onClick }: Wal
                 </span>
 
                 <div className="flex items-center gap-1">
-                    <span className="text-[14px] font-helvetica text-[#E5FF88] truncate">
+                    <span className="text-[14px] font-helvetica text-[#939393] truncate">
                         {date}
                     </span>
-                    <span className="size-[3px] bg-[#E5FF88] rounded-full shrink-0" />
-                    <span className="text-[14px] font-helvetica text-[#E5FF88]">
+                    <span className="size-[3px] bg-[#939393] rounded-full shrink-0" />
+                    <span className="text-[14px] font-helvetica text-[#939393]">
                         {time}
                     </span>
                 </div>
@@ -323,27 +322,41 @@ const WalletSkeleton = () => (
     </div>
 );
 
-const WalletEmpty = () => {
+const UpcomingEmptyState = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();
 
     return (
-        <div className="flex flex-col items-center justify-center gap-6 w-full max-w-[500px] mx-auto px-4 min-h-[calc(100vh-200px)]">
-            <div className="flex flex-col items-center gap-2 text-center">
-                <h2 className="text-[20px] font-helvetica font-bold text-[#F6F6F6]">
-                    {t('wallet.empty_title', 'Tu wallet está vacía')}
-                </h2>
-                <p className="text-[14px] font-helvetica text-[#939393]">
-                    {t('wallet.empty_description', 'Cuando compres entradas, aparecerán aquí')}
-                </p>
+        <div className="flex flex-col items-center justify-center w-full py-8">
+            <div className="flex flex-col gap-8 items-center w-full">
+                <div className="flex flex-col gap-6 items-center w-full">
+                    <div className="flex items-center justify-center size-[90px]">
+                        <img
+                            src="https://klubit.fra1.cdn.digitaloceanspaces.com/icon-ticket.png"
+                            alt=""
+                            className="w-full h-auto object-contain"
+                        />
+                    </div>
+
+                    <div className="flex flex-col gap-2 items-center text-center px-4 w-full">
+                        <h3 className="font-borna font-semibold text-[24px] text-[#F6F6F6]">
+                            {t('wallet.empty_upcoming_title', 'No tienes próximos eventos')}
+                        </h3>
+                        <p className="font-helvetica font-medium text-[16px] text-[#939393]">
+                            {t('wallet.empty_upcoming_subtitle', 'Descubre planes cerca de ti y organiza tu próxima salida.')}
+                        </p>
+                    </div>
+                </div>
+
+                <button
+                    onClick={() => navigate({ to: '/' })}
+                    className="flex items-center justify-center w-full h-12 bg-[#232323] rounded-xl hover:bg-[#2a2a2a] transition-colors"
+                >
+                    <span className="font-helvetica font-bold text-[16px] text-[#F6F6F6]">
+                        {t('wallet.discover_events', 'Descubrir eventos')}
+                    </span>
+                </button>
             </div>
-            <Button
-                variant="primary"
-                onClick={() => navigate({ to: '/' })}
-                className="!w-auto !px-8"
-            >
-                {t('wallet.explore_events', 'Explorar eventos')}
-            </Button>
         </div>
     );
 };
@@ -547,24 +560,17 @@ const Wallet = () => {
         );
     }
 
-    if (!data || data.length === 0) {
-        return <WalletEmpty />;
-    }
+    const hasNoUpcoming = upcomingTransactions.length === 0;
+    const hasPastOrFeatured = pastTransactions.length > 0 || featuredTransactions.length > 0;
+    const showUpcomingEmptyState = hasNoUpcoming && hasPastOrFeatured;
+    const hasNoData = !data || data.length === 0;
+
+    const containerClasses = hasNoData 
+        ? "flex flex-col gap-9 w-full max-w-[500px] mx-auto px-4 pt-[120px] pb-[100px] md:pt-0 md:pb-0 md:min-h-[calc(100vh-178px)] md:justify-center"
+        : "flex flex-col gap-9 w-full max-w-[500px] mx-auto px-4 pt-[120px] pb-[100px] md:py-8";
 
     return (
-        <div className="flex flex-col gap-9 w-full max-w-[500px] mx-auto px-4 pt-[120px] pb-[100px] md:py-8">
-            <button
-                onClick={() => navigate({ to: '/' })}
-                className="flex items-center gap-2 text-[#939393] hover:text-[#F6F6F6] transition-colors self-start cursor-pointer"
-            >
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                    <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                <span className="text-[14px] font-helvetica font-medium">
-                    {t('common.back', 'Volver')}
-                </span>
-            </button>
-
+        <div className={containerClasses}>
             {featuredTransactions.length > 0 && (
                 <div className="flex flex-col gap-4">
                     {featuredTransactions.map((transaction, index) => (
@@ -603,7 +609,14 @@ const Wallet = () => {
                 </div>
             )}
 
-            {kardsData && kardsData.length > 0 && (
+            {(showUpcomingEmptyState || hasNoData) && (
+                <div className="flex flex-col gap-4">
+                    <SectionHeader title={t('wallet.upcoming', 'Próximos')} />
+                    <UpcomingEmptyState />
+                </div>
+            )}
+
+            {!hasNoData && kardsData && kardsData.length > 0 && (
                 <div className="flex flex-col gap-4">
                     <SectionHeader
                         title={t('wallet.your_kards', 'Tus kards')}

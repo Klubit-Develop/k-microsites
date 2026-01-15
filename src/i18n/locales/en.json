@@ -43,7 +43,8 @@
         "privacy_policy": "Privacy Policy",
         "copyright": "© {{year}} Klubit",
         "download_app": "Download the app",
-        "download_app_description": "Discover all the advantages and benefits of Klubit."
+        "download_app_description": "Access your tickets and much more",
+        "download_app_description_mobile": "Discover all the advantages and benefits of Klubit."
     },
     "auth_success": {
         "authenticating": "Verifying authentication",
@@ -304,9 +305,11 @@
         "today": "Today",
         "upcoming": "Upcoming",
         "past": "Past",
-        "empty_title": "Your wallet is empty",
+        "empty_title": "You have no upcoming events",
+        "empty_subtitle": "Discover plans near you and organize your next outing.",
         "empty_description": "When you buy tickets, they will appear here",
         "explore_events": "Explore events",
+        "discover_events": "Discover events",
         "item": "ticket",
         "items": "tickets"
     },

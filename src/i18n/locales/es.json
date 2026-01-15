@@ -43,7 +43,8 @@
         "privacy_policy": "Política de Privacidad",
         "copyright": "© {{year}} Klubit",
         "download_app": "Descarga la app",
-        "download_app_description": "Descubre todas las ventajas y beneficios de Klubit."
+        "download_app_description": "Accede a tus entradas y mucho más",
+        "download_app_description_mobile": "Descubre todas las ventajas y beneficios de Klubit."
     },
     "auth_success": {
         "authenticating": "Verificando autenticación",
@@ -165,13 +166,13 @@
         "subtitle": "Ingresa tu nuevo correo electrónico para actualizarlo en tu cuenta.",
         "email": "Nuevo correo electrónico",
         "email_required": "El correo electrónico es obligatorio",
-        "email_invalid": "Por favor ingresa un correo electrónico válido",
+        "email_invalid": "Por favor ingresa un correo válido",
         "repeat_email": "Repetir nuevo correo electrónico",
         "repeat_email_required": "Por favor repite tu correo electrónico",
         "emails_not_match": "Los correos electrónicos no coinciden",
         "continue": "Continuar",
         "submitting": "Procesando",
-        "success": "Solicitud de cambio de correo enviada exitosamente"
+        "success": "Solicitud de cambio de email enviada correctamente"
     },
     "oauth": {
         "title": "Introduce tu número de teléfono",
@@ -304,9 +305,11 @@
         "today": "Hoy",
         "upcoming": "Próximos",
         "past": "Pasados",
-        "empty_title": "Tu wallet está vacía",
+        "empty_title": "No tienes próximos eventos",
+        "empty_subtitle": "Descubre planes cerca de ti y organiza tu próxima salida.",
         "empty_description": "Cuando compres entradas, aparecerán aquí",
         "explore_events": "Explorar eventos",
+        "discover_events": "Descubrir eventos",
         "item": "entrada",
         "items": "entradas"
     },

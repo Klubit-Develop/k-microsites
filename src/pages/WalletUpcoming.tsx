@@ -8,10 +8,6 @@ import { useNavigate } from '@tanstack/react-router';
 
 import axiosInstance from '@/config/axiosConfig';
 
-// =============================================================================
-// INTERFACES
-// =============================================================================
-
 interface Transaction {
     id: string;
     type: string;
@@ -64,10 +60,6 @@ interface BackendResponse {
     message: string;
 }
 
-// =============================================================================
-// HELPER FUNCTIONS
-// =============================================================================
-
 const isEventUpcoming = (startDate: string): boolean => {
     const eventDate = dayjs(startDate);
     const today = dayjs();
@@ -88,10 +80,6 @@ const formatEventTimeRange = (startDate: string, startTime?: string, endTime?: s
     const endFormatted = start.add(6, 'hour').format('HH:mm');
     return `${startFormatted} - ${endFormatted}`;
 };
-
-// =============================================================================
-// SUB-COMPONENTS
-// =============================================================================
 
 interface WalletEventCardProps {
     title: string;
@@ -152,22 +140,46 @@ const WalletListSkeleton = () => (
 
 const WalletListEmpty = () => {
     const { t } = useTranslation();
+    const navigate = useNavigate();
+
+    const handleDiscoverEvents = () => {
+        navigate({ to: '/' });
+    };
 
     return (
-        <div className="flex flex-col items-center justify-center gap-4 w-full py-16">
-            <div className="flex items-center justify-center size-16 bg-[#232323] rounded-full">
-                <span className="text-3xl">📅</span>
+        <div className="flex flex-col items-center justify-center w-full py-8">
+            <div className="flex flex-col gap-8 items-center w-full max-w-[400px]">
+                <div className="flex flex-col gap-6 items-center w-full">
+                    <div className="flex items-center justify-center size-[90px]">
+                        <img
+                            src="https://klubit.fra1.cdn.digitaloceanspaces.com/icon-ticket.png"
+                            alt=""
+                            className="w-full h-auto object-contain"
+                        />
+                    </div>
+
+                    <div className="flex flex-col gap-2 items-center text-center px-4 w-full">
+                        <h3 className="font-borna font-semibold text-[24px] text-[#F6F6F6]">
+                            {t('wallet.empty_title', 'No tienes próximos eventos')}
+                        </h3>
+                        <p className="font-helvetica font-medium text-[16px] text-[#939393]">
+                            {t('wallet.empty_subtitle', 'Descubre planes cerca de ti y organiza tu próxima salida.')}
+                        </p>
+                    </div>
+                </div>
+
+                <button
+                    onClick={handleDiscoverEvents}
+                    className="flex items-center justify-center w-full h-12 bg-[#232323] rounded-xl hover:bg-[#2a2a2a] transition-colors"
+                >
+                    <span className="font-helvetica font-bold text-[16px] text-[#F6F6F6]">
+                        {t('wallet.discover_events', 'Descubrir eventos')}
+                    </span>
+                </button>
             </div>
-            <p className="text-[14px] font-helvetica text-[#939393] text-center">
-                {t('wallet.no_upcoming', 'No tienes eventos próximos')}
-            </p>
         </div>
     );
 };
-
-// =============================================================================
-// MAIN COMPONENT
-// =============================================================================
 
 const WalletUpcoming = () => {
     const { t, i18n } = useTranslation();
@@ -206,7 +218,6 @@ const WalletUpcoming = () => {
 
     return (
         <div className="min-h-screen bg-black">
-            {/* Content */}
             <div className="flex flex-col gap-2 w-full max-w-[500px] mx-auto px-4 pt-[120px] pb-[100px] md:py-4 md:pb-8">
                 {isLoading ? (
                     <WalletListSkeleton />
