@@ -40,7 +40,7 @@ const CheckoutFooter = ({
             onClick={onCheckout}
             className="w-full h-[48px]"
         >
-            {t('event.continue', 'Continuar')} - {(total ?? 0).toFixed(2).replace('.', ',')}â‚¬
+            {t('event.continue', 'Continuar')} - {(total ?? 0).toFixed(2).replace('.', ',')}€
         </Button>
     );
 

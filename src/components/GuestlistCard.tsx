@@ -222,7 +222,7 @@ const GuestlistCard = ({
                                     {isLowStock && (
                                         <div className="flex items-center px-2 py-0.5 bg-[#232323] rounded-[25px] shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]">
                                             <span className="text-[#f6f6f6] text-xs font-medium font-helvetica">
-                                                Hot ðŸ”¥
+                                                Hot 🔥
                                             </span>
                                         </div>
                                     )}

@@ -313,7 +313,7 @@ const AuthModal = ({ isOpen, onClose, onSuccess, eventSlug, checkoutSearchParams
                 } else if (responseToken && user) {
                     setToken(responseToken);
                     setUser(user);
-                    toast.success(t('auth.login_success', '¡Bienvenido!'));
+                    toast.success(t('auth.login_success', '!Bienvenido!'));
                     onSuccess();
                     onClose();
                 }

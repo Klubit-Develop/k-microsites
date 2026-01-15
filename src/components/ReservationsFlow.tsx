@@ -85,7 +85,7 @@ const ZoneCard = ({ zoneData, onClick, hasSelectedItems = false }: ZoneCardProps
                     </span>
                 </div>
                 <span className="text-[#939393] text-[14px] font-normal font-helvetica">
-                    {t('event.from_price', 'Desde')} {zoneData.minPrice.toFixed(2).replace('.', ',')}â‚¬
+                    {t('event.from_price', 'Desde')} {zoneData.minPrice.toFixed(2).replace('.', ',')}€
                 </span>
             </div>
         </button>
@@ -280,7 +280,7 @@ const SelectionStep = ({
                     {noTablesForPartySize && (
                         <div className="px-[6px] mt-[4px]">
                             <span className="text-[#e5ff88] text-[12px] font-medium font-helvetica">
-                                {t('event.no_tables_for_party_size', 'No hay mesas disponibles para este nÃºmero de personas')}
+                                {t('event.no_tables_for_party_size', 'No hay mesas disponibles para este número de personas')}
                             </span>
                         </div>
                     )}
@@ -382,7 +382,7 @@ const SelectionStep = ({
                         {noTablesForPartySize && (
                             <div className="px-[6px]">
                                 <span className="text-[#e5ff88] text-[12px] font-medium font-helvetica">
-                                    {t('event.no_tables_for_party_size', 'No hay mesas disponibles para este nÃºmero de personas')}
+                                    {t('event.no_tables_for_party_size', 'No hay mesas disponibles para este número de personas')}
                                 </span>
                             </div>
                         )}
@@ -552,7 +552,7 @@ const FormStep = ({
                     disabled={!isFormValid}
                     className={`hidden md:flex w-full h-[48px] rounded-[12px] items-center justify-center font-bold text-[16px] font-helvetica transition-opacity ${isFormValid ? 'bg-[#ff336d] text-[#f6f6f6] cursor-pointer hover:opacity-90' : 'bg-[#232323] text-[#939393] cursor-not-allowed'}`}
                 >
-                    {t('event.pay', 'Pagar')} - {total.toFixed(2).replace('.', ',')}â‚¬
+                    {t('event.pay', 'Pagar')} - {total.toFixed(2).replace('.', ',')}€
                 </button>
 
                 <div className="px-[6px]">
@@ -579,7 +579,7 @@ const FormStep = ({
                         disabled={!isFormValid}
                         className={`w-full h-[48px] rounded-[12px] flex items-center justify-center font-bold text-[16px] font-helvetica transition-opacity ${isFormValid ? 'bg-[#ff336d] text-[#f6f6f6] cursor-pointer hover:opacity-90' : 'bg-[#232323] text-[#939393] cursor-not-allowed'}`}
                     >
-                        {t('event.pay', 'Pagar')} - {total.toFixed(2).replace('.', ',')}â‚¬
+                        {t('event.pay', 'Pagar')} - {total.toFixed(2).replace('.', ',')}€
                     </button>
                 </div>
             </div>

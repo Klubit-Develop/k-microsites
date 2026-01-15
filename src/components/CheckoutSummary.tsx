@@ -123,7 +123,7 @@ const EventInfoCard = ({ items }: { event: EventInfo; items: CartItem[] }) => {
                             </span>
                         </div>
                         <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica">
-                            {(item.unitPrice * item.quantity).toFixed(2).replace('.', ',')}â‚¬
+                            {(item.unitPrice * item.quantity).toFixed(2).replace('.', ',')}€
                         </span>
                     </div>
                 ))}
@@ -173,7 +173,7 @@ const CouponSection = ({
                     </span>
                     <div className="w-[3px] h-[3px] rounded-full bg-[#939393]" />
                     <span className="text-[#939393] text-[14px] font-normal font-helvetica">
-                        {discountAmount.toFixed(2).replace('.', ',')}â‚¬ {t('checkout.discount', 'descuento')}
+                        {discountAmount.toFixed(2).replace('.', ',')}€ {t('checkout.discount', 'descuento')}
                     </span>
                 </div>
                 <button
@@ -196,7 +196,7 @@ const CouponSection = ({
                 className="w-full h-[48px] bg-[#232323] rounded-[12px] flex items-center justify-center cursor-pointer hover:bg-[#2a2a2a] transition-colors"
             >
                 <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica">
-                    {t('checkout.apply_coupon', 'Aplicar cÃ³digo de cupÃ³n')}
+                    {t('checkout.apply_coupon', 'Aplicar código de cupón')}
                 </span>
             </button>
 
@@ -227,13 +227,13 @@ const CouponSection = ({
                                 />
                             </div>
                             <h2 className="text-[#f6f6f6] text-[24px] font-semibold font-borna text-center">
-                                {t('checkout.apply_coupon_title', 'Aplicar cupÃ³n')}
+                                {t('checkout.apply_coupon_title', 'Aplicar cupón')}
                             </h2>
                         </div>
 
                         <div className="flex flex-col gap-[4px] w-full">
                             <span className="text-[#939393] text-[14px] font-normal font-helvetica px-[6px]">
-                                {t('checkout.coupon_code_label', 'CÃ³digo de cupÃ³n')}
+                                {t('checkout.coupon_code_label', 'Código de cupón')}
                             </span>
                             <input
                                 type="text"
@@ -283,16 +283,16 @@ const PaymentDetailsCard = ({ subtotal, serviceFee, discount, total }: PaymentDe
                         {t('checkout.subtotal', 'Subtotal')}:
                     </span>
                     <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica">
-                        {subtotal.toFixed(2).replace('.', ',')}â‚¬
+                        {subtotal.toFixed(2).replace('.', ',')}€
                     </span>
                 </div>
 
                 <div className="flex items-center justify-between px-[16px] h-[56px]">
                     <span className="text-[#939393] text-[16px] font-medium font-helvetica">
-                        {t('checkout.service_fee', 'Gastos de gestiÃ³n')}:
+                        {t('checkout.service_fee', 'Gastos de gestión')}:
                     </span>
                     <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica">
-                        {serviceFee.toFixed(2).replace('.', ',')}â‚¬
+                        {serviceFee.toFixed(2).replace('.', ',')}€
                     </span>
                 </div>
 
@@ -302,7 +302,7 @@ const PaymentDetailsCard = ({ subtotal, serviceFee, discount, total }: PaymentDe
                             {t('checkout.discount_label', 'Descuento')}:
                         </span>
                         <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica">
-                            -{discount.toFixed(2).replace('.', ',')}â‚¬
+                            -{discount.toFixed(2).replace('.', ',')}€
                         </span>
                     </div>
                 )}
@@ -312,7 +312,7 @@ const PaymentDetailsCard = ({ subtotal, serviceFee, discount, total }: PaymentDe
                         {t('checkout.total_price', 'Precio total')}:
                     </span>
                     <span className="text-[#f6f6f6] text-[24px] font-bold font-helvetica">
-                        {total.toFixed(2).replace('.', ',')}â‚¬
+                        {total.toFixed(2).replace('.', ',')}€
                     </span>
                 </div>
             </div>
@@ -416,7 +416,7 @@ const NominativeAssignmentSection = ({
         const assignment = assignments.find(a => a.itemIndex === itemIndex);
         
         if (!assignment?.phone) {
-            toast.error(t('checkout.phone_required', 'Introduce un nÃºmero de telÃ©fono'));
+            toast.error(t('checkout.phone_required', 'Introduce un número de teléfono'));
             return;
         }
 
@@ -425,7 +425,7 @@ const NominativeAssignmentSection = ({
         const phoneDigits = assignment.phone.replace(/\D/g, '');
 
         if (phoneDigits.length !== expectedLength) {
-            toast.error(t('checkout.phone_invalid_length', 'NÃºmero de telÃ©fono invÃ¡lido'));
+            toast.error(t('checkout.phone_invalid_length', 'Número de teléfono inválido'));
             return;
         }
 
@@ -578,7 +578,7 @@ const NominativeAssignmentSection = ({
     return (
         <div className="flex flex-col gap-[4px] w-full">
             <span className="text-[#939393] text-[16px] font-medium font-helvetica px-[6px]">
-                {t('checkout.client_assignment', 'AsignaciÃ³n clientes')}*
+                {t('checkout.client_assignment', 'Asignación clientes')}*
             </span>
 
             <button
@@ -593,7 +593,7 @@ const NominativeAssignmentSection = ({
                 `}
             >
                 <span className={`text-[16px] font-medium font-helvetica ${allForMe ? 'text-[#e5ff88]' : 'text-[#f6f6f6]'}`}>
-                    {t('checkout.all_for_me', 'Son todas para mÃ­Â­')}
+                    {t('checkout.all_for_me', 'Son todas para mí')}
                 </span>
                 <CheckboxIcon checked={allForMe} />
             </button>
@@ -643,7 +643,7 @@ const NominativeAssignmentSection = ({
                                 <div className="flex flex-col gap-[16px] px-[16px] pb-[16px]">
                                     <div className="relative">
                                         <InputTextPhone
-                                            label={`${t('checkout.phone', 'TelÃ©fono')}*`}
+                                            label={`${t('checkout.phone', 'Teléfono')}*`}
                                             placeholder=""
                                             value={assignment?.phone || ''}
                                             onChange={(value) => handlePhoneChange(index, value)}
@@ -677,7 +677,7 @@ const NominativeAssignmentSection = ({
                                                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                                                 </svg>
                                             )}
-                                            {t('checkout.confirm_phone', 'Confirmar telÃ©fono')}
+                                            {t('checkout.confirm_phone', 'Confirmar teléfono')}
                                         </button>
                                     )}
 
@@ -692,21 +692,21 @@ const NominativeAssignmentSection = ({
                                             })}
                                             className="w-full h-[36px] bg-transparent border border-[#232323] rounded-[8px] flex items-center justify-center font-medium text-[14px] font-helvetica text-[#939393] cursor-pointer hover:border-[#3a3a3a] transition-colors"
                                         >
-                                            {t('checkout.change_number', 'Cambiar nÃºmero')}
+                                            {t('checkout.change_number', 'Cambiar número')}
                                         </button>
                                     )}
 
                                     <p className="text-[#939393] text-[12px] font-medium font-helvetica px-[6px]">
                                         {isNotFound
-                                            ? t('checkout.assign_auto_number', '**La entrada se asignarÃ¡Â¡ automÃ¡ticamente al nÃºmero indicado. Siempre podrÃ¡s cancelar el envÃ­o desde la app.')
-                                            : t('checkout.assign_auto_user', '**La entrada se asignarÃ¡Â¡ automÃ¡ticamente al siguiente usuario. Siempre podrÃ¡s cancelar el envÃ­o desde la app.')
+                                            ? t('checkout.assign_auto_number', '**La entrada se asignará! automáticamente al número indicado. Siempre podrás cancelar el envío desde la app.')
+                                            : t('checkout.assign_auto_user', '**La entrada se asignará! automáticamente al siguiente usuario. Siempre podrás cancelar el envío desde la app.')
                                         }
                                     </p>
 
                                     {isNotFound && (
                                         <div className="flex flex-col gap-[4px]">
                                             <span className="text-[#939393] text-[14px] font-normal font-helvetica px-[6px]">
-                                                {t('checkout.email_notification', 'Email para notificaciÃ³n')}*
+                                                {t('checkout.email_notification', 'Email para notificación')}*
                                             </span>
                                             <input
                                                 type="email"
@@ -850,14 +850,14 @@ const CheckoutSummary = ({
             }
 
             if (!data.data.valid) {
-                toast.error(t('checkout.invalid_coupon', 'CupÃ³n no vÃ¡lido'));
+                toast.error(t('checkout.invalid_coupon', 'Cupón no válido'));
                 return;
             }
 
             setAppliedCoupon(data.data.coupon);
-            toast.success(t('checkout.coupon_applied', 'CupÃ³n aplicado correctamente'));
+            toast.success(t('checkout.coupon_applied', 'Cupón aplicado correctamente'));
         } catch {
-            toast.error(t('checkout.coupon_error', 'Error al validar el cupÃ³n'));
+            toast.error(t('checkout.coupon_error', 'Error al validar el cupón'));
         } finally {
             setCouponLoading(false);
         }
@@ -869,7 +869,7 @@ const CheckoutSummary = ({
 
     const handleContinue = useCallback(() => {
         if (hasNominativeItems && !nominativeComplete) {
-            toast.error(t('checkout.complete_assignments', 'Por favor completa la asignaciÃ³n de todas las entradas'));
+            toast.error(t('checkout.complete_assignments', 'Por favor completa la asignación de todas las entradas'));
             return;
         }
 
@@ -902,7 +902,7 @@ const CheckoutSummary = ({
             ) : total === 0 ? (
                 <span>{t('checkout.confirm_free', 'Confirmar')} - {t('checkout.free', 'Gratis')}</span>
             ) : (
-                <span>{t('checkout.continue_to_payment', 'Continuar al pago')} - {total.toFixed(2).replace('.', ',')}â‚¬</span>
+                <span>{t('checkout.continue_to_payment', 'Continuar al pago')} - {total.toFixed(2).replace('.', ',')}€</span>
             )}
         </button>
     );
@@ -940,14 +940,14 @@ const CheckoutSummary = ({
                 )}
 
                 <p className="text-[#f6f6f6] text-[14px] font-normal font-helvetica px-[6px] leading-[1.4]">
-                    {t('checkout.incident_info_prefix', 'En caso de incidencia, por favor notifÃ­quela mediante el ')}
+                    {t('checkout.incident_info_prefix', 'En caso de incidencia, por favor notifíquela mediante el ')}
                     <button
                         onClick={() => setIsIncidentModalOpen(true)}
                         className="text-[#ff336d] underline hover:opacity-80 transition-opacity cursor-pointer bg-transparent border-none p-0 font-normal text-[14px] font-helvetica"
                     >
                         {t('checkout.incident_info_link', 'siguiente formulario')}
                     </button>
-                    {t('checkout.incident_info_suffix', '. Nuestro equipo analizarÃ¡ la informaciÃ³n y trabajarÃ¡ en la soluciÃ³n a la mayor brevedad posible.')}
+                    {t('checkout.incident_info_suffix', '. Nuestro equipo analizará la información y trabajará en la solución a la mayor brevedad posible.')}
                 </p>
 
                 {/* Desktop button */}
