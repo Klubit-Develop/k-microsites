@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from '@tanstack/react-router';
 import ReservationCard, { type Reservation, type ReservationZone, type ReservationPrice } from './ReservationCard';
+import { scrollToTop } from '@/hooks/useScrollToTop';
 
 interface ZoneWithReservations {
     zone: ReservationZone;
@@ -687,11 +688,13 @@ const ReservationsFlow = ({
     const handleZoneClick = useCallback((zoneData: ZoneWithReservations) => {
         setSelectedZone(zoneData);
         setCurrentStep(1);
+        scrollToTop();
     }, []);
 
     const handleBackToZones = useCallback(() => {
         setCurrentStep(0);
         setSelectedZone(null);
+        scrollToTop();
     }, []);
 
     const handlePartySizeChange = useCallback((delta: number) => {
@@ -701,10 +704,12 @@ const ReservationsFlow = ({
     const handleContinueToForm = useCallback(() => {
         setFormData(prev => ({ ...prev, partySize }));
         setCurrentStep(2);
+        scrollToTop();
     }, [partySize]);
 
     const handleBackToSelection = useCallback(() => {
         setCurrentStep(1);
+        scrollToTop();
     }, []);
 
     const handleSubmit = useCallback(() => {

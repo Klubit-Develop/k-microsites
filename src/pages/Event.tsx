@@ -9,6 +9,7 @@ import { useParams, useSearch, useNavigate } from '@tanstack/react-router';
 import axiosInstance from '@/config/axiosConfig';
 import { useAuthStore } from '@/stores/authStore';
 import { useCheckoutStore, useCheckoutTimer } from '@/stores/useCheckoutStore';
+import { scrollToTop } from '@/hooks/useScrollToTop';
 
 import PageError from '@/components/common/PageError';
 import LocationCard from '@/components/LocationCard';
@@ -530,8 +531,9 @@ const Event = () => {
                 setTransaction(id, totalPrice, currency);
                 goToPayment();
                 updateSearchParams({ step: 3 }, true);
+                scrollToTop();
             } else {
-                toast.error(response.message || t('checkout.transaction_error', 'Error al crear la transacciÃ³n'));
+                toast.error(response.message || t('checkout.transaction_error', 'Error al crear la transacción'));
             }
         },
         onError: (error: unknown) => {
@@ -539,7 +541,7 @@ const Event = () => {
             if (err.backendError) {
                 toast.error(err.backendError.message);
             } else {
-                toast.error(t('common.error_connection', 'Error de conexiÃ³n'));
+                toast.error(t('common.error_connection', 'Error de conexión'));
             }
         },
     });
@@ -560,6 +562,7 @@ const Event = () => {
             }
             updateSearchParams({ step: 1 }, true);
             setMobileShowRates(true);
+            scrollToTop();
         } else if (step === 2) {
             if (!isAuthenticated) {
                 setAuthModalOpen(true);
@@ -568,9 +571,11 @@ const Event = () => {
             if (checkoutStep === 'payment') {
                 goBackCheckout();
                 updateSearchParams({ step: 2 }, true);
+                scrollToTop();
             } else if (checkoutHasItems()) {
                 goToSummary();
                 updateSearchParams({ step: 2 }, true);
+                scrollToTop();
             } else {
                 toast.error(t('event.select_items', 'Selecciona al menos un item'));
             }
@@ -578,6 +583,7 @@ const Event = () => {
             if (transactionId) {
                 goToPayment();
                 updateSearchParams({ step: 3 }, true);
+                scrollToTop();
             }
         }
     }, [updateSearchParams, checkoutStep, goBackCheckout, goToSummary, goToPayment, checkoutHasItems, transactionId, t, isAuthenticated]);
@@ -587,6 +593,7 @@ const Event = () => {
         if (checkoutHasItems()) {
             goToSummary();
             updateSearchParams({ step: 2 }, true);
+            scrollToTop();
         }
     }, [checkoutHasItems, goToSummary, updateSearchParams]);
 
@@ -659,7 +666,7 @@ const Event = () => {
             const precompraPrice = guestlist.prices.find(p => p.finalPrice > 0 && p.id !== price.id);
             if (precompraPrice) {
                 precompraData = {
-                    products: [{ name: 'ConsumiciÃ³n', quantity: 1 }],
+                    products: [{ name: 'Consumición', quantity: 1 }],
                     startTime: '00:00',
                     endTime: '06:00',
                     price: precompraPrice.finalPrice,
@@ -687,7 +694,7 @@ const Event = () => {
             finalPrice: price.finalPrice,
             currency: price.currency || 'EUR',
             isLowStock,
-            lowStockLabel: isLowStock ? 'Ãºltimas' : undefined,
+            lowStockLabel: isLowStock ? 'últimas' : undefined,
             isFree,
             hasPrecompra,
             precompraData,
@@ -843,11 +850,13 @@ const Event = () => {
         resetTimer();
         clearTransaction();
         updateSearchParams({ step: 1 }, true);
+        scrollToTop();
     }, [resetTimer, clearTransaction, updateSearchParams]);
 
     const handleBackFromSummary = useCallback(() => {
         goBackCheckout();
         updateSearchParams({ step: 1 }, true);
+        scrollToTop();
     }, [goBackCheckout, updateSearchParams]);
 
     const handleContinueToPayment = useCallback((data: {
@@ -966,6 +975,7 @@ const Event = () => {
         clearTransaction();
         goBackCheckout();
         updateSearchParams({ step: 2 }, true);
+        scrollToTop();
     }, [clearTransaction, goBackCheckout, updateSearchParams]);
 
     const handleInfoModalConfirm = useCallback(() => {
@@ -1020,6 +1030,7 @@ const Event = () => {
         goToSummary();
 
         updateSearchParams({ step: 2 }, true);
+        scrollToTop();
     }, [
         infoModalData,
         infoModalPriceId,
@@ -1192,6 +1203,7 @@ const Event = () => {
 
         goToSummary();
         updateSearchParams({ step: 2 }, true);
+        scrollToTop();
     }, [
         eventQuery.data,
         selectedQuantities,
@@ -1255,6 +1267,7 @@ const Event = () => {
 
         goToSummary();
         updateSearchParams({ step: 2 }, true);
+        scrollToTop();
     }, [
         eventQuery.data,
         selectedQuantities,
@@ -1270,10 +1283,12 @@ const Event = () => {
 
     const handleMobileBuyClick = useCallback(() => {
         setMobileShowRates(true);
+        scrollToTop();
     }, []);
 
     const handleMobileBackToInfo = useCallback(() => {
         setMobileShowRates(false);
+        scrollToTop();
     }, []);
 
     const isLoading = eventQuery.isLoading;
@@ -1599,7 +1614,7 @@ const Event = () => {
                                     lat: event.addressLocation?.coordinates?.[1] ?? 0,
                                     lng: event.addressLocation?.coordinates?.[0] ?? 0,
                                 }}
-                                legalText={event.club?.termsAndConditions ? t('club.legal_terms', 'Leer los tÃ©rminos legales del klub') : undefined}
+                                legalText={event.club?.termsAndConditions ? t('club.legal_terms', 'Leer los términos legales del klub') : undefined}
                                 onLegalClick={event.club?.termsAndConditions ? handleLegalClick : undefined}
                             />
                         ) : null}
@@ -1693,7 +1708,7 @@ const Event = () => {
                                 lat: event.addressLocation?.coordinates?.[1] ?? 0,
                                 lng: event.addressLocation?.coordinates?.[0] ?? 0,
                             }}
-                            legalText={event.club?.termsAndConditions ? t('club.legal_terms', 'Leer los tÃ©rminos legales del klub') : undefined}
+                            legalText={event.club?.termsAndConditions ? t('club.legal_terms', 'Leer los términos legales del klub') : undefined}
                             onLegalClick={event.club?.termsAndConditions ? handleLegalClick : undefined}
                         />
                     ) : null}

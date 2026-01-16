@@ -5,6 +5,7 @@ import { Toaster } from 'sonner'
 
 import TanStackQueryDevtools from '../integrations/tanstack-query/devtools'
 import { useAuthStore, waitForHydration } from '@/stores/authStore'
+import { useScrollToTop } from '@/hooks/useScrollToTop'
 
 import type { QueryClient } from '@tanstack/react-query'
 import Header from '@/components/common/Header'
@@ -19,6 +20,8 @@ const authRoutes = ['/auth', '/login', '/register', '/verify', '/incident', '/fo
 const RootComponent = () => {
   const user = useAuthStore((state) => state.user);
   const location = useLocation();
+
+  useScrollToTop({ behavior: 'smooth' });
 
   const isAuthRoute = authRoutes.some(route => location.pathname.startsWith(route));
 

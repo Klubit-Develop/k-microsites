@@ -29,7 +29,7 @@ const Footer: FC<FooterProps> = ({
     return (
         <footer className="bg-[#141414] border-t-2 border-[#232323] w-full">
             {/* Mobile Layout */}
-            <div className="flex flex-col gap-6 pt-4 pb-6 px-4 md:hidden">
+            <div className="flex flex-col gap-6 pt-4 pb-[80px] px-4 md:hidden">
                 {/* Legal Links - Wrap on mobile */}
                 <nav className="flex flex-wrap items-center gap-2 text-sm text-[#F6F6F6]">
                     {legalLinks.map((link, index) => (
@@ -83,7 +83,7 @@ const Footer: FC<FooterProps> = ({
                             className="h-10 hover:opacity-80 transition-opacity"
                         >
                             <img
-                                src={`/assets/images/apple-store-${lang}.png`}
+                                src={`/assets/images/apple_${lang}.svg`}
                                 alt="Download on the App Store"
                                 className="h-full w-auto object-contain"
                             />
@@ -95,7 +95,7 @@ const Footer: FC<FooterProps> = ({
                             className="h-10 hover:opacity-80 transition-opacity"
                         >
                             <img
-                                src={`/assets/images/google-store-${lang}.png`}
+                                src={`/assets/images/google_${lang}.svg`}
                                 alt="Get it on Google Play"
                                 className="h-full w-auto object-contain"
                             />
@@ -158,7 +158,7 @@ const Footer: FC<FooterProps> = ({
                             className="h-10 hover:opacity-80 transition-opacity"
                         >
                             <img
-                                src={`/assets/images/apple-store-${lang}.png`}
+                                src={`/assets/images/apple_${lang}.svg`}
                                 alt="Download on the App Store"
                                 className="h-full w-auto object-contain"
                             />
@@ -170,7 +170,7 @@ const Footer: FC<FooterProps> = ({
                             className="h-10 hover:opacity-80 transition-opacity"
                         >
                             <img
-                                src={`/assets/images/google-store-${lang}.png`}
+                                src={`/assets/images/google_${lang}.svg`}
                                 alt="Get it on Google Play"
                                 className="h-full w-auto object-contain"
                             />
