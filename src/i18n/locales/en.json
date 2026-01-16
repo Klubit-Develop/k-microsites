@@ -43,8 +43,7 @@
         "privacy_policy": "Privacy Policy",
         "copyright": "© {{year}} Klubit",
         "download_app": "Download the app",
-        "download_app_description": "Access your tickets and much more",
-        "download_app_description_mobile": "Discover all the advantages and benefits of Klubit."
+        "download_app_description": "Discover all the advantages and benefits of Klubit."
     },
     "auth_success": {
         "authenticating": "Verifying authentication",
@@ -302,25 +301,41 @@
     },
     "wallet": {
         "event_live": "Event in progress",
-        "starts_in": "Starts in {{hours}}h",
         "today": "Today",
         "upcoming": "Upcoming",
         "past": "Past",
-        "empty_title": "You have no upcoming events",
-        "empty_subtitle": "Discover plans near you and organize your next outing.",
+        "empty_title": "Your wallet is empty",
         "empty_description": "When you buy tickets, they will appear here",
-        "empty_upcoming_title": "You have no upcoming events",
-        "empty_upcoming_subtitle": "Discover plans near you and organize your next outing.",
+        "empty_upcoming_title": "Nothing here",
+        "empty_upcoming_subtitle": "When you buy tickets, they will appear here",
         "explore_events": "Explore events",
-        "discover_events": "Discover events",
         "item": "ticket",
-        "items": "tickets"
+        "items": "tickets",
+        "starts_in": "Starts in {{hours}}h",
+        "for_this_event": "For this event",
+        "send": "Send",
+        "send_coming_soon": "Send feature coming soon",
+        "sent_to": "Sent to",
+        "received_from": "Received from",
+        "pending": "Pending",
+        "pending_registration": "Pending registration",
+        "delivered": "Delivered",
+        "qr_transferred": "This ticket is already in the recipient's wallet",
+        "your_kards": "Your kards"
     },
     "transaction": {
         "my_tickets": "My tickets",
         "error_title": "Transaction not found",
         "error_description": "We couldn't find this transaction",
-        "back_to_wallet": "Back to Wallet"
+        "back_to_wallet": "Back to Wallet",
+        "rate": "Rate",
+        "price": "Price:",
+        "schedule": "Schedule:",
+        "address": "Address",
+        "read_terms": "Read rate purchase terms",
+        "passbook_error": "Error generating pass",
+        "add_to_apple_wallet": "Add to Apple Wallet",
+        "add_to_google_wallet": "Add to Google Wallet"
     },
     "policies": {
         "terms_and_conditions": "Terms and Conditions",
@@ -367,12 +382,5 @@
         "avatar_error": "Error uploading avatar",
         "avatar_removed": "Avatar removed successfully",
         "avatar_remove_error": "Error removing avatar"
-    },
-    "purchase_terms": {
-        "title": "Purchase Terms",
-        "important_info_title": "Important Information",
-        "important_info_content": "Bring your mobile with the app installed to access the event.\nPresent the QR code of your tickets at the door.\nTickets are nominative and non-transferable unless the venue indicates otherwise.",
-        "your_tickets_title": "Here are your tickets",
-        "no_terms": "No terms and conditions available for this event."
     }
 }

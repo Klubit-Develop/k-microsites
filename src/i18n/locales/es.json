@@ -43,8 +43,7 @@
         "privacy_policy": "Política de Privacidad",
         "copyright": "© {{year}} Klubit",
         "download_app": "Descarga la app",
-        "download_app_description": "Accede a tus entradas y mucho más",
-        "download_app_description_mobile": "Descubre todas las ventajas y beneficios de Klubit."
+        "download_app_description": "Descubre todas las ventajas y beneficios de Klubit."
     },
     "auth_success": {
         "authenticating": "Verificando autenticación",
@@ -166,13 +165,13 @@
         "subtitle": "Ingresa tu nuevo correo electrónico para actualizarlo en tu cuenta.",
         "email": "Nuevo correo electrónico",
         "email_required": "El correo electrónico es obligatorio",
-        "email_invalid": "Por favor ingresa un correo válido",
+        "email_invalid": "Por favor ingresa un correo electrónico válido",
         "repeat_email": "Repetir nuevo correo electrónico",
         "repeat_email_required": "Por favor repite tu correo electrónico",
         "emails_not_match": "Los correos electrónicos no coinciden",
         "continue": "Continuar",
         "submitting": "Procesando",
-        "success": "Solicitud de cambio de email enviada correctamente"
+        "success": "Solicitud de cambio de correo enviada exitosamente"
     },
     "oauth": {
         "title": "Introduce tu número de teléfono",
@@ -277,9 +276,7 @@
         "free": "Gratis",
         "creating_order": "Creando pedido...",
         "transaction_error": "Error al crear la transacción",
-        "legal_text_prefix": "Comprando esta entrada, abrirás una cuenta y aceptarás nuestras Condiciones de Uso generales, la Política de Privacidad y las ",
-        "purchase_conditions_link": "Condiciones de Compra",
-        "legal_text_suffix": " de entradas. Procesamos tus datos personales de acuerdo con nuestra Política de Privacidad.",
+        "legal_text": "Comprando esta entrada, abrirás una cuenta y aceptarás nuestras Condiciones de Uso generales, la Política de Privacidad y las Condiciones de Compra de entradas. Procesamos tus datos personales de acuerdo con nuestra Política de Privacidad.",
         "invalid_coupon": "Cupón no válido",
         "coupon_applied": "Cupón aplicado correctamente",
         "coupon_error": "Error al validar el cupón",
@@ -304,25 +301,41 @@
     },
     "wallet": {
         "event_live": "Evento en curso",
-        "starts_in": "Empieza en {{hours}}h",
         "today": "Hoy",
         "upcoming": "Próximos",
         "past": "Pasados",
-        "empty_title": "No tienes próximos eventos",
-        "empty_subtitle": "Descubre planes cerca de ti y organiza tu próxima salida.",
+        "empty_title": "Tu wallet está vacía",
         "empty_description": "Cuando compres entradas, aparecerán aquí",
-        "empty_upcoming_title": "No tienes próximos eventos",
-        "empty_upcoming_subtitle": "Descubre planes cerca de ti y organiza tu próxima salida.",
+        "empty_upcoming_title": "Nada por aquí",
+        "empty_upcoming_subtitle": "Cuando compres entradas, aparecerán aquí",
         "explore_events": "Explorar eventos",
-        "discover_events": "Descubrir eventos",
         "item": "entrada",
-        "items": "entradas"
+        "items": "entradas",
+        "starts_in": "Empieza en {{hours}}h",
+        "for_this_event": "Para este evento",
+        "send": "Enviar",
+        "send_coming_soon": "Función de envío próximamente",
+        "sent_to": "Enviado a",
+        "received_from": "Recibido de",
+        "pending": "Pendiente",
+        "pending_registration": "Pendiente de registro",
+        "delivered": "Entregado",
+        "qr_transferred": "Esta entrada ya está en la wallet del destinatario",
+        "your_kards": "Tus kards"
     },
     "transaction": {
         "my_tickets": "Mis entradas",
         "error_title": "Transacción no encontrada",
         "error_description": "No pudimos encontrar esta transacción",
-        "back_to_wallet": "Volver a Wallet"
+        "back_to_wallet": "Volver a Wallet",
+        "rate": "Tarifa",
+        "price": "Precio:",
+        "schedule": "Horario:",
+        "address": "Dirección",
+        "read_terms": "Leer los términos de compra de la tarifa",
+        "passbook_error": "Error al generar el pase",
+        "add_to_apple_wallet": "Añadir a Apple Wallet",
+        "add_to_google_wallet": "Añadir a Google Wallet"
     },
     "policies": {
         "terms_and_conditions": "Términos y condiciones",
@@ -369,12 +382,5 @@
         "avatar_error": "Error al subir el avatar",
         "avatar_removed": "Avatar eliminado correctamente",
         "avatar_remove_error": "Error al eliminar el avatar"
-    },
-    "purchase_terms": {
-        "title": "Términos de compra",
-        "important_info_title": "Información importante",
-        "important_info_content": "Lleva tu móvil con la app instalada para acceder al evento.\nPresenta el código QR de tus entradas en la puerta.\nLas entradas son nominativas e intransferibles salvo que el local indique lo contrario.",
-        "your_tickets_title": "Aquí tienes tus entradas",
-        "no_terms": "No hay términos y condiciones disponibles para este evento."
     }
 }

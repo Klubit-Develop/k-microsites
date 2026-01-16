@@ -1,21 +1,16 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import dayjs from 'dayjs';
 import 'dayjs/locale/es';
 import 'dayjs/locale/en';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
-import { useParams } from '@tanstack/react-router';
-import { Users } from 'lucide-react';
+import { Link } from '@tanstack/react-router';
 import { QRCodeSVG } from 'qrcode.react';
 
 import axiosInstance from '@/config/axiosConfig';
 import LocationCard from '@/components/LocationCard';
 import { useAuthStore } from '@/stores/authStore';
-
-// =============================================================================
-// INTERFACES
-// =============================================================================
 
 interface TransactionItem {
     id: string;
@@ -74,7 +69,6 @@ interface TransactionItem {
         id: string;
         name: string;
     } | null;
-    // Legacy fields
     ticketPrice?: {
         id: string;
         name: string;
@@ -131,17 +125,21 @@ interface BackendResponse {
     message: string;
 }
 
-// =============================================================================
-// HELPER FUNCTIONS
-// =============================================================================
+interface ItemDetailModalProps {
+    transactionId: string;
+    itemId: string;
+    isOpen: boolean;
+    onClose: () => void;
+    onBack?: () => void;
+}
 
 const formatEventDate = (dateString: string, locale: string): string => {
     const date = dayjs(dateString).locale(locale);
     return date.format('ddd, D MMMM');
 };
 
-const formatPrice = (price: number): string => {
-    if (price === 0) return 'Gratis';
+const formatPrice = (price: number, t: (key: string, fallback: string) => string): string => {
+    if (price === 0) return t('checkout.free', 'Gratis');
     return `${price.toFixed(2)}€`;
 };
 
@@ -155,28 +153,26 @@ const formatTimeRange = (startTime?: string, endTime?: string): string => {
 const getItemTypeDotColor = (itemType: string): string => {
     switch (itemType) {
         case 'TICKET':
-            return 'bg-[#D591FF]';
+            return '#D591FF';
         case 'GUESTLIST':
-            return 'bg-[#FFCE1F]';
+            return '#FFCE1F';
         case 'RESERVATION':
-            return 'bg-[#FF336D]';
+            return '#3FE8E8';
         case 'PROMOTION':
-            return 'bg-[#4ECDC4]';
+            return '#FF336D';
         case 'PRODUCT':
-            return 'bg-[#95E1D3]';
+            return '#00D1FF';
         default:
-            return 'bg-[#FFCE1F]';
+            return '#939393';
     }
 };
 
 const getItemName = (item: TransactionItem): string => {
-    // El backend devuelve ticket/guestlist/etc. directamente con name
     if (item.ticket?.name) return item.ticket.name;
     if (item.guestlist?.name) return item.guestlist.name;
     if (item.reservation?.name) return item.reservation.name;
     if (item.product?.name) return item.product.name;
     if (item.promotion?.name) return item.promotion.name;
-    // Fallback a ticketPrice/guestlistPrice si existen
     if (item.ticketPrice?.name) return item.ticketPrice.name;
     if (item.guestlistPrice?.name) return item.guestlistPrice.name;
     return 'Item';
@@ -189,9 +185,24 @@ const getItemTimeRange = (item: TransactionItem): string => {
     return '';
 };
 
-// =============================================================================
-// SUB-COMPONENTS
-// =============================================================================
+const CloseIcon = () => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <path d="M18 6L6 18M6 6L18 18" stroke="#F6F6F6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+);
+
+const BackIcon = () => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <path d="M15 18L9 12L15 6" stroke="#F6F6F6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+);
+
+const UsersIcon = ({ className = "w-6 h-6" }: { className?: string }) => (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" />
+        <path d="M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z" />
+    </svg>
+);
 
 interface EventCardInfoProps {
     event: Transaction['event'];
@@ -199,6 +210,7 @@ interface EventCardInfoProps {
 }
 
 const EventCardInfo = ({ event, locale }: EventCardInfoProps) => {
+    const { t } = useTranslation();
     const formattedDate = formatEventDate(event.startDate, locale);
     const formattedTime = event.startTime && event.endTime 
         ? `${event.startTime}h - ${event.endTime}h`
@@ -209,11 +221,10 @@ const EventCardInfo = ({ event, locale }: EventCardInfoProps) => {
     return (
         <div className="flex flex-col gap-1 w-full">
             <span className="text-[16px] font-helvetica font-medium text-[#939393] px-1.5">
-                Evento
+                {t('checkout.event', 'Evento')}
             </span>
             <div className="flex flex-col bg-[#141414] border-2 border-[#232323] rounded-2xl overflow-hidden">
                 <div className="flex items-center gap-3 px-4 py-3 border-b-[1.5px] border-[#232323]">
-                    {/* Event thumbnail */}
                     <div className="relative shrink-0 w-[30px] h-[37.5px] rounded-[2px] border border-[#232323] overflow-hidden shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]">
                         <img
                             src={event.flyer}
@@ -221,7 +232,6 @@ const EventCardInfo = ({ event, locale }: EventCardInfoProps) => {
                             className="absolute inset-0 w-full h-full object-cover"
                         />
                     </div>
-                    {/* Event info */}
                     <div className="flex flex-col gap-1">
                         <span className="text-[16px] font-helvetica font-medium text-[#F6F6F6]">
                             {event.name}
@@ -254,32 +264,33 @@ const TarifaCardInfo = ({ item }: TarifaCardInfoProps) => {
     const { t } = useTranslation();
     const itemName = getItemName(item);
     const dotColor = getItemTypeDotColor(item.itemType);
-    const price = formatPrice(item.unitPrice);
+    const price = formatPrice(item.unitPrice, t);
     const timeRange = getItemTimeRange(item);
 
     return (
         <div className="flex flex-col gap-1 w-full">
             <span className="text-[16px] font-helvetica font-medium text-[#939393] px-1.5">
-                {t('transaction.tarifa', 'Tarifa')}
+                {t('transaction.rate', 'Tarifa')}
             </span>
             <div className="flex flex-col bg-[#141414] border-2 border-[#232323] rounded-2xl overflow-hidden">
-                {/* Header - Nombre de tarifa y cantidad */}
                 <div className="flex items-center justify-between px-4 py-3 border-b-[1.5px] border-[#232323]">
                     <div className="flex items-center gap-1.5">
-                        <span className={`size-1.5 rounded-full ${dotColor}`} />
+                        <span 
+                            className="size-1.5 rounded-full"
+                            style={{ backgroundColor: dotColor }}
+                        />
                         <span className="text-[16px] font-helvetica font-medium text-[#F6F6F6]">
                             {itemName}
                         </span>
                     </div>
                     <div className="flex items-center gap-1 text-[#939393]">
-                        <Users size={14} />
+                        <UsersIcon className="w-3.5 h-3.5" />
                         <span className="text-[14px] font-helvetica">
                             {item.quantity}
                         </span>
                     </div>
                 </div>
 
-                {/* Precio */}
                 <div className="flex items-center justify-between px-4 py-3 border-b-[1.5px] border-[#232323]">
                     <span className="text-[16px] font-helvetica font-medium text-[#939393]">
                         {t('transaction.price', 'Precio:')}
@@ -294,7 +305,6 @@ const TarifaCardInfo = ({ item }: TarifaCardInfoProps) => {
                     </div>
                 </div>
 
-                {/* Horario */}
                 {timeRange && (
                     <div className="flex items-center justify-between px-4 py-3 border-b-[1.5px] border-[#232323]">
                         <span className="text-[16px] font-helvetica font-medium text-[#939393]">
@@ -321,16 +331,12 @@ const PassbookCard = ({ walletAddress, userId, clubId }: PassbookCardProps) => {
     const [isGenerating, setIsGenerating] = useState(false);
     const [walletLinks, setWalletLinks] = useState<{ ios: string; android: string | null } | null>(null);
 
-    // Detectar plataforma e idioma
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     const isAndroid = /Android/.test(navigator.userAgent);
     const isSpanish = i18n.language === 'es' || i18n.language.startsWith('es-');
-    
-    // En desktop (ni iOS ni Android), usamos Apple Wallet como default
     const useAppleWallet = isIOS || (!isIOS && !isAndroid);
 
     const handleAddToWallet = async () => {
-        // Si ya tenemos los links, abrir directamente
         if (walletLinks) {
             const url = useAppleWallet ? walletLinks.ios : walletLinks.android;
             if (url) {
@@ -339,7 +345,6 @@ const PassbookCard = ({ walletAddress, userId, clubId }: PassbookCardProps) => {
             return;
         }
 
-        // Generar el passbook
         setIsGenerating(true);
         try {
             const response = await axiosInstance.post('/v2/wallet/generate', {
@@ -352,13 +357,11 @@ const PassbookCard = ({ walletAddress, userId, clubId }: PassbookCardProps) => {
             const links = response.data.data.walletLinks;
             setWalletLinks(links);
 
-            // Abrir la URL correspondiente según plataforma
             const url = useAppleWallet ? links.ios : links.android;
             if (url) {
                 window.open(url, '_blank');
             }
-        } catch (error) {
-            console.error('Error generating passbook:', error);
+        } catch {
             toast.error(t('transaction.passbook_error', 'Error al generar el pase'));
         } finally {
             setIsGenerating(false);
@@ -368,10 +371,9 @@ const PassbookCard = ({ walletAddress, userId, clubId }: PassbookCardProps) => {
     return (
         <div className="flex flex-col gap-1 w-full">
             <span className="text-[16px] font-helvetica font-medium text-[#939393] px-1.5">
-                Passbook*
+                {t('transaction.passbook', 'Passbook')}*
             </span>
             <div className="flex flex-col items-center gap-4 p-3 bg-[#141414] border-2 border-[#232323] rounded-2xl shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)]">
-                {/* QR Code Container - Solo QR, sin texto */}
                 <div className="flex items-center justify-center p-4 bg-white rounded-[5px]">
                     <QRCodeSVG
                         value={walletAddress}
@@ -381,27 +383,20 @@ const PassbookCard = ({ walletAddress, userId, clubId }: PassbookCardProps) => {
                     />
                 </div>
 
-                {/* Add to Wallet Button - Badges según idioma y plataforma */}
                 <button
                     onClick={handleAddToWallet}
                     disabled={isGenerating}
-                    className={`
-                        transition-opacity
-                        ${isGenerating ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:opacity-80'}
-                    `}
+                    className={`transition-opacity ${isGenerating ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:opacity-80'}`}
                 >
                     {isGenerating ? (
-                        /* Skeleton del botón */
                         <div className="w-[156px] h-[48px] bg-[#232323] rounded-md animate-pulse" />
                     ) : useAppleWallet ? (
-                        /* Apple Wallet Badge - según idioma */
                         <img 
                             src={isSpanish ? '/assets/images/apple_es.svg' : '/assets/images/apple_en.svg'}
                             alt={t('transaction.add_to_apple_wallet', 'Add to Apple Wallet')}
                             className="h-[48px] w-auto"
                         />
                     ) : (
-                        /* Google Wallet Badge - según idioma */
                         <img 
                             src={isSpanish ? '/assets/images/google_es.svg' : '/assets/images/google_en.svg'}
                             alt={t('transaction.add_to_google_wallet', 'Add to Google Wallet')}
@@ -413,10 +408,6 @@ const PassbookCard = ({ walletAddress, userId, clubId }: PassbookCardProps) => {
         </div>
     );
 };
-
-// =============================================================================
-// ASSIGNMENT STATUS CARD
-// =============================================================================
 
 interface AssignmentStatusCardProps {
     item: TransactionItem;
@@ -435,7 +426,6 @@ const AssignmentStatusCard = ({ item, currentUserId, transactionUserId }: Assign
         return null;
     }
 
-    // Caso: Usuario destinatario existe (found)
     if (item.assignedToUser && isPurchaser) {
         return (
             <div className="flex flex-col gap-1 w-full">
@@ -451,7 +441,7 @@ const AssignmentStatusCard = ({ item, currentUserId, transactionUserId }: Assign
                         />
                     ) : (
                         <div className="w-12 h-12 rounded-full bg-[#232323] flex items-center justify-center">
-                            <Users className="w-6 h-6 text-[#939393]" />
+                            <UsersIcon className="w-6 h-6 text-[#939393]" />
                         </div>
                     )}
                     <div className="flex flex-col gap-0.5">
@@ -476,7 +466,6 @@ const AssignmentStatusCard = ({ item, currentUserId, transactionUserId }: Assign
         );
     }
 
-    // Caso: Usuario no existe (pending_claim) - visto por el comprador
     if (item.status === 'PENDING_CLAIM' && isPurchaser) {
         const formattedPhone = item.assignedToPhone 
             ? `+${item.assignedToCountry || ''} ${item.assignedToPhone.slice(0, 3)}...${item.assignedToPhone.slice(-2)}`
@@ -489,7 +478,7 @@ const AssignmentStatusCard = ({ item, currentUserId, transactionUserId }: Assign
                 </span>
                 <div className="flex items-center gap-3 p-4 bg-[#141414] border-2 border-[#232323] rounded-2xl">
                     <div className="w-12 h-12 rounded-full bg-[#232323] flex items-center justify-center">
-                        <Users className="w-6 h-6 text-[#939393]" />
+                        <UsersIcon className="w-6 h-6 text-[#939393]" />
                     </div>
                     <div className="flex flex-col gap-0.5">
                         <span className="text-[16px] font-helvetica font-medium text-[#F6F6F6]">
@@ -511,7 +500,6 @@ const AssignmentStatusCard = ({ item, currentUserId, transactionUserId }: Assign
         );
     }
 
-    // Caso: El destinatario ve quien se lo envió
     if (isRecipient && item.purchasedBy) {
         return (
             <div className="flex flex-col gap-1 w-full">
@@ -527,7 +515,7 @@ const AssignmentStatusCard = ({ item, currentUserId, transactionUserId }: Assign
                         />
                     ) : (
                         <div className="w-12 h-12 rounded-full bg-[#232323] flex items-center justify-center">
-                            <Users className="w-6 h-6 text-[#939393]" />
+                            <UsersIcon className="w-6 h-6 text-[#939393]" />
                         </div>
                     )}
                     <div className="flex flex-col gap-0.5">
@@ -548,161 +536,168 @@ const AssignmentStatusCard = ({ item, currentUserId, transactionUserId }: Assign
     return null;
 };
 
-// =============================================================================
-// LOADING & ERROR STATES
-// =============================================================================
-
-const ItemDetailSkeleton = () => (
-    <div className="flex flex-col gap-9 w-full max-w-[500px] mx-auto px-4 pt-[120px] pb-[100px] md:py-8 animate-pulse">
+const ModalSkeleton = () => (
+    <div className="flex flex-col gap-6 w-full animate-pulse p-6">
         <div className="h-[100px] w-full bg-[#232323] rounded-2xl" />
-        <div className="h-[180px] w-full bg-[#232323] rounded-2xl" />
-        <div className="h-[300px] w-full bg-[#232323] rounded-2xl" />
-        <div className="h-[280px] w-full bg-[#232323] rounded-2xl" />
+        <div className="h-[120px] w-full bg-[#232323] rounded-2xl" />
+        <div className="h-[250px] w-full bg-[#232323] rounded-2xl" />
     </div>
 );
 
-const ItemDetailError = () => {
-    const { t } = useTranslation();
-
-    return (
-        <div className="flex flex-col items-center justify-center gap-4 w-full max-w-[500px] mx-auto px-4 pt-[120px] pb-[100px] md:py-16">
-            <div className="flex items-center justify-center size-20 bg-[#232323] rounded-full">
-                <span className="text-4xl">❌</span>
-            </div>
-            <div className="flex flex-col items-center gap-2 text-center">
-                <h2 className="text-[20px] font-helvetica font-bold text-[#F6F6F6]">
-                    {t('transaction.error_title', 'Item no encontrado')}
-                </h2>
-                <p className="text-[14px] font-helvetica text-[#939393]">
-                    {t('transaction.error_description', 'No pudimos encontrar este item')}
-                </p>
-            </div>
-        </div>
-    );
-};
-
-// =============================================================================
-// MAIN COMPONENT
-// =============================================================================
-
-const ItemDetail = () => {
+const ItemDetailModal = ({ transactionId, itemId, isOpen, onClose, onBack }: ItemDetailModalProps) => {
     const { t, i18n } = useTranslation();
     const { user } = useAuthStore();
-    const { transactionId, itemId } = useParams({
-        from: '/_authenticated/wallet/$transactionId/$itemId'
-    });
     const locale = i18n.language === 'en' ? 'en' : 'es';
 
-    const { data: transaction, isLoading, error } = useQuery({
+    const [isVisible, setIsVisible] = useState(false);
+    const [isAnimating, setIsAnimating] = useState(false);
+
+    useEffect(() => {
+        if (isOpen) {
+            setIsAnimating(true);
+            document.body.style.overflow = 'hidden';
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    setIsVisible(true);
+                });
+            });
+        }
+    }, [isOpen]);
+
+    const handleClose = () => {
+        setIsVisible(false);
+        setTimeout(() => {
+            setIsAnimating(false);
+            document.body.style.overflow = '';
+            onClose();
+        }, 300);
+    };
+
+    const { data: transaction, isLoading } = useQuery({
         queryKey: ['transaction', transactionId],
         queryFn: async () => {
             const response = await axiosInstance.get<BackendResponse>(
                 `/v2/transactions/${transactionId}`
             );
             const data = response.data.data;
-            return (data as any).transaction || data;
+            return (data as unknown as { transaction?: Transaction }).transaction || data;
         },
-        enabled: !!transactionId,
+        enabled: isOpen && !!transactionId,
     });
 
-    const item = transaction?.items?.find((i: { id: string; }) => i.id === itemId) as TransactionItem | undefined;
+    const handleBackdropClick = (e: React.MouseEvent) => {
+        if (e.target === e.currentTarget) {
+            handleClose();
+        }
+    };
 
-    if (isLoading) {
-        return (
-            <div className="min-h-screen bg-black">
-                <ItemDetailSkeleton />
-            </div>
-        );
-    }
+    if (!isAnimating && !isOpen) return null;
 
-    if (error || !transaction || !item || !user?.id) {
-        return (
-            <div className="min-h-screen bg-black">
-                <ItemDetailError />
-            </div>
-        );
-    }
+    const item = transaction?.items?.find((i: { id: string }) => i.id === itemId) as TransactionItem | undefined;
 
-    // Lógica para determinar quién puede ver el QR:
-    // - Caso 1 (isForMe): El comprador puede ver el QR
-    // - Caso 2 (found): El DESTINATARIO puede ver el QR, el comprador NO
-    // - Caso 3 (PENDING_CLAIM): El COMPRADOR puede ver el QR hasta que el destinatario reclame
-    const isPurchaser = user.id === transaction.user.id || user.id === item.purchasedById;
-    const isRecipient = user.id === item.assignedToUserId;
-    const isPendingClaim = item.status === 'PENDING_CLAIM';
-    
-    // Puede ver QR si:
-    // 1. Es para mí (isForMe)
-    // 2. Soy el destinatario (found)
-    // 3. Soy el comprador Y está pendiente de claim
-    const canViewQR = item.isForMe || isRecipient || (isPurchaser && isPendingClaim);
+    const isPurchaser = user?.id === transaction?.user?.id || user?.id === item?.purchasedById;
+    const isRecipient = user?.id === item?.assignedToUserId;
+    const isPendingClaim = item?.status === 'PENDING_CLAIM';
+    const canViewQR = item?.isForMe || isRecipient || (isPurchaser && isPendingClaim);
 
     return (
-        <div className="min-h-screen bg-black">
-            <div className="flex flex-col gap-9 w-full max-w-[500px] mx-auto px-4 pt-[120px] pb-[100px] md:py-4 md:pb-8">
-                {/* Evento Card */}
-                <EventCardInfo event={transaction.event} locale={locale} />
+        <div
+            className={`fixed inset-0 z-50 flex items-end justify-center transition-all duration-300 ease-out ${isVisible ? 'bg-black/60 backdrop-blur-sm' : 'bg-transparent'}`}
+            onClick={handleBackdropClick}
+        >
+            <div
+                className={`relative w-full max-w-[500px] max-h-[90vh] bg-[#0a0a0a] border-2 border-[#232323] rounded-t-[32px] overflow-hidden transition-transform duration-300 ease-out ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}
+            >
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 pt-[5px] opacity-50 z-10">
+                    <div className="w-9 h-[5px] bg-[#F6F6F6]/50 rounded-full" />
+                </div>
 
-                {/* Tarifa Card */}
-                <TarifaCardInfo item={item} />
-
-                {/* Estado de asignación */}
-                <AssignmentStatusCard
-                    item={item}
-                    currentUserId={user.id}
-                    transactionUserId={transaction.user.id}
-                />
-
-                {/* Passbook con QR - Solo si puede verlo */}
-                {canViewQR && item.walletAddress && (
-                    <PassbookCard
-                        walletAddress={item.walletAddress}
-                        userId={user.id}
-                        clubId={transaction.club.id}
-                    />
-                )}
-
-                {/* Mensaje cuando el comprador NO puede ver el QR (ya enviado a usuario existente) */}
-                {!canViewQR && isPurchaser && item.assignedToUserId && (
-                    <div className="flex flex-col gap-1 w-full">
-                        <span className="text-[16px] font-helvetica font-medium text-[#939393] px-1.5">
-                            Passbook
-                        </span>
-                        <div className="flex flex-col items-center gap-3 p-6 bg-[#141414] border-2 border-[#232323] rounded-2xl">
-                            <div className="w-16 h-16 rounded-full bg-[#232323] flex items-center justify-center">
-                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
-                                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke="#22C55E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                </svg>
-                            </div>
-                            <div className="text-center">
-                                <p className="text-[14px] font-helvetica text-[#939393]">
-                                    {t('wallet.qr_transferred', 'Esta entrada ya está en la wallet del destinatario')}
-                                </p>
-                            </div>
-                        </div>
+                <div className="relative flex flex-col gap-6 px-6 pt-6 pb-8 overflow-y-auto max-h-[90vh] scrollbar-hide">
+                    <div className="flex items-center justify-between h-9">
+                        {onBack ? (
+                            <button
+                                onClick={onBack}
+                                className="flex items-center justify-center size-9 bg-[#232323] rounded-full shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)] cursor-pointer"
+                            >
+                                <BackIcon />
+                            </button>
+                        ) : (
+                            <div />
+                        )}
+                        <button
+                            onClick={handleClose}
+                            className="flex items-center justify-center size-9 bg-[#232323] rounded-full shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)] cursor-pointer"
+                        >
+                            <CloseIcon />
+                        </button>
                     </div>
-                )}
 
-                {/* Dirección con mapa */}
-                {transaction.club.address && transaction.club.addressLocation && (
-                    <LocationCard
-                        address={transaction.club.address}
-                        coordinates={{
-                            lat: transaction.club.addressLocation.lat,
-                            lng: transaction.club.addressLocation.lng,
-                        }}
-                    />
-                )}
+                    {isLoading || !transaction || !item ? (
+                        <ModalSkeleton />
+                    ) : (
+                        <>
+                            <EventCardInfo event={transaction.event} locale={locale} />
 
-                {/* Link a términos */}
-                <button className="px-1.5 text-left cursor-pointer">
-                    <span className="text-[12px] font-helvetica font-medium text-[#F6F6F6]/50 underline">
-                        {t('transaction.read_terms', 'Leer los términos de compra de la tarifa')}
-                    </span>
-                </button>
+                            <TarifaCardInfo item={item} />
+
+                            <AssignmentStatusCard
+                                item={item}
+                                currentUserId={user?.id || ''}
+                                transactionUserId={transaction.user.id}
+                            />
+
+                            {canViewQR && item.walletAddress && (
+                                <PassbookCard
+                                    walletAddress={item.walletAddress}
+                                    userId={user?.id || ''}
+                                    clubId={transaction.club.id}
+                                />
+                            )}
+
+                            {!canViewQR && isPurchaser && item.assignedToUserId && (
+                                <div className="flex flex-col gap-1 w-full">
+                                    <span className="text-[16px] font-helvetica font-medium text-[#939393] px-1.5">
+                                        {t('transaction.passbook', 'Passbook')}
+                                    </span>
+                                    <div className="flex flex-col items-center gap-3 p-6 bg-[#141414] border-2 border-[#232323] rounded-2xl">
+                                        <div className="w-16 h-16 rounded-full bg-[#232323] flex items-center justify-center">
+                                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                                                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke="#22C55E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                            </svg>
+                                        </div>
+                                        <div className="text-center">
+                                            <p className="text-[14px] font-helvetica text-[#939393]">
+                                                {t('wallet.qr_transferred', 'Esta entrada ya está en la wallet del destinatario')}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {transaction.club.address && transaction.club.addressLocation && (
+                                <LocationCard
+                                    address={transaction.club.address}
+                                    coordinates={{
+                                        lat: transaction.club.addressLocation.lat,
+                                        lng: transaction.club.addressLocation.lng,
+                                    }}
+                                />
+                            )}
+
+                            <Link 
+                                to="/purchase-terms"
+                                className="px-1.5 text-left"
+                            >
+                                <span className="text-[12px] font-helvetica font-medium text-[#F6F6F6]/50 underline">
+                                    {t('transaction.read_terms', 'Leer los términos de compra de la tarifa')}
+                                </span>
+                            </Link>
+                        </>
+                    )}
+                </div>
             </div>
         </div>
     );
 };
 
-export default ItemDetail;
+export default ItemDetailModal;

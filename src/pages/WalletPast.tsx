@@ -1,16 +1,12 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import dayjs from 'dayjs';
 import 'dayjs/locale/es';
 import 'dayjs/locale/en';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
-import { useNavigate } from '@tanstack/react-router';
 
 import axiosInstance from '@/config/axiosConfig';
-
-// =============================================================================
-// INTERFACES
-// =============================================================================
+import TransactionItemsModal from '@/components/TransactionItemsModal';
 
 interface Transaction {
     id: string;
@@ -64,10 +60,6 @@ interface BackendResponse {
     message: string;
 }
 
-// =============================================================================
-// HELPER FUNCTIONS
-// =============================================================================
-
 const isEventPast = (startDate: string): boolean => {
     const eventDate = dayjs(startDate);
     const today = dayjs();
@@ -88,10 +80,6 @@ const formatEventTimeRange = (startDate: string, startTime?: string, endTime?: s
     const endFormatted = start.add(6, 'hour').format('HH:mm');
     return `${startFormatted} - ${endFormatted}`;
 };
-
-// =============================================================================
-// SUB-COMPONENTS
-// =============================================================================
 
 interface WalletEventCardProps {
     title: string;
@@ -165,14 +153,12 @@ const WalletListEmpty = () => {
     );
 };
 
-// =============================================================================
-// MAIN COMPONENT
-// =============================================================================
-
 const WalletPast = () => {
     const { t, i18n } = useTranslation();
-    const navigate = useNavigate();
     const locale = i18n.language === 'en' ? 'en' : 'es';
+
+    const [selectedTransactionId, setSelectedTransactionId] = useState<string | null>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     const { data, isLoading, error } = useQuery({
         queryKey: ['wallet-transactions'],
@@ -189,7 +175,7 @@ const WalletPast = () => {
 
         return data
             .filter((transaction) => isEventPast(transaction.event.startDate))
-            .sort((a, b) => dayjs(b.event.startDate).diff(dayjs(a.event.startDate))); // Más recientes primero
+            .sort((a, b) => dayjs(b.event.startDate).diff(dayjs(a.event.startDate)));
     }, [data]);
 
     const formatTransactionForCard = (transaction: Transaction) => ({
@@ -201,12 +187,17 @@ const WalletPast = () => {
     });
 
     const handleTransactionClick = (transactionId: string) => {
-        navigate({ to: '/wallet/$transactionId', params: { transactionId } });
+        setSelectedTransactionId(transactionId);
+        setIsModalOpen(true);
+    };
+
+    const handleModalClose = () => {
+        setIsModalOpen(false);
+        setSelectedTransactionId(null);
     };
 
     return (
         <div className="min-h-screen bg-black">
-            {/* Content */}
             <div className="flex flex-col gap-2 w-full max-w-[500px] mx-auto px-4 pt-[120px] pb-[100px] md:py-4 md:pb-8">
                 {isLoading ? (
                     <WalletListSkeleton />
@@ -235,6 +226,14 @@ const WalletPast = () => {
                     })
                 )}
             </div>
+
+            {selectedTransactionId && (
+                <TransactionItemsModal
+                    transactionId={selectedTransactionId}
+                    isOpen={isModalOpen}
+                    onClose={handleModalClose}
+                />
+            )}
         </div>
     );
 };

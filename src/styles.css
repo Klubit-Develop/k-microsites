@@ -81,3 +81,12 @@
 .font-helvetica {
   font-family: 'Helvetica Now Display', sans-serif;
 }
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}

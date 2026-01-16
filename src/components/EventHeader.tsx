@@ -59,7 +59,6 @@ const EventHeader = ({
                         className="absolute inset-0 w-full h-full object-cover"
                     />
                     <div className="absolute inset-0 bg-gradient-to-b from-transparent from-50% to-[#050505]" />
-                    <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[rgba(5,5,5,0.5)] backdrop-blur-[1.5px]" />
                 </div>
 
                 <div className="absolute left-1/2 -translate-x-1/2 top-[400px] w-full max-w-[370px] flex flex-col gap-[16px] items-center justify-center rounded-[10px]">

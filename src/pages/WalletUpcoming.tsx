@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import dayjs from 'dayjs';
 import 'dayjs/locale/es';
 import 'dayjs/locale/en';
@@ -7,6 +7,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 
 import axiosInstance from '@/config/axiosConfig';
+import TransactionItemsModal from '@/components/TransactionItemsModal';
 
 interface Transaction {
     id: string;
@@ -183,8 +184,10 @@ const WalletListEmpty = () => {
 
 const WalletUpcoming = () => {
     const { t, i18n } = useTranslation();
-    const navigate = useNavigate();
     const locale = i18n.language === 'en' ? 'en' : 'es';
+
+    const [selectedTransactionId, setSelectedTransactionId] = useState<string | null>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     const { data, isLoading, error } = useQuery({
         queryKey: ['wallet-transactions'],
@@ -213,7 +216,13 @@ const WalletUpcoming = () => {
     });
 
     const handleTransactionClick = (transactionId: string) => {
-        navigate({ to: '/wallet/$transactionId', params: { transactionId } });
+        setSelectedTransactionId(transactionId);
+        setIsModalOpen(true);
+    };
+
+    const handleModalClose = () => {
+        setIsModalOpen(false);
+        setSelectedTransactionId(null);
     };
 
     return (
@@ -246,6 +255,14 @@ const WalletUpcoming = () => {
                     })
                 )}
             </div>
+
+            {selectedTransactionId && (
+                <TransactionItemsModal
+                    transactionId={selectedTransactionId}
+                    isOpen={isModalOpen}
+                    onClose={handleModalClose}
+                />
+            )}
         </div>
     );
 };
