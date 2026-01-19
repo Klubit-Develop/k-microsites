@@ -34,9 +34,9 @@
   <meta property="og:title" content="Klubit - La mejor experiencia en eventos y clubes" />
   <meta property="og:description"
     content="Descubre los mejores eventos, compra entradas, reserva mesas y gestiona tu experiencia nocturna con Klubit." />
-  <meta property="og:image" content="https://klubit.io/social.png" />
-  <meta property="og:image:width" content="1200" />
-  <meta property="og:image:height" content="630" />
+  <meta property="og:image" content="https://klubit.fra1.cdn.digitaloceanspaces.com/icon@2x.png" />
+  <meta property="og:image:width" content="512" />
+  <meta property="og:image:height" content="512" />
   <meta property="og:image:alt" content="Klubit - Eventos y Clubes" />
   <meta property="og:site_name" content="Klubit" />
   <meta property="og:locale" content="es_ES" />
@@ -48,13 +48,45 @@
   <meta name="twitter:title" content="Klubit - La mejor experiencia en eventos y clubes" />
   <meta name="twitter:description"
     content="Descubre los mejores eventos, compra entradas, reserva mesas y gestiona tu experiencia nocturna con Klubit." />
-  <meta name="twitter:image" content="https://klubit.io/social.png" />
+  <meta name="twitter:image" content="https://klubit.fra1.cdn.digitaloceanspaces.com/icon@2x.png" />
   <meta name="twitter:image:alt" content="Klubit - Eventos y Clubes" />
 
   <!-- Additional SEO -->
   <meta name="format-detection" content="telephone=no" />
   <meta name="msapplication-TileColor" content="#050505" />
   <meta name="msapplication-TileImage" content="/logo.png" />
+
+  <!-- SEO initialization script - Runs before React hydration -->
+  <script>
+    (function() {
+      var hostname = window.location.hostname;
+      var protocol = window.location.protocol;
+      var currentUrl = window.location.href;
+      var baseUrl = protocol + '//' + hostname;
+      
+      var subdomain = null;
+      if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
+        var parts = hostname.split('.');
+        if (parts.length >= 3) {
+          subdomain = parts[0];
+        }
+      }
+
+      function updateMeta(selector, attr, value) {
+        var el = document.querySelector(selector);
+        if (el) el.setAttribute(attr, value);
+      }
+
+      updateMeta('meta[property="og:url"]', 'content', currentUrl);
+      updateMeta('meta[name="twitter:url"]', 'content', currentUrl);
+      updateMeta('link[rel="canonical"]', 'href', baseUrl);
+
+      if (subdomain) {
+        var siteName = subdomain.charAt(0).toUpperCase() + subdomain.slice(1) + ' | Klubit';
+        updateMeta('meta[property="og:site_name"]', 'content', siteName);
+      }
+    })();
+  </script>
 </head>
 
 <body>

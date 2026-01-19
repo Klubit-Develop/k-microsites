@@ -5,11 +5,14 @@ import { RouterProvider, createRouter } from '@tanstack/react-router'
 import * as TanStackQueryProvider from '@/integrations/tanstack-query/root-provider.tsx'
 
 import { routeTree } from './routeTree.gen'
+import { initializeSEO } from '@/hooks/useSEO'
 
 import './i18n/config';
 import './styles.css'
 import './sonner-custom.css'
 import reportWebVitals from './reportWebVitals.ts'
+
+initializeSEO();
 
 const TanStackQueryProviderContext = TanStackQueryProvider.getContext()
 const router = createRouter({
