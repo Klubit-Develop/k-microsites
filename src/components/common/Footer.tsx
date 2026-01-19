@@ -30,7 +30,6 @@ const Footer: FC<FooterProps> = ({
         <footer className="bg-[#141414] border-t-2 border-[#232323] w-full">
             {/* Mobile Layout */}
             <div className="flex flex-col gap-6 pt-4 pb-[80px] px-4 md:hidden">
-                {/* Legal Links - Wrap on mobile */}
                 <nav className="flex flex-wrap items-center gap-2 text-sm text-[#F6F6F6]">
                     {legalLinks.map((link, index) => (
                         <div key={link.href} className="flex items-center gap-2">
@@ -47,14 +46,11 @@ const Footer: FC<FooterProps> = ({
                     ))}
                 </nav>
 
-                {/* Copyright */}
                 <span className="font-helvetica text-sm font-normal text-[#F6F6F6]">
                     © {copyrightYear} Klubit
                 </span>
 
-                {/* App Download Section */}
                 <div className="flex flex-col gap-6 pt-6 border-t-2 border-[#232323]">
-                    {/* App Info */}
                     <div className="flex items-center gap-[15px]">
                         <div className="w-12 h-12 shrink-0">
                             <img
@@ -74,8 +70,7 @@ const Footer: FC<FooterProps> = ({
                         </div>
                     </div>
 
-                    {/* Store Badges */}
-                    <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-4">
                         <a
                             href={appStoreUrl}
                             target="_blank"
@@ -83,7 +78,7 @@ const Footer: FC<FooterProps> = ({
                             className="h-10 hover:opacity-80 transition-opacity"
                         >
                             <img
-                                src={`/assets/images/apple_${lang}.svg`}
+                                src={`/assets/images/apple_download_${lang}.svg`}
                                 alt="Download on the App Store"
                                 className="h-full w-auto object-contain"
                             />
@@ -95,7 +90,7 @@ const Footer: FC<FooterProps> = ({
                             className="h-10 hover:opacity-80 transition-opacity"
                         >
                             <img
-                                src={`/assets/images/google_${lang}.svg`}
+                                src={`/assets/images/google_download_${lang}.svg`}
                                 alt="Get it on Google Play"
                                 className="h-full w-auto object-contain"
                             />
@@ -158,7 +153,7 @@ const Footer: FC<FooterProps> = ({
                             className="h-10 hover:opacity-80 transition-opacity"
                         >
                             <img
-                                src={`/assets/images/apple_${lang}.svg`}
+                                src={`/assets/images/apple_download_${lang}.svg`}
                                 alt="Download on the App Store"
                                 className="h-full w-auto object-contain"
                             />
@@ -170,7 +165,7 @@ const Footer: FC<FooterProps> = ({
                             className="h-10 hover:opacity-80 transition-opacity"
                         >
                             <img
-                                src={`/assets/images/google_${lang}.svg`}
+                                src={`/assets/images/google_download_${lang}.svg`}
                                 alt="Get it on Google Play"
                                 className="h-full w-auto object-contain"
                             />

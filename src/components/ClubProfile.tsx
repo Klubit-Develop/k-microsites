@@ -56,13 +56,13 @@ const ClubProfile = ({
                         <img
                             src={logoUrl}
                             alt={`${name} logo`}
-                            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[83px] h-[62px] object-contain"
+                            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[70%] h-[70%] object-contain"
                         />
                     )}
                 </div>
 
                 <div className="flex flex-col items-center justify-center py-1 w-full">
-                    <p className="font-bold text-2xl leading-normal text-center text-[#F6F6F6] font-helvetica">
+                    <p className="font-bold text-2xl leading-normal text-center text-[#F6F6F6] font-borna">
                         {name}
                     </p>
                     <p className="text-sm leading-normal text-[#939393] truncate font-helvetica">
