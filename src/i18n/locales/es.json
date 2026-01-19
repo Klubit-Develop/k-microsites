@@ -30,7 +30,9 @@
     "events": {
         "today": "Hoy",
         "upcoming": "Próximos eventos",
-        "no_events": "No hay eventos este mes"
+        "no_events": "No hay eventos este mes",
+        "empty_title": "No hay eventos próximos",
+        "empty_description": "Este klub no tiene eventos programados por ahora."
     },
     "header": {
         "my_wallet": "Mi wallet",

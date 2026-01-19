@@ -53,17 +53,19 @@ const OrganizerCard = ({
                 className={`flex gap-[12px] items-center p-[12px] bg-[#141414] border-2 border-[#232323] rounded-2xl shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)] w-full ${onClick ? 'cursor-pointer' : ''}`}
                 onClick={onClick}
             >
-                <div className="relative w-[54px] h-[54px] shrink-0 flex items-center justify-center bg-[#323232] rounded-full border-[1.5px] border-[#232323] shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]">
+                <div className="relative w-[54px] h-[54px] shrink-0">
                     {organizer.logo ? (
                         <img
                             src={organizer.logo}
                             alt={organizer.name}
-                            className="w-8 h-6 object-cover"
+                            className="w-full h-full object-cover rounded-full border-2 border-[#232323] shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]"
                         />
                     ) : (
-                        <span className="text-[#f6f6f6] text-[14px] font-bold">
-                            {organizer.name.charAt(0)}
-                        </span>
+                        <div className="w-full h-full flex items-center justify-center bg-[#323232] rounded-full border-2 border-[#232323] shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]">
+                            <span className="text-[#f6f6f6] text-[14px] font-bold">
+                                {organizer.name.charAt(0)}
+                            </span>
+                        </div>
                     )}
                 </div>
                 <div className="flex flex-col flex-1">

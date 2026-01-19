@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { toast } from 'sonner';
 import dayjs from 'dayjs';
 import 'dayjs/locale/es';
@@ -16,6 +17,7 @@ import PageError from '@/components/common/PageError';
 import EventSection from '@/components/EventSection';
 import EventCardHz from '@/components/EventCardHz';
 import UpcomingEventsPanel from '@/components/UpcomingEventsPanel';
+import EmptyEventsState from '@/components/EmptyEventsState';
 
 interface Club {
     id: string;
@@ -90,6 +92,7 @@ const VENUE_TYPE_MAP: Record<string, string> = {
     BAR: 'Bar',
     LOUNGE: 'Lounge',
     PUB: 'Pub',
+    PROMOTER: 'Promotora',
 };
 
 const DAY_MAP: Record<string, { es: string; en: string; order: number }> = {
@@ -232,11 +235,11 @@ const Home = () => {
     const upcomingEventsQuery = useQuery({
         queryKey: ['events', 'upcoming', clubId],
         queryFn: async (): Promise<Event[]> => {
-            const startOfTomorrow = dayjs().add(1, 'day').startOf('day').toISOString();
+            const tomorrow = dayjs().add(1, 'day').startOf('day').toISOString();
 
             const fields = 'id,name,slug,flyer,startDate,startTime,endTime,club';
             const response = await axiosInstance.get<EventsResponse>(
-                `/v2/events/club/${clubId}?startDateFrom=${startOfTomorrow}&fields=${fields}`
+                `/v2/events/club/${clubId}?startDateFrom=${tomorrow}&fields=${fields}&limit=10`
             );
             return response.data.data.data;
         },
@@ -256,7 +259,7 @@ const Home = () => {
             queryClient.invalidateQueries({ queryKey: ['favorites', 'user', clubId] });
         },
         onError: () => {
-            toast.error(t('club.favorite_error'));
+            toast.error(t('club.favorite_error', 'Error al actualizar favorito'));
         },
     });
 
@@ -264,20 +267,15 @@ const Home = () => {
         if (!days || days.length === 0) return '';
 
         const lang = i18n.language === 'en' ? 'en' : 'es';
-        const sortedDays = [...days].sort((a, b) => DAY_MAP[a]?.order - DAY_MAP[b]?.order);
-
-        if (sortedDays.length === 1) {
-            return DAY_MAP[sortedDays[0]]?.[lang] || sortedDays[0];
-        }
-
-        const isConsecutive = sortedDays.every((day, index) => {
-            if (index === 0) return true;
-            const prevOrder = DAY_MAP[sortedDays[index - 1]]?.order;
-            const currentOrder = DAY_MAP[day]?.order;
-            return currentOrder - prevOrder === 1;
+        const sortedDays = [...days].sort((a, b) => {
+            return (DAY_MAP[a]?.order || 0) - (DAY_MAP[b]?.order || 0);
         });
 
-        if (isConsecutive && sortedDays.length > 2) {
+        if (sortedDays.length === 7) {
+            return lang === 'es' ? 'Todos los días' : 'Every day';
+        }
+
+        if (sortedDays.length >= 3) {
             const firstDay = DAY_MAP[sortedDays[0]]?.[lang];
             const lastDay = DAY_MAP[sortedDays[sortedDays.length - 1]]?.[lang];
             return lang === 'es'
@@ -340,13 +338,17 @@ const Home = () => {
     const likesCount = favoritesCountQuery.data ?? 0;
     const isLiked = userFavoriteQuery.data ?? false;
     const todayEvents = todayEventsQuery.data ?? [];
-    const upcomingEvents = upcomingEventsQuery.data ?? [];
     const isEventsLoading = clubQuery.isLoading || todayEventsQuery.isLoading || upcomingEventsQuery.isLoading;
 
-    const showUpcomingArrow = upcomingEvents.length >= MIN_EVENTS_FOR_ARROW;
+    const sortedUpcomingEvents = useMemo(() => {
+        const events = upcomingEventsQuery.data ?? [];
+        return [...events].sort((a, b) => dayjs(a.startDate).diff(dayjs(b.startDate)));
+    }, [upcomingEventsQuery.data]);
+
+    const showUpcomingArrow = sortedUpcomingEvents.length >= MIN_EVENTS_FOR_ARROW;
     const displayedUpcomingEvents = showUpcomingArrow
-        ? upcomingEvents.slice(0, MAX_EVENTS_TO_SHOW)
-        : upcomingEvents;
+        ? sortedUpcomingEvents.slice(0, MAX_EVENTS_TO_SHOW)
+        : sortedUpcomingEvents;
 
     const renderEventsContent = () => {
         if (showUpcomingEventsPanel) {
@@ -362,16 +364,10 @@ const Home = () => {
             return <EventsSkeleton />;
         }
 
-        const hasNoEvents = todayEvents.length === 0 && upcomingEvents.length === 0;
+        const hasNoEvents = todayEvents.length === 0 && sortedUpcomingEvents.length === 0;
 
         if (hasNoEvents) {
-            return (
-                <div className="flex flex-col items-center justify-center py-12 w-full">
-                    <p className="text-[#939393] text-[14px] font-helvetica text-center">
-                        {t('events.no_events', 'No hay eventos próximos')}
-                    </p>
-                </div>
-            );
+            return <EmptyEventsState />;
         }
 
         return (
@@ -392,7 +388,7 @@ const Home = () => {
                     </EventSection>
                 )}
 
-                {upcomingEvents.length > 0 && (
+                {sortedUpcomingEvents.length > 0 && (
                     <EventSection
                         title={t('events.upcoming')}
                         onHeaderClick={showUpcomingArrow ? handleUpcomingEventsClick : undefined}

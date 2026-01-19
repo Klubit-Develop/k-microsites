@@ -30,7 +30,9 @@
     "events": {
         "today": "Today",
         "upcoming": "Upcoming events",
-        "no_events": "No events this month"
+        "no_events": "No events this month",
+        "empty_title": "No upcoming events",
+        "empty_description": "This club has no events scheduled at the moment."
     },
     "header": {
         "my_wallet": "My wallet",
