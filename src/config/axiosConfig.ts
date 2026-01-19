@@ -2,6 +2,8 @@ import axios from 'axios';
 import { useAuthStore } from '@/stores/authStore';
 import i18n from '@/i18n/config';
 
+const AUTH_ERROR_CODES = ['USER_NOT_FOUND', 'INVALID_TOKEN', 'NO_TOKEN_PROVIDED'];
+
 const axiosInstance = axios.create({
     baseURL: import.meta.env.VITE_API_URL || 'https://api.klubit.io',
     timeout: 10000,
@@ -28,21 +30,39 @@ axiosInstance.interceptors.request.use(
 
 axiosInstance.interceptors.response.use(
     (response) => {
+        const { token, logout } = useAuthStore.getState();
+        
+        if (
+            token &&
+            response.data?.status === 'error' &&
+            AUTH_ERROR_CODES.includes(response.data?.code)
+        ) {
+            logout();
+            window.location.href = '/';
+        }
+        
         return response;
     },
     (error) => {
         if (error.response?.status === 401) {
             const { token, logout } = useAuthStore.getState();
             
-            // Solo limpiar sesión si HABÍA un token (token expirado)
-            // No redirigir - la app es mayormente pública
             if (token) {
                 logout();
             }
         }
         
-        // Info del backend para fácil acceso en catch blocks
         if (error.response?.data) {
+            const { token, logout } = useAuthStore.getState();
+            
+            if (
+                token &&
+                AUTH_ERROR_CODES.includes(error.response.data.code)
+            ) {
+                logout();
+                window.location.href = '/';
+            }
+            
             error.backendError = {
                 code: error.response.data.code,
                 message: error.response.data.message,
