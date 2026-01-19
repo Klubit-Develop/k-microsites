@@ -104,7 +104,6 @@ export const useSEO = (config?: SEOConfig): void => {
 };
 
 export const updateSEO = (config: SEOConfig): void => {
-    const baseUrl = getBaseUrl();
     const currentUrl = window.location.href;
 
     if (config.title) {
