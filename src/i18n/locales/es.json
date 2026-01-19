@@ -383,5 +383,10 @@
         "avatar_error": "Error al subir el avatar",
         "avatar_removed": "Avatar eliminado correctamente",
         "avatar_remove_error": "Error al eliminar el avatar"
+    },
+    "share": {
+        "copied": "Enlace copiado al portapapeles",
+        "copy_error": "No se pudo copiar el enlace",
+        "share_error": "No se pudo compartir"
     }
 }
