@@ -321,7 +321,8 @@
         "pending_registration": "Pendiente de registro",
         "delivered": "Entregado",
         "qr_transferred": "Esta entrada ya está en la wallet del destinatario",
-        "your_kards": "Tus kards"
+        "your_kards": "Tus kards",
+        "klub_kards": "Klub Kards"
     },
     "transaction": {
         "my_tickets": "Mis entradas",
