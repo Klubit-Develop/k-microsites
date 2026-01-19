@@ -4,23 +4,21 @@
 <head>
   <meta charset="UTF-8" />
   
-  <!-- CRITICAL: Script para meta tags dinámicas - debe ejecutarse PRIMERO -->
+  <!-- Script para meta tags dinámicas -->
   <script>
     (function() {
       var h = window.location.hostname;
       var p = window.location.protocol;
       var url = window.location.href;
       var base = p + '//' + h;
-      var img = base + '/logo-social.png';
+      var img = base + '/social.png';
       
-      // Detectar subdominio
       var sub = null;
       if (h !== 'localhost' && h !== '127.0.0.1') {
         var parts = h.split('.');
         if (parts.length >= 3) sub = parts[0];
       }
       
-      // Helper para crear/actualizar meta tags
       function setMeta(prop, val, isName) {
         var attr = isName ? 'name' : 'property';
         var sel = 'meta[' + attr + '="' + prop + '"]';
@@ -33,27 +31,20 @@
         el.setAttribute('content', val);
       }
       
-      // Actualizar todas las meta tags
       setMeta('og:url', url);
       setMeta('og:image', img);
       setMeta('og:image:secure_url', img);
       setMeta('twitter:url', url, true);
       setMeta('twitter:image', img, true);
       
-      // Site name con subdominio
       if (sub) {
         var name = sub.charAt(0).toUpperCase() + sub.slice(1) + ' | Klubit';
         setMeta('og:site_name', name);
         document.title = name;
       }
       
-      // Canonical
       var can = document.querySelector('link[rel="canonical"]');
       if (can) can.href = base;
-      
-      // Apple touch icons
-      var icons = document.querySelectorAll('link[rel="apple-touch-icon"], link[rel="apple-touch-icon-precomposed"]');
-      icons.forEach(function(i) { i.href = img; });
     })();
   </script>
 
@@ -62,8 +53,7 @@
   <!-- Favicon -->
   <link rel="icon" type="image/x-icon" href="/favicon.ico" />
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
-  <link rel="apple-touch-icon" sizes="180x180" href="/logo-social.png" />
-  <link rel="apple-touch-icon-precomposed" sizes="180x180" href="/logo-social.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/logo.png" />
 
   <!-- PWA -->
   <link rel="manifest" href="/manifest.json" />
@@ -89,8 +79,8 @@
   <meta property="og:title" content="Klubit - La mejor experiencia en eventos y clubes" />
   <meta property="og:description"
     content="Descubre los mejores eventos, compra entradas, reserva mesas y gestiona tu experiencia nocturna con Klubit." />
-  <meta property="og:image" content="https://klubit.io/logo-social.png" />
-  <meta property="og:image:secure_url" content="https://klubit.io/logo-social.png" />
+  <meta property="og:image" content="https://klubit.io/social.png" />
+  <meta property="og:image:secure_url" content="https://klubit.io/social.png" />
   <meta property="og:image:type" content="image/png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
@@ -105,13 +95,13 @@
   <meta name="twitter:title" content="Klubit - La mejor experiencia en eventos y clubes" />
   <meta name="twitter:description"
     content="Descubre los mejores eventos, compra entradas, reserva mesas y gestiona tu experiencia nocturna con Klubit." />
-  <meta name="twitter:image" content="https://klubit.io/logo-social.png" />
+  <meta name="twitter:image" content="https://klubit.io/social.png" />
   <meta name="twitter:image:alt" content="Klubit - Eventos y Clubes" />
 
   <!-- Additional SEO -->
   <meta name="format-detection" content="telephone=no" />
   <meta name="msapplication-TileColor" content="#050505" />
-  <meta name="msapplication-TileImage" content="/logo-social.png" />
+  <meta name="msapplication-TileImage" content="/logo.png" />
 </head>
 
 <body>
