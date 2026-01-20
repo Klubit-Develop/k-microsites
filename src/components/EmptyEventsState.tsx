@@ -1,53 +1,44 @@
 import { useTranslation } from 'react-i18next';
 
-const DISCO_BALL_IMAGE = 'https://klubit.fra1.cdn.digitaloceanspaces.com/icon-disco.png';
+const DISCO_BALL_URL = 'https://klubit.fra1.cdn.digitaloceanspaces.com/icon-disco.png';
 
 interface EmptyEventsStateProps {
     title?: string;
     description?: string;
-    showHeader?: boolean;
     className?: string;
 }
 
 const EmptyEventsState = ({
     title,
     description,
-    showHeader = true,
     className = '',
 }: EmptyEventsStateProps) => {
     const { t } = useTranslation();
 
-    const displayTitle = title || t('events.empty_title', 'No hay eventos próximos');
-    const displayDescription = description || t('events.empty_description', 'Este klub no tiene eventos programados por ahora.');
+    const displayTitle = title || t('artist.no_events_title', 'No hay eventos próximos');
+    const displayDescription = description || t('artist.no_events_description', 'Este artista no tiene eventos programados por ahora.');
 
     return (
-        <div className={`flex flex-col gap-4 items-start w-full ${className}`}>
-            {showHeader && (
-                <div className="flex gap-2 items-center px-1.5 w-full">
-                    <h2 className="text-[#ff336d] text-[24px] font-semibold leading-none whitespace-nowrap overflow-hidden text-ellipsis font-borna">
-                        {t('events.upcoming', 'Próximos eventos')}
-                    </h2>
-                </div>
-            )}
-
-            <div className="flex flex-1 flex-col gap-8 items-center justify-center py-8 w-full min-h-[300px]">
-                <div className="flex flex-col gap-6 items-center w-full">
-                    <div className="flex items-center justify-center p-1 size-[90px]">
+        <div className={`flex flex-col gap-[32px] items-center justify-center py-[32px] w-full ${className}`}>
+            <div className="flex flex-col gap-[24px] items-center w-full">
+                <div className="flex items-center justify-center p-[4px] w-[90px] h-[90px]">
+                    <div className="relative w-[74px] h-[82px]">
                         <img
-                            src={DISCO_BALL_IMAGE}
+                            src={DISCO_BALL_URL}
                             alt="Disco ball"
-                            className="w-[72px] h-[82px] object-contain"
+                            className="w-full h-full object-contain"
+                            style={{ filter: 'drop-shadow(0px 0px 30px rgba(255, 255, 255, 0.25))' }}
                         />
                     </div>
+                </div>
 
-                    <div className="flex flex-col gap-2 items-center px-4 w-full text-center">
-                        <h3 className="text-[#f6f6f6] text-[24px] font-semibold leading-none font-borna">
-                            {displayTitle}
-                        </h3>
-                        <p className="text-[#939393] text-[16px] font-medium leading-none font-helvetica">
-                            {displayDescription}
-                        </p>
-                    </div>
+                <div className="flex flex-col gap-[8px] items-center px-[16px] text-center w-full">
+                    <p className="text-[#f6f6f6] text-[24px] font-semibold leading-normal w-full font-borna">
+                        {displayTitle}
+                    </p>
+                    <p className="text-[#939393] text-[16px] font-medium leading-normal w-full font-helvetica">
+                        {displayDescription}
+                    </p>
                 </div>
             </div>
         </div>

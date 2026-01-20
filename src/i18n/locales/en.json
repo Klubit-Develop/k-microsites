@@ -20,12 +20,16 @@
         "today": "Today",
         "upcoming_events": "Upcoming events",
         "no_events": "No upcoming events",
-        "favorite_error": "Error updating favorite"
+        "favorite_error": "Error updating favorite",
+        "no_events_title": "No upcoming events",
+        "no_events_description": "This artist has no scheduled events at the moment."
     },
     "rrpp": {
         "today": "Today",
         "upcoming_events": "Upcoming events",
-        "no_events": "No upcoming events for this club"
+        "no_events": "No upcoming events for this club",
+        "no_events_title": "No upcoming events",
+        "no_events_description": "This RRPP has no scheduled events for this club."
     },
     "events": {
         "today": "Today",

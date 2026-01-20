@@ -20,12 +20,16 @@
         "today": "Hoy",
         "upcoming_events": "Próximos eventos",
         "no_events": "No hay eventos próximos",
-        "favorite_error": "Error al actualizar favorito"
+        "favorite_error": "Error al actualizar favorito",
+        "no_events_title": "No hay eventos próximos",
+        "no_events_description": "Este artista no tiene eventos programados por ahora."
     },
     "rrpp": {
         "today": "Hoy",
         "upcoming_events": "Próximos eventos",
-        "no_events": "No hay eventos próximos para este club"
+        "no_events": "No hay eventos próximos para este club",
+        "no_events_title": "No hay eventos próximos",
+        "no_events_description": "Este RRPP no tiene eventos programados para este club."
     },
     "events": {
         "today": "Hoy",

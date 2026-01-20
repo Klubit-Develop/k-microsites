@@ -11,6 +11,7 @@ import PageError from '@/components/common/PageError';
 import RRPPProfile from '@/components/RrppProfile';
 import ClubSelector from '@/components/ClubSelector';
 import EventCardHz from '@/components/EventCardHz';
+import EmptyEventsState from '@/components/EmptyEventsState';
 import { ChevronRightIcon } from '@/components/icons';
 
 interface Event {
@@ -197,6 +198,8 @@ const Rrpp = () => {
     const isTodayLoading = todayEventsQuery.isLoading;
     const isUpcomingLoading = upcomingEventsQuery.isLoading;
 
+    const hasNoEvents = !isTodayLoading && !isUpcomingLoading && todayEvents.length === 0 && upcomingEvents.length === 0 && selectedClub;
+
     const renderEventCard = (event: Event) => (
         <EventCardHz
             key={event.id}
@@ -229,8 +232,7 @@ const Rrpp = () => {
 
     return (
         <div className="bg-[#050505] min-h-screen flex justify-center pt-[120px] pb-[360px] md:pt-24 md:pb-24">
-            <div className="flex flex-col gap-9 w-full max-w-[500px] px-4 md:px-6">
-                {/* RRPP Profile */}
+            <div className="flex flex-col gap-[32px] w-full max-w-[500px] px-4 md:px-6">
                 <RRPPProfile
                     firstName={user?.firstName || ''}
                     lastName={user?.lastName || ''}
@@ -239,7 +241,6 @@ const Rrpp = () => {
                     isLoading={isLoading}
                 />
 
-                {/* Club Selector */}
                 <ClubSelector
                     clubs={rrppClubs}
                     selectedClub={selectedClub}
@@ -249,49 +250,47 @@ const Rrpp = () => {
                     onToggle={() => setIsClubSelectorOpen(!isClubSelectorOpen)}
                 />
 
-                {/* Today's Events - Never shows arrow */}
                 {(isTodayLoading || todayEvents.length > 0) && (
-                    <div className="flex flex-col gap-4 w-full">
-                        <div className="flex gap-0.5 items-center px-1.5 w-full">
+                    <div className="flex flex-col gap-[16px] w-full">
+                        <div className="flex gap-[8px] items-center px-[6px] w-full">
                             {isLoading ? (
                                 <div className="h-6 w-16 bg-[#232323] rounded animate-pulse" />
                             ) : (
-                                <h2 className="text-[#ff336d] text-2xl font-semibold font-borna">
+                                <h2 className="text-[#ff336d] text-[24px] font-semibold leading-normal font-borna">
                                     {t('rrpp.today', 'Hoy')}
                                 </h2>
                             )}
                         </div>
-                        <div className="flex flex-col gap-2 w-full">
+                        <div className="flex flex-col gap-[8px] w-full">
                             {isTodayLoading ? renderSkeletonCards(1) : todayEvents.map(renderEventCard)}
                         </div>
                     </div>
                 )}
 
-                {/* Upcoming Events - Shows arrow only if 6+ events and not expanded */}
                 {(isUpcomingLoading || upcomingEvents.length > 0) && (
-                    <div className="flex flex-col gap-4 w-full">
-                        <div className="flex gap-2 items-center px-1.5 w-full">
+                    <div className="flex flex-col gap-[16px] w-full">
+                        <div className="flex gap-[8px] items-center px-[6px] w-full">
                             {isLoading ? (
                                 <div className="h-6 w-40 bg-[#232323] rounded animate-pulse" />
                             ) : (
                                 <button
                                     type="button"
                                     onClick={showUpcomingArrow ? handleShowAllUpcoming : undefined}
-                                    className={`flex gap-2 items-center ${showUpcomingArrow ? 'cursor-pointer' : 'cursor-default'}`}
+                                    className={`flex gap-[8px] items-center ${showUpcomingArrow ? 'cursor-pointer' : 'cursor-default'}`}
                                     disabled={!showUpcomingArrow}
                                 >
-                                    <h2 className="text-[#ff336d] text-2xl font-semibold font-borna">
+                                    <h2 className="text-[#ff336d] text-[24px] font-semibold leading-normal font-borna whitespace-nowrap overflow-hidden text-ellipsis">
                                         {t('rrpp.upcoming_events', 'Próximos eventos')}
                                     </h2>
                                     {showUpcomingArrow && (
-                                        <div className="flex items-center pt-1">
+                                        <div className="flex items-center pt-[4px]">
                                             <ChevronRightIcon />
                                         </div>
                                     )}
                                 </button>
                             )}
                         </div>
-                        <div className="flex flex-col gap-2 w-full">
+                        <div className="flex flex-col gap-[8px] w-full">
                             {isUpcomingLoading 
                                 ? renderSkeletonCards(3) 
                                 : displayedUpcomingEvents.map(renderEventCard)
@@ -300,12 +299,20 @@ const Rrpp = () => {
                     </div>
                 )}
 
-                {/* No events message */}
-                {!isTodayLoading && !isUpcomingLoading && todayEvents.length === 0 && upcomingEvents.length === 0 && selectedClub && (
-                    <div className="flex items-center justify-center py-12">
-                        <p className="text-[#939393] text-sm font-helvetica">
-                            {t('rrpp.no_events', 'No hay eventos próximos para este club')}
-                        </p>
+                {hasNoEvents && (
+                    <div className="flex flex-col gap-[16px] w-full">
+                        <div className="flex gap-[8px] items-center px-[6px] w-full">
+                            <h2 className="text-[#ff336d] text-[24px] font-semibold leading-normal font-borna whitespace-nowrap overflow-hidden text-ellipsis">
+                                {t('rrpp.upcoming_events', 'Próximos eventos')}
+                            </h2>
+                            <div className="flex items-center pt-[4px]">
+                                <ChevronRightIcon />
+                            </div>
+                        </div>
+                        <EmptyEventsState
+                            title={t('rrpp.no_events_title', 'No hay eventos próximos')}
+                            description={t('rrpp.no_events_description', 'Este RRPP no tiene eventos programados para este club.')}
+                        />
                     </div>
                 )}
             </div>
