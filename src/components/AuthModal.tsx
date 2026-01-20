@@ -313,7 +313,7 @@ const AuthModal = ({ isOpen, onClose, onSuccess, eventSlug, checkoutSearchParams
                 } else if (responseToken && user) {
                     setToken(responseToken);
                     setUser(user);
-                    toast.success(t('auth.login_success', '!Bienvenido!'));
+                    toast.success(t('auth.login_success', '¡Bienvenido!'));
                     onSuccess();
                     onClose();
                 }
@@ -627,10 +627,12 @@ const AuthModal = ({ isOpen, onClose, onSuccess, eventSlug, checkoutSearchParams
     return createPortal(
         <div
             className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center transition-opacity duration-200 ease-out ${isAnimating ? 'opacity-100' : 'opacity-0'}`}
+            style={{ touchAction: 'none', overscrollBehavior: 'contain' }}
         >
             <div
                 className={`absolute inset-0 bg-black/80 transition-opacity duration-200 ease-out ${isAnimating ? 'opacity-100' : 'opacity-0'}`}
                 onClick={onClose}
+                style={{ touchAction: 'none' }}
             />
 
             <div
@@ -709,10 +711,10 @@ const AuthModal = ({ isOpen, onClose, onSuccess, eventSlug, checkoutSearchParams
                                     </div>
 
                                     <div className="flex flex-col gap-3">
-                                        <Button onClick={initiateGoogleLogin} icon={<GoogleIcon />}>
+                                        <Button type="button" onClick={initiateGoogleLogin} icon={<GoogleIcon />}>
                                             {t('login.continueWithGoogle', 'Continuar con Google')}
                                         </Button>
-                                        <Button onClick={initiateAppleLogin} icon={<AppleIcon />}>
+                                        <Button type="button" onClick={initiateAppleLogin} icon={<AppleIcon />}>
                                             {t('login.continueWithApple', 'Continuar con Apple')}
                                         </Button>
                                     </div>
