@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import dayjs from 'dayjs';
 import 'dayjs/locale/es';
 import { useTranslation } from 'react-i18next';
@@ -92,6 +92,10 @@ const UpcomingEventsPanel = ({
         }
     }, [eventsQuery.data, page]);
 
+    const sortedEvents = useMemo(() => {
+        return [...allEvents].sort((a, b) => dayjs(a.startDate).diff(dayjs(b.startDate)));
+    }, [allEvents]);
+
     const handlePreviousMonth = () => {
         if (isCurrentMonth) return;
         setCurrentMonth(prev => prev.subtract(1, 'month'));
@@ -146,8 +150,8 @@ const UpcomingEventsPanel = ({
                         [...Array(3)].map((_, index) => (
                             <EventCardHzSkeleton key={index} />
                         ))
-                    ) : allEvents.length > 0 ? (
-                        allEvents.map((event) => (
+                    ) : sortedEvents.length > 0 ? (
+                        sortedEvents.map((event) => (
                             <EventCardHz
                                 key={event.id}
                                 title={event.name}

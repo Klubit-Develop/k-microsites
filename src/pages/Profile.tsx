@@ -273,7 +273,7 @@ const AvatarEditor = ({ avatar, firstName, lastName, onClick, isUploading = fals
                 ) : (
                     <div className="w-full h-full bg-gradient-to-b from-[#2a2a2a] to-[#1a1a1a] flex items-center justify-center">
                         <span
-                            className="text-[#f6f6f6] text-[48px] font-semibold select-none"
+                            className="text-[#f6f6f6] text-[48px] font-semibold font-borna select-none"
                             style={{ fontFamily: "'Borna', sans-serif" }}
                         >
                             {initials || '?'}

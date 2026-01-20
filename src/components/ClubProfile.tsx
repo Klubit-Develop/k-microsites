@@ -50,19 +50,19 @@ const ClubProfile = ({
     return (
         <div className={`flex flex-col gap-4 items-center justify-center px-6 w-full max-w-[370px] ${className}`}>
             <div className="flex flex-col gap-2 items-center w-full">
-                <div className="relative w-[140px] h-[140px] shrink-0 rounded-full shadow-[0px_0px_31px_0px_rgba(0,0,0,0.5)] overflow-hidden">
+                <div className="relative w-[140px] h-[140px] shrink-0 rounded-full shadow-[0px_0px_31px_0px_rgba(0,0,0,0.5)]">
                     <div className="absolute inset-0 rounded-full border-[3px] bg-[#323232] border-[#232323]" />
                     {logoUrl && (
                         <img
                             src={logoUrl}
                             alt={`${name} logo`}
-                            className="absolute inset-0 w-full h-full object-cover rounded-full"
+                            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[83px] h-[62px] object-contain"
                         />
                     )}
                 </div>
 
                 <div className="flex flex-col items-center justify-center py-1 w-full">
-                    <p className="font-bold text-2xl leading-normal text-center text-[#F6F6F6] font-borna">
+                    <p className="font-semibold text-[24px] leading-normal text-center text-[#F6F6F6] font-borna">
                         {name}
                     </p>
                     <p className="text-sm leading-normal text-[#939393] truncate font-helvetica">

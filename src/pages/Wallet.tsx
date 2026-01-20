@@ -390,7 +390,7 @@ const SectionHeader = ({ title, to, showArrow = false }: SectionHeaderProps) => 
             className={`flex gap-2 items-center px-1.5 ${to && showArrow ? 'cursor-pointer' : 'cursor-default'}`}
             disabled={!to || !showArrow}
         >
-            <span className="text-[#FF336D] text-[24px] font-bold leading-none whitespace-nowrap overflow-hidden text-ellipsis font-borna">
+            <span className="text-[#FF336D] text-[24px] font-semibold leading-none whitespace-nowrap overflow-hidden text-ellipsis font-borna">
                 {title}
             </span>
             {showArrow && to && (
@@ -1205,7 +1205,7 @@ const KardsCarousel = ({ kards, onKardClick }: KardsCarouselProps) => {
                 className={`flex gap-2 items-center px-1.5 ${kards.length > 3 ? 'cursor-pointer' : 'cursor-default'}`}
                 disabled={kards.length <= 3}
             >
-                <span className="text-[#FF336D] text-[24px] font-bold leading-none whitespace-nowrap overflow-hidden text-ellipsis font-borna">
+                <span className="text-[#FF336D] text-[24px] font-semibold leading-none whitespace-nowrap overflow-hidden text-ellipsis font-borna">
                     {t('wallet.klub_kards', 'Klub Kards')}
                 </span>
                 {kards.length > 3 && (
