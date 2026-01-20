@@ -426,6 +426,14 @@ const NominativeAssignmentSection = ({
             return;
         }
 
+        if (user?.phone && user?.country) {
+            const userPhoneClean = user.phone.replace(/\s/g, '');
+            if (cleanPhone === userPhoneClean && assignment.phoneCountry === user.country) {
+                toast.error(t('checkout.cannot_send_to_self', 'No puedes enviar una entrada a ti mismo. Usa la opción "Para mí"'));
+                return;
+            }
+        }
+
         handleUpdateAssignment(itemIndex, { isSearching: true });
 
         try {
