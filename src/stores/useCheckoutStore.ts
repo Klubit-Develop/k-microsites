@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 
 type CheckoutStep = 'selection' | 'summary' | 'payment';
 
@@ -105,9 +105,6 @@ interface CheckoutState {
     getTotal: () => number;
 
     resetForNewEvent: (newEventId: string) => void;
-
-    _hasHydrated: boolean;
-    setHasHydrated: (state: boolean) => void;
 }
 
 const TIMER_DURATION = 10 * 60;
@@ -265,7 +262,16 @@ export const useCheckoutStore = create<CheckoutState>()(
             resetForNewEvent: (newEventId: string) => {
                 const state = get();
 
-                if (state.eventId !== newEventId || state.isTimerExpired) {
+                const isTimerActuallyExpired = state.timerStartedAt
+                    ? (Date.now() - state.timerStartedAt) >= (state.timerDuration * 1000)
+                    : false;
+
+                const shouldReset =
+                    state.eventId !== newEventId ||
+                    state.isTimerExpired ||
+                    isTimerActuallyExpired;
+
+                if (shouldReset) {
                     set({
                         eventId: null,
                         eventName: null,
@@ -284,9 +290,6 @@ export const useCheckoutStore = create<CheckoutState>()(
                     });
                 }
             },
-
-            _hasHydrated: false,
-            setHasHydrated: (state) => set({ _hasHydrated: state }),
         }),
         {
             name: 'checkout-storage',
@@ -307,26 +310,17 @@ export const useCheckoutStore = create<CheckoutState>()(
                 transactionCurrency: state.transactionCurrency,
                 isTimerExpired: state.isTimerExpired,
             }),
-            onRehydrateStorage: () => (state) => {
-                state?.setHasHydrated(true);
-            },
         }
     )
 );
 
 export const useCheckoutTimer = () => {
-    const { timerStartedAt, timerDuration, isTimerExpired, expireTimer, _hasHydrated } = useCheckoutStore();
-    const [remainingTime, setRemainingTime] = useState<number | null>(null);
-    const hasExpiredRef = useRef(false);
+    const { timerStartedAt, timerDuration, isTimerExpired, expireTimer } = useCheckoutStore();
+    const [remainingTime, setRemainingTime] = useState<number>(timerDuration);
 
     useEffect(() => {
-        if (!_hasHydrated) {
-            return;
-        }
-
         if (!timerStartedAt || isTimerExpired) {
             setRemainingTime(timerDuration);
-            hasExpiredRef.current = isTimerExpired;
             return;
         }
 
@@ -336,55 +330,22 @@ export const useCheckoutTimer = () => {
             return remaining;
         };
 
-        const initialRemaining = calculateRemaining();
-        setRemainingTime(initialRemaining);
-
-        if (initialRemaining <= 0 && !hasExpiredRef.current) {
-            hasExpiredRef.current = true;
-            expireTimer();
-            return;
-        }
+        setRemainingTime(calculateRemaining());
 
         const interval = setInterval(() => {
             const remaining = calculateRemaining();
             setRemainingTime(remaining);
 
-            if (remaining <= 0 && !hasExpiredRef.current) {
-                hasExpiredRef.current = true;
+            if (remaining <= 0) {
                 expireTimer();
                 clearInterval(interval);
             }
         }, 1000);
 
         return () => clearInterval(interval);
-    }, [timerStartedAt, timerDuration, isTimerExpired, expireTimer, _hasHydrated]);
+    }, [timerStartedAt, timerDuration, isTimerExpired, expireTimer]);
 
-    useEffect(() => {
-        if (isTimerExpired) {
-            hasExpiredRef.current = true;
-        }
-    }, [isTimerExpired]);
-
-    return { 
-        remainingTime: remainingTime ?? timerDuration, 
-        isTimerExpired,
-        isHydrated: _hasHydrated
-    };
-};
-
-export const waitForCheckoutHydration = (): Promise<void> => {
-    return new Promise((resolve) => {
-        if (useCheckoutStore.getState()._hasHydrated) {
-            resolve();
-            return;
-        }
-        const unsubscribe = useCheckoutStore.subscribe((state) => {
-            if (state._hasHydrated) {
-                unsubscribe();
-                resolve();
-            }
-        });
-    });
+    return { remainingTime, isTimerExpired };
 };
 
 export default useCheckoutStore;

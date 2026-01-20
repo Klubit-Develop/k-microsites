@@ -4,7 +4,6 @@ import { toast } from 'sonner';
 import { Link } from '@tanstack/react-router';
 import IncidentModal from '@/components/IncidentModal';
 import InputTextPhone from '@/components/ui/InputTextPhone';
-import CheckoutTimer from '@/components/CheckoutTimer';
 import { countries } from '@/utils/countries';
 import axiosInstance from '@/config/axiosConfig';
 import { useAuthStore } from '@/stores/authStore';
@@ -64,6 +63,27 @@ const IndicatorDot = ({ color }: { color: string }) => (
     <div className="w-[6px] h-[6px] rounded-full shrink-0" style={{ backgroundColor: color }} />
 );
 
+const CheckoutTimer = ({ seconds }: { seconds: number }) => {
+    const { t } = useTranslation();
+
+    const formatTime = (secs: number): string => {
+        const mins = Math.floor(secs / 60);
+        const remainingSecs = secs % 60;
+        if (mins > 0) {
+            return `${mins} ${t('checkout.minutes', 'minutos')} y ${remainingSecs} ${t('checkout.seconds', 'segundos')}`;
+        }
+        return `${remainingSecs} ${t('checkout.seconds', 'segundos')}`;
+    };
+
+    return (
+        <div className="flex items-center justify-center p-[14px] border-[1.5px] border-solid border-[#232323] rounded-[12px] w-full">
+            <p className="font-helvetica font-normal text-[14px] text-[#f6f6f6] text-center leading-[100%]">
+                {formatTime(seconds)}
+            </p>
+        </div>
+    );
+};
+
 const EventInfoCard = ({ items }: { event: EventInfo; items: CartItem[] }) => {
     const { t } = useTranslation();
 
@@ -117,6 +137,8 @@ interface CouponSectionProps {
     discountAmount: number;
 }
 
+const PRESENT_ICON_URL = 'https://klubit.fra1.cdn.digitaloceanspaces.com/icon-present.png';
+
 const CouponSection = ({
     appliedCoupon,
     onApplyCoupon,
@@ -141,6 +163,11 @@ const CouponSection = ({
         }
     };
 
+    const handleCloseModal = () => {
+        setIsModalOpen(false);
+        setCouponCode('');
+    };
+
     if (appliedCoupon) {
         return (
             <div className="bg-[#141414] border-2 border-[#232323] rounded-[12px] px-[16px] py-[12px] flex items-center justify-between w-full">
@@ -150,14 +177,17 @@ const CouponSection = ({
                     </span>
                     <div className="w-[3px] h-[3px] rounded-full bg-[#939393]" />
                     <span className="text-[#939393] text-[14px] font-normal font-helvetica">
-                        {discountAmount.toFixed(2).replace('.', ',')}€
+                        {discountAmount.toFixed(2).replace('.', ',')}€ {t('checkout.discount', 'descuento')}
                     </span>
                 </div>
                 <button
                     onClick={onRemoveCoupon}
-                    className="text-[#ff2323] text-[14px] font-medium font-helvetica hover:opacity-80 transition-opacity"
+                    disabled={isLoading}
+                    className="h-[36px] px-[16px] bg-[rgba(255,35,35,0.25)] rounded-[8px] flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity disabled:opacity-50"
                 >
-                    {t('checkout.remove_coupon', 'Eliminar')}
+                    <span className="text-[#ff2323] text-[14px] font-bold font-helvetica">
+                        {t('checkout.remove', 'Quitar')}
+                    </span>
                 </button>
             </div>
         );
@@ -167,52 +197,70 @@ const CouponSection = ({
         <>
             <button
                 onClick={() => setIsModalOpen(true)}
-                className="bg-[#141414] border-2 border-[#232323] rounded-[12px] px-[16px] py-[12px] flex items-center justify-between w-full cursor-pointer hover:border-[#3a3a3a] transition-colors"
+                className="w-full h-[48px] bg-[#232323] rounded-[12px] flex items-center justify-center cursor-pointer hover:bg-[#2a2a2a] transition-colors"
             >
-                <span className="text-[#939393] text-[16px] font-medium font-helvetica">
-                    {t('checkout.add_coupon', 'Añadir cupón')}
+                <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica">
+                    {t('checkout.apply_coupon', 'Aplicar código de cupón')}
                 </span>
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                    <path d="M10 4V16M4 10H16" stroke="#939393" strokeWidth="2" strokeLinecap="round" />
-                </svg>
             </button>
 
             {isModalOpen && (
-                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={() => setIsModalOpen(false)}>
-                    <div className="bg-[#141414] border-2 border-[#232323] rounded-[16px] p-[24px] w-full max-w-[400px] flex flex-col gap-[24px]" onClick={e => e.stopPropagation()}>
-                        <div className="flex items-center justify-between">
-                            <span className="text-[#f6f6f6] text-[20px] font-semibold font-borna">
-                                {t('checkout.add_coupon', 'Añadir cupón')}
-                            </span>
-                            <button onClick={() => setIsModalOpen(false)} className="text-[#939393] hover:text-[#f6f6f6] transition-colors">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                                    <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                                </svg>
-                            </button>
+                <div
+                    className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-[24px]"
+                    onClick={(e) => {
+                        if (e.target === e.currentTarget) {
+                            handleCloseModal();
+                        }
+                    }}
+                >
+                    <div
+                        className="bg-[#0a0a0a] border-2 border-[#232323] rounded-[42px] w-full max-w-[402px] px-[24px] py-[42px] flex flex-col items-center gap-[36px] relative animate-in fade-in zoom-in-95 duration-200"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 pt-[5px]">
+                            <div className="w-[36px] h-[5px] bg-[#f6f6f6] opacity-25 rounded-[100px]" />
                         </div>
 
-                        <div className="flex flex-col gap-[4px]">
-                            <span className="text-[#939393] text-[14px] font-normal font-helvetica px-[6px]">
-                                {t('checkout.coupon_code_label', 'Código de cupón')}
-                            </span>
+                        <div className="flex flex-col items-center gap-[16px] px-[16px] w-full">
+                            <div className="w-[120px] h-[120px] flex items-center justify-center p-[4px]">
+                                <img 
+                                    src={PRESENT_ICON_URL} 
+                                    alt=""
+                                    className="w-[112px] h-[114px] object-contain"
+                                />
+                            </div>
+                            <h2 className="text-[#f6f6f6] text-[24px] font-semibold font-borna text-center w-full leading-[100%]">
+                                {t('checkout.apply_coupon_title', 'Aplicar cupón')}
+                            </h2>
+                        </div>
+
+                        <div className="flex flex-col gap-[4px] w-full">
+                            <div className="flex items-center px-[6px]">
+                                <span className="text-[#939393] text-[14px] font-normal font-helvetica leading-[100%]">
+                                    {t('checkout.coupon_code_label', 'Código de cupón')}
+                                </span>
+                            </div>
                             <input
                                 type="text"
                                 value={couponCode}
                                 onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
                                 onKeyDown={handleKeyDown}
-                                placeholder={t('checkout.coupon_placeholder', '')}
-                                className="w-full h-[48px] bg-transparent border-[1.5px] border-[#232323] rounded-[12px] px-[16px] text-[#f6f6f6] text-[16px] font-medium font-helvetica placeholder:text-[#939393] outline-none focus:border-[#ff336d] transition-colors"
+                                placeholder={t('checkout.coupon_placeholder', 'Ej: KLUBIT2025')}
+                                className="w-full h-[48px] border-[1.5px] border-[#232323] rounded-[12px] px-[16px] bg-transparent text-[#f6f6f6] text-[16px] font-medium font-helvetica placeholder:text-[#939393] outline-none focus:border-[#ff336d] transition-colors"
                                 autoFocus
                             />
                         </div>
 
                         <button
                             onClick={handleApply}
-                            disabled={isLoading || !couponCode.trim()}
+                            disabled={!couponCode.trim() || isLoading}
                             className="w-full h-[48px] bg-[#ff336d] rounded-[12px] flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            <span className="text-[#f6f6f6] text-[16px] font-bold font-helvetica">
-                                {isLoading ? '...' : t('checkout.apply', 'Aplicar')}
+                            <span className="text-[#f6f6f6] text-[16px] font-bold font-helvetica leading-[100%]">
+                                {isLoading 
+                                    ? t('common.loading', 'Cargando...')
+                                    : t('checkout.apply_button', 'Aplicar')
+                                }
                             </span>
                         </button>
                     </div>
@@ -222,61 +270,54 @@ const CouponSection = ({
     );
 };
 
-interface PaymentDetailsProps {
+interface PaymentDetailsCardProps {
     subtotal: number;
     serviceFee: number;
     discount: number;
     total: number;
 }
 
-const PaymentDetailsCard = ({ subtotal, serviceFee, discount, total }: PaymentDetailsProps) => {
+const PaymentDetailsCard = ({ subtotal, serviceFee, discount, total }: PaymentDetailsCardProps) => {
     const { t } = useTranslation();
 
     return (
-        <div className="flex flex-col gap-[4px] w-full">
-            <span className="text-[#939393] text-[16px] font-medium font-helvetica px-[6px]">
-                {t('checkout.payment_details', 'Detalles pago')}
-            </span>
-            <div className="bg-[#141414] border-2 border-[#232323] rounded-[16px] w-full">
-                <div className="flex items-center justify-between px-[16px] h-[56px] border-b-[1.5px] border-[#232323]">
+        <div className="bg-[#141414] border-2 border-[#232323] rounded-[24px] overflow-hidden w-full">
+            <div className="flex items-center justify-between px-[16px] h-[56px] border-b-[1.5px] border-[#232323]">
+                <span className="text-[#939393] text-[16px] font-medium font-helvetica">
+                    {t('checkout.subtotal', 'Subtotal')}:
+                </span>
+                <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica">
+                    {subtotal.toFixed(2).replace('.', ',')}€
+                </span>
+            </div>
+
+            <div className="flex items-center justify-between px-[16px] h-[56px]">
+                <span className="text-[#939393] text-[16px] font-medium font-helvetica">
+                    {t('checkout.service_fee', 'Gastos de gestión')}:
+                </span>
+                <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica">
+                    {serviceFee.toFixed(2).replace('.', ',')}€
+                </span>
+            </div>
+
+            {discount > 0 && (
+                <div className="flex items-center justify-between px-[16px] h-[56px]">
                     <span className="text-[#939393] text-[16px] font-medium font-helvetica">
-                        {t('checkout.subtotal', 'Subtotal')}:
+                        {t('checkout.discount_label', 'Descuento')}:
                     </span>
                     <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica">
-                        {subtotal.toFixed(2).replace('.', ',')}€
+                        -{discount.toFixed(2).replace('.', ',')}€
                     </span>
                 </div>
+            )}
 
-                {serviceFee > 0 && (
-                    <div className="flex items-center justify-between px-[16px] h-[56px] border-b-[1.5px] border-[#232323]">
-                        <span className="text-[#939393] text-[16px] font-medium font-helvetica">
-                            {t('checkout.service_fee', 'Gastos de servicio')}:
-                        </span>
-                        <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica">
-                            {serviceFee.toFixed(2).replace('.', ',')}€
-                        </span>
-                    </div>
-                )}
-
-                {discount > 0 && (
-                    <div className="flex items-center justify-between px-[16px] h-[56px] border-b-[1.5px] border-[#232323]">
-                        <span className="text-[#939393] text-[16px] font-medium font-helvetica">
-                            {t('checkout.discount', 'Descuento')}:
-                        </span>
-                        <span className="text-[#e5ff88] text-[16px] font-medium font-helvetica">
-                            -{discount.toFixed(2).replace('.', ',')}€
-                        </span>
-                    </div>
-                )}
-
-                <div className="flex items-center justify-between px-[16px] h-[56px]">
-                    <span className="text-[#f6f6f6] text-[16px] font-bold font-helvetica">
-                        {t('checkout.total', 'Total')}:
-                    </span>
-                    <span className="text-[#f6f6f6] text-[16px] font-bold font-helvetica">
-                        {total.toFixed(2).replace('.', ',')}€
-                    </span>
-                </div>
+            <div className="flex items-center justify-between px-[16px] h-[56px] border-t-[1.5px] border-[#232323]">
+                <span className="text-[#939393] text-[16px] font-medium font-helvetica">
+                    {t('checkout.total_price', 'Precio total')}:
+                </span>
+                <span className="text-[#f6f6f6] text-[24px] font-bold font-helvetica">
+                    {total.toFixed(2).replace('.', ',')}€
+                </span>
             </div>
         </div>
     );
@@ -356,102 +397,60 @@ const NominativeAssignmentSection = ({
         if (!existing || existing.assignmentType !== 'me') {
             const newAssignments = assignments
                 .filter(a => a.itemIndex !== itemIndex)
-                .map(a => a.assignmentType === 'me'
+                .map(a => a.assignmentType === 'me' 
                     ? { ...a, assignmentType: 'send' as const, phoneCountry: '34' }
                     : a
-                );
+            );
             newAssignments.push({ itemIndex, assignmentType: 'me' });
             onAssignmentChange(newAssignments);
         } else {
-            const newAssignments = assignments.filter(a => a.itemIndex !== itemIndex);
-            newAssignments.push({ itemIndex, assignmentType: 'send', phoneCountry: '34' });
+            const newAssignments = assignments.map(a =>
+                a.itemIndex === itemIndex
+                    ? { ...a, assignmentType: 'send' as const, phoneCountry: '34' }
+                    : a
+            );
             onAssignmentChange(newAssignments);
         }
     };
 
-    const meAssignedIndex = useMemo(() => {
-        const meAssignment = assignments.find(a => a.assignmentType === 'me');
-        return meAssignment?.itemIndex ?? null;
-    }, [assignments]);
-
-    const handleConfirmPhone = async (itemIndex: number) => {
+    const handleSearchUser = async (itemIndex: number) => {
         const assignment = assignments.find(a => a.itemIndex === itemIndex);
+        if (!assignment?.phone || !assignment?.phoneCountry) return;
 
-        if (!assignment?.phone) {
-            toast.error(t('checkout.phone_required', 'Introduce un número de teléfono'));
-            return;
-        }
-
+        const cleanPhone = assignment.phone.replace(/\s/g, '');
         const selectedCountry = countries.find(c => c.phone === assignment.phoneCountry);
-        const expectedLength = selectedCountry?.phoneLength || 9;
-        const phoneDigits = assignment.phone.replace(/\D/g, '');
+        const phoneLength = selectedCountry?.phoneLength || 9;
 
-        if (phoneDigits.length !== expectedLength) {
-            toast.error(t('checkout.phone_invalid_length', 'Número de teléfono inválido'));
+        if (cleanPhone.length !== phoneLength) {
+            toast.error(t('checkout.phone_incomplete', 'Por favor completa el número de teléfono'));
             return;
         }
 
-        if (user?.phone && user?.country) {
-            const userPhoneDigits = user.phone.replace(/\D/g, '');
-            const userCountry = user.country;
-
-            if (phoneDigits === userPhoneDigits && assignment.phoneCountry === userCountry) {
-                toast.error(t('checkout.cannot_send_to_self', 'No puedes enviar una entrada a ti mismo'));
-                return;
-            }
-        }
-
-        const searchingAssignments = assignments.map(a =>
-            a.itemIndex === itemIndex
-                ? { ...a, isSearching: true }
-                : a
-        );
-        onAssignmentChange(searchingAssignments);
+        handleUpdateAssignment(itemIndex, { isSearching: true });
 
         try {
-            const response = await axiosInstance.post<{
-                status: 'success' | 'error';
-                data: {
-                    users: {
-                        data: Array<{
-                            id: string;
-                            firstName: string;
-                            lastName: string;
-                            username?: string;
-                            avatar?: string;
-                            phone: string;
-                            country: string;
-                        }>;
-                    };
-                };
-            }>('/v2/users', {
-                phones: [
-                    { country: assignment.phoneCountry || '34', phone: phoneDigits }
-                ]
+            const lang = i18n.language === 'en' ? 'en' : 'es';
+            const response = await axiosInstance.get(`/v2/users/search`, {
+                params: {
+                    country: assignment.phoneCountry,
+                    phone: cleanPhone,
+                    lang,
+                },
             });
 
-            const users = response.data?.data?.users?.data || [];
-
-            if (users.length > 0) {
-                const foundUser = users[0];
-                const newAssignments = assignments.map(a =>
-                    a.itemIndex === itemIndex
-                        ? {
-                            ...a,
-                            assignmentType: 'found' as const,
-                            isSearching: false,
-                            toUserId: foundUser.id,
-                        }
-                        : a
-                );
-                onAssignmentChange(newAssignments);
+            if (response.data.status === 'success' && response.data.data?.users?.length > 0) {
+                const foundUser = response.data.data.users[0];
+                handleUpdateAssignment(itemIndex, {
+                    assignmentType: 'found',
+                    toUserId: foundUser.id,
+                    isSearching: false,
+                });
             } else {
-                const newAssignments = assignments.map(a =>
-                    a.itemIndex === itemIndex
-                        ? { ...a, assignmentType: 'notfound' as const, isSearching: false, email: '' }
-                        : a
-                );
-                onAssignmentChange(newAssignments);
+                handleUpdateAssignment(itemIndex, {
+                    assignmentType: 'notfound',
+                    isSearching: false,
+                    email: '',
+                });
             }
         } catch {
             const newAssignments = assignments.map(a =>
@@ -470,52 +469,28 @@ const NominativeAssignmentSection = ({
         onAssignmentChange(newAssignments);
     };
 
-    const formatPhone = (value: string, pattern: number[] = [3, 3, 3]) => {
-        const digits = value.replace(/\D/g, '');
-        let result = '';
-        let index = 0;
-
-        for (let i = 0; i < pattern.length && index < digits.length; i++) {
-            const segment = digits.slice(index, index + pattern[i]);
-            result += segment;
-            index += pattern[i];
-            if (index < digits.length) result += ' ';
-        }
-
-        return result;
-    };
-
     const handlePhoneChange = (itemIndex: number, value: string) => {
         const assignment = assignments.find(a => a.itemIndex === itemIndex);
-        const countryCode = assignment?.phoneCountry || '34';
-        const selectedCountry = countries.find(c => c.phone === countryCode);
-        const maxLength = selectedCountry?.phoneLength || 9;
-        const pattern = selectedCountry?.phoneFormat || [3, 3, 3];
-
-        const numericValue = value.replace(/\D/g, '');
-        const limitedValue = numericValue.slice(0, maxLength);
-        const formattedValue = formatPhone(limitedValue, pattern);
-
         const currentType = assignment?.assignmentType;
         if (currentType === 'found' || currentType === 'notfound') {
-            handleUpdateAssignment(itemIndex, {
-                phone: formattedValue,
+            handleUpdateAssignment(itemIndex, { 
+                phone: value, 
                 assignmentType: 'send',
                 toUserId: undefined,
                 email: undefined
             });
         } else {
-            handleUpdateAssignment(itemIndex, { phone: formattedValue });
+            handleUpdateAssignment(itemIndex, { phone: value });
         }
     };
 
     const handleCountryChange = (itemIndex: number, newCountry: string) => {
         const assignment = assignments.find(a => a.itemIndex === itemIndex);
         const currentType = assignment?.assignmentType;
-
+        
         if (currentType === 'found' || currentType === 'notfound') {
-            handleUpdateAssignment(itemIndex, {
-                phoneCountry: newCountry,
+            handleUpdateAssignment(itemIndex, { 
+                phoneCountry: newCountry, 
                 phone: '',
                 assignmentType: 'send',
                 toUserId: undefined,
@@ -526,139 +501,151 @@ const NominativeAssignmentSection = ({
         }
     };
 
+    const getIndicatorColor = (type: CartItem['type']) => {
+        switch (type) {
+            case 'ticket': return '#D591FF';
+            case 'guestlist': return '#FFCE1F';
+            case 'reservation': return '#3FE8E8';
+            case 'promotion': return '#FF336D';
+            case 'product': return '#00D1FF';
+            default: return '#939393';
+        }
+    };
+
     return (
-        <div className="flex flex-col gap-[16px] w-full">
-            <div className="flex items-center justify-between px-[6px]">
-                <span className="text-[#939393] text-[16px] font-medium font-helvetica">
-                    {t('checkout.nominative_assignment', 'Asignación nominativa')}
+        <div className="flex flex-col gap-[4px] w-full">
+            <span className="text-[#939393] text-[16px] font-medium font-helvetica px-[6px]">
+                {t('checkout.client_assignment', 'Asignación clientes')}*
+            </span>
+
+            <button
+                type="button"
+                onClick={handleToggleAllForMe}
+                className={`
+                    w-full h-[56px] rounded-[16px] border-2 flex items-center justify-between px-[16px] mb-[4px] transition-all
+                    ${allForMe 
+                        ? 'bg-[#141414] border-[#e5ff88]' 
+                        : 'bg-[#141414] border-[#232323] hover:border-[#3a3a3a]'
+                    }
+                `}
+            >
+                <span className={`text-[16px] font-medium font-helvetica ${allForMe ? 'text-[#e5ff88]' : 'text-[#f6f6f6]'}`}>
+                    {t('checkout.all_for_me', 'Son todas para mí')}
                 </span>
-                {nominativeEntries.length > 1 && (
-                    <button
-                        onClick={handleToggleAllForMe}
-                        className="flex items-center gap-[8px] text-[#939393] hover:text-[#f6f6f6] transition-colors"
-                    >
-                        <span className="text-[14px] font-medium font-helvetica">
-                            {t('checkout.all_for_me', 'Todas para mí')}
-                        </span>
-                        <CheckboxIcon checked={allForMe} />
-                    </button>
-                )}
-            </div>
+                <CheckboxIcon checked={allForMe} />
+            </button>
 
-            {nominativeEntries.map(({ item, index, entryIndex }) => {
-                const assignment = assignments.find(a => a.itemIndex === index);
-                const isMe = assignment?.assignmentType === 'me';
-                const isSend = assignment?.assignmentType === 'send';
-                const isFound = assignment?.assignmentType === 'found';
-                const isNotFound = assignment?.assignmentType === 'notfound';
-                const isSearching = assignment?.isSearching;
-                const canSelectMe = meAssignedIndex === null || meAssignedIndex === index;
+            {!allForMe && (
+            <div className="flex flex-col gap-[8px]">
+                {nominativeEntries.map(({ item, index }) => {
+                    const assignment = assignments.find(a => a.itemIndex === index);
+                    const isMe = assignment?.assignmentType === 'me';
+                    const isFound = assignment?.assignmentType === 'found';
+                    const isNotFound = assignment?.assignmentType === 'notfound';
+                    const isSearching = assignment?.isSearching;
+                    const indicatorColor = getIndicatorColor(item.type);
 
-                return (
-                    <div key={`${item.priceId}-${entryIndex}`} className="bg-[#141414] border-2 border-[#232323] rounded-[16px] p-[16px] flex flex-col gap-[16px]">
-                        <div className="flex items-center justify-between">
-                            <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica">
-                                {item.name} {item.quantity > 1 && `#${entryIndex + 1}`}
-                            </span>
-                            {canSelectMe && (
+                    return (
+                        <div
+                            key={index}
+                            className={`bg-[#141414] border-2 rounded-[16px] w-full transition-colors ${
+                                isMe ? 'border-[#e5ff88]' : 'border-[#232323]'
+                            }`}
+                        >
+                            <div className="flex items-center justify-between p-[16px]">
+                                <div className="flex items-center gap-[8px]">
+                                    <IndicatorDot color={indicatorColor} />
+                                    <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica">
+                                        {item.name}
+                                        {item.priceName && ` - ${item.priceName}`}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div className="px-[16px] pb-[16px] flex flex-col gap-[12px]">
                                 <button
+                                    type="button"
                                     onClick={() => handleToggleMe(index)}
-                                    className="flex items-center gap-[8px]"
+                                    className={`
+                                        w-full h-[48px] rounded-[12px] border-[1.5px] flex items-center justify-between px-[16px] transition-all
+                                        ${isMe 
+                                            ? 'border-[#e5ff88] bg-[rgba(229,255,136,0.05)]' 
+                                            : 'border-[#232323] hover:border-[#3a3a3a]'
+                                        }
+                                    `}
                                 >
-                                    <span className="text-[#939393] text-[14px] font-medium font-helvetica">
-                                        {t('checkout.for_me', 'Para mí')}
+                                    <span className={`text-[16px] font-medium font-helvetica ${isMe ? 'text-[#e5ff88]' : 'text-[#f6f6f6]'}`}>
+                                        {t('checkout.for_me', 'Es para mí')}
+                                        {isMe && user?.firstName && (
+                                            <span className="text-[#939393] ml-2">({user.firstName})</span>
+                                        )}
                                     </span>
                                     <CheckboxIcon checked={isMe} />
                                 </button>
-                            )}
-                        </div>
 
-                        {!isMe && (
-                            <div className="flex flex-col gap-[12px]">
-                                <div className="relative">
-                                    <InputTextPhone
-                                        label={`${t('checkout.recipient_phone', 'Teléfono del destinatario')}*`}
-                                        placeholder=""
-                                        value={assignment?.phone || ''}
-                                        onChange={(value) => handlePhoneChange(index, value)}
-                                        country={assignment?.phoneCountry || '34'}
-                                        onCountryChange={(newCountry: string) => handleCountryChange(index, newCountry)}
-                                        countries={countries}
-                                        language={i18n.language as 'es' | 'en'}
-                                        disabled={isFound || isNotFound}
-                                    />
-                                    {isFound && (
-                                        <div className="absolute right-[16px] top-[38px] w-[24px] h-[24px] rounded-full bg-[#e5ff88] flex items-center justify-center z-10">
-                                            <svg width="12" height="9" viewBox="0 0 12 9" fill="none">
-                                                <path d="M1 4L4.5 7.5L11 1" stroke="#0a0a0a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                            </svg>
-                                        </div>
-                                    )}
-                                </div>
-
-                                {isSend && (
-                                    <button
-                                        type="button"
-                                        onClick={() => handleConfirmPhone(index)}
-                                        disabled={isSearching || !assignment?.phone}
-                                        className={`w-full h-[36px] bg-[#232323] rounded-[8px] flex items-center justify-center gap-2 font-medium text-[14px] font-helvetica text-[#f6f6f6] transition-colors ${!assignment?.phone || isSearching
-                                                ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-[#2a2a2a]'
-                                            }`}
-                                    >
-                                        {isSearching && (
-                                            <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                                            </svg>
-                                        )}
-                                        {t('checkout.confirm_phone', 'Confirmar teléfono')}
-                                    </button>
-                                )}
-
-                                {(isFound || isNotFound) && (
-                                    <button
-                                        type="button"
-                                        onClick={() => handleUpdateAssignment(index, {
-                                            assignmentType: 'send',
-                                            phone: '',
-                                            toUserId: undefined,
-                                            email: undefined
-                                        })}
-                                        className="w-full h-[36px] bg-transparent border border-[#232323] rounded-[8px] flex items-center justify-center font-medium text-[14px] font-helvetica text-[#939393] cursor-pointer hover:border-[#3a3a3a] transition-colors"
-                                    >
-                                        {t('checkout.change_number', 'Cambiar número')}
-                                    </button>
-                                )}
-
-                                <p className="text-[#939393] text-[12px] font-medium font-helvetica px-[6px]">
-                                    {isNotFound
-                                        ? t('checkout.assign_auto_number', '**La entrada se asignará automáticamente al número indicado. Siempre podrás cancelar el envío desde la app.')
-                                        : t('checkout.assign_auto_user', '**La entrada se asignará automáticamente al siguiente usuario. Siempre podrás cancelar el envío desde la app.')
-                                    }
-                                </p>
-
-                                {isNotFound && (
-                                    <div className="flex flex-col gap-[4px]">
-                                        <span className="text-[#939393] text-[14px] font-normal font-helvetica px-[6px]">
-                                            {t('checkout.email_notification', 'Email para notificación')}*
-                                        </span>
-                                        <input
-                                            type="email"
-                                            value={assignment?.email || ''}
-                                            onChange={(e) => handleUpdateAssignment(index, { email: e.target.value })}
-                                            placeholder=""
-                                            className="w-full h-[48px] border-[1.5px] border-[#232323] rounded-[12px] px-[16px] bg-transparent text-[#f6f6f6] text-[16px] font-medium font-helvetica placeholder:text-[#939393] outline-none focus:border-[#3fe8e8] transition-colors"
+                                {!isMe && (
+                                    <div className="flex flex-col gap-[8px]">
+                                        <InputTextPhone
+                                            label={t('checkout.send_to', 'Enviar a')}
+                                            value={assignment?.phone || ''}
+                                            onChange={(value) => handlePhoneChange(index, value)}
+                                            country={assignment?.phoneCountry || '34'}
+                                            onCountryChange={(newCountry) => handleCountryChange(index, newCountry)}
+                                            countries={countries}
+                                            language={i18n.language === 'en' ? 'en' : 'es'}
+                                            disabled={isSearching}
                                         />
-                                        <span className="text-[#939393] text-[11px] font-normal font-helvetica px-[6px]">
-                                            {t('checkout.email_hint', 'Le enviaremos un email para que pueda reclamar su entrada al registrarse')}
-                                        </span>
+
+                                        <button
+                                            type="button"
+                                            onClick={() => handleSearchUser(index)}
+                                            disabled={isSearching || !assignment?.phone}
+                                            className="w-full h-[48px] bg-[#232323] rounded-[12px] flex items-center justify-center cursor-pointer hover:bg-[#2a2a2a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica">
+                                                {isSearching 
+                                                    ? t('common.searching', 'Buscando...')
+                                                    : t('checkout.search_user', 'Buscar usuario')
+                                                }
+                                            </span>
+                                        </button>
+
+                                        {(isFound || isNotFound) && (
+                                            <div className="flex flex-col gap-[8px] pl-[4px]">
+                                                <p className="text-[#3fe8e8] text-[11px] font-normal font-helvetica leading-[1.4]">
+                                                    {isFound
+                                                        ? t('checkout.assign_auto_user', '**La entrada se asignará automáticamente al siguiente usuario. Siempre podrás cancelar el envío desde la app.')
+                                                        : t('checkout.assign_auto_number', '**La entrada se asignará automáticamente al número indicado. Siempre podrás cancelar el envío desde la app.')
+                                                    }
+                                                </p>
+
+                                                {isNotFound && (
+                                                    <div className="flex flex-col gap-[4px]">
+                                                        <span className="text-[#939393] text-[14px] font-normal font-helvetica px-[6px]">
+                                                            {t('checkout.email_notification', 'Email para notificación')}*
+                                                        </span>
+                                                        <input
+                                                            type="email"
+                                                            value={assignment?.email || ''}
+                                                            onChange={(e) => handleUpdateAssignment(index, { email: e.target.value })}
+                                                            placeholder=""
+                                                            className="w-full h-[48px] border-[1.5px] border-[#232323] rounded-[12px] px-[16px] bg-transparent text-[#f6f6f6] text-[16px] font-medium font-helvetica placeholder:text-[#939393] outline-none focus:border-[#3fe8e8] transition-colors"
+                                                        />
+                                                        <span className="text-[#939393] text-[11px] font-normal font-helvetica px-[6px]">
+                                                            {t('checkout.email_hint', 'Le enviaremos un email para que pueda reclamar su entrada al registrarse')}
+                                                        </span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                             </div>
-                        )}
-                    </div>
-                );
-            })}
+                        </div>
+                    );
+                })}
+            </div>
+            )}
         </div>
     );
 };
@@ -674,11 +661,11 @@ const CheckoutSummary = ({
 }: CheckoutSummaryProps) => {
     const { t } = useTranslation();
 
+    const [timeLeft, setTimeLeft] = useState(timerSeconds);
     const [appliedCoupon, setAppliedCoupon] = useState<CouponData | null>(null);
     const [couponLoading, setCouponLoading] = useState(false);
     const [nominativeAssignments, setNominativeAssignments] = useState<NominativeAssignment[]>([]);
     const [isIncidentModalOpen, setIsIncidentModalOpen] = useState(false);
-    const [hasCalledExpired, setHasCalledExpired] = useState(false);
 
     useEffect(() => {
         const nominativeItems = items.filter(item => item.isNominative);
@@ -711,11 +698,24 @@ const CheckoutSummary = ({
     }, [items, nominativeAssignments.length]);
 
     useEffect(() => {
-        if (timerSeconds <= 0 && !hasCalledExpired) {
-            setHasCalledExpired(true);
+        if (timeLeft <= 0) {
             onTimerExpired();
+            return;
         }
-    }, [timerSeconds, hasCalledExpired, onTimerExpired]);
+
+        const interval = setInterval(() => {
+            setTimeLeft(prev => {
+                if (prev <= 1) {
+                    clearInterval(interval);
+                    onTimerExpired();
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, [timeLeft, onTimerExpired]);
 
     const subtotal = useMemo(() => {
         return items.reduce((acc, item) => acc + (item.unitPrice * item.quantity), 0);
@@ -810,7 +810,7 @@ const CheckoutSummary = ({
                 }`}
         >
             {isLoading ? (
-                <span>{t('checkout.creating_order', 'Creando pedido...')}</span>
+                <span>{t('common.loading', 'Cargando...')}</span>
             ) : total === 0 ? (
                 <span>{t('checkout.confirm_free', 'Confirmar')} - {t('checkout.free', 'Gratis')}</span>
             ) : (
@@ -822,7 +822,7 @@ const CheckoutSummary = ({
     return (
         <>
             <div className="flex flex-col gap-[36px] w-full max-w-[480px] mx-auto px-[24px] py-[24px] pb-[120px] md:pb-[24px]">
-                <CheckoutTimer seconds={timerSeconds} />
+                <CheckoutTimer seconds={timeLeft} />
 
                 <EventInfoCard event={event} items={items} />
 

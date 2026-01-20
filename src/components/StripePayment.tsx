@@ -49,6 +49,23 @@ interface CheckoutFormProps {
     onTimerExpired?: () => void;
 }
 
+const formatTimeText = (seconds: number): string => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    if (mins > 0) {
+        return `${mins} minutos y ${secs} segundos`;
+    }
+    return `${secs} segundos`;
+};
+
+const TimerCheckout = ({ seconds }: { seconds: number }) => (
+    <div className="flex items-center justify-center p-[14px] border-[1.5px] border-solid border-[#232323] rounded-[12px] w-full">
+        <p className="font-helvetica font-normal text-[14px] text-[#f6f6f6] text-center leading-[100%]">
+            {formatTimeText(seconds)}
+        </p>
+    </div>
+);
+
 const CheckoutForm = ({ transactionId, onSuccess, onCancel, timerSeconds, onTimerExpired }: CheckoutFormProps) => {
     const { t } = useTranslation();
     const stripe = useStripe();
@@ -56,14 +73,12 @@ const CheckoutForm = ({ transactionId, onSuccess, onCancel, timerSeconds, onTime
 
     const [isProcessing, setIsProcessing] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
-    const [hasCalledExpired, setHasCalledExpired] = useState(false);
 
     useEffect(() => {
-        if (timerSeconds !== undefined && timerSeconds <= 0 && onTimerExpired && !hasCalledExpired) {
-            setHasCalledExpired(true);
+        if (timerSeconds !== undefined && timerSeconds <= 0 && onTimerExpired) {
             onTimerExpired();
         }
-    }, [timerSeconds, onTimerExpired, hasCalledExpired]);
+    }, [timerSeconds, onTimerExpired]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -113,6 +128,10 @@ const CheckoutForm = ({ transactionId, onSuccess, onCancel, timerSeconds, onTime
 
     return (
         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+            {timerSeconds !== undefined && (
+                <TimerCheckout seconds={timerSeconds} />
+            )}
+
             <div className="bg-[#0A0A0A] rounded-xl p-4">
                 <PaymentElement
                     options={{
@@ -206,18 +225,23 @@ const StripePayment = ({
                 if (response.data.status === 'success') {
                     const secret = response.data.data.clientSecret;
 
-                    if (!secret) {
-                        setError(t('payment.no_client_secret', 'No se pudo iniciar el pago'));
-                        return;
+                    if (secret && secret.includes('_secret_')) {
+                        setClientSecret(secret);
+                    } else {
+                        console.error('Invalid clientSecret format:', secret);
+                        setError(t('payment.invalid_secret', 'Error en la configuración del pago'));
                     }
-
-                    setClientSecret(secret);
                 } else {
-                    setError(response.data.message || t('payment.intent_error', 'Error al crear el pago'));
+                    setError(response.data.message || t('payment.intent_error', 'Error al iniciar el pago'));
                 }
-            } catch (err) {
-                console.error('Error creating payment intent:', err);
-                setError(t('payment.intent_error', 'Error al crear el pago'));
+            } catch (err: unknown) {
+                console.error('PaymentIntent creation error:', err);
+                const error = err as { backendError?: { message: string } };
+                if (error.backendError) {
+                    setError(error.backendError.message);
+                } else {
+                    setError(t('common.error_connection', 'Error de conexión'));
+                }
             } finally {
                 setIsLoading(false);
             }
@@ -226,12 +250,31 @@ const StripePayment = ({
         createPaymentIntent();
     }, [transactionId, t]);
 
+    if (!stripePromise) {
+        return (
+            <div className="flex flex-col gap-6 bg-[#111111] rounded-2xl p-6">
+                {timerSeconds !== undefined && (
+                    <TimerCheckout seconds={timerSeconds} />
+                )}
+                <div className="bg-[rgba(255,35,35,0.15)] text-[#FF2323] px-4 py-3 rounded-xl text-[14px] font-helvetica text-center">
+                    {t('payment.stripe_not_configured', 'Error: Stripe no está configurado correctamente')}
+                </div>
+                <Button variant="secondary" onClick={onCancel}>
+                    {t('common.go_back', 'Volver')}
+                </Button>
+            </div>
+        );
+    }
+
     if (isLoading) {
         return (
             <div className="flex flex-col gap-6 bg-[#111111] rounded-2xl p-6">
+                {timerSeconds !== undefined && (
+                    <TimerCheckout seconds={timerSeconds} />
+                )}
                 <div className="flex flex-col gap-4">
-                    <div className="h-12 w-full bg-[#232323] rounded-xl animate-pulse" />
-                    <div className="h-12 w-full bg-[#232323] rounded-xl animate-pulse" />
+                    <div className="h-6 w-32 bg-[#232323] rounded animate-pulse" />
+                    <div className="h-[200px] w-full bg-[#232323] rounded-xl animate-pulse" />
                     <div className="h-12 w-full bg-[#232323] rounded-xl animate-pulse" />
                 </div>
                 <p className="text-center text-[#666666] text-[14px] font-helvetica">
@@ -244,6 +287,9 @@ const StripePayment = ({
     if (error) {
         return (
             <div className="flex flex-col gap-6 bg-[#111111] rounded-2xl p-6">
+                {timerSeconds !== undefined && (
+                    <TimerCheckout seconds={timerSeconds} />
+                )}
                 <div className="bg-[rgba(255,35,35,0.15)] text-[#FF2323] px-4 py-3 rounded-xl text-[14px] font-helvetica text-center">
                     {error}
                 </div>
@@ -257,6 +303,9 @@ const StripePayment = ({
     if (!clientSecret) {
         return (
             <div className="flex flex-col gap-6 bg-[#111111] rounded-2xl p-6">
+                {timerSeconds !== undefined && (
+                    <TimerCheckout seconds={timerSeconds} />
+                )}
                 <div className="bg-[rgba(255,35,35,0.15)] text-[#FF2323] px-4 py-3 rounded-xl text-[14px] font-helvetica text-center">
                     {t('payment.no_client_secret', 'No se pudo iniciar el pago')}
                 </div>
