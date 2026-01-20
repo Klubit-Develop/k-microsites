@@ -33,6 +33,16 @@ const CheckoutFooter = ({
         );
     }
 
+    const getButtonText = () => {
+        if (totalQuantity === 0) {
+            return t('event.continue', 'Continuar');
+        }
+        if (total === 0) {
+            return t('checkout.free', 'Gratis');
+        }
+        return `${t('event.continue', 'Continuar')} - ${total.toFixed(2).replace('.', ',')}€`;
+    };
+
     const buttonContent = (
         <Button
             variant="cta"
@@ -40,7 +50,7 @@ const CheckoutFooter = ({
             onClick={onCheckout}
             className="w-full h-[48px]"
         >
-            {t('event.continue', 'Continuar')} - {(total ?? 0).toFixed(2).replace('.', ',')}€
+            {getButtonText()}
         </Button>
     );
 
