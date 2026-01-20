@@ -223,8 +223,8 @@ const CouponSection = ({
 
                         <div className="flex flex-col items-center gap-[16px] px-[16px] w-full">
                             <div className="w-[120px] h-[120px] flex items-center justify-center p-[4px]">
-                                <img 
-                                    src={PRESENT_ICON_URL} 
+                                <img
+                                    src={PRESENT_ICON_URL}
                                     alt=""
                                     className="w-[112px] h-[114px] object-contain"
                                 />
@@ -257,7 +257,7 @@ const CouponSection = ({
                             className="w-full h-[48px] bg-[#ff336d] rounded-[12px] flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             <span className="text-[#f6f6f6] text-[16px] font-bold font-helvetica leading-[100%]">
-                                {isLoading 
+                                {isLoading
                                     ? t('common.loading', 'Cargando...')
                                     : t('checkout.apply_button', 'Aplicar')
                                 }
@@ -397,10 +397,10 @@ const NominativeAssignmentSection = ({
         if (!existing || existing.assignmentType !== 'me') {
             const newAssignments = assignments
                 .filter(a => a.itemIndex !== itemIndex)
-                .map(a => a.assignmentType === 'me' 
+                .map(a => a.assignmentType === 'me'
                     ? { ...a, assignmentType: 'send' as const, phoneCountry: '34' }
                     : a
-            );
+                );
             newAssignments.push({ itemIndex, assignmentType: 'me' });
             onAssignmentChange(newAssignments);
         } else {
@@ -469,28 +469,52 @@ const NominativeAssignmentSection = ({
         onAssignmentChange(newAssignments);
     };
 
+    const formatPhone = (value: string, pattern: number[] = [3, 3, 3]) => {
+        const digits = value.replace(/\D/g, '');
+        let result = '';
+        let index = 0;
+
+        for (let i = 0; i < pattern.length && index < digits.length; i++) {
+            const segment = digits.slice(index, index + pattern[i]);
+            result += segment;
+            index += pattern[i];
+            if (index < digits.length) result += ' ';
+        }
+
+        return result;
+    };
+
     const handlePhoneChange = (itemIndex: number, value: string) => {
         const assignment = assignments.find(a => a.itemIndex === itemIndex);
+        const countryCode = assignment?.phoneCountry || '34';
+        const selectedCountry = countries.find(c => c.phone === countryCode);
+        const maxLength = selectedCountry?.phoneLength || 9;
+        const pattern = selectedCountry?.phoneFormat || [3, 3, 3];
+
+        const numericValue = value.replace(/\D/g, '');
+        const limitedValue = numericValue.slice(0, maxLength);
+        const formattedValue = formatPhone(limitedValue, pattern);
+
         const currentType = assignment?.assignmentType;
         if (currentType === 'found' || currentType === 'notfound') {
-            handleUpdateAssignment(itemIndex, { 
-                phone: value, 
+            handleUpdateAssignment(itemIndex, {
+                phone: formattedValue,
                 assignmentType: 'send',
                 toUserId: undefined,
                 email: undefined
             });
         } else {
-            handleUpdateAssignment(itemIndex, { phone: value });
+            handleUpdateAssignment(itemIndex, { phone: formattedValue });
         }
     };
 
     const handleCountryChange = (itemIndex: number, newCountry: string) => {
         const assignment = assignments.find(a => a.itemIndex === itemIndex);
         const currentType = assignment?.assignmentType;
-        
+
         if (currentType === 'found' || currentType === 'notfound') {
-            handleUpdateAssignment(itemIndex, { 
-                phoneCountry: newCountry, 
+            handleUpdateAssignment(itemIndex, {
+                phoneCountry: newCountry,
                 phone: '',
                 assignmentType: 'send',
                 toUserId: undefined,
@@ -523,8 +547,8 @@ const NominativeAssignmentSection = ({
                 onClick={handleToggleAllForMe}
                 className={`
                     w-full h-[56px] rounded-[16px] border-2 flex items-center justify-between px-[16px] mb-[4px] transition-all
-                    ${allForMe 
-                        ? 'bg-[#141414] border-[#e5ff88]' 
+                    ${allForMe
+                        ? 'bg-[#141414] border-[#e5ff88]'
                         : 'bg-[#141414] border-[#232323] hover:border-[#3a3a3a]'
                     }
                 `}
@@ -536,115 +560,114 @@ const NominativeAssignmentSection = ({
             </button>
 
             {!allForMe && (
-            <div className="flex flex-col gap-[8px]">
-                {nominativeEntries.map(({ item, index }) => {
-                    const assignment = assignments.find(a => a.itemIndex === index);
-                    const isMe = assignment?.assignmentType === 'me';
-                    const isFound = assignment?.assignmentType === 'found';
-                    const isNotFound = assignment?.assignmentType === 'notfound';
-                    const isSearching = assignment?.isSearching;
-                    const indicatorColor = getIndicatorColor(item.type);
+                <div className="flex flex-col gap-[8px]">
+                    {nominativeEntries.map(({ item, index }) => {
+                        const assignment = assignments.find(a => a.itemIndex === index);
+                        const isMe = assignment?.assignmentType === 'me';
+                        const isFound = assignment?.assignmentType === 'found';
+                        const isNotFound = assignment?.assignmentType === 'notfound';
+                        const isSearching = assignment?.isSearching;
+                        const indicatorColor = getIndicatorColor(item.type);
 
-                    return (
-                        <div
-                            key={index}
-                            className={`bg-[#141414] border-2 rounded-[16px] w-full transition-colors ${
-                                isMe ? 'border-[#e5ff88]' : 'border-[#232323]'
-                            }`}
-                        >
-                            <div className="flex items-center justify-between p-[16px]">
-                                <div className="flex items-center gap-[8px]">
-                                    <IndicatorDot color={indicatorColor} />
-                                    <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica">
-                                        {item.name}
-                                        {item.priceName && ` - ${item.priceName}`}
-                                    </span>
+                        return (
+                            <div
+                                key={index}
+                                className={`bg-[#141414] border-2 rounded-[16px] w-full transition-colors ${isMe ? 'border-[#e5ff88]' : 'border-[#232323]'
+                                    }`}
+                            >
+                                <div className="flex items-center justify-between p-[16px]">
+                                    <div className="flex items-center gap-[8px]">
+                                        <IndicatorDot color={indicatorColor} />
+                                        <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica">
+                                            {item.name}
+                                            {item.priceName && ` - ${item.priceName}`}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div className="px-[16px] pb-[16px] flex flex-col gap-[12px]">
+                                    <button
+                                        type="button"
+                                        onClick={() => handleToggleMe(index)}
+                                        className={`
+                                        w-full h-[48px] rounded-[12px] border-[1.5px] flex items-center justify-between px-[16px] transition-all
+                                        ${isMe
+                                                ? 'border-[#e5ff88] bg-[rgba(229,255,136,0.05)]'
+                                                : 'border-[#232323] hover:border-[#3a3a3a]'
+                                            }
+                                    `}
+                                    >
+                                        <span className={`text-[16px] font-medium font-helvetica ${isMe ? 'text-[#e5ff88]' : 'text-[#f6f6f6]'}`}>
+                                            {t('checkout.for_me', 'Es para mí')}
+                                            {isMe && user?.firstName && (
+                                                <span className="text-[#939393] ml-2">({user.firstName})</span>
+                                            )}
+                                        </span>
+                                        <CheckboxIcon checked={isMe} />
+                                    </button>
+
+                                    {!isMe && (
+                                        <div className="flex flex-col gap-[8px]">
+                                            <InputTextPhone
+                                                label={t('checkout.send_to', 'Enviar a')}
+                                                value={assignment?.phone || ''}
+                                                onChange={(value) => handlePhoneChange(index, value)}
+                                                country={assignment?.phoneCountry || '34'}
+                                                onCountryChange={(newCountry) => handleCountryChange(index, newCountry)}
+                                                countries={countries}
+                                                language={i18n.language === 'en' ? 'en' : 'es'}
+                                                disabled={isSearching}
+                                            />
+
+                                            <button
+                                                type="button"
+                                                onClick={() => handleSearchUser(index)}
+                                                disabled={isSearching || !assignment?.phone}
+                                                className="w-full h-[48px] bg-[#232323] rounded-[12px] flex items-center justify-center cursor-pointer hover:bg-[#2a2a2a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                            >
+                                                <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica">
+                                                    {isSearching
+                                                        ? t('common.searching', 'Buscando...')
+                                                        : t('checkout.search_user', 'Buscar usuario')
+                                                    }
+                                                </span>
+                                            </button>
+
+                                            {(isFound || isNotFound) && (
+                                                <div className="flex flex-col gap-[8px] pl-[4px]">
+                                                    <p className="text-[#3fe8e8] text-[11px] font-normal font-helvetica leading-[1.4]">
+                                                        {isFound
+                                                            ? t('checkout.assign_auto_user', '**La entrada se asignará automáticamente al siguiente usuario. Siempre podrás cancelar el envío desde la app.')
+                                                            : t('checkout.assign_auto_number', '**La entrada se asignará automáticamente al número indicado. Siempre podrás cancelar el envío desde la app.')
+                                                        }
+                                                    </p>
+
+                                                    {isNotFound && (
+                                                        <div className="flex flex-col gap-[4px]">
+                                                            <span className="text-[#939393] text-[14px] font-normal font-helvetica px-[6px]">
+                                                                {t('checkout.email_notification', 'Email para notificación')}*
+                                                            </span>
+                                                            <input
+                                                                type="email"
+                                                                value={assignment?.email || ''}
+                                                                onChange={(e) => handleUpdateAssignment(index, { email: e.target.value })}
+                                                                placeholder=""
+                                                                className="w-full h-[48px] border-[1.5px] border-[#232323] rounded-[12px] px-[16px] bg-transparent text-[#f6f6f6] text-[16px] font-medium font-helvetica placeholder:text-[#939393] outline-none focus:border-[#3fe8e8] transition-colors"
+                                                            />
+                                                            <span className="text-[#939393] text-[11px] font-normal font-helvetica px-[6px]">
+                                                                {t('checkout.email_hint', 'Le enviaremos un email para que pueda reclamar su entrada al registrarse')}
+                                                            </span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
-
-                            <div className="px-[16px] pb-[16px] flex flex-col gap-[12px]">
-                                <button
-                                    type="button"
-                                    onClick={() => handleToggleMe(index)}
-                                    className={`
-                                        w-full h-[48px] rounded-[12px] border-[1.5px] flex items-center justify-between px-[16px] transition-all
-                                        ${isMe 
-                                            ? 'border-[#e5ff88] bg-[rgba(229,255,136,0.05)]' 
-                                            : 'border-[#232323] hover:border-[#3a3a3a]'
-                                        }
-                                    `}
-                                >
-                                    <span className={`text-[16px] font-medium font-helvetica ${isMe ? 'text-[#e5ff88]' : 'text-[#f6f6f6]'}`}>
-                                        {t('checkout.for_me', 'Es para mí')}
-                                        {isMe && user?.firstName && (
-                                            <span className="text-[#939393] ml-2">({user.firstName})</span>
-                                        )}
-                                    </span>
-                                    <CheckboxIcon checked={isMe} />
-                                </button>
-
-                                {!isMe && (
-                                    <div className="flex flex-col gap-[8px]">
-                                        <InputTextPhone
-                                            label={t('checkout.send_to', 'Enviar a')}
-                                            value={assignment?.phone || ''}
-                                            onChange={(value) => handlePhoneChange(index, value)}
-                                            country={assignment?.phoneCountry || '34'}
-                                            onCountryChange={(newCountry) => handleCountryChange(index, newCountry)}
-                                            countries={countries}
-                                            language={i18n.language === 'en' ? 'en' : 'es'}
-                                            disabled={isSearching}
-                                        />
-
-                                        <button
-                                            type="button"
-                                            onClick={() => handleSearchUser(index)}
-                                            disabled={isSearching || !assignment?.phone}
-                                            className="w-full h-[48px] bg-[#232323] rounded-[12px] flex items-center justify-center cursor-pointer hover:bg-[#2a2a2a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                        >
-                                            <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica">
-                                                {isSearching 
-                                                    ? t('common.searching', 'Buscando...')
-                                                    : t('checkout.search_user', 'Buscar usuario')
-                                                }
-                                            </span>
-                                        </button>
-
-                                        {(isFound || isNotFound) && (
-                                            <div className="flex flex-col gap-[8px] pl-[4px]">
-                                                <p className="text-[#3fe8e8] text-[11px] font-normal font-helvetica leading-[1.4]">
-                                                    {isFound
-                                                        ? t('checkout.assign_auto_user', '**La entrada se asignará automáticamente al siguiente usuario. Siempre podrás cancelar el envío desde la app.')
-                                                        : t('checkout.assign_auto_number', '**La entrada se asignará automáticamente al número indicado. Siempre podrás cancelar el envío desde la app.')
-                                                    }
-                                                </p>
-
-                                                {isNotFound && (
-                                                    <div className="flex flex-col gap-[4px]">
-                                                        <span className="text-[#939393] text-[14px] font-normal font-helvetica px-[6px]">
-                                                            {t('checkout.email_notification', 'Email para notificación')}*
-                                                        </span>
-                                                        <input
-                                                            type="email"
-                                                            value={assignment?.email || ''}
-                                                            onChange={(e) => handleUpdateAssignment(index, { email: e.target.value })}
-                                                            placeholder=""
-                                                            className="w-full h-[48px] border-[1.5px] border-[#232323] rounded-[12px] px-[16px] bg-transparent text-[#f6f6f6] text-[16px] font-medium font-helvetica placeholder:text-[#939393] outline-none focus:border-[#3fe8e8] transition-colors"
-                                                        />
-                                                        <span className="text-[#939393] text-[11px] font-normal font-helvetica px-[6px]">
-                                                            {t('checkout.email_hint', 'Le enviaremos un email para que pueda reclamar su entrada al registrarse')}
-                                                        </span>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    );
-                })}
-            </div>
+                        );
+                    })}
+                </div>
             )}
         </div>
     );
@@ -805,8 +828,8 @@ const CheckoutSummary = ({
             onClick={handleContinue}
             disabled={!canContinue || isLoading}
             className={`w-full h-[48px] rounded-[12px] flex items-center justify-center font-bold text-[16px] font-helvetica transition-opacity ${canContinue && !isLoading
-                    ? 'bg-[#ff336d] text-[#f6f6f6] cursor-pointer hover:opacity-90'
-                    : 'bg-[#ff336d] text-[#f6f6f6] opacity-50 cursor-not-allowed'
+                ? 'bg-[#ff336d] text-[#f6f6f6] cursor-pointer hover:opacity-90'
+                : 'bg-[#ff336d] text-[#f6f6f6] opacity-50 cursor-not-allowed'
                 }`}
         >
             {isLoading ? (
