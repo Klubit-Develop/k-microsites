@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 type CheckoutStep = 'selection' | 'summary' | 'payment';
 
@@ -54,21 +54,18 @@ interface ReservationFormData {
 }
 
 interface CheckoutState {
-    // Step management
     step: CheckoutStep;
     setStep: (step: CheckoutStep) => void;
     goToSummary: () => void;
     goToPayment: () => void;
     goBack: () => void;
 
-    // Event info
     eventId: string | null;
     eventName: string | null;
     eventSlug: string | null;
     eventDisplayInfo: EventDisplayInfo | null;
     setEvent: (id: string, name: string, slug: string, displayInfo?: EventDisplayInfo) => void;
 
-    // Cart items
     items: CheckoutItem[];
     addItem: (item: CheckoutItem) => void;
     removeItem: (priceId: string) => void;
@@ -77,53 +74,47 @@ interface CheckoutState {
     clearItemsByType: (type: CheckoutItem['type']) => void;
     hasItems: () => boolean;
 
-    // Transaction (for Stripe Elements)
     transactionId: string | null;
     transactionAmount: number | null;
     transactionCurrency: string | null;
     setTransaction: (id: string, amount: number, currency: string) => void;
     clearTransaction: () => void;
 
-    // Coupon
     coupon: Coupon | null;
     setCoupon: (coupon: Coupon | null) => void;
 
-    // Nominative assignments
     nominativeAssignments: NominativeAssignment[];
     setNominativeAssignments: (assignments: NominativeAssignment[]) => void;
 
-    // Reservation form data
     reservationFormData: ReservationFormData | null;
     setReservationFormData: (data: ReservationFormData | null) => void;
 
-    // Fee
     fee: Fee | null;
     setFee: (fee: Fee | null) => void;
     getServiceFee: () => number;
 
-    // Timer
     timerStartedAt: number | null;
-    timerDuration: number; // in seconds
+    timerDuration: number;
     isTimerExpired: boolean;
     startTimer: () => void;
     resetTimer: () => void;
     expireTimer: () => void;
 
-    // Totals
     getSubtotal: () => number;
     getDiscount: () => number;
     getTotal: () => number;
 
-    // Reset checkout for new event
     resetForNewEvent: (newEventId: string) => void;
+
+    _hasHydrated: boolean;
+    setHasHydrated: (state: boolean) => void;
 }
 
-const TIMER_DURATION = 10 * 60; // 10 minutes in seconds
+const TIMER_DURATION = 10 * 60;
 
 export const useCheckoutStore = create<CheckoutState>()(
     persist(
         (set, get) => ({
-            // Step management
             step: 'selection',
             setStep: (step) => set({ step }),
             goToSummary: () => {
@@ -144,7 +135,6 @@ export const useCheckoutStore = create<CheckoutState>()(
                 }
             },
 
-            // Event info
             eventId: null,
             eventName: null,
             eventSlug: null,
@@ -156,7 +146,6 @@ export const useCheckoutStore = create<CheckoutState>()(
                 eventDisplayInfo: displayInfo || null,
             }),
 
-            // Cart items
             items: [],
             addItem: (item) => set((state) => {
                 const existingIndex = state.items.findIndex(i => i.priceId === item.priceId);
@@ -199,7 +188,6 @@ export const useCheckoutStore = create<CheckoutState>()(
             })),
             hasItems: () => get().items.length > 0,
 
-            // Transaction
             transactionId: null,
             transactionAmount: null,
             transactionCurrency: null,
@@ -214,19 +202,15 @@ export const useCheckoutStore = create<CheckoutState>()(
                 transactionCurrency: null,
             }),
 
-            // Coupon
             coupon: null,
             setCoupon: (coupon) => set({ coupon }),
 
-            // Nominative assignments
             nominativeAssignments: [],
             setNominativeAssignments: (assignments) => set({ nominativeAssignments: assignments }),
 
-            // Reservation form data
             reservationFormData: null,
             setReservationFormData: (data) => set({ reservationFormData: data }),
 
-            // Fee
             fee: null,
             setFee: (fee) => set({ fee }),
             getServiceFee: () => {
@@ -246,7 +230,6 @@ export const useCheckoutStore = create<CheckoutState>()(
                 return 0;
             },
 
-            // Timer
             timerStartedAt: null,
             timerDuration: TIMER_DURATION,
             isTimerExpired: false,
@@ -254,7 +237,6 @@ export const useCheckoutStore = create<CheckoutState>()(
             resetTimer: () => set({ timerStartedAt: null, isTimerExpired: false }),
             expireTimer: () => set({ isTimerExpired: true }),
 
-            // Totals
             getSubtotal: () => {
                 const items = get().items;
                 return items.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
@@ -280,12 +262,9 @@ export const useCheckoutStore = create<CheckoutState>()(
                 return Math.max(0, subtotal - discount + serviceFee);
             },
 
-            // Reset checkout for new event - clears expired state when visiting a different event
             resetForNewEvent: (newEventId: string) => {
                 const state = get();
 
-                // Si el eventId guardado es diferente al nuevo, o si el timer expirÃ¡
-                // limpiamos todo el checkout
                 if (state.eventId !== newEventId || state.isTimerExpired) {
                     set({
                         eventId: null,
@@ -305,6 +284,9 @@ export const useCheckoutStore = create<CheckoutState>()(
                     });
                 }
             },
+
+            _hasHydrated: false,
+            setHasHydrated: (state) => set({ _hasHydrated: state }),
         }),
         {
             name: 'checkout-storage',
@@ -325,18 +307,26 @@ export const useCheckoutStore = create<CheckoutState>()(
                 transactionCurrency: state.transactionCurrency,
                 isTimerExpired: state.isTimerExpired,
             }),
+            onRehydrateStorage: () => (state) => {
+                state?.setHasHydrated(true);
+            },
         }
     )
 );
 
-// Hook for timer countdown
 export const useCheckoutTimer = () => {
-    const { timerStartedAt, timerDuration, isTimerExpired, expireTimer } = useCheckoutStore();
-    const [remainingTime, setRemainingTime] = useState<number>(timerDuration);
+    const { timerStartedAt, timerDuration, isTimerExpired, expireTimer, _hasHydrated } = useCheckoutStore();
+    const [remainingTime, setRemainingTime] = useState<number | null>(null);
+    const hasExpiredRef = useRef(false);
 
     useEffect(() => {
+        if (!_hasHydrated) {
+            return;
+        }
+
         if (!timerStartedAt || isTimerExpired) {
             setRemainingTime(timerDuration);
+            hasExpiredRef.current = isTimerExpired;
             return;
         }
 
@@ -346,22 +336,55 @@ export const useCheckoutTimer = () => {
             return remaining;
         };
 
-        setRemainingTime(calculateRemaining());
+        const initialRemaining = calculateRemaining();
+        setRemainingTime(initialRemaining);
+
+        if (initialRemaining <= 0 && !hasExpiredRef.current) {
+            hasExpiredRef.current = true;
+            expireTimer();
+            return;
+        }
 
         const interval = setInterval(() => {
             const remaining = calculateRemaining();
             setRemainingTime(remaining);
 
-            if (remaining <= 0) {
+            if (remaining <= 0 && !hasExpiredRef.current) {
+                hasExpiredRef.current = true;
                 expireTimer();
                 clearInterval(interval);
             }
         }, 1000);
 
         return () => clearInterval(interval);
-    }, [timerStartedAt, timerDuration, isTimerExpired, expireTimer]);
+    }, [timerStartedAt, timerDuration, isTimerExpired, expireTimer, _hasHydrated]);
 
-    return { remainingTime, isTimerExpired };
+    useEffect(() => {
+        if (isTimerExpired) {
+            hasExpiredRef.current = true;
+        }
+    }, [isTimerExpired]);
+
+    return { 
+        remainingTime: remainingTime ?? timerDuration, 
+        isTimerExpired,
+        isHydrated: _hasHydrated
+    };
+};
+
+export const waitForCheckoutHydration = (): Promise<void> => {
+    return new Promise((resolve) => {
+        if (useCheckoutStore.getState()._hasHydrated) {
+            resolve();
+            return;
+        }
+        const unsubscribe = useCheckoutStore.subscribe((state) => {
+            if (state._hasHydrated) {
+                unsubscribe();
+                resolve();
+            }
+        });
+    });
 };
 
 export default useCheckoutStore;

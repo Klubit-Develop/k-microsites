@@ -35,7 +35,7 @@ const EventHeader = ({
         return (
             <div className={`flex flex-col items-center h-[555px] relative animate-pulse ${className}`}>
                 <div className="relative w-full h-[504px]">
-                    <div className="absolute left-1/2 -translate-x-1/2 w-full max-w-[402px] h-full bg-[#232323]" />
+                    <div className="absolute left-1/2 -translate-x-1/2 w-full max-w-[402px] h-full bg-[#232323] rounded-[16px]" />
                     <div className="absolute left-1/2 -translate-x-1/2 top-[400px] w-full max-w-[370px] flex flex-col gap-[16px] items-center justify-center rounded-[10px]">
                         <div className="h-[42px] w-28 bg-[#333] rounded-[25px]" />
                         <div className="flex flex-col gap-[2px] items-center justify-center w-full px-[24px] py-[4px]">
@@ -52,7 +52,7 @@ const EventHeader = ({
     return (
         <div className={`flex flex-col items-center h-[555px] relative ${className}`}>
             <div className="relative w-full h-[504px]">
-                <div className="absolute left-1/2 -translate-x-1/2 w-full max-w-[402px] h-[504px]">
+                <div className="absolute left-1/2 -translate-x-1/2 w-full max-w-[402px] h-[504px] rounded-[16px] overflow-hidden">
                     <img
                         src={flyer || '/placeholder-event.jpg'}
                         alt={name}

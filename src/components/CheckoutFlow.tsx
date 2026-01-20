@@ -7,6 +7,7 @@ import { useCheckoutStore, useCheckoutTimer } from '@/stores/useCheckoutStore';
 import { transactionService, type CartItemRequest, type AttendeeRequest } from '@/components/Transactionservice';
 
 import CheckoutSummary from '@/components/CheckoutSummary';
+import CheckoutTimer from '@/components/CheckoutTimer';
 import StripePayment from '@/components/StripePayment';
 import TimeExpiredModal from '@/components/TimeExpiredModal';
 
@@ -189,7 +190,9 @@ const CheckoutFlow = ({ onBack, onComplete }: CheckoutFlowProps) => {
     if (step === 'payment' && transactionId) {
         return (
             <>
-                <div className="flex flex-col gap-[24px] w-full">
+                <div className="flex flex-col gap-[24px] w-full max-w-[480px] mx-auto px-[24px] py-[24px]">
+                    <CheckoutTimer seconds={remainingTime} />
+
                     <div className="flex items-center gap-[12px]">
                         <button
                             onClick={handleBackFromPayment}

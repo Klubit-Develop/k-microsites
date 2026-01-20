@@ -7,12 +7,11 @@ import {
     useStripe,
     useElements,
 } from '@stripe/react-stripe-js';
-import { Lock, Clock } from 'lucide-react';
+import { Lock } from 'lucide-react';
 
 import axiosInstance from '@/config/axiosConfig';
 import Button from '@/components/ui/Button';
 
-// Validar que la key existe
 const STRIPE_PUBLISHABLE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
 
 if (!STRIPE_PUBLISHABLE_KEY) {
@@ -50,12 +49,6 @@ interface CheckoutFormProps {
     onTimerExpired?: () => void;
 }
 
-const formatTime = (seconds: number): string => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-};
-
 const CheckoutForm = ({ transactionId, onSuccess, onCancel, timerSeconds, onTimerExpired }: CheckoutFormProps) => {
     const { t } = useTranslation();
     const stripe = useStripe();
@@ -63,12 +56,14 @@ const CheckoutForm = ({ transactionId, onSuccess, onCancel, timerSeconds, onTime
 
     const [isProcessing, setIsProcessing] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const [hasCalledExpired, setHasCalledExpired] = useState(false);
 
     useEffect(() => {
-        if (timerSeconds !== undefined && timerSeconds <= 0 && onTimerExpired) {
+        if (timerSeconds !== undefined && timerSeconds <= 0 && onTimerExpired && !hasCalledExpired) {
+            setHasCalledExpired(true);
             onTimerExpired();
         }
-    }, [timerSeconds, onTimerExpired]);
+    }, [timerSeconds, onTimerExpired, hasCalledExpired]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -81,7 +76,6 @@ const CheckoutForm = ({ transactionId, onSuccess, onCancel, timerSeconds, onTime
         setErrorMessage(null);
 
         try {
-            // Incluir transactionId en la URL de retorno
             const returnUrl = `${window.location.origin}/checkout/success?transactionId=${transactionId}`;
             const { error, paymentIntent } = await stripe.confirmPayment({
                 elements,
@@ -117,27 +111,8 @@ const CheckoutForm = ({ transactionId, onSuccess, onCancel, timerSeconds, onTime
         }
     };
 
-    const isTimerCritical = timerSeconds !== undefined && timerSeconds <= 60;
-
     return (
         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-            {/* Timer Display */}
-            {timerSeconds !== undefined && (
-                <div className={`
-                    flex items-center justify-center gap-2 py-3 px-4 rounded-xl
-                    ${isTimerCritical
-                        ? 'bg-[rgba(255,35,35,0.15)] text-[#FF2323]'
-                        : 'bg-[#1A1A1A] text-[#F6F6F6]'
-                    }
-                `}>
-                    <Clock size={18} className={isTimerCritical ? 'animate-pulse' : ''} />
-                    <span className="font-helvetica font-medium text-[15px]">
-                        {t('payment.time_remaining', 'Tiempo restante')}: {formatTime(timerSeconds)}
-                    </span>
-                </div>
-            )}
-
-            {/* Payment Element */}
             <div className="bg-[#0A0A0A] rounded-xl p-4">
                 <PaymentElement
                     options={{
@@ -158,14 +133,12 @@ const CheckoutForm = ({ transactionId, onSuccess, onCancel, timerSeconds, onTime
                 />
             </div>
 
-            {/* Error Message */}
             {errorMessage && (
                 <div className="bg-[rgba(255,35,35,0.15)] text-[#FF2323] px-4 py-3 rounded-xl text-[14px] font-helvetica">
                     {errorMessage}
                 </div>
             )}
 
-            {/* Actions */}
             <div className="flex flex-col gap-3">
                 <Button
                     type="submit"
@@ -189,7 +162,6 @@ const CheckoutForm = ({ transactionId, onSuccess, onCancel, timerSeconds, onTime
                 </Button>
             </div>
 
-            {/* Secure Payment Notice */}
             <div className="flex items-center justify-center gap-2 text-[#666666]">
                 <Lock size={14} />
                 <span className="text-[12px] font-helvetica">
@@ -213,7 +185,6 @@ const StripePayment = ({
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    // Prevent double PaymentIntent creation (React StrictMode)
     const hasCreatedIntent = useRef(false);
 
     useEffect(() => {
@@ -235,22 +206,18 @@ const StripePayment = ({
                 if (response.data.status === 'success') {
                     const secret = response.data.data.clientSecret;
 
-                    if (secret && secret.includes('_secret_')) {
-                        setClientSecret(secret);
-                    } else {
-                        console.error('Invalid clientSecret format:', secret);
-                        setError(t('payment.invalid_secret', 'Error en la configuración del pago'));
+                    if (!secret) {
+                        setError(t('payment.no_client_secret', 'No se pudo iniciar el pago'));
+                        return;
                     }
+
+                    setClientSecret(secret);
                 } else {
-                    setError(response.data.message || t('payment.intent_error', 'Error al iniciar el pago'));
+                    setError(response.data.message || t('payment.intent_error', 'Error al crear el pago'));
                 }
-            } catch (err: any) {
-                console.error('PaymentIntent creation error:', err);
-                if (err.backendError) {
-                    setError(err.backendError.message);
-                } else {
-                    setError(t('common.error_connection', 'Error de conexión'));
-                }
+            } catch (err) {
+                console.error('Error creating payment intent:', err);
+                setError(t('payment.intent_error', 'Error al crear el pago'));
             } finally {
                 setIsLoading(false);
             }
@@ -259,26 +226,12 @@ const StripePayment = ({
         createPaymentIntent();
     }, [transactionId, t]);
 
-    // Verificar que Stripe está configurado
-    if (!stripePromise) {
-        return (
-            <div className="flex flex-col gap-6 bg-[#111111] rounded-2xl p-6">
-                <div className="bg-[rgba(255,35,35,0.15)] text-[#FF2323] px-4 py-3 rounded-xl text-[14px] font-helvetica text-center">
-                    {t('payment.stripe_not_configured', 'Error: Stripe no está configurado correctamente')}
-                </div>
-                <Button variant="secondary" onClick={onCancel}>
-                    {t('common.go_back', 'Volver')}
-                </Button>
-            </div>
-        );
-    }
-
     if (isLoading) {
         return (
             <div className="flex flex-col gap-6 bg-[#111111] rounded-2xl p-6">
                 <div className="flex flex-col gap-4">
-                    <div className="h-6 w-32 bg-[#232323] rounded animate-pulse" />
-                    <div className="h-[200px] w-full bg-[#232323] rounded-xl animate-pulse" />
+                    <div className="h-12 w-full bg-[#232323] rounded-xl animate-pulse" />
+                    <div className="h-12 w-full bg-[#232323] rounded-xl animate-pulse" />
                     <div className="h-12 w-full bg-[#232323] rounded-xl animate-pulse" />
                 </div>
                 <p className="text-center text-[#666666] text-[14px] font-helvetica">
