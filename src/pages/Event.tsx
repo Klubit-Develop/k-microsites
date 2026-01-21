@@ -1618,9 +1618,6 @@ const Event = () => {
                                 onLegalClick={event.club?.termsAndConditions ? handleLegalClick : undefined}
                             />
                         ) : null}
-
-                        {/* Spacer for fixed button */}
-                        <div className="h-[100px]" />
                     </>
                 )}
 
