@@ -852,7 +852,7 @@ const CheckoutSummary = ({
 
     return (
         <>
-            <div className="flex flex-col gap-[36px] w-full max-w-[480px] mx-auto px-[24px] py-[24px] pb-[120px] md:pb-[24px]">
+            <div className="flex flex-col gap-[36px] w-full mx-auto py-[24px] pb-[120px] md:pb-[24px]">
                 <CheckoutTimer seconds={timeLeft} />
 
                 <EventInfoCard event={event} items={items} />
