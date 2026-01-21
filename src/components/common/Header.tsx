@@ -258,7 +258,7 @@ const Header = ({
             </header>
 
             {isMobileMenuOpen && (
-                <div className="fixed inset-0 z-50 md:hidden">
+                <div className="fixed inset-0 z-[60] md:hidden">
                     <div
                         className="absolute inset-0 bg-black/60"
                         onClick={() => setIsMobileMenuOpen(false)}
