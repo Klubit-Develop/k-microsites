@@ -182,7 +182,7 @@ const Header = ({
 
     return (
         <>
-            <header className="bg-[#141414] md:bg-[#141414] bg-[#050505] border-b-2 border-[#232323] w-full">
+            <header className="bg-[#141414] md:bg-[#141414] bg-[#141414] border-b-2 border-[#232323] w-full">
                 <div className="hidden md:flex items-center justify-between h-[68px] px-4 sm:px-6 lg:px-34">
                     <Link to="/" className="shrink-0">
                         <LogoIcon
