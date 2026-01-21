@@ -128,17 +128,37 @@ export const LocationCard: React.FC<LocationCardProps> = ({
 
   const center = useMemo(() => coordinates, [coordinates]);
 
-  if (loadError) {
+  const renderMapContent = () => {
+    if (loadError) {
+      return (
+        <div className="flex items-center justify-center h-56 bg-[#1a1a1a] rounded-sm text-[#939393]">
+          Error al cargar el mapa
+        </div>
+      );
+    }
+
+    if (!isLoaded) {
+      return (
+        <div className="flex items-center justify-center h-56 bg-[#1a1a1a] rounded-sm">
+          <div className="w-6 h-6 border-2 border-[#ff336d] border-t-transparent rounded-full animate-spin" />
+        </div>
+      );
+    }
+
     return (
-      <div className="flex items-center justify-center h-56 bg-[#1a1a1a] rounded-sm text-[#939393]">
-        Error al cargar el mapa
-      </div>
+      <GoogleMap
+        mapContainerStyle={mapContainerStyle}
+        center={center}
+        zoom={15}
+        options={mapOptions}
+      >
+        <Marker position={center} />
+      </GoogleMap>
     );
-  }
+  };
 
   return (
     <div className={`flex gap-4 flex-col items-start w-full ${className}`}>
-      {/* Título */}
       {title && (
         <div className="flex gap-0.5 items-center px-1.5 w-full">
           <h2 className="text-[#ff336d] text-[24px] font-semibold font-borna leading-normal whitespace-nowrap overflow-hidden text-ellipsis">
@@ -147,35 +167,18 @@ export const LocationCard: React.FC<LocationCardProps> = ({
         </div>
       )}
 
-      {/* Tarjeta del mapa */}
       <div className="flex flex-col gap-3 items-start justify-center w-full p-3 bg-[#141414] border-2 border-[#232323] rounded-2xl shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)]">
-        {/* DirecciÃ³n */}
         <div className="flex gap-0.5 items-center px-1.5 w-full">
           <p className="text-[#f6f6f6] text-sm font-normal leading-[100%] flex-1 font-helvetica">
             {address}
           </p>
         </div>
 
-        {/* Google Map */}
         <div className="relative w-full rounded-sm shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)] overflow-hidden">
-          {!isLoaded ? (
-            <div className="flex items-center justify-center h-56 bg-[#1a1a1a] rounded-sm">
-              <div className="w-6 h-6 border-2 border-[#ff336d] border-t-transparent rounded-full animate-spin" />
-            </div>
-          ) : (
-            <GoogleMap
-              mapContainerStyle={mapContainerStyle}
-              center={center}
-              zoom={15}
-              options={mapOptions}
-            >
-              <Marker position={center} />
-            </GoogleMap>
-          )}
+          {renderMapContent()}
         </div>
       </div>
 
-      {/* Texto legal */}
       {legalText && (
         <div className="flex gap-0.5 items-center px-1.5 py-2 w-full">
           <button

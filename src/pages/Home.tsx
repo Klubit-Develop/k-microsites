@@ -413,7 +413,7 @@ const Home = () => {
     return (
         <>
             {/* Mobile Layout */}
-            <div className="flex flex-col gap-8 px-4 pt-[120px] pb-[360px] md:hidden bg-[#050505] min-h-screen">
+            <div className="flex flex-col gap-8 px-4 pt-[100px] pb-[100px] md:hidden bg-[#050505] min-h-screen">
                 <div className="flex flex-col gap-6 items-center">
                     <ClubProfile
                         name={club?.name || ''}
