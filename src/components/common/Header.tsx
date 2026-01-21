@@ -238,7 +238,7 @@ const Header = ({
                     </div>
                 </div>
 
-                <div className="flex md:hidden items-center justify-between h-[94px] px-6 pt-[42px] pb-[32px] bg-[#050505]">
+                <div className="flex md:hidden items-center justify-between h-[94px] px-6 pt-[42px] pb-[32px] bg-[#141414]">
                     <Link to="/" className="shrink-0">
                         <LogoIcon
                             width={80}
