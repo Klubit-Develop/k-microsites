@@ -66,9 +66,9 @@ const GuestlistCard = ({
 
     if (isLoading) {
         return (
-            <div className={`relative flex flex-col bg-[#141414] border-2 border-[#232323] rounded-2xl w-full overflow-visible animate-pulse ${className}`}>
+            <div className={`relative flex flex-col bg-[#141414] border-2 border-[#232323] rounded-[16px] w-full overflow-visible animate-pulse ${className}`}>
                 <div
-                    className="absolute right-[120px] md:right-[152px] top-[-2px] w-[18px] h-[10px] bg-[#050505] rounded-b-full z-10"
+                    className="absolute right-[152px] top-[-2px] w-[18px] h-[10px] bg-[#050505] rounded-b-full z-10"
                     style={{
                         borderLeft: '2px solid #232323',
                         borderRight: '2px solid #232323',
@@ -77,7 +77,7 @@ const GuestlistCard = ({
                 />
 
                 <div
-                    className="absolute right-[120px] md:right-[152px] bottom-[-2px] w-[18px] h-[10px] bg-[#050505] rounded-t-full z-10"
+                    className="absolute right-[152px] bottom-[-2px] w-[18px] h-[10px] bg-[#050505] rounded-t-full z-10"
                     style={{
                         borderLeft: '2px solid #232323',
                         borderRight: '2px solid #232323',
@@ -85,21 +85,21 @@ const GuestlistCard = ({
                     }}
                 />
 
-                <div className="absolute right-[128px] md:right-[160px] top-[8px] bottom-[8px] w-0 border-l-[1.5px] border-dashed border-[#232323] z-0" />
+                <div className="absolute right-[160px] top-[8px] bottom-[8px] w-0 border-l-[1.5px] border-dashed border-[#232323] z-0" />
 
-                <div className="flex items-center h-14 px-4 border-b-[1.5px] border-[#232323]">
+                <div className="flex items-center h-[56px] px-[16px] border-b-[1.5px] border-[#232323]">
                     <div className="h-5 w-32 bg-[#232323] rounded" />
                 </div>
 
-                <div className="flex items-center justify-between px-4 py-3">
-                    <div className="flex flex-col gap-2.5">
+                <div className="flex items-center justify-between px-[16px] py-[12px]">
+                    <div className="flex flex-col gap-[10px]">
                         <div className="h-5 w-20 bg-[#232323] rounded" />
                         <div className="h-4 w-24 bg-[#232323] rounded" />
                     </div>
-                    <div className="flex items-center gap-1.5">
-                        <div className="w-9 h-9 bg-[#232323] rounded-lg" />
-                        <div className="w-8 h-6 bg-[#232323] rounded" />
-                        <div className="w-9 h-9 bg-[#232323] rounded-lg" />
+                    <div className="flex items-center gap-[6px]">
+                        <div className="w-[36px] h-[36px] bg-[#232323] rounded-[8px]" />
+                        <div className="w-[32px] h-6 bg-[#232323] rounded" />
+                        <div className="w-[36px] h-[36px] bg-[#232323] rounded-[8px]" />
                     </div>
                 </div>
             </div>
@@ -131,17 +131,19 @@ const GuestlistCard = ({
 
     const borderColor = getBorderColor();
 
+    const firstPrice = guestlist.prices?.[0];
+
     return (
         <div
             className={`
-                relative flex flex-col bg-[#141414] border-2 rounded-2xl w-full overflow-visible
+                relative flex flex-col bg-[#141414] border-2 rounded-[16px] w-full overflow-visible
                 ${isGuestlistSoldOut ? 'opacity-50 pointer-events-none' : ''}
                 ${hasSelectedQuantity && !isGuestlistSoldOut ? 'border-[#e5ff88]' : 'border-[#232323]'}
                 ${className}
             `}
         >
             <div
-                className="absolute right-[120px] md:right-[152px] top-[-2px] w-[18px] h-[10px] bg-[#050505] rounded-b-full z-10"
+                className="absolute right-[152px] top-[-2px] w-[18px] h-[10px] bg-[#050505] rounded-b-full z-10"
                 style={{
                     borderLeft: `2px solid ${borderColor}`,
                     borderRight: `2px solid ${borderColor}`,
@@ -150,7 +152,7 @@ const GuestlistCard = ({
             />
 
             <div
-                className="absolute right-[120px] md:right-[152px] bottom-[-2px] w-[18px] h-[10px] bg-[#050505] rounded-t-full z-10"
+                className="absolute right-[152px] bottom-[-2px] w-[18px] h-[10px] bg-[#050505] rounded-t-full z-10"
                 style={{
                     borderLeft: `2px solid ${borderColor}`,
                     borderRight: `2px solid ${borderColor}`,
@@ -158,7 +160,7 @@ const GuestlistCard = ({
                 }}
             />
 
-            <div className="absolute right-[128px] md:right-[160px] top-[8px] bottom-[8px] w-0 border-l-[1.5px] border-dashed border-[#232323] z-0" />
+            <div className="absolute right-[160px] top-[8px] bottom-[8px] w-0 border-l-[1.5px] border-dashed border-[#232323] z-0" />
 
             {isGuestlistSoldOut && (
                 <div className="absolute top-[-12px] right-[-8px] z-20">
@@ -170,17 +172,18 @@ const GuestlistCard = ({
                 </div>
             )}
 
-            <div className="flex items-center justify-between h-14 px-4 border-b-[1.5px] border-[#232323]">
-                <div className="flex flex-col gap-0.5 flex-1 min-w-0 mr-4">
-                    <div className="flex items-center gap-1.5">
-                        <div
-                            className="w-1.5 h-1.5 rounded-full shrink-0"
-                            style={{ backgroundColor: GUESTLIST_COLOR }}
-                        />
-                        <span className="text-[#f6f6f6] text-base font-medium font-helvetica truncate">
-                            {guestlist.name}
-                        </span>
-                    </div>
+            <div
+                className="flex items-center h-[56px] px-[16px] border-b-[1.5px] border-[#232323] cursor-pointer"
+                onClick={() => firstPrice && onMoreInfo?.(guestlist, firstPrice)}
+            >
+                <div className="flex items-center gap-[6px]">
+                    <div
+                        className="w-[6px] h-[6px] rounded-full shrink-0"
+                        style={{ backgroundColor: GUESTLIST_COLOR }}
+                    />
+                    <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica">
+                        {guestlist.name}
+                    </span>
                 </div>
             </div>
 
@@ -188,41 +191,36 @@ const GuestlistCard = ({
                 const quantity = selectedQuantities[price.id] || 0;
                 const isLast = priceIndex === (guestlist.prices?.length ?? 0) - 1;
                 const showPriceName = guestlist.prices.length > 1;
-                const isFree = price.finalPrice === 0;
 
                 const available = getAvailability(price);
                 const isPriceSoldOut = available <= 0;
-                const maxAllowed = Math.min(maxPerUser, available);
-                const isAtMax = quantity >= maxAllowed;
+                const isAtMax = quantity >= Math.min(maxPerUser, available);
 
-                const isLowStock = !isPriceSoldOut && available > 0 && available < 20;
+                const isLowStock = !isPriceSoldOut && available > 0 && available < 5;
 
                 return (
                     <div
                         key={price.id}
                         className={`
-                            flex items-center justify-between px-4 py-3 cursor-pointer
+                            flex items-center justify-between px-[16px] py-[12px] cursor-pointer
                             ${!isLast ? 'border-b-[1.5px] border-[#232323]' : ''}
                         `}
                         onClick={() => onMoreInfo?.(guestlist, price)}
                     >
-                        <div className="flex flex-col gap-2.5 flex-1 min-w-0 mr-4">
+                        <div className="flex flex-col gap-[10px]">
                             <div className="flex flex-col">
                                 {showPriceName && (
-                                    <span className="text-[#939393] text-sm font-normal font-helvetica">
+                                    <span className="text-[#939393] text-[14px] font-normal font-helvetica">
                                         {price.name}
                                     </span>
                                 )}
-                                <div className="flex items-center gap-2 flex-wrap">
-                                    <span className="text-[#f6f6f6] text-base font-bold font-helvetica">
-                                        {isFree
-                                            ? t('event.free', 'Gratis')
-                                            : `${(price.finalPrice ?? 0).toFixed(2).replace('.', ',')}€`
-                                        }
+                                <div className="flex items-center gap-[8px]">
+                                    <span className="text-[#f6f6f6] text-[16px] font-bold font-helvetica">
+                                        {price.finalPrice === 0 ? t('event.free', 'Gratis') : `${price.finalPrice.toFixed(2).replace('.', ',')}€`}
                                     </span>
                                     {isLowStock && (
-                                        <div className="flex items-center px-2 py-0.5 bg-[#232323] rounded-[25px] shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]">
-                                            <span className="text-[#f6f6f6] text-xs font-medium font-helvetica">
+                                        <div className="flex items-center px-[8px] py-[2px] bg-[#232323] rounded-[25px] shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]">
+                                            <span className="text-[#f6f6f6] text-[12px] font-medium font-helvetica">
                                                 Hot 🔥
                                             </span>
                                         </div>
@@ -231,7 +229,7 @@ const GuestlistCard = ({
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-1.5 shrink-0">
+                        <div className="flex items-center gap-[6px]">
                             <button
                                 type="button"
                                 onClick={(e) => {
@@ -241,14 +239,14 @@ const GuestlistCard = ({
                                 }}
                                 disabled={quantity === 0 || isPriceSoldOut}
                                 className={`
-                                    flex items-center justify-center w-9 h-9 bg-[#232323] rounded-lg
+                                    flex items-center justify-center w-[36px] h-[36px] bg-[#232323] rounded-[8px]
                                     ${quantity === 0 || isPriceSoldOut ? 'opacity-50' : 'cursor-pointer'}
                                 `}
                             >
                                 <MinusIcon />
                             </button>
                             <span className={`
-                                w-8 text-center text-2xl font-semibold font-borna leading-none
+                                w-[32px] text-center text-[24px] font-bold font-helvetica leading-none
                                 ${quantity > 0 ? 'text-[#e5ff88]' : 'text-[#f6f6f6]'}
                             `}>
                                 {quantity}
@@ -264,7 +262,7 @@ const GuestlistCard = ({
                                 }}
                                 disabled={isAtMax || isPriceSoldOut}
                                 className={`
-                                    flex items-center justify-center w-9 h-9 bg-[#232323] rounded-lg
+                                    flex items-center justify-center w-[36px] h-[36px] bg-[#232323] rounded-[8px]
                                     ${isAtMax || isPriceSoldOut ? 'opacity-50' : 'cursor-pointer'}
                                 `}
                             >

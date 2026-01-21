@@ -1,8 +1,4 @@
-import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import dayjs from 'dayjs';
-import 'dayjs/locale/es';
-import 'dayjs/locale/en';
 
 interface PromotionProduct {
     id: string;
@@ -14,13 +10,13 @@ interface Promotion {
     id: string;
     name: string;
     description?: string | null;
-    type: 'PERCENTAGE' | 'FIXED_PRICE' | 'FREE_PRODUCT';
+    type: 'PERCENTAGE' | 'FIXED_AMOUNT' | 'FIXED_PRICE';
     value: number;
     maxPurchasePerUser?: number;
-    startDate?: string | null;
-    endDate?: string | null;
-    isActive: boolean;
     products?: PromotionProduct[];
+    isActive?: boolean;
+    startDate?: string;
+    startTime?: string;
 }
 
 interface PromotionCardProps {
@@ -47,7 +43,7 @@ const PlusIcon = () => (
     </svg>
 );
 
-const PROMOTION_COLOR = '#FF336D';
+const PROMOTION_COLOR = '#ff336d';
 
 const PromotionCard = ({
     promotion,
@@ -61,23 +57,52 @@ const PromotionCard = ({
 }: PromotionCardProps) => {
     const { t, i18n } = useTranslation();
 
-    const formattedDateTime = useMemo(() => {
-        if (!eventStartDate) return null;
-        
-        const locale = i18n.language === 'es' ? 'es' : 'en';
-        const date = dayjs(eventStartDate).locale(locale);
-        
-        const dateStr = date.format('ddd, D MMM');
-        const timeStr = eventStartTime ? `${eventStartTime}h` : '';
-        
-        return timeStr ? `${dateStr} · ${timeStr}` : dateStr;
-    }, [eventStartDate, eventStartTime, i18n.language]);
+    const formatDateTime = () => {
+        const dateStr = promotion.startDate || eventStartDate;
+        const timeStr = promotion.startTime || eventStartTime;
+
+        if (!dateStr) return null;
+
+        try {
+            const date = new Date(dateStr);
+            const locale = i18n.language === 'es' ? 'es-ES' : 'en-US';
+
+            const formattedDate = date.toLocaleDateString(locale, {
+                weekday: 'short',
+                day: 'numeric',
+                month: 'short',
+            });
+
+            if (timeStr) {
+                return `${formattedDate} · ${timeStr}`;
+            }
+
+            return formattedDate;
+        } catch {
+            return null;
+        }
+    };
+
+    const formattedDateTime = formatDateTime();
+
+    const formatPromotionPrice = () => {
+        switch (promotion.type) {
+            case 'PERCENTAGE':
+                return `-${promotion.value}%`;
+            case 'FIXED_PRICE':
+                return `${promotion.value.toFixed(2).replace('.', ',')}€`;
+            case 'FIXED_AMOUNT':
+                return `-${promotion.value.toFixed(2).replace('.', ',')}€`;
+            default:
+                return `${promotion.value}€`;
+        }
+    };
 
     if (isLoading) {
         return (
             <div className={`relative flex flex-col bg-[#141414] border-2 border-[#232323] rounded-[16px] w-full overflow-visible animate-pulse ${className}`}>
                 <div
-                    className="absolute right-[120px] md:right-[152px] top-[-2px] w-[18px] h-[10px] bg-[#050505] rounded-b-full z-10"
+                    className="absolute right-[152px] top-[-2px] w-[18px] h-[10px] bg-[#050505] rounded-b-full z-10"
                     style={{
                         borderLeft: '2px solid #232323',
                         borderRight: '2px solid #232323',
@@ -86,7 +111,7 @@ const PromotionCard = ({
                 />
 
                 <div
-                    className="absolute right-[120px] md:right-[152px] bottom-[-2px] w-[18px] h-[10px] bg-[#050505] rounded-t-full z-10"
+                    className="absolute right-[152px] bottom-[-2px] w-[18px] h-[10px] bg-[#050505] rounded-t-full z-10"
                     style={{
                         borderLeft: '2px solid #232323',
                         borderRight: '2px solid #232323',
@@ -94,7 +119,7 @@ const PromotionCard = ({
                     }}
                 />
 
-                <div className="absolute right-[128px] md:right-[160px] top-[8px] bottom-[8px] w-0 border-l-[1.5px] border-dashed border-[#232323] z-0" />
+                <div className="absolute right-[160px] top-[8px] bottom-[8px] w-0 border-l-[1.5px] border-dashed border-[#232323] z-0" />
 
                 <div className="flex items-center h-[56px] px-[16px] border-b-[1.5px] border-[#232323]">
                     <div className="h-5 w-32 bg-[#232323] rounded" />
@@ -118,30 +143,16 @@ const PromotionCard = ({
     const isSelected = quantity > 0;
     const borderColor = isSelected ? '#e5ff88' : '#232323';
 
-    const formatPromotionPrice = () => {
-        if (promotion.type === 'PERCENTAGE') {
-            return `-${promotion.value}%`;
-        }
-        if (promotion.type === 'FIXED_PRICE') {
-            return `${promotion.value.toFixed(2).replace('.', ',')}€`;
-        }
-        if (promotion.type === 'FREE_PRODUCT') {
-            return t('event.free', 'Gratis');
-        }
-        return '';
-    };
-
     return (
         <div
             className={`
-                relative flex flex-col bg-[#141414] border-2 rounded-[16px] w-full overflow-visible cursor-pointer
+                relative flex flex-col bg-[#141414] border-2 rounded-[16px] w-full overflow-visible
                 ${isSelected ? 'border-[#e5ff88]' : 'border-[#232323]'}
                 ${className}
             `}
-            onClick={() => onMoreInfo?.(promotion)}
         >
             <div
-                className="absolute right-[120px] md:right-[152px] top-[-2px] w-[18px] h-[10px] bg-[#050505] rounded-b-full z-10"
+                className="absolute right-[152px] top-[-2px] w-[18px] h-[10px] bg-[#050505] rounded-b-full z-10"
                 style={{
                     borderLeft: `2px solid ${borderColor}`,
                     borderRight: `2px solid ${borderColor}`,
@@ -150,7 +161,7 @@ const PromotionCard = ({
             />
 
             <div
-                className="absolute right-[120px] md:right-[152px] bottom-[-2px] w-[18px] h-[10px] bg-[#050505] rounded-t-full z-10"
+                className="absolute right-[152px] bottom-[-2px] w-[18px] h-[10px] bg-[#050505] rounded-t-full z-10"
                 style={{
                     borderLeft: `2px solid ${borderColor}`,
                     borderRight: `2px solid ${borderColor}`,
@@ -158,9 +169,12 @@ const PromotionCard = ({
                 }}
             />
 
-            <div className="absolute right-[128px] md:right-[160px] top-[8px] bottom-[8px] w-0 border-l-[1.5px] border-dashed border-[#232323] z-0" />
+            <div className="absolute right-[160px] top-[8px] bottom-[8px] w-0 border-l-[1.5px] border-dashed border-[#232323] z-0" />
 
-            <div className="flex items-center h-[56px] px-[16px] border-b-[1.5px] border-[#232323]">
+            <div
+                className="flex items-center h-[56px] px-[16px] border-b-[1.5px] border-[#232323] cursor-pointer"
+                onClick={() => onMoreInfo?.(promotion)}
+            >
                 <div className="flex flex-col gap-0.5 flex-1 min-w-0">
                     <div className="flex items-center gap-[6px]">
                         <div
@@ -179,7 +193,10 @@ const PromotionCard = ({
                 </div>
             </div>
 
-            <div className="flex items-center justify-between px-[16px] py-[12px]">
+            <div
+                className="flex items-center justify-between px-[16px] py-[12px] cursor-pointer"
+                onClick={() => onMoreInfo?.(promotion)}
+            >
                 <div className="flex flex-col gap-[10px]">
                     <div className="flex items-center gap-[8px]">
                         <span className="text-[#f6f6f6] text-[16px] font-bold font-helvetica">
@@ -205,7 +222,7 @@ const PromotionCard = ({
                         <MinusIcon />
                     </button>
                     <span className={`
-                        w-[32px] text-center text-[24px] font-semibold font-borna leading-none
+                        w-[32px] text-center text-[24px] font-bold font-helvetica leading-none
                         ${isSelected ? 'text-[#e5ff88]' : 'text-[#f6f6f6]'}
                     `}>
                         {quantity}

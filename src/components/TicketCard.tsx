@@ -107,6 +107,9 @@ const TicketCard = ({
     );
     const borderColor = hasSelectedQuantity ? '#e5ff88' : '#232323';
 
+    const isSinglePrice = ticket.prices?.length === 1;
+    const singlePrice = isSinglePrice ? ticket.prices[0] : null;
+
     return (
         <div
             className={`
@@ -135,7 +138,10 @@ const TicketCard = ({
 
             <div className="absolute right-[160px] top-[8px] bottom-[8px] w-0 border-l-[1.5px] border-dashed border-[#232323] z-0" />
 
-            <div className="flex items-center h-[56px] px-[16px] border-b-[1.5px] border-[#232323]">
+            <div
+                className={`flex items-center h-[56px] px-[16px] border-b-[1.5px] border-[#232323] ${isSinglePrice ? 'cursor-pointer' : ''}`}
+                onClick={() => isSinglePrice && singlePrice && onMoreInfo?.(ticket, singlePrice)}
+            >
                 <div className="flex items-center gap-[6px]">
                     <div className="w-[6px] h-[6px] bg-[#d591ff] rounded-full shrink-0" />
                     <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica">

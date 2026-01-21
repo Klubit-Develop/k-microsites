@@ -5,9 +5,8 @@ interface Product {
     name: string;
     description?: string | null;
     price: number;
-    currency: string;
-    image?: string | null;
-    isActive: boolean;
+    currency?: string;
+    isActive?: boolean;
 }
 
 interface ProductCardProps {
@@ -48,7 +47,7 @@ const ProductCard = ({
         return (
             <div className={`relative flex flex-col bg-[#141414] border-2 border-[#232323] rounded-[16px] w-full overflow-visible animate-pulse ${className}`}>
                 <div
-                    className="absolute right-[120px] md:right-[152px] top-[-2px] w-[18px] h-[10px] bg-[#050505] rounded-b-full z-10"
+                    className="absolute right-[152px] top-[-2px] w-[18px] h-[10px] bg-[#050505] rounded-b-full z-10"
                     style={{
                         borderLeft: '2px solid #232323',
                         borderRight: '2px solid #232323',
@@ -57,7 +56,7 @@ const ProductCard = ({
                 />
 
                 <div
-                    className="absolute right-[120px] md:right-[152px] bottom-[-2px] w-[18px] h-[10px] bg-[#050505] rounded-t-full z-10"
+                    className="absolute right-[152px] bottom-[-2px] w-[18px] h-[10px] bg-[#050505] rounded-t-full z-10"
                     style={{
                         borderLeft: '2px solid #232323',
                         borderRight: '2px solid #232323',
@@ -65,7 +64,7 @@ const ProductCard = ({
                     }}
                 />
 
-                <div className="absolute right-[128px] md:right-[160px] top-[8px] bottom-[8px] w-0 border-l-[1.5px] border-dashed border-[#232323] z-0" />
+                <div className="absolute right-[160px] top-[8px] bottom-[8px] w-0 border-l-[1.5px] border-dashed border-[#232323] z-0" />
 
                 <div className="flex items-center h-[56px] px-[16px] border-b-[1.5px] border-[#232323]">
                     <div className="h-5 w-32 bg-[#232323] rounded" />
@@ -92,14 +91,13 @@ const ProductCard = ({
     return (
         <div
             className={`
-                relative flex flex-col bg-[#141414] border-2 rounded-[16px] w-full overflow-visible cursor-pointer
+                relative flex flex-col bg-[#141414] border-2 rounded-[16px] w-full overflow-visible
                 ${isSelected ? 'border-[#e5ff88]' : 'border-[#232323]'}
                 ${className}
             `}
-            onClick={() => onMoreInfo?.(product)}
         >
             <div
-                className="absolute right-[120px] md:right-[152px] top-[-2px] w-[18px] h-[10px] bg-[#050505] rounded-b-full z-10"
+                className="absolute right-[152px] top-[-2px] w-[18px] h-[10px] bg-[#050505] rounded-b-full z-10"
                 style={{
                     borderLeft: `2px solid ${borderColor}`,
                     borderRight: `2px solid ${borderColor}`,
@@ -108,7 +106,7 @@ const ProductCard = ({
             />
 
             <div
-                className="absolute right-[120px] md:right-[152px] bottom-[-2px] w-[18px] h-[10px] bg-[#050505] rounded-t-full z-10"
+                className="absolute right-[152px] bottom-[-2px] w-[18px] h-[10px] bg-[#050505] rounded-t-full z-10"
                 style={{
                     borderLeft: `2px solid ${borderColor}`,
                     borderRight: `2px solid ${borderColor}`,
@@ -116,21 +114,27 @@ const ProductCard = ({
                 }}
             />
 
-            <div className="absolute right-[128px] md:right-[160px] top-[8px] bottom-[8px] w-0 border-l-[1.5px] border-dashed border-[#232323] z-0" />
+            <div className="absolute right-[160px] top-[8px] bottom-[8px] w-0 border-l-[1.5px] border-dashed border-[#232323] z-0" />
 
-            <div className="flex items-center h-[56px] px-[16px] border-b-[1.5px] border-[#232323]">
+            <div
+                className="flex items-center h-[56px] px-[16px] border-b-[1.5px] border-[#232323] cursor-pointer"
+                onClick={() => onMoreInfo?.(product)}
+            >
                 <div className="flex items-center gap-[6px]">
                     <div
                         className="w-[6px] h-[6px] rounded-full shrink-0"
                         style={{ backgroundColor: PRODUCT_COLOR }}
                     />
-                    <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica truncate">
+                    <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica">
                         {product.name}
                     </span>
                 </div>
             </div>
 
-            <div className="flex items-center justify-between px-[16px] py-[12px]">
+            <div
+                className="flex items-center justify-between px-[16px] py-[12px] cursor-pointer"
+                onClick={() => onMoreInfo?.(product)}
+            >
                 <div className="flex flex-col gap-[10px]">
                     <div className="flex items-center gap-[8px]">
                         <span className="text-[#f6f6f6] text-[16px] font-bold font-helvetica">
@@ -156,7 +160,7 @@ const ProductCard = ({
                         <MinusIcon />
                     </button>
                     <span className={`
-                        w-[32px] text-center text-[24px] font-semibold font-borna leading-none
+                        w-[32px] text-center text-[24px] font-bold font-helvetica leading-none
                         ${isSelected ? 'text-[#e5ff88]' : 'text-[#f6f6f6]'}
                     `}>
                         {quantity}

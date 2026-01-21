@@ -167,7 +167,7 @@ const ReservationCard = ({
 
                 <div className="absolute right-[143px] top-[8px] bottom-[8px] w-0 border-l-[1.5px] border-dashed border-[#232323] z-0" />
 
-                <div 
+                <div
                     className={`flex items-center h-[56px] px-[16px] border-b-[1.5px] border-[#232323] ${!isPriceSoldOut ? 'cursor-pointer' : ''}`}
                     onClick={() => !isPriceSoldOut && onMoreInfo?.(reservation, price)}
                 >
@@ -190,7 +190,7 @@ const ReservationCard = ({
                 </div>
 
                 <div className="flex items-center px-[16px] py-[16px]">
-                    <div 
+                    <div
                         className={`flex flex-col gap-[10px] flex-1 min-w-0 pr-[140px] ${!isPriceSoldOut ? 'cursor-pointer' : ''}`}
                         onClick={() => !isPriceSoldOut && onMoreInfo?.(reservation, price)}
                     >
