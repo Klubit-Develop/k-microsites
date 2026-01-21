@@ -201,9 +201,10 @@ const GuestlistCard = ({
                     <div
                         key={price.id}
                         className={`
-                            flex items-center justify-between px-4 py-3
+                            flex items-center justify-between px-4 py-3 cursor-pointer
                             ${!isLast ? 'border-b-[1.5px] border-[#232323]' : ''}
                         `}
+                        onClick={() => onMoreInfo?.(guestlist, price)}
                     >
                         <div className="flex flex-col gap-2.5 flex-1 min-w-0 mr-4">
                             <div className="flex flex-col">
@@ -228,12 +229,6 @@ const GuestlistCard = ({
                                     )}
                                 </div>
                             </div>
-                            <span
-                                className="text-[#939393] text-xs font-medium font-helvetica cursor-pointer hover:text-[#f6f6f6] transition-colors"
-                                onClick={() => onMoreInfo?.(guestlist, price)}
-                            >
-                                {t('event.more_info', 'Más información')}
-                            </span>
                         </div>
 
                         <div className="flex items-center gap-1.5 shrink-0">
@@ -253,7 +248,7 @@ const GuestlistCard = ({
                                 <MinusIcon />
                             </button>
                             <span className={`
-                                w-8 text-center text-2xl font-bold font-helvetica leading-none
+                                w-8 text-center text-2xl font-semibold font-borna leading-none
                                 ${quantity > 0 ? 'text-[#e5ff88]' : 'text-[#f6f6f6]'}
                             `}>
                                 {quantity}

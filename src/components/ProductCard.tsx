@@ -3,10 +3,10 @@ import { useTranslation } from 'react-i18next';
 interface Product {
     id: string;
     name: string;
-    description: string | null;
-    sku: string | null;
-    iconName: string | null;
+    description?: string | null;
     price: number;
+    currency: string;
+    image?: string | null;
     isActive: boolean;
 }
 
@@ -92,10 +92,11 @@ const ProductCard = ({
     return (
         <div
             className={`
-                relative flex flex-col bg-[#141414] border-2 rounded-[16px] w-full overflow-visible
+                relative flex flex-col bg-[#141414] border-2 rounded-[16px] w-full overflow-visible cursor-pointer
                 ${isSelected ? 'border-[#e5ff88]' : 'border-[#232323]'}
                 ${className}
             `}
+            onClick={() => onMoreInfo?.(product)}
         >
             <div
                 className="absolute right-[120px] md:right-[152px] top-[-2px] w-[18px] h-[10px] bg-[#050505] rounded-b-full z-10"
@@ -123,7 +124,7 @@ const ProductCard = ({
                         className="w-[6px] h-[6px] rounded-full shrink-0"
                         style={{ backgroundColor: PRODUCT_COLOR }}
                     />
-                    <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica">
+                    <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica truncate">
                         {product.name}
                     </span>
                 </div>
@@ -136,12 +137,6 @@ const ProductCard = ({
                             {product.price.toFixed(2).replace('.', ',')}€
                         </span>
                     </div>
-                    <span
-                        className="text-[#939393] text-[12px] font-medium font-helvetica cursor-pointer hover:text-[#f6f6f6] transition-colors"
-                        onClick={() => onMoreInfo?.(product)}
-                    >
-                        {t('event.more_info', 'Más información')}
-                    </span>
                 </div>
 
                 <div className="flex items-center gap-[6px]">
@@ -161,7 +156,7 @@ const ProductCard = ({
                         <MinusIcon />
                     </button>
                     <span className={`
-                        w-[32px] text-center text-[24px] font-bold font-helvetica leading-none
+                        w-[32px] text-center text-[24px] font-semibold font-borna leading-none
                         ${isSelected ? 'text-[#e5ff88]' : 'text-[#f6f6f6]'}
                     `}>
                         {quantity}

@@ -1,27 +1,26 @@
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import dayjs from 'dayjs';
+import 'dayjs/locale/es';
+import 'dayjs/locale/en';
 
 interface PromotionProduct {
-    product: {
-        id: string;
-        name: string;
-        description: string | null;
-        price: number;
-        iconName: string | null;
-    };
+    id: string;
+    name: string;
+    quantity: number;
 }
 
 interface Promotion {
     id: string;
     name: string;
-    description: string | null;
-    type: 'PERCENTAGE' | 'FIXED_PRICE' | 'FIXED_AMOUNT';
+    description?: string | null;
+    type: 'PERCENTAGE' | 'FIXED_PRICE' | 'FREE_PRODUCT';
     value: number;
-    maxPurchasePerUser: number;
-    geolocation: boolean;
-    termsAndConditions: string | null;
+    maxPurchasePerUser?: number;
+    startDate?: string | null;
+    endDate?: string | null;
     isActive: boolean;
-    accessLevel: string;
-    products: PromotionProduct[];
+    products?: PromotionProduct[];
 }
 
 interface PromotionCardProps {
@@ -29,9 +28,9 @@ interface PromotionCardProps {
     quantity: number;
     onQuantityChange: (promotionId: string, delta: number) => void;
     onMoreInfo?: (promotion: Promotion) => void;
+    isLoading?: boolean;
     eventStartDate?: string;
     eventStartTime?: string;
-    isLoading?: boolean;
     className?: string;
 }
 
@@ -48,46 +47,31 @@ const PlusIcon = () => (
     </svg>
 );
 
-const PROMOTION_COLOR = '#ff336d';
+const PROMOTION_COLOR = '#FF336D';
 
 const PromotionCard = ({
     promotion,
     quantity,
     onQuantityChange,
     onMoreInfo,
+    isLoading = false,
     eventStartDate,
     eventStartTime,
-    isLoading = false,
     className = '',
 }: PromotionCardProps) => {
     const { t, i18n } = useTranslation();
 
-    const formattedDateTime = (() => {
-        if (!eventStartDate) return '';
+    const formattedDateTime = useMemo(() => {
+        if (!eventStartDate) return null;
+        
         const locale = i18n.language === 'es' ? 'es' : 'en';
-        const date = new Date(eventStartDate);
-        const dayName = date.toLocaleDateString(locale, { weekday: 'short' });
-        const day = date.getDate();
-        const month = date.toLocaleDateString(locale, { month: 'short' });
-        const datePart = `${dayName}, ${day} ${month}`;
-        if (eventStartTime) {
-            return `${datePart} · ${eventStartTime}h`;
-        }
-        return datePart;
-    })();
-
-    const formatPromotionPrice = (): string => {
-        switch (promotion.type) {
-            case 'PERCENTAGE':
-                return `-${promotion.value}%`;
-            case 'FIXED_PRICE':
-                return `${promotion.value.toFixed(2).replace('.', ',')}€`;
-            case 'FIXED_AMOUNT':
-                return `-${promotion.value.toFixed(2).replace('.', ',')}€`;
-            default:
-                return `${promotion.value}€`;
-        }
-    };
+        const date = dayjs(eventStartDate).locale(locale);
+        
+        const dateStr = date.format('ddd, D MMM');
+        const timeStr = eventStartTime ? `${eventStartTime}h` : '';
+        
+        return timeStr ? `${dateStr} · ${timeStr}` : dateStr;
+    }, [eventStartDate, eventStartTime, i18n.language]);
 
     if (isLoading) {
         return (
@@ -134,13 +118,27 @@ const PromotionCard = ({
     const isSelected = quantity > 0;
     const borderColor = isSelected ? '#e5ff88' : '#232323';
 
+    const formatPromotionPrice = () => {
+        if (promotion.type === 'PERCENTAGE') {
+            return `-${promotion.value}%`;
+        }
+        if (promotion.type === 'FIXED_PRICE') {
+            return `${promotion.value.toFixed(2).replace('.', ',')}€`;
+        }
+        if (promotion.type === 'FREE_PRODUCT') {
+            return t('event.free', 'Gratis');
+        }
+        return '';
+    };
+
     return (
         <div
             className={`
-                relative flex flex-col bg-[#141414] border-2 rounded-[16px] w-full overflow-visible
+                relative flex flex-col bg-[#141414] border-2 rounded-[16px] w-full overflow-visible cursor-pointer
                 ${isSelected ? 'border-[#e5ff88]' : 'border-[#232323]'}
                 ${className}
             `}
+            onClick={() => onMoreInfo?.(promotion)}
         >
             <div
                 className="absolute right-[120px] md:right-[152px] top-[-2px] w-[18px] h-[10px] bg-[#050505] rounded-b-full z-10"
@@ -188,12 +186,6 @@ const PromotionCard = ({
                             {formatPromotionPrice()}
                         </span>
                     </div>
-                    <span
-                        className="text-[#939393] text-[12px] font-medium font-helvetica cursor-pointer hover:text-[#f6f6f6] transition-colors"
-                        onClick={() => onMoreInfo?.(promotion)}
-                    >
-                        {t('event.more_info', 'Más información')}
-                    </span>
                 </div>
 
                 <div className="flex items-center gap-[6px]">
@@ -213,7 +205,7 @@ const PromotionCard = ({
                         <MinusIcon />
                     </button>
                     <span className={`
-                        w-[32px] text-center text-[24px] font-bold font-helvetica leading-none
+                        w-[32px] text-center text-[24px] font-semibold font-borna leading-none
                         ${isSelected ? 'text-[#e5ff88]' : 'text-[#f6f6f6]'}
                     `}>
                         {quantity}

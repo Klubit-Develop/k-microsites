@@ -122,18 +122,12 @@ const ReservationCard = ({
 
     const borderColor = getBorderColor();
 
-    const handleCardClick = (priceId: string, currentQuantity: number) => {
+    const handleCheckboxToggle = (priceId: string, currentQuantity: number) => {
         if (currentQuantity > 0) {
             onQuantityChange(priceId, -currentQuantity);
         } else {
             onQuantityChange(priceId, 1);
         }
-    };
-
-    const handleMoreInfoClick = (e: React.MouseEvent, price: ReservationPrice) => {
-        e.preventDefault();
-        e.stopPropagation();
-        onMoreInfo?.(reservation, price);
     };
 
     if (selectionMode === 'checkbox') {
@@ -145,49 +139,38 @@ const ReservationCard = ({
         const available = getAvailability(price);
         const isPriceSoldOut = available <= 0;
 
-        const handleCardSelection = () => {
-            if (!isPriceSoldOut && !isReservationSoldOut) {
-                handleCardClick(price.id, quantity);
-            }
-        };
-
         return (
             <div
-                role="button"
-                tabIndex={0}
-                onClick={handleCardSelection}
-                onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                        handleCardSelection();
-                    }
-                }}
                 className={`
-                    relative flex flex-col bg-[#141414] border-[1.5px] rounded-[16px] w-full overflow-visible text-left
-                    ${isReservationSoldOut || isPriceSoldOut ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+                    relative flex flex-col bg-[#141414] border-2 rounded-[16px] w-full overflow-visible
+                    ${isPriceSoldOut ? 'opacity-50' : ''}
                 `}
                 style={{ borderColor }}
             >
                 <div
-                    className="absolute right-[135px] top-[-1.5px] w-[16px] h-[8px] bg-[#050505] rounded-b-full z-10"
+                    className="absolute right-[135px] top-[-2px] w-[18px] h-[10px] bg-[#050505] rounded-b-full z-10"
                     style={{
-                        borderLeft: `1.5px solid ${borderColor}`,
-                        borderRight: `1.5px solid ${borderColor}`,
-                        borderBottom: `1.5px solid ${borderColor}`,
+                        borderLeft: `2px solid ${borderColor}`,
+                        borderRight: `2px solid ${borderColor}`,
+                        borderBottom: `2px solid ${borderColor}`,
                     }}
                 />
 
                 <div
-                    className="absolute right-[135px] bottom-[-1.5px] w-[16px] h-[8px] bg-[#050505] rounded-t-full z-10"
+                    className="absolute right-[135px] bottom-[-2px] w-[18px] h-[10px] bg-[#050505] rounded-t-full z-10"
                     style={{
-                        borderLeft: `1.5px solid ${borderColor}`,
-                        borderRight: `1.5px solid ${borderColor}`,
-                        borderTop: `1.5px solid ${borderColor}`,
+                        borderLeft: `2px solid ${borderColor}`,
+                        borderRight: `2px solid ${borderColor}`,
+                        borderTop: `2px solid ${borderColor}`,
                     }}
                 />
 
-                <div className="absolute right-[142px] top-[8px] bottom-[8px] w-0 border-l-[1.5px] border-dashed border-[#232323] z-0" />
+                <div className="absolute right-[143px] top-[8px] bottom-[8px] w-0 border-l-[1.5px] border-dashed border-[#232323] z-0" />
 
-                <div className="flex items-center h-[56px] px-[16px] border-b-[1.5px] border-[#232323]">
+                <div 
+                    className={`flex items-center h-[56px] px-[16px] border-b-[1.5px] border-[#232323] ${!isPriceSoldOut ? 'cursor-pointer' : ''}`}
+                    onClick={() => !isPriceSoldOut && onMoreInfo?.(reservation, price)}
+                >
                     <div className="flex items-center gap-[6px] flex-1 min-w-0 pr-[140px]">
                         <div
                             className="w-[6px] h-[6px] rounded-full shrink-0"
@@ -207,28 +190,35 @@ const ReservationCard = ({
                 </div>
 
                 <div className="flex items-center px-[16px] py-[16px]">
-                    <div className="flex flex-col gap-[10px] flex-1 min-w-0 pr-[140px]">
+                    <div 
+                        className={`flex flex-col gap-[10px] flex-1 min-w-0 pr-[140px] ${!isPriceSoldOut ? 'cursor-pointer' : ''}`}
+                        onClick={() => !isPriceSoldOut && onMoreInfo?.(reservation, price)}
+                    >
                         <div className="flex items-center gap-[8px] flex-wrap">
                             <span className="text-[#f6f6f6] text-[16px] font-bold font-helvetica">
                                 {price.finalPrice.toFixed(2).replace('.', ',')}€
                             </span>
                         </div>
-                        <button
-                            type="button"
-                            className="text-[#939393] text-[12px] font-medium font-helvetica cursor-pointer hover:text-[#f6f6f6] transition-colors text-left w-fit"
-                            onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                onMoreInfo?.(reservation, price);
-                            }}
-                        >
-                            {t('event.more_info', 'Más información')}
-                        </button>
                     </div>
 
-                    <div className="absolute right-[16px] flex items-center justify-end w-[120px]">
-                        {isSelected && <CheckIcon />}
-                    </div>
+                    <button
+                        type="button"
+                        className={`absolute right-[16px] flex items-center justify-center w-[36px] h-[36px] ${!isPriceSoldOut ? 'cursor-pointer' : 'cursor-not-allowed'}`}
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            if (!isPriceSoldOut) {
+                                handleCheckboxToggle(price.id, quantity);
+                            }
+                        }}
+                        disabled={isPriceSoldOut}
+                    >
+                        {isSelected ? (
+                            <CheckIcon />
+                        ) : (
+                            <div className="w-[24px] h-[24px] rounded-full border-2 border-[#939393]" />
+                        )}
+                    </button>
                 </div>
             </div>
         );
@@ -316,7 +306,8 @@ const ReservationCard = ({
                 return (
                     <div
                         key={price.id}
-                        className={`flex items-center justify-between px-[16px] py-[12px] ${!isLast ? 'border-b-[1.5px] border-[#232323]' : ''}`}
+                        className={`flex items-center justify-between px-[16px] py-[12px] cursor-pointer ${!isLast ? 'border-b-[1.5px] border-[#232323]' : ''}`}
+                        onClick={() => onMoreInfo?.(reservation, price)}
                     >
                         <div className="flex flex-col gap-[10px] flex-1 min-w-0 pr-[170px] md:pr-[190px]">
                             {showPriceName && (
@@ -336,12 +327,6 @@ const ReservationCard = ({
                                     </div>
                                 )}
                             </div>
-                            <span
-                                className="text-[#939393] text-[12px] font-medium font-helvetica cursor-pointer hover:text-[#f6f6f6] transition-colors"
-                                onClick={(e) => handleMoreInfoClick(e, price)}
-                            >
-                                {t('event.more_info', 'Más información')}
-                            </span>
                         </div>
 
                         <div className="absolute right-[16px] flex items-center gap-[6px] w-[120px] md:w-[140px] justify-center">

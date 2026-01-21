@@ -153,9 +153,10 @@ const TicketCard = ({
                     <div
                         key={price.id}
                         className={`
-                            flex items-center justify-between px-[16px] py-[12px]
+                            flex items-center justify-between px-[16px] py-[12px] cursor-pointer
                             ${!isLast ? 'border-b-[1.5px] border-[#232323]' : ''}
                         `}
+                        onClick={() => onMoreInfo?.(ticket, price)}
                     >
                         <div className="flex flex-col gap-[10px]">
                             <div className="flex flex-col">
@@ -177,12 +178,6 @@ const TicketCard = ({
                                     )}
                                 </div>
                             </div>
-                            <span 
-                                className="text-[#939393] text-[12px] font-medium font-helvetica cursor-pointer hover:text-[#f6f6f6] transition-colors"
-                                onClick={() => onMoreInfo?.(ticket, price)}
-                            >
-                                {t('event.more_info', 'Más información')}
-                            </span>
                         </div>
 
                         <div className="flex items-center gap-[6px]">
@@ -202,7 +197,7 @@ const TicketCard = ({
                                 <MinusIcon />
                             </button>
                             <span className={`
-                                w-[32px] text-center text-[24px] font-bold font-helvetica leading-none
+                                w-[32px] text-center text-[24px] font-semibold font-borna leading-none
                                 ${quantity > 0 ? 'text-[#e5ff88]' : 'text-[#f6f6f6]'}
                             `}>
                                 {quantity}
