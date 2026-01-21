@@ -88,7 +88,7 @@ const Header = ({
     };
 
     const LanguageSelector = ({ isMobile = false }: { isMobile?: boolean }) => (
-        <div ref={isMobile ? undefined : langRef} className="relative">
+        <div ref={langRef} className="relative">
             <button
                 onClick={() => setIsLangOpen(!isLangOpen)}
                 className={`
@@ -151,7 +151,7 @@ const Header = ({
         <button
             type="button"
             onClick={() => handleMobileNavigation(to)}
-            className="flex items-center justify-between w-full px-3 py-3 border-b border-[#232323] cursor-pointer text-left bg-transparent"
+            className="flex items-center justify-between w-full px-3 py-6 border-b border-[#232323] cursor-pointer text-left bg-transparent"
         >
             <div className="flex items-center gap-3">
                 {showAvatar && (
@@ -164,7 +164,7 @@ const Header = ({
                             />
                         ) : (
                             <div className="size-full bg-[#232323] flex items-center justify-center">
-                                <span className="text-[#F6F6F6] text-xs font-medium">
+                                <span className="text-[#F6F6F6] text-xs font-semibold font-borna">
                                     {getInitials()}
                                 </span>
                             </div>
@@ -181,7 +181,7 @@ const Header = ({
 
     return (
         <>
-            <header className="bg-[#141414] md:bg-[#141414] bg-[#050505] border-b-2 border-[#232323] w-full">
+            <header className="bg-[#141414] md:bg-[#141414] bg-[#141414] border-b-2 border-[#232323] w-full">
                 <div className="hidden md:flex items-center justify-between h-[68px] px-4 sm:px-6 lg:px-34">
                     <Link to="/" className="shrink-0">
                         <LogoIcon
@@ -237,7 +237,7 @@ const Header = ({
                     </div>
                 </div>
 
-                <div className="flex md:hidden items-center justify-between h-[94px] px-6 pt-[42px] pb-[32px] bg-[#050505]">
+                <div className="flex md:hidden items-center justify-between h-[94px] px-6 pt-[42px] pb-[32px] bg-[#141414]">
                     <Link to="/" className="shrink-0">
                         <LogoIcon
                             width={80}
@@ -251,7 +251,7 @@ const Header = ({
                         className="flex items-center justify-center size-[21px] rounded-[10px] cursor-pointer"
                         aria-label={t('header.open_menu', 'Abrir menú')}
                     >
-                        <Menu size={20} className="text-[#F6F6F6]" />
+                        <Menu size={26} className="text-[#F6F6F6]" />
                     </button>
                 </div>
             </header>
@@ -282,11 +282,11 @@ const Header = ({
                                 className="flex items-center justify-center size-[21px] rounded-[10px] cursor-pointer"
                                 aria-label={t('header.close_menu', 'Cerrar menú')}
                             >
-                                <X size={16} className="text-white" />
+                                <X size={26} className="text-white" />
                             </button>
                         </div>
 
-                        <div className="flex-1 flex flex-col justify-between px-4 pt-[30px] pb-16">
+                        <div className="flex-1 flex flex-col justify-between px-4 pt-[5px] pb-16">
                             <div className="flex flex-col">
                                 {user ? (
                                     <>
@@ -304,9 +304,7 @@ const Header = ({
                                 )}
                             </div>
 
-                            <div ref={langRef}>
-                                <LanguageSelector isMobile />
-                            </div>
+                            <LanguageSelector isMobile />
                         </div>
                     </div>
                 </div>
