@@ -7,6 +7,10 @@
         "loading": "Cargando...",
         "view_more": "Ver más"
     },
+    "languages": {
+        "es": "Castellano (ES)",
+        "en": "Inglés (EN)"
+    },
     "club": {
         "phone": "Teléfono",
         "email": "Email",
