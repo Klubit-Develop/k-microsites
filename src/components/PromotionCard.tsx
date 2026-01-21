@@ -1,22 +1,27 @@
 import { useTranslation } from 'react-i18next';
 
 interface PromotionProduct {
-    id: string;
-    name: string;
-    quantity: number;
+    product: {
+        id: string;
+        name: string;
+        description: string | null;
+        price: number;
+        iconName: string | null;
+    };
 }
 
 interface Promotion {
     id: string;
     name: string;
-    description?: string | null;
-    type: 'PERCENTAGE' | 'FIXED_AMOUNT' | 'FIXED_PRICE';
+    description: string | null;
+    type: 'PERCENTAGE' | 'FIXED_PRICE' | 'FIXED_AMOUNT';
     value: number;
-    maxPurchasePerUser?: number;
-    products?: PromotionProduct[];
-    isActive?: boolean;
-    startDate?: string;
-    startTime?: string;
+    maxPurchasePerUser: number;
+    geolocation: boolean;
+    termsAndConditions: string | null;
+    isActive: boolean;
+    accessLevel: string;
+    products: PromotionProduct[];
 }
 
 interface PromotionCardProps {
@@ -55,11 +60,11 @@ const PromotionCard = ({
     eventStartTime,
     className = '',
 }: PromotionCardProps) => {
-    const { t, i18n } = useTranslation();
+    const { i18n } = useTranslation();
 
     const formatDateTime = () => {
-        const dateStr = promotion.startDate || eventStartDate;
-        const timeStr = promotion.startTime || eventStartTime;
+        const dateStr = eventStartDate;
+        const timeStr = eventStartTime;
 
         if (!dateStr) return null;
 
@@ -222,7 +227,7 @@ const PromotionCard = ({
                         <MinusIcon />
                     </button>
                     <span className={`
-                        w-[32px] text-center text-[24px] font-bold font-helvetica leading-none
+                        w-[32px] text-center text-[32px] font-semibold font-borna leading-none
                         ${isSelected ? 'text-[#e5ff88]' : 'text-[#f6f6f6]'}
                     `}>
                         {quantity}

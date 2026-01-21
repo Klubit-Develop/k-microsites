@@ -1,5 +1,3 @@
-import { useTranslation } from 'react-i18next';
-
 interface TicketPrice {
     id: string;
     name: string;
@@ -58,8 +56,6 @@ const TicketCard = ({
     isLoading = false,
     className = '',
 }: TicketCardProps) => {
-    const { t } = useTranslation();
-
     if (isLoading) {
         return (
             <div className={`relative flex flex-col bg-[#141414] border-2 border-[#232323] rounded-[16px] w-full overflow-visible animate-pulse ${className}`}>
@@ -203,7 +199,7 @@ const TicketCard = ({
                                 <MinusIcon />
                             </button>
                             <span className={`
-                                w-[32px] text-center text-[24px] font-semibold font-borna leading-none
+                                w-[32px] text-center text-[32px] font-semibold font-borna leading-none
                                 ${quantity > 0 ? 'text-[#e5ff88]' : 'text-[#f6f6f6]'}
                             `}>
                                 {quantity}

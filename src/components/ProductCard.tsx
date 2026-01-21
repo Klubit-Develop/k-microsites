@@ -1,5 +1,3 @@
-import { useTranslation } from 'react-i18next';
-
 interface Product {
     id: string;
     name: string;
@@ -41,8 +39,6 @@ const ProductCard = ({
     isLoading = false,
     className = '',
 }: ProductCardProps) => {
-    const { t } = useTranslation();
-
     if (isLoading) {
         return (
             <div className={`relative flex flex-col bg-[#141414] border-2 border-[#232323] rounded-[16px] w-full overflow-visible animate-pulse ${className}`}>
@@ -160,7 +156,7 @@ const ProductCard = ({
                         <MinusIcon />
                     </button>
                     <span className={`
-                        w-[32px] text-center text-[24px] font-bold font-helvetica leading-none
+                        w-[32px] text-center text-[32px] font-semibold font-borna leading-none
                         ${isSelected ? 'text-[#e5ff88]' : 'text-[#f6f6f6]'}
                     `}>
                         {quantity}
