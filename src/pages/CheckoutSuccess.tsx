@@ -205,7 +205,7 @@ const CheckoutSuccess = () => {
 
     if (transaction.status === 'PENDING') {
         return (
-            <div className="bg-[#050505] min-h-screen flex items-center justify-center px-4 pt-[120px] pb-[100px] md:pt-24 md:pb-24">
+            <div className="bg-[#050505] min-h-screen flex items-center justify-center px-4">
                 <div className="flex flex-col gap-6 items-center w-full max-w-[500px]">
                     <div className="size-[100px] md:size-[120px] flex items-center justify-center">
                         <div className="size-14 md:size-16 border-4 border-[#FF336D] border-t-transparent rounded-full animate-spin" />
