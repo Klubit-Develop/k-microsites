@@ -21,6 +21,12 @@ interface ReservationZone {
     isActive?: boolean;
 }
 
+interface Benefit {
+    id: string;
+    name: string;
+    type?: string;
+}
+
 interface Reservation {
     id: string;
     name: string;
@@ -34,6 +40,7 @@ interface Reservation {
     accessLevel?: string;
     prices: ReservationPrice[];
     zones?: ReservationZone[];
+    benefits?: Benefit[];
 }
 
 interface ReservationCardProps {
@@ -73,6 +80,17 @@ const CheckIcon = () => (
 );
 
 const RESERVATION_COLOR = '#3fe8e8';
+
+const shouldShowPriceName = (priceName: string, reservationName: string): boolean => {
+    const normalizedPriceName = priceName.toLowerCase().trim();
+    const normalizedReservationName = reservationName.toLowerCase().trim();
+    
+    if (normalizedPriceName === normalizedReservationName) return false;
+    if (normalizedPriceName === 'gratis') return false;
+    if (normalizedPriceName === 'precio único' || normalizedPriceName === 'precio unico') return false;
+    
+    return true;
+};
 
 const ReservationCard = ({
     reservation,
@@ -130,6 +148,8 @@ const ReservationCard = ({
         }
     };
 
+    const productBenefits = reservation.benefits?.filter(b => b.type === 'PRODUCT') || [];
+
     if (selectionMode === 'checkbox') {
         const price = reservation.prices?.[0];
         if (!price) return null;
@@ -167,7 +187,7 @@ const ReservationCard = ({
 
                 <div className="absolute right-[143px] top-[8px] bottom-[8px] w-0 border-l-[1.5px] border-dashed border-[#232323] z-0" />
 
-                <div
+                <div 
                     className={`flex items-center h-[56px] px-[16px] border-b-[1.5px] border-[#232323] ${!isPriceSoldOut ? 'cursor-pointer' : ''}`}
                     onClick={() => !isPriceSoldOut && onMoreInfo?.(reservation, price)}
                 >
@@ -182,30 +202,37 @@ const ReservationCard = ({
                     </div>
 
                     <div className="absolute right-[16px] flex items-center gap-[4px] px-[10px] py-[4px] bg-[#232323] rounded-[25px] shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]">
-                        <span className="text-[#939393] text-[14px] font-normal font-helvetica">
+                        <span className="text-[#939393] text-[16px] font-medium font-helvetica">
                             {maxPersonsPerReservation}
                         </span>
                         <PersonIcon />
                     </div>
                 </div>
 
-                <div className="flex items-center px-[16px] py-[16px]">
-                    <div
-                        className={`flex flex-col gap-[10px] flex-1 min-w-0 pr-[140px] ${!isPriceSoldOut ? 'cursor-pointer' : ''}`}
-                        onClick={() => !isPriceSoldOut && onMoreInfo?.(reservation, price)}
-                    >
-                        <div className="flex items-center gap-[8px] flex-wrap">
-                            <span className="text-[#f6f6f6] text-[16px] font-bold font-helvetica">
-                                {price.finalPrice.toFixed(2).replace('.', ',')}€
+                <div 
+                    className={`flex items-center justify-between px-[16px] py-[12px] ${!isPriceSoldOut ? 'cursor-pointer' : ''}`}
+                    onClick={() => !isPriceSoldOut && onMoreInfo?.(reservation, price)}
+                >
+                    <div className="flex flex-col gap-[4px]">
+                        {shouldShowPriceName(price.name, reservation.name) && (
+                            <span className="text-[#939393] text-[14px] font-normal font-helvetica">
+                                {price.name}
                             </span>
-                        </div>
+                        )}
+                        {productBenefits.length > 0 && (
+                            <span className="text-[#939393] text-[14px] font-normal font-helvetica">
+                                {productBenefits.map(b => b.name).join(', ')}
+                            </span>
+                        )}
+                        <span className="text-[#f6f6f6] text-[16px] font-bold font-helvetica">
+                            {price.finalPrice.toFixed(2).replace('.', ',')}€
+                        </span>
                     </div>
 
                     <button
                         type="button"
-                        className={`absolute right-[16px] flex items-center justify-center w-[36px] h-[36px] ${!isPriceSoldOut ? 'cursor-pointer' : 'cursor-not-allowed'}`}
+                        className={`flex items-center justify-center w-[40px] h-[40px] ${!isPriceSoldOut ? 'cursor-pointer' : 'cursor-not-allowed'}`}
                         onClick={(e) => {
-                            e.preventDefault();
                             e.stopPropagation();
                             if (!isPriceSoldOut) {
                                 handleCheckboxToggle(price.id, quantity);
@@ -309,10 +336,15 @@ const ReservationCard = ({
                         className={`flex items-center justify-between px-[16px] py-[12px] cursor-pointer ${!isLast ? 'border-b-[1.5px] border-[#232323]' : ''}`}
                         onClick={() => onMoreInfo?.(reservation, price)}
                     >
-                        <div className="flex flex-col gap-[10px] flex-1 min-w-0 pr-[170px] md:pr-[190px]">
-                            {showPriceName && (
+                        <div className="flex flex-col gap-[4px] flex-1 min-w-0 pr-[170px] md:pr-[190px]">
+                            {(showPriceName || shouldShowPriceName(price.name, reservation.name)) && (
                                 <span className="text-[#939393] text-[14px] font-normal font-helvetica">
                                     {price.name}
+                                </span>
+                            )}
+                            {productBenefits.length > 0 && (
+                                <span className="text-[#939393] text-[14px] font-normal font-helvetica">
+                                    {productBenefits.map(b => b.name).join(', ')}
                                 </span>
                             )}
                             <div className="flex items-center gap-[8px] flex-wrap">

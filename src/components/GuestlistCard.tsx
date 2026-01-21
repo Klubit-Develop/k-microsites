@@ -12,6 +12,12 @@ interface GuestlistPrice {
     isSoldOut: boolean;
 }
 
+interface Benefit {
+    id: string;
+    name: string;
+    type?: string;
+}
+
 interface Guestlist {
     id: string;
     name: string;
@@ -27,7 +33,7 @@ interface Guestlist {
     accessLevel?: string;
     prices: GuestlistPrice[];
     zones?: Array<{ id: string; name: string }>;
-    benefits?: Array<{ id: string; name: string; type?: string }>;
+    benefits?: Benefit[];
 }
 
 interface GuestlistCardProps {
@@ -133,6 +139,30 @@ const GuestlistCard = ({
 
     const firstPrice = guestlist.prices?.[0];
 
+    const formatTimeRange = () => {
+        if (guestlist.startTime && guestlist.endTime) {
+            return `${guestlist.startTime} - ${guestlist.endTime}`;
+        }
+        if (guestlist.startTime) {
+            return guestlist.startTime;
+        }
+        return null;
+    };
+
+    const timeRange = formatTimeRange();
+
+    const shouldShowPriceName = (priceName: string): boolean => {
+        const normalizedPriceName = priceName.toLowerCase().trim();
+        const normalizedGuestlistName = guestlist.name.toLowerCase().trim();
+        
+        if (normalizedPriceName === normalizedGuestlistName) return false;
+        if (normalizedPriceName === 'gratis') return false;
+        if (normalizedPriceName === 'precio único' || normalizedPriceName === 'precio unico') return false;
+        if (normalizedPriceName === 'consumición' || normalizedPriceName === 'consumicion') return false;
+        
+        return true;
+    };
+
     return (
         <div
             className={`
@@ -190,13 +220,15 @@ const GuestlistCard = ({
             {guestlist.prices?.map((price, priceIndex) => {
                 const quantity = selectedQuantities[price.id] || 0;
                 const isLast = priceIndex === (guestlist.prices?.length ?? 0) - 1;
-                const showPriceName = guestlist.prices.length > 1;
+                const hasMultiplePrices = guestlist.prices.length > 1;
 
                 const available = getAvailability(price);
                 const isPriceSoldOut = available <= 0;
                 const isAtMax = quantity >= Math.min(maxPerUser, available);
 
                 const isLowStock = !isPriceSoldOut && available > 0 && available < 5;
+
+                const showPriceName = hasMultiplePrices || shouldShowPriceName(price.name);
 
                 return (
                     <div
@@ -207,25 +239,28 @@ const GuestlistCard = ({
                         `}
                         onClick={() => onMoreInfo?.(guestlist, price)}
                     >
-                        <div className="flex flex-col gap-[10px]">
-                            <div className="flex flex-col">
-                                {showPriceName && (
-                                    <span className="text-[#939393] text-[14px] font-normal font-helvetica">
-                                        {price.name}
-                                    </span>
+                        <div className="flex flex-col gap-[4px]">
+                            {timeRange && (
+                                <span className="text-[#939393] text-[14px] font-normal font-helvetica">
+                                    {timeRange}
+                                </span>
+                            )}
+                            {showPriceName && (
+                                <span className="text-[#939393] text-[14px] font-normal font-helvetica">
+                                    {price.name}
+                                </span>
+                            )}
+                            <div className="flex items-center gap-[8px]">
+                                <span className="text-[#f6f6f6] text-[16px] font-bold font-helvetica">
+                                    {price.finalPrice === 0 ? t('event.free', 'Gratis') : `${price.finalPrice.toFixed(2).replace('.', ',')}€`}
+                                </span>
+                                {isLowStock && (
+                                    <div className="flex items-center px-[8px] py-[2px] bg-[#232323] rounded-[25px] shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]">
+                                        <span className="text-[#f6f6f6] text-[12px] font-medium font-helvetica">
+                                            Hot 🔥
+                                        </span>
+                                    </div>
                                 )}
-                                <div className="flex items-center gap-[8px]">
-                                    <span className="text-[#f6f6f6] text-[16px] font-bold font-helvetica">
-                                        {price.finalPrice === 0 ? t('event.free', 'Gratis') : `${price.finalPrice.toFixed(2).replace('.', ',')}€`}
-                                    </span>
-                                    {isLowStock && (
-                                        <div className="flex items-center px-[8px] py-[2px] bg-[#232323] rounded-[25px] shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]">
-                                            <span className="text-[#f6f6f6] text-[12px] font-medium font-helvetica">
-                                                Hot 🔥
-                                            </span>
-                                        </div>
-                                    )}
-                                </div>
                             </div>
                         </div>
 
