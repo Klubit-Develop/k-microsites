@@ -152,7 +152,7 @@ const Header = ({
         <button
             type="button"
             onClick={() => handleMobileNavigation(to)}
-            className="flex items-center justify-between w-full px-3 py-3 border-b border-[#232323] cursor-pointer text-left bg-transparent"
+            className="flex items-center justify-between w-full px-3 py-6 border-b border-[#232323] cursor-pointer text-left bg-transparent"
         >
             <div className="flex items-center gap-3">
                 {showAvatar && (
@@ -287,7 +287,7 @@ const Header = ({
                             </button>
                         </div>
 
-                        <div className="flex-1 flex flex-col justify-between px-4 pt-[30px] pb-16">
+                        <div className="flex-1 flex flex-col justify-between px-4 pt-[5px] pb-16">
                             <div className="flex flex-col">
                                 {user ? (
                                     <>
