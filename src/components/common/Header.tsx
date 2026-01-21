@@ -252,7 +252,7 @@ const Header = ({
                         className="flex items-center justify-center size-[21px] rounded-[10px] cursor-pointer"
                         aria-label={t('header.open_menu', 'Abrir menú')}
                     >
-                        <Menu size={22} className="text-[#F6F6F6]" />
+                        <Menu size={24} className="text-[#F6F6F6]" />
                     </button>
                 </div>
             </header>
@@ -283,7 +283,7 @@ const Header = ({
                                 className="flex items-center justify-center size-[21px] rounded-[10px] cursor-pointer"
                                 aria-label={t('header.close_menu', 'Cerrar menú')}
                             >
-                                <X size={22} className="text-white" />
+                                <X size={24} className="text-white" />
                             </button>
                         </div>
 
