@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
@@ -36,10 +36,10 @@ const AvatarModal = ({ isOpen, onClose, hasAvatar, onUpload, onRemove, isLoading
             <div className="flex flex-col gap-6 w-full">
                 <div className="flex flex-col gap-4 items-center px-4 w-full">
                     <div className="flex items-center justify-center size-[120px] p-1">
-                        <img 
-                            src="https://klubit.fra1.cdn.digitaloceanspaces.com/icon-camera.png" 
-                            alt="" 
-                            className="w-full h-full object-contain" 
+                        <img
+                            src="https://klubit.fra1.cdn.digitaloceanspaces.com/icon-camera.png"
+                            alt=""
+                            className="w-full h-full object-contain"
                         />
                     </div>
 
@@ -80,12 +80,224 @@ const AvatarModal = ({ isOpen, onClose, hasAvatar, onUpload, onRemove, isLoading
     );
 };
 
+interface ImageCropModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    imageFile: File | null;
+    onConfirm: (croppedFile: File) => void;
+    isLoading?: boolean;
+}
+
+const ImageCropModal = ({ isOpen, onClose, imageFile, onConfirm, isLoading = false }: ImageCropModalProps) => {
+    const { t } = useTranslation();
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const [imageSrc, setImageSrc] = useState<string | null>(null);
+    const [zoom, setZoom] = useState(1);
+    const [position, setPosition] = useState({ x: 0, y: 0 });
+    const [isDragging, setIsDragging] = useState(false);
+    const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+    const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
+    const imageRef = useRef<HTMLImageElement | null>(null);
+
+    useEffect(() => {
+        if (imageFile) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const result = e.target?.result as string;
+                setImageSrc(result);
+
+                const img = new Image();
+                img.onload = () => {
+                    imageRef.current = img;
+                    setImageSize({ width: img.width, height: img.height });
+                    setZoom(1);
+                    setPosition({ x: 0, y: 0 });
+                };
+                img.src = result;
+            };
+            reader.readAsDataURL(imageFile);
+        } else {
+            setImageSrc(null);
+            setZoom(1);
+            setPosition({ x: 0, y: 0 });
+        }
+    }, [imageFile]);
+
+    const handleMouseDown = useCallback((e: React.MouseEvent) => {
+        setIsDragging(true);
+        setDragStart({ x: e.clientX - position.x, y: e.clientY - position.y });
+    }, [position]);
+
+    const handleMouseMove = useCallback((e: React.MouseEvent) => {
+        if (!isDragging) return;
+        setPosition({
+            x: e.clientX - dragStart.x,
+            y: e.clientY - dragStart.y
+        });
+    }, [isDragging, dragStart]);
+
+    const handleMouseUp = useCallback(() => {
+        setIsDragging(false);
+    }, []);
+
+    const handleTouchStart = useCallback((e: React.TouchEvent) => {
+        const touch = e.touches[0];
+        setIsDragging(true);
+        setDragStart({ x: touch.clientX - position.x, y: touch.clientY - position.y });
+    }, [position]);
+
+    const handleTouchMove = useCallback((e: React.TouchEvent) => {
+        if (!isDragging) return;
+        const touch = e.touches[0];
+        setPosition({
+            x: touch.clientX - dragStart.x,
+            y: touch.clientY - dragStart.y
+        });
+    }, [isDragging, dragStart]);
+
+    const handleTouchEnd = useCallback(() => {
+        setIsDragging(false);
+    }, []);
+
+    const handleConfirm = useCallback(() => {
+        if (!imageRef.current || !canvasRef.current) return;
+
+        const canvas = canvasRef.current;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        const outputSize = 400;
+        canvas.width = outputSize;
+        canvas.height = outputSize;
+
+        const containerSize = 280;
+        const scale = zoom;
+
+        const scaledWidth = imageSize.width * scale;
+        const scaledHeight = imageSize.height * scale;
+
+        const centerX = containerSize / 2;
+        const centerY = containerSize / 2;
+
+        const imgX = centerX - scaledWidth / 2 + position.x;
+        const imgY = centerY - scaledHeight / 2 + position.y;
+
+        const cropX = -imgX / scale;
+        const cropY = -imgY / scale;
+        const cropSize = containerSize / scale;
+
+        ctx.drawImage(
+            imageRef.current,
+            cropX, cropY, cropSize, cropSize,
+            0, 0, outputSize, outputSize
+        );
+
+        canvas.toBlob((blob) => {
+            if (blob) {
+                const fileName = imageFile?.name || 'avatar.jpg';
+                const croppedFile = new File([blob], fileName, { type: 'image/jpeg' });
+                onConfirm(croppedFile);
+            }
+        }, 'image/jpeg', 0.9);
+    }, [imageFile, zoom, position, imageSize, onConfirm]);
+
+    if (!isOpen) return null;
+
+    const containerSize = 280;
+    const scale = zoom;
+    const scaledWidth = imageSize.width * scale;
+    const scaledHeight = imageSize.height * scale;
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div
+                className="absolute inset-0 bg-black/70"
+                onClick={onClose}
+            />
+
+            <div className="relative bg-[#0A0A0A] border-2 border-[#232323] rounded-[42px] w-full max-w-[400px] px-6 py-[42px] flex flex-col gap-6 items-center">
+                <h2
+                    className="text-[#F6F6F6] text-[24px] font-semibold text-center w-full"
+                    style={{ fontFamily: "'Borna', sans-serif" }}
+                >
+                    {t('profile.avatar_edit_title', 'Editar imagen')}
+                </h2>
+
+                <p className="text-[#939393] text-[14px] font-medium text-center w-full font-helvetica">
+                    {t('profile.avatar_edit_description', 'Arrastra para ajustar la posición y usa el control deslizante para hacer zoom.')}
+                </p>
+
+                <div
+                    className="relative w-[280px] h-[280px] rounded-full overflow-hidden border-[3px] border-[#232323] bg-[#1a1a1a] cursor-move"
+                    onMouseDown={handleMouseDown}
+                    onMouseMove={handleMouseMove}
+                    onMouseUp={handleMouseUp}
+                    onMouseLeave={handleMouseUp}
+                    onTouchStart={handleTouchStart}
+                    onTouchMove={handleTouchMove}
+                    onTouchEnd={handleTouchEnd}
+                >
+                    {imageSrc && (
+                        <img
+                            src={imageSrc}
+                            alt="Preview"
+                            className="absolute select-none pointer-events-none"
+                            style={{
+                                width: scaledWidth,
+                                height: scaledHeight,
+                                left: containerSize / 2 - scaledWidth / 2 + position.x,
+                                top: containerSize / 2 - scaledHeight / 2 + position.y,
+                            }}
+                            draggable={false}
+                        />
+                    )}
+                </div>
+
+                <div className="flex items-center gap-4 w-full px-4">
+                    <span className="text-[#939393] text-sm font-helvetica">-</span>
+                    <input
+                        type="range"
+                        min="0.5"
+                        max="3"
+                        step="0.1"
+                        value={zoom}
+                        onChange={(e) => setZoom(parseFloat(e.target.value))}
+                        className="flex-1 h-2 bg-[#232323] rounded-lg appearance-none cursor-pointer accent-[#ff336d]"
+                    />
+                    <span className="text-[#939393] text-sm font-helvetica">+</span>
+                </div>
+
+                <div className="flex gap-2 w-full">
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        disabled={isLoading}
+                        className="flex-1 h-12 px-6 bg-[#232323] text-[#F6F6F6] font-bold text-[16px] font-helvetica rounded-xl flex items-center justify-center transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {t('common.cancel', 'Cancelar')}
+                    </button>
+                    <button
+                        type="button"
+                        onClick={handleConfirm}
+                        disabled={isLoading}
+                        className="flex-1 h-12 px-6 bg-[#FF336D] text-[#F6F6F6] font-bold text-[16px] font-helvetica rounded-xl flex items-center justify-center transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {isLoading ? t('common.loading', 'Cargando...') : t('profile.avatar_confirm', 'Confirmar')}
+                    </button>
+                </div>
+
+                <canvas ref={canvasRef} className="hidden" />
+            </div>
+        </div>
+    );
+};
+
 interface VerifyPhoneModalProps {
     isOpen: boolean;
     onClose: () => void;
     country: string;
     phone: string;
-    onSuccess: (user: any) => void;
+    onSuccess: (user: unknown) => void;
 }
 
 const VerifyPhoneModal = ({ isOpen, onClose, country, phone, onSuccess }: VerifyPhoneModalProps) => {
@@ -118,68 +330,58 @@ const VerifyPhoneModal = ({ isOpen, onClose, country, phone, onSuccess }: Verify
                 country,
                 phone: phone.replace(/\s/g, ''),
                 code,
-                isUpdatePhone: true,
-                userId: user.id
+                userId: user?.id
             });
             return response.data;
         },
         onSuccess: (response) => {
-            if (response.data?.verified && response.data?.phoneUpdated) {
+            if (response.status === 'success' && response.data?.user) {
                 onSuccess(response.data.user);
                 onClose();
                 toast.success(t('profile.phone_success', 'Teléfono actualizado correctamente'));
+            } else {
+                toast.error(t('profile.verify_phone_error', 'Código inválido'));
             }
         },
         onError: () => {
             toast.error(t('profile.verify_phone_error', 'Código inválido'));
-        }
+        },
     });
 
     const resendMutation = useMutation({
         mutationFn: async () => {
             const lang = i18n.language === 'en' ? 'en' : 'es';
-            return await axiosInstance.post(`/v2/sms/resend?lang=${lang}`, {
+            const response = await axiosInstance.post(`/v2/sms/send?lang=${lang}`, {
                 country,
-                phone: phone.replace(/\s/g, ''),
+                phone: phone.replace(/\s/g, '')
             });
+            return response.data;
         },
         onSuccess: () => {
-            setOtpValue('');
-            setCountdown(30);
+            setCountdown(60);
             toast.success(t('profile.code_resent', 'Código reenviado'));
         },
         onError: () => {
-            toast.error(t('verify.error_resend', 'Error al reenviar el código'));
-        }
+            toast.error(t('profile.phone_error', 'Error al enviar el código'));
+        },
     });
 
     const handleVerify = () => {
-        if (!otpValue || otpValue.length !== 6) {
-            toast.error(t('verify.enter_valid_code', 'Ingresa un código válido de 6 dígitos'));
-            return;
+        if (otpValue.length === 6) {
+            verifyMutation.mutate(otpValue);
         }
-        verifyMutation.mutate(otpValue);
     };
 
     const handleResend = () => {
-        if (countdown > 0) return;
         resendMutation.mutate();
     };
 
-    const isLoading = verifyMutation.isPending;
+    const isLoading = verifyMutation.isPending || resendMutation.isPending;
 
     return (
         <Modal isOpen={isOpen} onClose={onClose}>
             <div className="flex flex-col gap-6 w-full">
                 <div className="flex flex-col gap-4 items-center px-4 w-full">
-                    <div className="flex items-center justify-center size-[120px] p-1">
-                        <img 
-                            src="https://klubit.fra1.cdn.digitaloceanspaces.com/icon-phone.png" 
-                            alt="" 
-                            className="w-full h-full object-contain" 
-                        />
-                    </div>
-
                     <h2
                         className="text-[#F6F6F6] text-[24px] font-semibold text-center w-full"
                         style={{ fontFamily: "'Borna', sans-serif" }}
@@ -187,36 +389,37 @@ const VerifyPhoneModal = ({ isOpen, onClose, country, phone, onSuccess }: Verify
                         {t('profile.verify_phone_title', 'Verifica tu teléfono')}
                     </h2>
 
-                    <p className="text-[#939393] text-[14px] font-normal text-center w-full font-helvetica">
+                    <p className="text-[#939393] text-[16px] font-medium text-center w-full font-helvetica">
                         {t('profile.verify_phone_description', 'Hemos enviado un código SMS al')} +{country} {phone}
                     </p>
                 </div>
 
                 <OTPInput
-                    length={6}
+                    label={t('profile.verification_code', 'Código de verificación*')}
                     value={otpValue}
                     onChange={setOtpValue}
+                    length={6}
                     disabled={isLoading}
-                    label={t('profile.verification_code', 'Código de verificación*')}
-                    autoFocus
                 />
 
-                {countdown > 0 ? (
-                    <p className="text-[14px] font-medium font-helvetica text-[#939393] text-center">
-                        {t('verify.can_request_new_code', 'Podrás solicitar un nuevo código en')} {countdown}s
-                    </p>
-                ) : (
-                    <p className="text-[14px] font-medium font-helvetica text-[#939393] text-center">
-                        {t('verify.didnt_receive_code', '¿No has recibido el código?')}
-                        <button
-                            onClick={handleResend}
-                            disabled={resendMutation.isPending}
-                            className="ml-1 text-[#ff336d] cursor-pointer no-underline hover:underline font-medium font-helvetica"
-                        >
-                            {t('verify.resend_code', 'Reenviar')}
-                        </button>
-                    </p>
-                )}
+                <div className="text-center">
+                    {countdown > 0 ? (
+                        <p className="text-[14px] font-medium font-helvetica text-[#939393] text-center">
+                            {t('verify.can_request_new_code', 'Podrás solicitar un nuevo código en')} {countdown}s
+                        </p>
+                    ) : (
+                        <p className="text-[14px] font-medium font-helvetica text-[#939393] text-center">
+                            {t('verify.didnt_receive_code', '¿No has recibido el código?')}
+                            <button
+                                onClick={handleResend}
+                                disabled={resendMutation.isPending}
+                                className="ml-1 text-[#ff336d] cursor-pointer no-underline hover:underline font-medium font-helvetica"
+                            >
+                                {t('verify.resend_code', 'Reenviar')}
+                            </button>
+                        </p>
+                    )}
+                </div>
             </div>
 
             <button
@@ -250,7 +453,7 @@ interface AvatarEditorProps {
     isUploading?: boolean;
 }
 
-const AvatarEditor = ({ avatar, firstName, lastName, onClick, isUploading = false }: AvatarEditorProps) => {
+const AvatarEditorComponent = ({ avatar, firstName, lastName, onClick, isUploading = false }: AvatarEditorProps) => {
     const hasAvatar = avatar && avatar.trim() !== '';
     const firstInitial = firstName ? firstName.charAt(0) : '';
     const lastInitial = lastName ? lastName.charAt(0) : '';
@@ -273,7 +476,7 @@ const AvatarEditor = ({ avatar, firstName, lastName, onClick, isUploading = fals
                 ) : (
                     <div className="w-full h-full bg-gradient-to-b from-[#2a2a2a] to-[#1a1a1a] flex items-center justify-center">
                         <span
-                            className="text-[#f6f6f6] text-[48px] font-semibold font-borna select-none"
+                            className="text-[#f6f6f6] text-[48px] font-semibold select-none"
                             style={{ fontFamily: "'Borna', sans-serif" }}
                         >
                             {initials || '?'}
@@ -307,6 +510,8 @@ const Profile = () => {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showVerifyPhoneModal, setShowVerifyPhoneModal] = useState(false);
     const [showAvatarModal, setShowAvatarModal] = useState(false);
+    const [showCropModal, setShowCropModal] = useState(false);
+    const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
     const [pendingPhone, setPendingPhone] = useState('');
     const [pendingCountry, setPendingCountry] = useState('34');
 
@@ -368,7 +573,7 @@ const Profile = () => {
         setPhone('');
     };
 
-    const hasChanges = 
+    const hasChanges =
         firstName !== originalData.firstName ||
         lastName !== originalData.lastName ||
         birthdate !== originalData.birthdate ||
@@ -391,7 +596,7 @@ const Profile = () => {
                 const userData = response.data.data.user;
                 setUser(userData);
                 setIsLoading(false);
-            } catch (error) {
+            } catch {
                 setHasError(true);
                 setIsLoading(false);
             }
@@ -427,7 +632,7 @@ const Profile = () => {
                 phone: user.phone || '',
                 country: userCountry
             });
-            
+
             if (user.phone) {
                 const countryData = countries.find((c) => c.phone === userCountry);
                 const pattern = countryData?.phoneFormat || [3, 3, 3];
@@ -439,8 +644,8 @@ const Profile = () => {
     }, [user]);
 
     const updateUserMutation = useMutation({
-        mutationFn: async (data: any) => {
-            const response = await axiosInstance.put(`/v2/users/${user.id}`, data);
+        mutationFn: async (data: Record<string, unknown>) => {
+            const response = await axiosInstance.put(`/v2/users/${user?.id}`, data);
             return response.data.data.user;
         },
         onSuccess: (updatedUser) => {
@@ -465,7 +670,7 @@ const Profile = () => {
         mutationFn: async (file: File) => {
             const formData = new FormData();
             formData.append('avatar', file);
-            const response = await axiosInstance.post(`/v2/users/${user.id}/avatar`, formData, {
+            const response = await axiosInstance.post(`/v2/users/${user?.id}/avatar`, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' },
             });
             return response.data.data.user;
@@ -474,6 +679,8 @@ const Profile = () => {
             setUser(updatedUser);
             setAvatar(updatedUser.avatar);
             setShowAvatarModal(false);
+            setShowCropModal(false);
+            setSelectedImageFile(null);
             toast.success(t('profile.avatar_success', 'Avatar actualizado correctamente'));
         },
         onError: () => {
@@ -483,7 +690,7 @@ const Profile = () => {
 
     const removeAvatarMutation = useMutation({
         mutationFn: async () => {
-            const response = await axiosInstance.put(`/v2/users/${user.id}`, {
+            const response = await axiosInstance.put(`/v2/users/${user?.id}`, {
                 avatar: null
             });
             return response.data.data.user;
@@ -507,19 +714,29 @@ const Profile = () => {
     const handleAvatarFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            uploadAvatarMutation.mutate(file);
+            setSelectedImageFile(file);
+            setShowCropModal(true);
         }
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
         }
     };
 
+    const handleCropConfirm = (croppedFile: File) => {
+        uploadAvatarMutation.mutate(croppedFile);
+    };
+
+    const handleCropCancel = () => {
+        setShowCropModal(false);
+        setSelectedImageFile(null);
+    };
+
     const changePhoneMutation = useMutation({
         mutationFn: async () => {
             const lang = i18n.language === 'en' ? 'en' : 'es';
-            const response = await axiosInstance.post(`/v2/sms/send?lang=${lang}`, { 
-                country, 
-                phone: phone.replace(/\s/g, '') 
+            const response = await axiosInstance.post(`/v2/sms/send?lang=${lang}`, {
+                country,
+                phone: phone.replace(/\s/g, '')
             });
             return response.data;
         },
@@ -533,29 +750,30 @@ const Profile = () => {
         },
     });
 
-    const handlePhoneVerified = (updatedUser: any) => {
+    const handlePhoneVerified = (updatedUser: unknown) => {
+        const typedUser = updatedUser as { country?: string; phone?: string };
         setUser(updatedUser);
-        const newCountry = updatedUser.country || '34';
+        const newCountry = typedUser.country || '34';
         setCountry(newCountry);
-        
-        if (updatedUser.phone) {
+
+        if (typedUser.phone) {
             const countryData = countries.find((c) => c.phone === newCountry);
             const pattern = countryData?.phoneFormat || [3, 3, 3];
-            setPhone(formatPhone(updatedUser.phone, pattern));
+            setPhone(formatPhone(typedUser.phone, pattern));
         } else {
             setPhone('');
         }
 
         setOriginalData(prev => ({
             ...prev,
-            phone: updatedUser.phone || '',
+            phone: typedUser.phone || '',
             country: newCountry
         }));
     };
 
     const deleteAccountMutation = useMutation({
         mutationFn: async () => {
-            await axiosInstance.delete(`/v2/users/${user.id}`);
+            await axiosInstance.delete(`/v2/users/${user?.id}`);
         },
         onSuccess: () => {
             setShowDeleteModal(false);
@@ -572,136 +790,122 @@ const Profile = () => {
         updateUserMutation.mutate({
             firstName,
             lastName,
-            birthdate: birthdate ? new Date(birthdate) : undefined,
-            gender: gender.toUpperCase() as 'MALE' | 'FEMALE' | 'OTHER',
-            username,
+            birthdate: birthdate ? dayjs(birthdate).format('YYYY-MM-DD') : null,
+            gender,
+            username
         });
     };
 
     const handleLogout = () => {
+        setShowLogoutModal(false);
         logout();
         navigate({ to: '/' });
-        setShowLogoutModal(false);
     };
 
     const handleDeleteAccount = () => {
         deleteAccountMutation.mutate();
     };
 
-    if (hasError) {
-        return <PageError />;
-    }
-
     const isSaving = updateUserMutation.isPending;
 
     if (isLoading) {
         return (
-            <div className="bg-[#050505] min-h-screen flex justify-center py-24">
-                <div className="flex flex-col gap-[36px] w-full max-w-[600px] px-6">
-                    <div className="flex flex-col gap-[16px] w-full animate-pulse">
-                        <div className="h-8 w-48 bg-[#232323] rounded" />
-                        <div className="flex justify-center">
-                            <div className="w-[140px] h-[140px] rounded-full bg-[#232323]" />
-                        </div>
-                        {[1, 2, 3, 4, 5].map((i) => (
-                            <div key={i} className="flex flex-col gap-2">
-                                <div className="h-4 w-20 bg-[#232323] rounded" />
-                                <div className="h-12 w-full bg-[#232323] rounded-[12px]" />
-                            </div>
-                        ))}
-                    </div>
-                </div>
+            <div className="flex items-center justify-center min-h-screen bg-[#050505]">
+                <div className="w-8 h-8 border-2 border-[#ff336d] border-t-transparent rounded-full animate-spin" />
             </div>
         );
     }
 
+    if (hasError || !user) {
+        return <PageError />;
+    }
+
     return (
-        <div className="bg-[#050505] min-h-screen flex justify-center py-24">
-            <div className="flex flex-col gap-[36px] w-full max-w-[600px] px-6">
+        <div className="flex flex-col gap-[36px] items-center bg-[#050505] min-h-screen px-4 sm:px-8 py-8 pb-[120px]">
+            <button
+                onClick={() => navigate({ to: '/' })}
+                className="flex items-center gap-2 text-[#939393] hover:text-[#F6F6F6] transition-colors cursor-pointer self-start"
+            >
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <span className="text-[14px] font-helvetica font-medium">
+                    {t('common.back', 'Volver')}
+                </span>
+            </button>
 
-                <button
-                    onClick={() => navigate({ to: '/' })}
-                    className="flex items-center gap-2 text-[#939393] hover:text-[#F6F6F6] transition-colors self-start cursor-pointer"
-                >
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                        <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                    <span className="text-[14px] font-helvetica font-medium">
-                        {t('common.back', 'Volver')}
-                    </span>
-                </button>
+            <div className="flex flex-col gap-[16px] w-full max-w-[400px]">
+                <SectionHeader title={t('profile.personal_info', 'Información personal')} />
 
-                <div className="flex flex-col gap-[16px] w-full">
-                    <SectionHeader title={t('profile.personal_info', 'Información personal')} />
+                <div className="flex flex-col gap-[24px] items-center w-full">
+                    <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/jpeg,image/png,image/jpg"
+                        onChange={handleAvatarFileChange}
+                        className="hidden"
+                    />
 
-                    <div className="flex flex-col gap-[24px] items-center w-full">
-                        <input
-                            ref={fileInputRef}
-                            type="file"
-                            accept="image/jpeg,image/png,image/jpg"
-                            onChange={handleAvatarFileChange}
-                            className="hidden"
-                        />
+                    <AvatarEditorComponent
+                        avatar={avatar}
+                        firstName={firstName}
+                        lastName={lastName}
+                        onClick={() => setShowAvatarModal(true)}
+                        isUploading={uploadAvatarMutation.isPending || removeAvatarMutation.isPending}
+                    />
 
-                        <AvatarEditor
-                            avatar={avatar}
-                            firstName={firstName}
-                            lastName={lastName}
-                            onClick={() => setShowAvatarModal(true)}
-                            isUploading={uploadAvatarMutation.isPending || removeAvatarMutation.isPending}
-                        />
-
-                        <InputText
-                            label={t('profile.first_name', 'Nombre*')}
-                            value={firstName}
-                            onChange={setFirstName}
-                            placeholder=""
-                        />
-
-                        <InputText
-                            label={t('profile.last_name', 'Apellidos*')}
-                            value={lastName}
-                            onChange={setLastName}
-                            placeholder=""
-                        />
-
-                        <InputDate
-                            label={t('profile.birthdate', 'Fecha de nacimiento*')}
-                            value={birthdate}
-                            onChange={setBirthdate}
-                            max={dayjs().subtract(14, 'years').format('YYYY-MM-DD')}
-                            min={dayjs().subtract(120, 'years').format('YYYY-MM-DD')}
-                        />
-
-                        <Select
-                            label={t('profile.gender', 'Género*')}
-                            value={gender}
-                            onChange={setGender}
-                            options={genderOptions}
-                            placeholder={t('profile.select', 'Selecciona...')}
-                        />
-
-                        <InputText
-                            type="email"
-                            label={t('profile.email', 'Email*')}
-                            value={email}
-                            onChange={setEmail}
-                            placeholder="ejemplo@email.com"
-                            disabled
-                        />
-                    </div>
-                </div>
-
-                <div className="flex flex-col w-full">
                     <InputText
-                        label={t('profile.username', 'Username*')}
-                        value={username}
-                        onChange={setUsername}
+                        label={t('profile.first_name', 'Nombre*')}
+                        value={firstName}
+                        onChange={setFirstName}
                         placeholder=""
                     />
-                </div>
 
-                {hasChanges && (
+                    <InputText
+                        label={t('profile.last_name', 'Apellidos*')}
+                        value={lastName}
+                        onChange={setLastName}
+                        placeholder=""
+                    />
+
+                    <InputDate
+                        label={t('profile.birthdate', 'Fecha de nacimiento*')}
+                        value={birthdate}
+                        onChange={setBirthdate}
+                        max={dayjs().subtract(14, 'years').format('YYYY-MM-DD')}
+                        min={dayjs().subtract(120, 'years').format('YYYY-MM-DD')}
+                    />
+
+                    <Select
+                        label={t('profile.gender', 'Género*')}
+                        value={gender}
+                        onChange={setGender}
+                        options={genderOptions}
+                        placeholder={t('profile.select', 'Selecciona...')}
+                    />
+
+                    <InputText
+                        type="email"
+                        label={t('profile.email', 'Email*')}
+                        value={email}
+                        onChange={setEmail}
+                        placeholder="ejemplo@email.com"
+                        disabled
+                    />
+                </div>
+            </div>
+
+            <div className="flex flex-col w-full max-w-[400px]">
+                <InputText
+                    label={t('profile.username', 'Username*')}
+                    value={username}
+                    onChange={setUsername}
+                    placeholder=""
+                />
+            </div>
+
+            {hasChanges && (
+                <div className="w-full max-w-[400px]">
                     <Button
                         variant="cta"
                         onClick={handleSave}
@@ -710,52 +914,52 @@ const Profile = () => {
                     >
                         {t('profile.save', 'Guardar')}
                     </Button>
-                )}
+                </div>
+            )}
 
-                <div className="flex flex-col gap-[16px] w-full">
-                    <SectionHeader title={t('profile.change_phone', 'Cambiar teléfono')} />
+            <div className="flex flex-col gap-[16px] w-full max-w-[400px]">
+                <SectionHeader title={t('profile.change_phone', 'Cambiar teléfono')} />
 
-                    <InputTextPhone
-                        label={t('profile.phone', 'Teléfono*')}
-                        value={phone}
-                        onChange={handlePhoneChange}
-                        country={country}
-                        onCountryChange={handleCountryChange}
-                        countries={countries}
-                        language={i18n.language as 'es' | 'en'}
-                    />
+                <InputTextPhone
+                    label={t('profile.phone', 'Teléfono*')}
+                    value={phone}
+                    onChange={handlePhoneChange}
+                    country={country}
+                    onCountryChange={handleCountryChange}
+                    countries={countries}
+                    language={i18n.language as 'es' | 'en'}
+                />
 
+                <Button
+                    variant="primary"
+                    onClick={() => changePhoneMutation.mutate()}
+                    disabled={changePhoneMutation.isPending || isPhoneSame || !currentPhoneDigits}
+                    isLoading={changePhoneMutation.isPending}
+                >
+                    {t('profile.change_phone_btn', 'Cambiar teléfono')}
+                </Button>
+            </div>
+
+            <div className="flex flex-col gap-[16px] w-full max-w-[400px] pt-[36px] border-t-2 border-[#232323]">
+                <SectionHeader title={t('profile.account', 'Cuenta')} />
+
+                <div className="grid grid-cols-2 gap-[8px] w-full">
                     <Button
                         variant="primary"
-                        onClick={() => changePhoneMutation.mutate()}
-                        disabled={changePhoneMutation.isPending || isPhoneSame || !currentPhoneDigits}
-                        isLoading={changePhoneMutation.isPending}
+                        onClick={() => setShowLogoutModal(true)}
+                        className="!px-4"
                     >
-                        {t('profile.change_phone_btn', 'Cambiar teléfono')}
+                        {t('profile.logout', 'Cerrar sesión')}
                     </Button>
-                </div>
 
-                <div className="flex flex-col gap-[16px] w-full pt-[36px] border-t-2 border-[#232323]">
-                    <SectionHeader title={t('profile.account', 'Cuenta')} />
-
-                    <div className="grid grid-cols-2 gap-[8px] w-full">
-                        <Button
-                            variant="primary"
-                            onClick={() => setShowLogoutModal(true)}
-                            className="!px-4"
-                        >
-                            {t('profile.logout', 'Cerrar sesión')}
-                        </Button>
-
-                        <Button
-                            variant="delete"
-                            onClick={() => setShowDeleteModal(true)}
-                            disabled={deleteAccountMutation.isPending}
-                            className="!px-4"
-                        >
-                            {t('profile.delete_account', 'Eliminar cuenta')}
-                        </Button>
-                    </div>
+                    <Button
+                        variant="delete"
+                        onClick={() => setShowDeleteModal(true)}
+                        disabled={deleteAccountMutation.isPending}
+                        className="!px-4"
+                    >
+                        {t('profile.delete_account', 'Eliminar cuenta')}
+                    </Button>
                 </div>
             </div>
 
@@ -797,6 +1001,14 @@ const Profile = () => {
                 onUpload={handleAvatarUploadClick}
                 onRemove={() => removeAvatarMutation.mutate()}
                 isLoading={uploadAvatarMutation.isPending || removeAvatarMutation.isPending}
+            />
+
+            <ImageCropModal
+                isOpen={showCropModal}
+                onClose={handleCropCancel}
+                imageFile={selectedImageFile}
+                onConfirm={handleCropConfirm}
+                isLoading={uploadAvatarMutation.isPending}
             />
         </div>
     );

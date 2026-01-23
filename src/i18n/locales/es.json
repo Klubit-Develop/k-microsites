@@ -396,7 +396,10 @@
         "avatar_success": "Avatar actualizado correctamente",
         "avatar_error": "Error al subir el avatar",
         "avatar_removed": "Avatar eliminado correctamente",
-        "avatar_remove_error": "Error al eliminar el avatar"
+        "avatar_remove_error": "Error al eliminar el avatar",
+        "avatar_edit_title": "Editar imagen",
+        "avatar_edit_description": "Arrastra para ajustar la posición y usa el control deslizante para hacer zoom.",
+        "avatar_confirm": "Confirmar"
     },
     "share": {
         "copied": "Enlace copiado al portapapeles",

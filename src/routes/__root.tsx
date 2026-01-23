@@ -58,9 +58,7 @@ const RootComponent = () => {
         <Outlet />
       </main>
 
-      <div className={isAuthRoute ? 'hidden lg:block' : ''}>
-        <Footer />
-      </div>
+      {!isAuthRoute && <Footer />}
 
       <TanStackDevtools
         config={{

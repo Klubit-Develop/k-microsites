@@ -396,6 +396,9 @@
         "avatar_success": "Avatar updated successfully",
         "avatar_error": "Error uploading avatar",
         "avatar_removed": "Avatar removed successfully",
-        "avatar_remove_error": "Error removing avatar"
+        "avatar_remove_error": "Error removing avatar",
+        "avatar_edit_title": "Edit image",
+        "avatar_edit_description": "Drag to adjust position and use the slider to zoom.",
+        "avatar_confirm": "Confirm"
     }
 }
