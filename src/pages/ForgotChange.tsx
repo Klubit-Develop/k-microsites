@@ -5,7 +5,7 @@ import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import { Route } from '@/routes/forgot-change';
 
-import { LogoIcon, LogoCutIcon } from '@/components/icons';
+import { LogoIcon } from '@/components/icons';
 import InputText from '@/components/ui/InputText';
 import Button from '@/components/ui/Button';
 import axiosInstance from '@/config/axiosConfig';
@@ -151,37 +151,59 @@ const ForgotChangePage = () => {
     const isLoading = changeEmailMutation.isPending || sendEmailMutation.isPending;
 
     return (
-        <div className="min-h-screen overflow-hidden lg:grid lg:grid-cols-12 lg:gap-2">
-            <div className="hidden lg:flex lg:col-span-8 bg-black items-center h-screen relative">
-                <div className="h-full w-auto relative -translate-x-20">
-                    <LogoCutIcon style={{ height: '100%', width: 'auto', objectFit: 'cover' }} />
+        <div className="w-full flex-1 relative flex flex-col lg:flex-row items-center lg:items-stretch p-4 lg:p-[42px]">
+            <div 
+                className="absolute inset-0 bg-[#050505] -z-20"
+                aria-hidden="true"
+            />
+            <div 
+                className="absolute inset-0 -z-10 opacity-75"
+                style={{
+                    backgroundImage: 'url(https://klubit.fra1.cdn.digitaloceanspaces.com/background-auth.jpg)',
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center'
+                }}
+                aria-hidden="true"
+            />
+            <div 
+                className="absolute inset-0 -z-[5] bg-gradient-to-t lg:bg-gradient-to-r from-[#050505] lg:from-[rgba(5,5,5,0.75)] from-[35%] lg:from-0% to-[rgba(5,5,5,0.5)] lg:to-[rgba(5,5,5,0.38)]"
+                aria-hidden="true"
+            />
+
+            <div className="hidden lg:flex flex-1 flex-col items-center justify-center relative">
+                <div className="absolute top-0 left-0">
+                    <LogoIcon width={149} height={42} />
                 </div>
-                <div className="absolute bottom-[50px] left-20 z-10">
-                    <LogoIcon />
+
+                <div className="flex flex-col gap-4 items-center text-center w-full max-w-[600px] px-8" style={{ textShadow: '0px 0px 12px rgba(0, 0, 0, 0.5)' }}>
+                    <p className="text-[32px] font-medium font-helvetica text-[#939393] leading-none">
+                        {t('login.welcome')}
+                    </p>
+                    <h1 className="text-[64px] font-semibold font-borna text-[#F6F6F6] leading-none">
+                        {t('login.hero_title')}
+                    </h1>
                 </div>
             </div>
 
-            <div className="col-span-12 lg:col-span-4 min-h-screen flex items-center justify-center bg-[#050505] px-4 sm:px-6 md:px-8 py-8">
-                <div className="w-full max-w-[500px]">
-                    <div className="flex flex-col gap-12 items-center text-center lg:text-left">
-                        <div className="lg:hidden">
-                            <LogoIcon width={160} height={90} />
-                        </div>
-
-                        <div className="flex flex-col gap-4 w-full">
-                            <h1 className="text-[28px] md:text-[30px] font-medium font-borna text-center text-[#ff336d]">
+            <div className="lg:hidden w-full flex flex-col items-center flex-1 justify-center">
+                <div className="flex flex-col items-center w-full max-w-[390px] gap-12">
+                    <LogoIcon width={149} height={42} />
+                    
+                    <div className="flex flex-col gap-8 w-full">
+                        <div className="flex flex-col gap-2 items-center text-center w-full" style={{ textShadow: '0px 0px 30px black' }}>
+                            <h2 className="text-[24px] font-semibold font-borna text-[#F6F6F6] leading-tight">
                                 {t('forgot_change.title')}
-                            </h1>
-
-                            <p className="text-[14px] md:text-[16px] font-normal font-helvetica text-center text-[#888888]">
+                            </h2>
+                            <p className="text-[16px] font-medium font-helvetica text-[#939393] leading-normal">
                                 {t('forgot_change.subtitle')}
                             </p>
                         </div>
 
-                        <div className="flex flex-col gap-6 w-full">
-                            <form onSubmit={handleSubmit}>
-                                <div className="flex flex-col gap-5">
+                        <form onSubmit={handleSubmit} className="w-full">
+                            <div className="flex flex-col gap-4">
+                                <div className="flex flex-col gap-3">
                                     <InputText
+                                        type="email"
                                         label={`${t('forgot_change.email')}*`}
                                         value={email}
                                         onChange={(val) => {
@@ -195,6 +217,7 @@ const ForgotChangePage = () => {
                                     />
 
                                     <InputText
+                                        type="email"
                                         label={`${t('forgot_change.repeat_email')}*`}
                                         value={confirmEmail}
                                         onChange={(val) => {
@@ -206,19 +229,75 @@ const ForgotChangePage = () => {
                                         error={errors.confirmEmail}
                                         disabled={isLoading}
                                     />
-
-                                    <Button
-                                        type="submit"
-                                        variant="cta"
-                                        disabled={isLoading}
-                                        isLoading={isLoading}
-                                    >
-                                        {t('forgot_change.continue')}
-                                    </Button>
                                 </div>
-                            </form>
-                        </div>
+
+                                <Button
+                                    type="submit"
+                                    variant="cta"
+                                    disabled={isLoading}
+                                    isLoading={isLoading}
+                                >
+                                    {t('forgot_change.continue')}
+                                </Button>
+                            </div>
+                        </form>
                     </div>
+                </div>
+            </div>
+
+            <div className="hidden lg:flex w-[600px] shrink-0 flex-col items-center justify-center">
+                <div className="w-full h-full bg-[#141414] border-[2.5px] border-[#232323] rounded-[24px] shadow-[0px_0px_30px_0px_rgba(0,0,0,1)] flex flex-col items-center justify-center px-[90px] py-[72px] gap-[42px]">
+                    <div className="flex flex-col gap-4 items-center text-center w-full" style={{ textShadow: '0px 0px 30px black' }}>
+                        <h2 className="text-[32px] font-semibold font-borna text-[#F6F6F6] leading-tight">
+                            {t('forgot_change.title')}
+                        </h2>
+                        <p className="text-[16px] font-medium font-helvetica text-[#939393] leading-normal">
+                            {t('forgot_change.subtitle')}
+                        </p>
+                    </div>
+
+                    <form onSubmit={handleSubmit} className="w-full">
+                        <div className="flex flex-col gap-5">
+                            <div className="flex flex-col gap-3">
+                                <InputText
+                                    type="email"
+                                    label={`${t('forgot_change.email')}*`}
+                                    value={email}
+                                    onChange={(val) => {
+                                        setEmail(val);
+                                        if (errors.email) {
+                                            setErrors(prev => ({ ...prev, email: undefined }));
+                                        }
+                                    }}
+                                    error={errors.email}
+                                    disabled={isLoading}
+                                />
+
+                                <InputText
+                                    type="email"
+                                    label={`${t('forgot_change.repeat_email')}*`}
+                                    value={confirmEmail}
+                                    onChange={(val) => {
+                                        setConfirmEmail(val);
+                                        if (errors.confirmEmail) {
+                                            setErrors(prev => ({ ...prev, confirmEmail: undefined }));
+                                        }
+                                    }}
+                                    error={errors.confirmEmail}
+                                    disabled={isLoading}
+                                />
+                            </div>
+
+                            <Button
+                                type="submit"
+                                variant="cta"
+                                disabled={isLoading}
+                                isLoading={isLoading}
+                            >
+                                {t('forgot_change.continue')}
+                            </Button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>

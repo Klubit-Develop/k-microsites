@@ -1,8 +1,8 @@
 import { toast } from 'sonner';
 import { useForm } from '@tanstack/react-form';
 import { useTranslation } from 'react-i18next';
-import { LogoIcon, LogoCutIcon } from '@/components/icons';
-import { useNavigate } from '@tanstack/react-router';
+import { LogoIcon } from '@/components/icons';
+import { Link, useNavigate } from '@tanstack/react-router';
 import { useMutation } from '@tanstack/react-query';
 
 import axiosInstance from '@/config/axiosConfig';
@@ -99,100 +99,197 @@ const Incident = () => {
     });
 
     return (
-        <div className="min-h-screen overflow-hidden lg:grid lg:grid-cols-12 lg:gap-2">
-            <div className="hidden lg:flex lg:col-span-8 bg-black items-center h-screen relative">
-                <div className="h-full w-auto relative -translate-x-20">
-                    <LogoCutIcon style={{ height: '100%', width: 'auto', objectFit: 'cover' }} />
+        <div className="w-full flex-1 relative flex flex-col lg:flex-row items-center lg:items-stretch p-4 lg:p-[42px]">
+            <div 
+                className="absolute inset-0 bg-[#050505] -z-20"
+                aria-hidden="true"
+            />
+            <div 
+                className="absolute inset-0 -z-10 opacity-75"
+                style={{
+                    backgroundImage: 'url(https://klubit.fra1.cdn.digitaloceanspaces.com/background-auth.jpg)',
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center'
+                }}
+                aria-hidden="true"
+            />
+            <div 
+                className="absolute inset-0 -z-[5] bg-gradient-to-t lg:bg-gradient-to-r from-[#050505] lg:from-[rgba(5,5,5,0.75)] from-[35%] lg:from-0% to-[rgba(5,5,5,0.5)] lg:to-[rgba(5,5,5,0.38)]"
+                aria-hidden="true"
+            />
+
+            <div className="hidden lg:flex flex-1 flex-col items-center justify-center relative">
+                <div className="absolute top-0 left-0">
+                    <LogoIcon width={149} height={42} />
                 </div>
-                <div className="absolute bottom-[50px] left-20 z-10">
-                    <LogoIcon />
+
+                <div className="flex flex-col gap-4 items-center text-center w-full max-w-[600px] px-8" style={{ textShadow: '0px 0px 12px rgba(0, 0, 0, 0.5)' }}>
+                    <p className="text-[32px] font-medium font-helvetica text-[#939393] leading-none">
+                        {t('login.welcome')}
+                    </p>
+                    <h1 className="text-[64px] font-semibold font-borna text-[#F6F6F6] leading-none">
+                        {t('login.hero_title')}
+                    </h1>
                 </div>
             </div>
 
-            <div className="col-span-12 lg:col-span-4 min-h-screen flex items-center justify-center lg:bg-[#050505] px-4 sm:px-6 md:px-8 py-8">
-                <div className="w-full max-w-[500px]">
-                    <div className="flex flex-col gap-12 items-center text-center lg:text-left">
-                        <div className="lg:hidden">
-                            <LogoIcon width={160} height={90} />
-                        </div>
-
-                        <div className="flex flex-col gap-4 w-full">
-                            <h1 className="text-[28px] md:text-[30px] font-medium font-borna text-center text-[#ff336d]">
+            <div className="lg:hidden w-full flex flex-col items-center flex-1 justify-center py-8">
+                <div className="flex flex-col items-center w-full max-w-[390px] gap-8">
+                    <LogoIcon width={149} height={42} />
+                    
+                    <div className="flex flex-col gap-6 w-full">
+                        <div className="flex flex-col gap-2 items-center text-center w-full" style={{ textShadow: '0px 0px 30px black' }}>
+                            <h2 className="text-[24px] font-semibold font-borna text-[#F6F6F6] leading-tight">
                                 {t('incident.title')}
-                            </h1>
-
-                            <p className="text-[14px] md:text-[16px] font-normal font-helvetica text-center text-[#F6F6F6]">
+                            </h2>
+                            <p className="text-[16px] font-medium font-helvetica text-[#939393] leading-normal">
                                 {t('incident.subtitle')}
                             </p>
                         </div>
 
-                        <div className="flex flex-col gap-10 w-full">
-                            <form onSubmit={(e) => { e.preventDefault(); form.handleSubmit(); }} className="w-full">
-                                <div className="flex flex-col gap-5">
-                                    <div className="flex flex-col gap-4">
-                                        <form.Field name="name">
-                                            {(field) => (
-                                                <InputText
-                                                    label={`${t('incident.name')}*`}
-                                                    value={field.state.value || ''}
-                                                    onChange={field.handleChange}
-                                                    error={field.state.meta.errors?.[0]}
-                                                    maxLength={100}
-                                                />
-                                            )}
-                                        </form.Field>
+                        <form onSubmit={(e) => { e.preventDefault(); form.handleSubmit(); }} className="w-full">
+                            <div className="flex flex-col gap-4">
+                                <div className="flex flex-col gap-3">
+                                    <form.Field name="name">
+                                        {(field) => (
+                                            <InputText
+                                                label={`${t('incident.name')}*`}
+                                                value={field.state.value || ''}
+                                                onChange={field.handleChange}
+                                                error={field.state.meta.errors?.[0]}
+                                                maxLength={100}
+                                            />
+                                        )}
+                                    </form.Field>
 
-                                        <form.Field name="email">
-                                            {(field) => (
-                                                <InputText
-                                                    type="email"
-                                                    label={`${t('incident.email')}*`}
-                                                    value={field.state.value || ''}
-                                                    onChange={field.handleChange}
-                                                    error={field.state.meta.errors?.[0]}
-                                                    maxLength={80}
-                                                    inputMode="email"
-                                                />
-                                            )}
-                                        </form.Field>
+                                    <form.Field name="email">
+                                        {(field) => (
+                                            <InputText
+                                                type="email"
+                                                label={`${t('incident.email')}*`}
+                                                value={field.state.value || ''}
+                                                onChange={field.handleChange}
+                                                error={field.state.meta.errors?.[0]}
+                                                maxLength={80}
+                                                inputMode="email"
+                                            />
+                                        )}
+                                    </form.Field>
 
-                                        <form.Field name="subject">
-                                            {(field) => (
-                                                <InputText
-                                                    label={`${t('incident.subject')}*`}
-                                                    value={field.state.value || ''}
-                                                    onChange={field.handleChange}
-                                                    error={field.state.meta.errors?.[0]}
-                                                    maxLength={150}
-                                                />
-                                            )}
-                                        </form.Field>
+                                    <form.Field name="subject">
+                                        {(field) => (
+                                            <InputText
+                                                label={`${t('incident.subject')}*`}
+                                                value={field.state.value || ''}
+                                                onChange={field.handleChange}
+                                                error={field.state.meta.errors?.[0]}
+                                                maxLength={150}
+                                            />
+                                        )}
+                                    </form.Field>
 
-                                        <form.Field name="message">
-                                            {(field) => (
-                                                <InputTextArea
-                                                    label={`${t('incident.message')}* (${t('incident.message_max_length')})`}
-                                                    value={field.state.value || ''}
-                                                    onChange={field.handleChange}
-                                                    error={field.state.meta.errors?.[0]}
-                                                    maxLength={500}
-                                                />
-                                            )}
-                                        </form.Field>
-                                    </div>
-
-                                    <Button
-                                        type="submit"
-                                        variant="cta"
-                                        disabled={form.state.isSubmitting}
-                                        isLoading={form.state.isSubmitting}
-                                    >
-                                        {t('incident.submit')}
-                                    </Button>
+                                    <form.Field name="message">
+                                        {(field) => (
+                                            <InputTextArea
+                                                label={`${t('incident.message')}* (${t('incident.message_max_length')})`}
+                                                value={field.state.value || ''}
+                                                onChange={field.handleChange}
+                                                error={field.state.meta.errors?.[0]}
+                                                maxLength={500}
+                                            />
+                                        )}
+                                    </form.Field>
                                 </div>
-                            </form>
-                        </div>
+
+                                <Button
+                                    type="submit"
+                                    variant="cta"
+                                    disabled={form.state.isSubmitting}
+                                    isLoading={form.state.isSubmitting}
+                                >
+                                    {t('incident.submit')}
+                                </Button>
+                            </div>
+                        </form>
                     </div>
+                </div>
+            </div>
+
+            <div className="hidden lg:flex w-[600px] shrink-0 flex-col items-center justify-center">
+                <div className="w-full h-full bg-[#141414] border-[2.5px] border-[#232323] rounded-[24px] shadow-[0px_0px_30px_0px_rgba(0,0,0,1)] flex flex-col items-center justify-center px-[90px] py-[72px] gap-[42px]">
+                    <div className="flex flex-col gap-4 items-center text-center w-full" style={{ textShadow: '0px 0px 30px black' }}>
+                        <h2 className="text-[32px] font-semibold font-borna text-[#F6F6F6] leading-tight">
+                            {t('incident.title')}
+                        </h2>
+                        <p className="text-[16px] font-medium font-helvetica text-[#939393] leading-normal">
+                            {t('incident.subtitle')}
+                        </p>
+                    </div>
+
+                    <form onSubmit={(e) => { e.preventDefault(); form.handleSubmit(); }} className="w-full">
+                        <div className="flex flex-col gap-5">
+                            <div className="flex flex-col gap-3">
+                                <form.Field name="name">
+                                    {(field) => (
+                                        <InputText
+                                            label={`${t('incident.name')}*`}
+                                            value={field.state.value || ''}
+                                            onChange={field.handleChange}
+                                            error={field.state.meta.errors?.[0]}
+                                            maxLength={100}
+                                        />
+                                    )}
+                                </form.Field>
+
+                                <form.Field name="email">
+                                    {(field) => (
+                                        <InputText
+                                            type="email"
+                                            label={`${t('incident.email')}*`}
+                                            value={field.state.value || ''}
+                                            onChange={field.handleChange}
+                                            error={field.state.meta.errors?.[0]}
+                                            maxLength={80}
+                                            inputMode="email"
+                                        />
+                                    )}
+                                </form.Field>
+
+                                <form.Field name="subject">
+                                    {(field) => (
+                                        <InputText
+                                            label={`${t('incident.subject')}*`}
+                                            value={field.state.value || ''}
+                                            onChange={field.handleChange}
+                                            error={field.state.meta.errors?.[0]}
+                                            maxLength={150}
+                                        />
+                                    )}
+                                </form.Field>
+
+                                <form.Field name="message">
+                                    {(field) => (
+                                        <InputTextArea
+                                            label={`${t('incident.message')}* (${t('incident.message_max_length')})`}
+                                            value={field.state.value || ''}
+                                            onChange={field.handleChange}
+                                            error={field.state.meta.errors?.[0]}
+                                            maxLength={500}
+                                        />
+                                    )}
+                                </form.Field>
+                            </div>
+
+                            <Button
+                                type="submit"
+                                variant="cta"
+                                disabled={form.state.isSubmitting}
+                                isLoading={form.state.isSubmitting}
+                            >
+                                {t('incident.submit')}
+                            </Button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>

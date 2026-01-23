@@ -9,7 +9,7 @@ import { useAuthStore } from '@/stores/authStore';
 import axiosInstance from '@/config/axiosConfig';
 import OTPInput from '@/components/ui/OTPInput';
 import Button from '@/components/ui/Button';
-import { LogoIcon, LogoCutIcon } from '@/components/icons';
+import { LogoIcon } from '@/components/icons';
 
 interface BackendResponse {
     status: 'success' | 'error';
@@ -188,77 +188,162 @@ const Verify = () => {
     };
 
     return (
-        <div className="min-h-screen overflow-hidden lg:grid lg:grid-cols-12 lg:gap-2">
-            <div className="hidden lg:flex lg:col-span-8 bg-black items-center h-screen relative">
-                <div className="h-full w-auto relative -translate-x-20">
-                    <LogoCutIcon style={{ height: '100%', width: 'auto', objectFit: 'cover' }} />
+        <div className="w-full flex-1 relative flex flex-col lg:flex-row items-center lg:items-stretch p-4 lg:p-[42px]">
+            <div 
+                className="absolute inset-0 bg-[#050505] -z-20"
+                aria-hidden="true"
+            />
+            <div 
+                className="absolute inset-0 -z-10 opacity-75"
+                style={{
+                    backgroundImage: 'url(https://klubit.fra1.cdn.digitaloceanspaces.com/background-auth.jpg)',
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center'
+                }}
+                aria-hidden="true"
+            />
+            <div 
+                className="absolute inset-0 -z-[5] bg-gradient-to-t lg:bg-gradient-to-r from-[#050505] lg:from-[rgba(5,5,5,0.75)] from-[35%] lg:from-0% to-[rgba(5,5,5,0.5)] lg:to-[rgba(5,5,5,0.38)]"
+                aria-hidden="true"
+            />
+
+            <div className="hidden lg:flex flex-1 flex-col items-center justify-center relative">
+                <div className="absolute top-0 left-0">
+                    <LogoIcon width={149} height={42} />
                 </div>
-                <div className="absolute bottom-[50px] left-20 z-10">
-                    <LogoIcon />
+
+                <div className="flex flex-col gap-4 items-center text-center w-full max-w-[600px] px-8" style={{ textShadow: '0px 0px 12px rgba(0, 0, 0, 0.5)' }}>
+                    <p className="text-[32px] font-medium font-helvetica text-[#939393] leading-none">
+                        {t('login.welcome')}
+                    </p>
+                    <h1 className="text-[64px] font-semibold font-borna text-[#F6F6F6] leading-none">
+                        {t('login.hero_title')}
+                    </h1>
                 </div>
             </div>
 
-            <div className="col-span-12 lg:col-span-4 min-h-screen flex items-center justify-center bg-[#050505] px-4 sm:px-6 md:px-8 py-8">
-                <div className="w-full max-w-[500px]">
-                    <div className="flex flex-col gap-12 items-center">
-                        <div className="lg:hidden">
-                            <LogoIcon width={160} height={90} />
-                        </div>
-
-                        <div className="flex flex-col gap-10 w-full items-center">
-                            <div className="flex flex-col gap-4 w-full">
-                                <h1 className="text-[28px] md:text-[30px] text-center font-medium font-borna text-[#ff336d]">
-                                    {t('verify.account_verification')}{' '}
-                                    {verificationType === 'sms' ? t('verify.sms') : t('verify.email')}
-                                </h1>
-
-                                <p className="text-[14px] md:text-[16px] text-center font-normal font-helvetica text-[#888888]">
+            <div className="lg:hidden w-full flex flex-col items-center flex-1 justify-center">
+                <div className="flex flex-col items-center w-full max-w-[390px] gap-12">
+                    <LogoIcon width={149} height={42} />
+                    
+                    <div className="flex flex-col gap-8 w-full items-center">
+                        <div className="flex flex-col gap-2 items-center text-center w-full" style={{ textShadow: '0px 0px 30px black' }}>
+                            <h2 className="text-[24px] font-semibold font-borna text-[#F6F6F6] leading-tight">
+                                {t('verify.account_verification')}
+                                {verificationType === 'sms' ? t('verify.sms') : t('verify.email')}
+                            </h2>
+                            <div className="flex flex-col items-center">
+                                <p className="text-[16px] font-medium font-helvetica text-[#939393] leading-normal">
                                     {verificationType === 'sms'
-                                        ? `${t('verify.code_sent_to_phone')} ${getContactDisplay()}`
-                                        : `${t('verify.code_sent_to_email')} ${getContactDisplay()}`}
+                                        ? t('verify.code_sent_to_phone')
+                                        : t('verify.code_sent_to_email')}
                                 </p>
-                            </div>
-
-                            <div className="w-full max-w-[365px]">
-                                <OTPInput
-                                    length={6}
-                                    value={otpValue}
-                                    onChange={setOtpValue}
-                                    onComplete={handleOtpComplete}
-                                    disabled={verifyMutation.isPending}
-                                    autoFocus={true}
-                                />
-                            </div>
-
-                            {countdown > 0 ? (
-                                <p className="text-[14px] md:text-[16px] font-medium font-helvetica text-[#888888]">
-                                    {t('verify.can_request_new_code')} {countdown}s
+                                <p className="text-[16px] font-medium font-helvetica text-[#ff336d] leading-normal">
+                                    {getContactDisplay()}
                                 </p>
-                            ) : (
-                                <p className="text-[14px] md:text-[16px] font-medium font-helvetica text-[#888888]">
-                                    {t('verify.didnt_receive_code')}
-                                    <button
-                                        onClick={handleResend}
-                                        disabled={resendMutation.isPending}
-                                        className="ml-1 text-[#ff336d] cursor-pointer no-underline hover:underline font-medium font-helvetica"
-                                    >
-                                        {t('verify.resend_code')}
-                                    </button>
-                                </p>
-                            )}
-
-                            <div className="flex flex-col gap-3 w-full">
-                                <Button
-                                    type="button"
-                                    variant="cta"
-                                    onClick={handleButtonClick}
-                                    disabled={otpValue.length !== 6}
-                                    isLoading={verifyMutation.isPending}
-                                >
-                                    {t('verify.continue')}
-                                </Button>
                             </div>
                         </div>
+
+                        <div className="w-full">
+                            <OTPInput
+                                length={6}
+                                value={otpValue}
+                                onChange={setOtpValue}
+                                onComplete={handleOtpComplete}
+                                disabled={verifyMutation.isPending}
+                                autoFocus={true}
+                            />
+                        </div>
+
+                        {countdown > 0 ? (
+                            <p className="text-[14px] font-medium font-helvetica text-[#939393]">
+                                {t('verify.can_request_new_code')} {countdown}s
+                            </p>
+                        ) : (
+                            <p className="text-[14px] font-medium font-helvetica text-[#939393]">
+                                {t('verify.didnt_receive_code')}
+                                <button
+                                    onClick={handleResend}
+                                    disabled={resendMutation.isPending}
+                                    className="ml-1 text-[#ff336d] cursor-pointer no-underline hover:underline font-medium font-helvetica"
+                                >
+                                    {t('verify.resend_code')}
+                                </button>
+                            </p>
+                        )}
+
+                        <div className="flex flex-col gap-2 w-full">
+                            <Button
+                                type="button"
+                                variant="cta"
+                                onClick={handleButtonClick}
+                                disabled={otpValue.length !== 6}
+                                isLoading={verifyMutation.isPending}
+                            >
+                                {t('verify.continue')}
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div className="hidden lg:flex w-[600px] shrink-0 flex-col items-center justify-center">
+                <div className="w-full h-full bg-[#141414] border-[2.5px] border-[#232323] rounded-[24px] shadow-[0px_0px_30px_0px_rgba(0,0,0,1)] flex flex-col items-center justify-center px-[90px] py-[72px] gap-[42px]">
+                    <div className="flex flex-col gap-4 items-center text-center w-full" style={{ textShadow: '0px 0px 30px black' }}>
+                        <h2 className="text-[32px] font-semibold font-borna text-[#F6F6F6] leading-tight">
+                            {t('verify.account_verification')}
+                            {verificationType === 'sms' ? t('verify.sms') : t('verify.email')}
+                        </h2>
+                        <div className="flex flex-col items-center">
+                            <p className="text-[16px] font-medium font-helvetica text-[#939393] leading-normal">
+                                {verificationType === 'sms'
+                                    ? t('verify.code_sent_to_phone')
+                                    : t('verify.code_sent_to_email')}
+                            </p>
+                            <p className="text-[16px] font-medium font-helvetica text-[#ff336d] leading-normal">
+                                {getContactDisplay()}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="w-full">
+                        <OTPInput
+                            length={6}
+                            value={otpValue}
+                            onChange={setOtpValue}
+                            onComplete={handleOtpComplete}
+                            disabled={verifyMutation.isPending}
+                            autoFocus={true}
+                        />
+                    </div>
+
+                    {countdown > 0 ? (
+                        <p className="text-[16px] font-medium font-helvetica text-[#939393]">
+                            {t('verify.can_request_new_code')} {countdown}s
+                        </p>
+                    ) : (
+                        <p className="text-[16px] font-medium font-helvetica text-[#939393]">
+                            {t('verify.didnt_receive_code')}
+                            <button
+                                onClick={handleResend}
+                                disabled={resendMutation.isPending}
+                                className="ml-1 text-[#ff336d] cursor-pointer no-underline hover:underline font-medium font-helvetica"
+                            >
+                                {t('verify.resend_code')}
+                            </button>
+                        </p>
+                    )}
+
+                    <div className="flex flex-col gap-3 w-full">
+                        <Button
+                            type="button"
+                            variant="cta"
+                            onClick={handleButtonClick}
+                            disabled={otpValue.length !== 6}
+                            isLoading={verifyMutation.isPending}
+                        >
+                            {t('verify.continue')}
+                        </Button>
                     </div>
                 </div>
             </div>

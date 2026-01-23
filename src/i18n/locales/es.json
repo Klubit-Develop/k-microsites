@@ -76,7 +76,11 @@
         "continueWithApple": "Continuar con Apple",
         "termsText": "Al continuar, aceptas los",
         "termsLink": "Términos y condiciones y la Política de privacidad",
-        "cantAccess": "¿No puedes acceder?"
+        "cantAccess": "¿No puedes acceder?",
+        "welcome": "Bienvenido a Klubit",
+        "hero_title": "Aquí empieza tu próximo plan.",
+        "access_title": "Accede a tu cuenta",
+        "access_subtitle": "Accede en segundos con tu teléfono, Google o Apple."
     },
     "register": {
         "title": "Crear cuenta",
