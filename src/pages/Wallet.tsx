@@ -421,23 +421,50 @@ const WalletSkeleton = () => {
 const WalletEmpty = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();
+    const { user } = useAuthStore();
+
+    const firstName = user?.firstName || '';
+    const lastName = user?.lastName || '';
+    const avatar = user?.avatar || null;
+
+    const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+    const hasAvatar = avatar && avatar.trim() !== '';
 
     return (
-        <div className="flex flex-col items-center justify-center gap-6 w-full max-w-[500px] mx-auto px-4 pt-[120px] pb-[100px] md:py-16">
-            <div className="flex flex-col items-center gap-3 text-center">
-                <span className="text-[24px] font-borna font-semibold text-[#F6F6F6]">
-                    {t('wallet.empty_title', 'Tu wallet está vacía')}
-                </span>
-                <span className="text-[16px] font-helvetica text-[#939393]">
-                    {t('wallet.empty_description', 'Aquí aparecerán tus entradas cuando compres alguna')}
-                </span>
+        <div className="flex flex-col items-center justify-center w-full max-w-[500px] mx-auto px-4 pt-[120px] pb-[100px] md:py-16">
+            <div className="flex flex-col gap-8 items-center justify-center py-8 w-full">
+                <div className="flex flex-col gap-6 items-center w-full">
+                    <div className="flex items-center justify-center size-[90px] bg-[#232323] rounded-full overflow-hidden">
+                        {hasAvatar ? (
+                            <img
+                                src={avatar}
+                                alt={`${firstName} ${lastName}`}
+                                className="size-full object-cover"
+                            />
+                        ) : (
+                            <span className="text-[#939393] text-[24px] font-semibold font-borna">
+                                {initials || '?'}
+                            </span>
+                        )}
+                    </div>
+
+                    <div className="flex flex-col gap-2 items-center px-4 text-center w-full">
+                        <span className="text-[#F6F6F6] text-[24px] font-semibold font-borna">
+                            {t('wallet.empty_title', 'Tu wallet está vacía')}
+                        </span>
+                        <span className="text-[#939393] text-[16px] font-medium font-helvetica">
+                            {t('wallet.empty_description', 'Compra y empieza a disfrutar de ventajas exclusivas en tus klubs favoritos.')}
+                        </span>
+                    </div>
+                </div>
+
+                <Button
+                    onClick={() => navigate({ to: '/' })}
+                    className="w-full"
+                >
+                    {t('wallet.explore_events', 'Descubrir eventos')}
+                </Button>
             </div>
-            <Button
-                onClick={() => navigate({ to: '/' })}
-                variant="primary"
-            >
-                {t('wallet.explore_events', 'Explorar eventos')}
-            </Button>
         </div>
     );
 };
@@ -521,13 +548,12 @@ const PageDots = ({ total, current }: PageDotsProps) => {
                 return (
                     <div
                         key={index}
-                        className={`rounded-full transition-all ${
-                            isActive
+                        className={`rounded-full transition-all ${isActive
                                 ? 'bg-[#F6F6F6] size-2'
                                 : isEdge && dotsToShow === maxDots
                                     ? 'bg-[#F6F6F6] opacity-30 size-1.5'
                                     : 'bg-[#F6F6F6] opacity-30 size-2'
-                        }`}
+                            }`}
                     />
                 );
             })}
@@ -835,13 +861,13 @@ const BenefitDetailModal = ({ benefit, backgroundColor, passbook, isOpen, onClos
                                     className="cursor-pointer hover:opacity-80 transition-opacity"
                                 >
                                     {isIOS ? (
-                                        <img 
+                                        <img
                                             src={isSpanish ? '/assets/images/apple_es.svg' : '/assets/images/apple_en.svg'}
                                             alt={t('wallet.add_to_apple_wallet', 'Añadir a Apple Wallet')}
                                             className="h-[48px] w-auto"
                                         />
                                     ) : (
-                                        <img 
+                                        <img
                                             src={isSpanish ? '/assets/images/google_es.svg' : '/assets/images/google_en.svg'}
                                             alt={t('wallet.add_to_google_wallet', 'Añadir a Google Wallet')}
                                             className="h-[55px] w-auto"

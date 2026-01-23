@@ -120,6 +120,8 @@ const getClubSlug = (): string => {
     return 'localhost';
 };
 
+const DISCO_ICON_URL = 'https://klubit.fra1.cdn.digitaloceanspaces.com/icon-disco.png';
+
 const EventsSkeleton = () => (
     <div className="flex flex-col gap-8 w-full">
         {[1, 2].map((section) => (
@@ -362,10 +364,34 @@ const Home = () => {
 
         if (hasNoEvents) {
             return (
-                <div className="flex flex-col items-center justify-center py-12 w-full">
-                    <p className="text-[#939393] text-[14px] font-helvetica text-center">
-                        {t('events.no_events', 'No hay eventos próximos')}
-                    </p>
+                <div className={`flex flex-col gap-4 items-start w-full`}>
+                    <div className="flex gap-2 items-center px-1.5 w-full">
+                        <h2 className="text-[#ff336d] text-[24px] font-semibold leading-normal whitespace-nowrap overflow-hidden text-ellipsis font-borna">
+                            {t('events.upcoming', 'Próximos eventos')}
+                        </h2>
+                    </div>
+
+                    <div className="flex flex-1 flex-col gap-8 items-center justify-center py-8 w-full min-h-[300px]">
+                        <div className="flex flex-col gap-6 items-center w-full">
+                            <div className="flex items-center justify-center size-[90px]">
+                                <img
+                                    src={DISCO_ICON_URL}
+                                    alt="Disco"
+                                    className="size-[82px] object-contain"
+                                    style={{ filter: 'drop-shadow(0px 0px 30px rgba(255, 255, 255, 0.25))' }}
+                                />
+                            </div>
+
+                            <div className="flex flex-col gap-2 items-center px-4 text-center w-full">
+                                <h3 className="text-[#f6f6f6] text-[24px] font-semibold leading-normal font-borna">
+                                    {t('events.no_events_title', 'No hay eventos próximos')}
+                                </h3>
+                                <p className="text-[#939393] text-[16px] font-medium leading-normal font-helvetica">
+                                    {t('events.no_events_description', 'Este klub no tiene eventos programados para este mes.')}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             );
         }

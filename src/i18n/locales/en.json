@@ -40,7 +40,9 @@
         "upcoming": "Upcoming events",
         "no_events": "No events this month",
         "empty_title": "No upcoming events",
-        "empty_description": "This club has no events scheduled at the moment."
+        "empty_description": "This club has no events scheduled at the moment.",
+        "no_events_title": "There are no upcoming events.",
+        "no_events_description": "This club has no events scheduled for this month."
     },
     "header": {
         "my_wallet": "My wallet",
