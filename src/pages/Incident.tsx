@@ -2,7 +2,7 @@ import { toast } from 'sonner';
 import { useForm } from '@tanstack/react-form';
 import { useTranslation } from 'react-i18next';
 import { LogoIcon } from '@/components/icons';
-import { Link, useNavigate } from '@tanstack/react-router';
+import { useNavigate } from '@tanstack/react-router';
 import { useMutation } from '@tanstack/react-query';
 
 import axiosInstance from '@/config/axiosConfig';
