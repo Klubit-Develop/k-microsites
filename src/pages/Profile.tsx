@@ -88,11 +88,15 @@ interface ImageCropModalProps {
     isLoading?: boolean;
 }
 
+const CONTAINER_SIZE = 280;
+const OUTPUT_SIZE = 400;
+
 const ImageCropModal = ({ isOpen, onClose, imageFile, onConfirm, isLoading = false }: ImageCropModalProps) => {
     const { t } = useTranslation();
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [imageSrc, setImageSrc] = useState<string | null>(null);
     const [zoom, setZoom] = useState(1);
+    const [minZoom, setMinZoom] = useState(1);
     const [position, setPosition] = useState({ x: 0, y: 0 });
     const [isDragging, setIsDragging] = useState(false);
     const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
@@ -100,7 +104,7 @@ const ImageCropModal = ({ isOpen, onClose, imageFile, onConfirm, isLoading = fal
     const imageRef = useRef<HTMLImageElement | null>(null);
 
     useEffect(() => {
-        if (imageFile) {
+        if (imageFile && isOpen) {
             const reader = new FileReader();
             reader.onload = (e) => {
                 const result = e.target?.result as string;
@@ -110,31 +114,51 @@ const ImageCropModal = ({ isOpen, onClose, imageFile, onConfirm, isLoading = fal
                 img.onload = () => {
                     imageRef.current = img;
                     setImageSize({ width: img.width, height: img.height });
-                    setZoom(1);
+
+                    const minDimension = Math.min(img.width, img.height);
+                    const initialZoom = CONTAINER_SIZE / minDimension;
+                    setMinZoom(initialZoom);
+                    setZoom(initialZoom);
                     setPosition({ x: 0, y: 0 });
                 };
                 img.src = result;
             };
             reader.readAsDataURL(imageFile);
-        } else {
+        } else if (!isOpen) {
             setImageSrc(null);
             setZoom(1);
+            setMinZoom(1);
             setPosition({ x: 0, y: 0 });
         }
-    }, [imageFile]);
+    }, [imageFile, isOpen]);
+
+    const constrainPosition = useCallback((pos: { x: number; y: number }, currentZoom: number) => {
+        const scaledWidth = imageSize.width * currentZoom;
+        const scaledHeight = imageSize.height * currentZoom;
+
+        const maxX = Math.max(0, (scaledWidth - CONTAINER_SIZE) / 2);
+        const maxY = Math.max(0, (scaledHeight - CONTAINER_SIZE) / 2);
+
+        return {
+            x: Math.max(-maxX, Math.min(maxX, pos.x)),
+            y: Math.max(-maxY, Math.min(maxY, pos.y))
+        };
+    }, [imageSize]);
 
     const handleMouseDown = useCallback((e: React.MouseEvent) => {
+        e.preventDefault();
         setIsDragging(true);
         setDragStart({ x: e.clientX - position.x, y: e.clientY - position.y });
     }, [position]);
 
     const handleMouseMove = useCallback((e: React.MouseEvent) => {
         if (!isDragging) return;
-        setPosition({
+        const newPos = {
             x: e.clientX - dragStart.x,
             y: e.clientY - dragStart.y
-        });
-    }, [isDragging, dragStart]);
+        };
+        setPosition(constrainPosition(newPos, zoom));
+    }, [isDragging, dragStart, zoom, constrainPosition]);
 
     const handleMouseUp = useCallback(() => {
         setIsDragging(false);
@@ -148,16 +172,23 @@ const ImageCropModal = ({ isOpen, onClose, imageFile, onConfirm, isLoading = fal
 
     const handleTouchMove = useCallback((e: React.TouchEvent) => {
         if (!isDragging) return;
+        e.preventDefault();
         const touch = e.touches[0];
-        setPosition({
+        const newPos = {
             x: touch.clientX - dragStart.x,
             y: touch.clientY - dragStart.y
-        });
-    }, [isDragging, dragStart]);
+        };
+        setPosition(constrainPosition(newPos, zoom));
+    }, [isDragging, dragStart, zoom, constrainPosition]);
 
     const handleTouchEnd = useCallback(() => {
         setIsDragging(false);
     }, []);
+
+    const handleZoomChange = useCallback((newZoom: number) => {
+        setZoom(newZoom);
+        setPosition(prev => constrainPosition(prev, newZoom));
+    }, [constrainPosition]);
 
     const handleConfirm = useCallback(() => {
         if (!imageRef.current || !canvasRef.current) return;
@@ -166,36 +197,35 @@ const ImageCropModal = ({ isOpen, onClose, imageFile, onConfirm, isLoading = fal
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
-        const outputSize = 400;
-        canvas.width = outputSize;
-        canvas.height = outputSize;
+        canvas.width = OUTPUT_SIZE;
+        canvas.height = OUTPUT_SIZE;
 
-        const containerSize = 280;
-        const scale = zoom;
+        const scaledWidth = imageSize.width * zoom;
+        const scaledHeight = imageSize.height * zoom;
 
-        const scaledWidth = imageSize.width * scale;
-        const scaledHeight = imageSize.height * scale;
+        const imgX = (CONTAINER_SIZE - scaledWidth) / 2 + position.x;
+        const imgY = (CONTAINER_SIZE - scaledHeight) / 2 + position.y;
 
-        const centerX = containerSize / 2;
-        const centerY = containerSize / 2;
-
-        const imgX = centerX - scaledWidth / 2 + position.x;
-        const imgY = centerY - scaledHeight / 2 + position.y;
-
-        const cropX = -imgX / scale;
-        const cropY = -imgY / scale;
-        const cropSize = containerSize / scale;
+        const sourceX = -imgX / zoom;
+        const sourceY = -imgY / zoom;
+        const sourceSize = CONTAINER_SIZE / zoom;
 
         ctx.drawImage(
             imageRef.current,
-            cropX, cropY, cropSize, cropSize,
-            0, 0, outputSize, outputSize
+            sourceX,
+            sourceY,
+            sourceSize,
+            sourceSize,
+            0,
+            0,
+            OUTPUT_SIZE,
+            OUTPUT_SIZE
         );
 
         canvas.toBlob((blob) => {
             if (blob) {
-                const fileName = imageFile?.name || 'avatar.jpg';
-                const croppedFile = new File([blob], fileName, { type: 'image/jpeg' });
+                const fileName = imageFile?.name?.replace(/\.[^/.]+$/, '') || 'avatar';
+                const croppedFile = new File([blob], `${fileName}.jpg`, { type: 'image/jpeg' });
                 onConfirm(croppedFile);
             }
         }, 'image/jpeg', 0.9);
@@ -203,10 +233,9 @@ const ImageCropModal = ({ isOpen, onClose, imageFile, onConfirm, isLoading = fal
 
     if (!isOpen) return null;
 
-    const containerSize = 280;
-    const scale = zoom;
-    const scaledWidth = imageSize.width * scale;
-    const scaledHeight = imageSize.height * scale;
+    const scaledWidth = imageSize.width * zoom;
+    const scaledHeight = imageSize.height * zoom;
+    const maxZoom = minZoom * 3;
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -228,7 +257,7 @@ const ImageCropModal = ({ isOpen, onClose, imageFile, onConfirm, isLoading = fal
                 </p>
 
                 <div
-                    className="relative w-[280px] h-[280px] rounded-full overflow-hidden border-[3px] border-[#232323] bg-[#1a1a1a] cursor-move"
+                    className="relative w-[280px] h-[280px] rounded-full overflow-hidden border-[3px] border-[#232323] bg-[#1a1a1a] cursor-move select-none"
                     onMouseDown={handleMouseDown}
                     onMouseMove={handleMouseMove}
                     onMouseUp={handleMouseUp}
@@ -245,8 +274,9 @@ const ImageCropModal = ({ isOpen, onClose, imageFile, onConfirm, isLoading = fal
                             style={{
                                 width: scaledWidth,
                                 height: scaledHeight,
-                                left: containerSize / 2 - scaledWidth / 2 + position.x,
-                                top: containerSize / 2 - scaledHeight / 2 + position.y,
+                                left: (CONTAINER_SIZE - scaledWidth) / 2 + position.x,
+                                top: (CONTAINER_SIZE - scaledHeight) / 2 + position.y,
+                                maxWidth: 'none',
                             }}
                             draggable={false}
                         />
@@ -257,11 +287,11 @@ const ImageCropModal = ({ isOpen, onClose, imageFile, onConfirm, isLoading = fal
                     <span className="text-[#939393] text-sm font-helvetica">-</span>
                     <input
                         type="range"
-                        min="0.5"
-                        max="3"
-                        step="0.1"
+                        min={minZoom}
+                        max={maxZoom}
+                        step={0.01}
                         value={zoom}
-                        onChange={(e) => setZoom(parseFloat(e.target.value))}
+                        onChange={(e) => handleZoomChange(parseFloat(e.target.value))}
                         className="flex-1 h-2 bg-[#232323] rounded-lg appearance-none cursor-pointer accent-[#ff336d]"
                     />
                     <span className="text-[#939393] text-sm font-helvetica">+</span>
@@ -822,18 +852,6 @@ const Profile = () => {
 
     return (
         <div className="flex flex-col gap-[36px] items-center bg-[#050505] min-h-screen px-4 sm:px-8 py-8 pb-[120px]">
-            <button
-                onClick={() => navigate({ to: '/' })}
-                className="flex items-center gap-2 text-[#939393] hover:text-[#F6F6F6] transition-colors cursor-pointer self-start"
-            >
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                    <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                <span className="text-[14px] font-helvetica font-medium">
-                    {t('common.back', 'Volver')}
-                </span>
-            </button>
-
             <div className="flex flex-col gap-[16px] w-full max-w-[400px]">
                 <SectionHeader title={t('profile.personal_info', 'Información personal')} />
 

@@ -2,7 +2,7 @@ import { toast } from 'sonner';
 import { useForm } from '@tanstack/react-form';
 import { useTranslation } from 'react-i18next';
 import { LogoIcon } from '@/components/icons';
-import { useNavigate } from '@tanstack/react-router';
+import { useNavigate, Link } from '@tanstack/react-router';
 import { useMutation } from '@tanstack/react-query';
 
 import axiosInstance from '@/config/axiosConfig';
@@ -119,9 +119,9 @@ const Incident = () => {
             />
 
             <div className="hidden lg:flex flex-1 flex-col items-center justify-center relative">
-                <div className="absolute top-0 left-0">
+                <Link to="/" className="absolute top-0 left-0">
                     <LogoIcon width={149} height={42} />
-                </div>
+                </Link>
 
                 <div className="flex flex-col gap-4 items-center text-center w-full max-w-[600px] px-8" style={{ textShadow: '0px 0px 12px rgba(0, 0, 0, 0.5)' }}>
                     <p className="text-[32px] font-medium font-helvetica text-[#939393] leading-none">

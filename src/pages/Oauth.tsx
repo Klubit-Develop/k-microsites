@@ -84,18 +84,18 @@ const Oauth = () => {
         onSuccess: (response: BackendResponse) => {
             if (response.status === 'success') {
                 const responseData = response.data as { exists?: boolean; email?: string };
-                
+
                 if (responseData?.exists) {
                     if (oauthEmail && responseData.email === oauthEmail) {
                         toast.error(t('oauth.account_already_exists'));
                         navigate({ to: '/auth' });
                         return;
                     }
-                    
+
                     toast.error(t('oauth.phone_belongs_to_another_account'));
                     return;
                 }
-                
+
                 setPendingNavigation({
                     country,
                     phone,
@@ -104,7 +104,7 @@ const Oauth = () => {
                     oauthFirstName: firstName || '',
                     oauthLastName: lastName || '',
                 });
-                
+
                 sendSMSMutation.mutate({
                     country,
                     phone: phone.replace(/\s/g, '')
@@ -183,11 +183,11 @@ const Oauth = () => {
 
     return (
         <div className="w-full flex-1 relative flex flex-col lg:flex-row items-center lg:items-stretch p-4 lg:p-[42px]">
-            <div 
+            <div
                 className="absolute inset-0 bg-[#050505] -z-20"
                 aria-hidden="true"
             />
-            <div 
+            <div
                 className="absolute inset-0 -z-10 opacity-75"
                 style={{
                     backgroundImage: 'url(https://klubit.fra1.cdn.digitaloceanspaces.com/background-auth.jpg)',
@@ -196,15 +196,15 @@ const Oauth = () => {
                 }}
                 aria-hidden="true"
             />
-            <div 
+            <div
                 className="absolute inset-0 -z-[5] bg-gradient-to-t lg:bg-gradient-to-r from-[#050505] lg:from-[rgba(5,5,5,0.75)] from-[35%] lg:from-0% to-[rgba(5,5,5,0.5)] lg:to-[rgba(5,5,5,0.38)]"
                 aria-hidden="true"
             />
 
             <div className="hidden lg:flex flex-1 flex-col items-center justify-center relative">
-                <div className="absolute top-0 left-0">
+                <Link to="/" className="absolute top-0 left-0">
                     <LogoIcon width={149} height={42} />
-                </div>
+                </Link>
 
                 <div className="flex flex-col gap-4 items-center text-center w-full max-w-[600px] px-8" style={{ textShadow: '0px 0px 12px rgba(0, 0, 0, 0.5)' }}>
                     <p className="text-[32px] font-medium font-helvetica text-[#939393] leading-none">
@@ -219,7 +219,7 @@ const Oauth = () => {
             <div className="lg:hidden w-full flex flex-col items-center flex-1 justify-center">
                 <div className="flex flex-col items-center w-full max-w-[390px] gap-12">
                     <LogoIcon width={149} height={42} />
-                    
+
                     <div className="flex flex-col gap-8 w-full">
                         <div className="flex flex-col gap-2 items-center text-center w-full" style={{ textShadow: '0px 0px 30px black' }}>
                             <h2 className="text-[24px] font-semibold font-borna text-[#F6F6F6] leading-tight">
