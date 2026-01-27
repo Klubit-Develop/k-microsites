@@ -164,7 +164,7 @@ const Header = ({
                             />
                         ) : (
                             <div className="size-full bg-[#232323] flex items-center justify-center">
-                                <span className="text-[#F6F6F6] text-xs font-semibold font-borna">
+                                <span className="text-[#F6F6F6] text-xs font-borna font-semibold">
                                     {getInitials()}
                                 </span>
                             </div>
@@ -213,7 +213,7 @@ const Header = ({
                                             />
                                         ) : (
                                             <div className="size-full bg-[#232323] flex items-center justify-center">
-                                                <span className="text-[#F6F6F6] text-xs font-medium">
+                                                <span className="text-[#F6F6F6] text-xs font-borna font-semibold">
                                                     {getInitials()}
                                                 </span>
                                             </div>

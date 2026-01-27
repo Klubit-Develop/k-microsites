@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import dayjs from 'dayjs';
 import 'dayjs/locale/es';
 import { useTranslation } from 'react-i18next';
@@ -84,17 +84,20 @@ const UpcomingEventsPanel = ({
 
     useEffect(() => {
         if (eventsQuery.data?.events) {
+            const sortedEvents = [...eventsQuery.data.events].sort((a, b) => 
+                dayjs(a.startDate).diff(dayjs(b.startDate))
+            );
+            
             if (page === 1) {
-                setAllEvents(eventsQuery.data.events);
+                setAllEvents(sortedEvents);
             } else {
-                setAllEvents(prev => [...prev, ...eventsQuery.data.events]);
+                setAllEvents(prev => {
+                    const combined = [...prev, ...sortedEvents];
+                    return combined.sort((a, b) => dayjs(a.startDate).diff(dayjs(b.startDate)));
+                });
             }
         }
     }, [eventsQuery.data, page]);
-
-    const sortedEvents = useMemo(() => {
-        return [...allEvents].sort((a, b) => dayjs(a.startDate).diff(dayjs(b.startDate)));
-    }, [allEvents]);
 
     const handlePreviousMonth = () => {
         if (isCurrentMonth) return;
@@ -150,8 +153,8 @@ const UpcomingEventsPanel = ({
                         [...Array(3)].map((_, index) => (
                             <EventCardHzSkeleton key={index} />
                         ))
-                    ) : sortedEvents.length > 0 ? (
-                        sortedEvents.map((event) => (
+                    ) : allEvents.length > 0 ? (
+                        allEvents.map((event) => (
                             <EventCardHz
                                 key={event.id}
                                 title={event.name}

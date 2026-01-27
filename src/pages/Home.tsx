@@ -338,7 +338,8 @@ const Home = () => {
     const likesCount = favoritesCountQuery.data ?? 0;
     const isLiked = userFavoriteQuery.data ?? false;
     const todayEvents = todayEventsQuery.data ?? [];
-    const upcomingEvents = upcomingEventsQuery.data ?? [];
+    const upcomingEventsRaw = upcomingEventsQuery.data ?? [];
+    const upcomingEvents = [...upcomingEventsRaw].sort((a, b) => dayjs(a.startDate).diff(dayjs(b.startDate)));
     const isEventsLoading = clubQuery.isLoading || todayEventsQuery.isLoading || upcomingEventsQuery.isLoading;
 
     const showUpcomingArrow = upcomingEvents.length >= MIN_EVENTS_FOR_ARROW;
@@ -349,10 +350,23 @@ const Home = () => {
     const renderEventsContent = () => {
         if (showUpcomingEventsPanel) {
             return (
-                <UpcomingEventsPanel
-                    clubId={clubId || ''}
-                    onEventClick={handleEventClick}
-                />
+                <div className="flex flex-col gap-4 w-full">
+                    <button
+                        onClick={() => navigate({ to: '/' })}
+                        className="flex items-center gap-2 text-[#939393] hover:text-[#F6F6F6] transition-colors self-start cursor-pointer"
+                    >
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                        <span className="text-[14px] font-helvetica font-medium">
+                            {t('common.back')}
+                        </span>
+                    </button>
+                    <UpcomingEventsPanel
+                        clubId={clubId || ''}
+                        onEventClick={handleEventClick}
+                    />
+                </div>
             );
         }
 

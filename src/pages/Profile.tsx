@@ -506,8 +506,7 @@ const AvatarEditorComponent = ({ avatar, firstName, lastName, onClick, isUploadi
                 ) : (
                     <div className="w-full h-full bg-gradient-to-b from-[#2a2a2a] to-[#1a1a1a] flex items-center justify-center">
                         <span
-                            className="text-[#f6f6f6] text-[48px] font-semibold select-none"
-                            style={{ fontFamily: "'Borna', sans-serif" }}
+                            className="text-[#f6f6f6] text-[48px] font-borna select-none"
                         >
                             {initials || '?'}
                         </span>
