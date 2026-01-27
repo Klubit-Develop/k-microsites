@@ -700,16 +700,16 @@ const Event = () => {
             precompraData,
         };
 
-        const maxPerUser = type === 'ticket' 
+        const maxPerUser = type === 'ticket'
             ? ((ticketOrGuestlist as Ticket).maxPurchasePerUser || 10)
             : ((ticketOrGuestlist as Guestlist).maxPerUser || 10);
-        
-        const available = price.isSoldOut 
-            ? 0 
+
+        const available = price.isSoldOut
+            ? 0
             : price.maxQuantity !== null && price.maxQuantity !== undefined
                 ? Math.max(0, price.maxQuantity - price.soldQuantity)
                 : maxPerUser;
-        
+
         const calculatedMaxQuantity = Math.min(maxPerUser, available);
 
         setInfoModalData(infoData);
@@ -730,18 +730,18 @@ const Event = () => {
     }, []);
 
     const handleOpenReservationInfoModal = useCallback((
-        reservation: { 
-            id: string; 
-            name: string; 
+        reservation: {
+            id: string;
+            name: string;
             maxPersonsPerReservation?: number;
             termsAndConditions?: string | null;
             zones?: Array<{ id: string; name: string }>;
             benefits?: Array<{ id: string; name: string; type?: string }>;
         },
-        price: { 
-            id: string; 
-            name: string; 
-            finalPrice: number; 
+        price: {
+            id: string;
+            name: string;
+            finalPrice: number;
             currency?: string;
             maxQuantity?: number | null;
             soldQuantity?: number;
@@ -749,9 +749,9 @@ const Event = () => {
         }
     ) => {
         const RESERVATION_COLOR = '#50DD77';
-        
+
         const maxPersons = Number(reservation.maxPersonsPerReservation) || 1;
-        
+
         const infoData: ItemInfoData = {
             id: price.id,
             name: reservation.name,
@@ -771,12 +771,12 @@ const Event = () => {
         };
 
         const maxPerUser = 10;
-        const available = price.isSoldOut 
-            ? 0 
+        const available = price.isSoldOut
+            ? 0
             : price.maxQuantity !== null && price.maxQuantity !== undefined
                 ? Math.max(0, (price.maxQuantity || 0) - (price.soldQuantity || 0))
                 : maxPerUser;
-        
+
         const calculatedMaxQuantity = Math.min(maxPerUser, available);
 
         setInfoModalData(infoData);
@@ -799,14 +799,14 @@ const Event = () => {
     const calculatedInfoModalMaxQuantity = useMemo(() => {
         const eventData = eventQuery.data;
         if (!infoModalPriceId || !eventData) return undefined;
-        
+
         if (infoModalVariant === 'guestlist') {
             for (const guestlist of eventData.guestlists || []) {
                 const price = guestlist.prices?.find(p => p.id === infoModalPriceId);
                 if (price) {
                     const maxPerUser = guestlist.maxPerUser || 10;
-                    const available = price.isSoldOut 
-                        ? 0 
+                    const available = price.isSoldOut
+                        ? 0
                         : price.maxQuantity !== null && price.maxQuantity !== undefined
                             ? Math.max(0, price.maxQuantity - price.soldQuantity)
                             : maxPerUser;
@@ -814,14 +814,14 @@ const Event = () => {
                 }
             }
         }
-        
+
         if (infoModalVariant === 'ticket') {
             for (const ticket of eventData.tickets || []) {
                 const price = ticket.prices?.find(p => p.id === infoModalPriceId);
                 if (price) {
                     const maxPerUser = ticket.maxPurchasePerUser || 10;
-                    const available = price.isSoldOut 
-                        ? 0 
+                    const available = price.isSoldOut
+                        ? 0
                         : price.maxQuantity !== null && price.maxQuantity !== undefined
                             ? Math.max(0, price.maxQuantity - price.soldQuantity)
                             : maxPerUser;
@@ -829,14 +829,14 @@ const Event = () => {
                 }
             }
         }
-        
+
         if (infoModalVariant === 'promotion') {
             const promo = eventData.promotions?.find(p => p.id === infoModalPriceId);
             if (promo) {
                 return promo.maxPurchasePerUser || 10;
             }
         }
-        
+
         return infoModalMaxQuantity;
     }, [infoModalPriceId, infoModalVariant, eventQuery.data, infoModalMaxQuantity]);
 
@@ -1102,6 +1102,25 @@ const Event = () => {
         navigate({ to: '/terms-and-conditions-club' });
     };
 
+    const handleOrganizerClick = () => {
+        if (event?.club?.slug) {
+            const hostname = window.location.hostname;
+            if (hostname === 'localhost' || hostname === '127.0.0.1') {
+                window.location.href = `/`;
+            } else {
+                window.location.href = `https://${event.club.slug}.klubit.io`;
+            }
+        }
+    };
+
+    const handleMapClick = () => {
+        if (event?.addressLocation?.coordinates) {
+            const lat = event.addressLocation.coordinates[1];
+            const lng = event.addressLocation.coordinates[0];
+            window.open(`https://www.google.com/maps?q=${lat},${lng}`, '_blank');
+        }
+    };
+
     const handleCheckout = useCallback(() => {
         const event = eventQuery.data;
         if (!event) return;
@@ -1337,7 +1356,7 @@ const Event = () => {
 
     const tabsWithItems = useMemo(() => {
         const tabs: string[] = [];
-        
+
         if (Object.values(selectedQuantities.tickets).some(qty => qty > 0)) {
             tabs.push('tickets');
         }
@@ -1347,11 +1366,11 @@ const Event = () => {
         if (Object.values(selectedQuantities.reservations).some(qty => qty > 0)) {
             tabs.push('reservations');
         }
-        if (Object.values(selectedQuantities.products).some(qty => qty > 0) || 
+        if (Object.values(selectedQuantities.products).some(qty => qty > 0) ||
             Object.values(selectedQuantities.promotions).some(qty => qty > 0)) {
             tabs.push('products');
         }
-        
+
         return tabs;
     }, [selectedQuantities]);
 
@@ -1425,7 +1444,7 @@ const Event = () => {
             case 'products':
                 const hasProducts = event?.products && event.products.length > 0;
                 const hasPromotions = event?.promotions && event.promotions.length > 0;
-                
+
                 if (!isLoading && !hasProducts && !hasPromotions) {
                     return (
                         <div className="flex items-center justify-center py-12">
@@ -1598,6 +1617,7 @@ const Event = () => {
                                 organizer={event?.club || { id: '', name: '', slug: '', venueType: '' }}
                                 venueTypeLabel={event?.club ? (VENUE_TYPE_MAP[event.club.venueType] || event.club.venueType) : ''}
                                 isLoading={isLoading}
+                                onClick={handleOrganizerClick}
                             />
                         )}
 
@@ -1616,6 +1636,7 @@ const Event = () => {
                                 }}
                                 legalText={event.club?.termsAndConditions ? t('club.legal_terms', 'Leer los términos legales del klub') : undefined}
                                 onLegalClick={event.club?.termsAndConditions ? handleLegalClick : undefined}
+                                onMapClick={handleMapClick} 
                             />
                         ) : null}
                     </>
@@ -1689,6 +1710,7 @@ const Event = () => {
                             organizer={event?.club || { id: '', name: '', slug: '', venueType: '' }}
                             venueTypeLabel={event?.club ? (VENUE_TYPE_MAP[event.club.venueType] || event.club.venueType) : ''}
                             isLoading={isLoading}
+                            onClick={handleOrganizerClick}
                         />
                     )}
 
@@ -1707,6 +1729,7 @@ const Event = () => {
                             }}
                             legalText={event.club?.termsAndConditions ? t('club.legal_terms', 'Leer los términos legales del klub') : undefined}
                             onLegalClick={event.club?.termsAndConditions ? handleLegalClick : undefined}
+                            onMapClick={handleMapClick} 
                         />
                     ) : null}
                 </div>

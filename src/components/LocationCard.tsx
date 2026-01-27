@@ -10,6 +10,7 @@ interface LocationCardProps {
   };
   legalText?: string;
   onLegalClick?: () => void;
+  onMapClick?: () => void;
   className?: string;
 }
 
@@ -106,6 +107,7 @@ export const LocationCard: React.FC<LocationCardProps> = ({
   coordinates,
   legalText,
   onLegalClick,
+  onMapClick,
   className = '',
 }) => {
   const { isLoaded, loadError } = useLoadScript({
@@ -128,34 +130,13 @@ export const LocationCard: React.FC<LocationCardProps> = ({
 
   const center = useMemo(() => coordinates, [coordinates]);
 
-  const renderMapContent = () => {
-    if (loadError) {
-      return (
-        <div className="flex items-center justify-center h-56 bg-[#1a1a1a] rounded-sm text-[#939393]">
-          Error al cargar el mapa
-        </div>
-      );
-    }
-
-    if (!isLoaded) {
-      return (
-        <div className="flex items-center justify-center h-56 bg-[#1a1a1a] rounded-sm">
-          <div className="w-6 h-6 border-2 border-[#ff336d] border-t-transparent rounded-full animate-spin" />
-        </div>
-      );
-    }
-
+  if (loadError) {
     return (
-      <GoogleMap
-        mapContainerStyle={mapContainerStyle}
-        center={center}
-        zoom={15}
-        options={mapOptions}
-      >
-        <Marker position={center} />
-      </GoogleMap>
+      <div className="flex items-center justify-center h-56 bg-[#1a1a1a] rounded-sm text-[#939393]">
+        Error al cargar el mapa
+      </div>
     );
-  };
+  }
 
   return (
     <div className={`flex gap-4 flex-col items-start w-full ${className}`}>
@@ -174,8 +155,24 @@ export const LocationCard: React.FC<LocationCardProps> = ({
           </p>
         </div>
 
-        <div className="relative w-full rounded-sm shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)] overflow-hidden">
-          {renderMapContent()}
+        <div
+          className={`relative w-full rounded-sm shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)] overflow-hidden ${onMapClick ? 'cursor-pointer' : ''}`}
+          onClick={onMapClick}
+        >
+          {!isLoaded ? (
+            <div className="flex items-center justify-center h-56 bg-[#1a1a1a] rounded-sm">
+              <div className="w-6 h-6 border-2 border-[#ff336d] border-t-transparent rounded-full animate-spin" />
+            </div>
+          ) : (
+            <GoogleMap
+              mapContainerStyle={mapContainerStyle}
+              center={center}
+              zoom={15}
+              options={mapOptions}
+            >
+              <Marker position={center} />
+            </GoogleMap>
+          )}
         </div>
       </div>
 

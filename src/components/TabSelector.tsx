@@ -45,6 +45,7 @@ const TabSelector = ({
                         className={`
                             flex-1 flex items-center justify-center gap-[6px] h-[36px] px-[8px] rounded-[12px] min-w-0
                             text-[14px] font-bold font-helvetica transition-colors whitespace-nowrap overflow-hidden text-ellipsis
+                            cursor-pointer
                             ${activeTab === tab.key
                                 ? 'bg-[#232323] text-[#f6f6f6]'
                                 : 'text-[#939393]'

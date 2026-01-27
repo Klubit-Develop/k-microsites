@@ -1,6 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link } from '@tanstack/react-router';
 import ReservationCard, { type Reservation, type ReservationZone, type ReservationPrice } from './ReservationCard';
 import { scrollToTop } from '@/hooks/useScrollToTop';
 
@@ -156,16 +155,20 @@ const SelectionStep = ({
         return Math.max(maxPersons, 1);
     }, [zoneData.reservations]);
 
-    const filteredReservations = useMemo(() => {
-        return zoneData.reservations.filter(reservation => {
-            const hasStock = getAvailableStock(reservation) > 0;
-            const maxPersonsPerReservation = Number(reservation.maxPersonsPerReservation) || 1;
-            const fitsPartySize = maxPersonsPerReservation >= partySize;
-            return hasStock && fitsPartySize;
-        });
+    const reservationsWithAvailability = useMemo(() => {
+        return zoneData.reservations
+            .filter(reservation => getAvailableStock(reservation) > 0)
+            .map(reservation => {
+                const maxPersonsPerReservation = Number(reservation.maxPersonsPerReservation) || 1;
+                const fitsPartySize = maxPersonsPerReservation >= partySize;
+                return {
+                    reservation,
+                    isDisabledByPartySize: !fitsPartySize,
+                };
+            });
     }, [zoneData.reservations, partySize]);
 
-    const noTablesForPartySize = filteredReservations.length === 0 && partySize > 1;
+    const hasAvailableReservationsForPartySize = reservationsWithAvailability.some(r => !r.isDisabledByPartySize);
 
     const selectedReservationId = useMemo(() => {
         for (const reservation of zoneData.reservations) {
@@ -200,35 +203,31 @@ const SelectionStep = ({
     }, [partySize, maxPersonsAvailable, onPartySizeChange]);
 
     return (
-        <div className="flex flex-col md:gap-[32px]">
-            {/* Scrollable content area - with padding bottom on mobile for fixed footer */}
-            <div className="flex flex-col gap-[32px] md:pb-0 pb-[180px]">
-                <button
-                    type="button"
-                    onClick={onBack}
-                    className="flex items-center gap-2 text-[#939393] hover:text-[#f6f6f6] transition-colors self-start"
-                >
-                    <ChevronLeftIcon />
-                    <span className="text-[14px] font-medium font-helvetica">
-                        {t('common.back', 'Volver')}
-                    </span>
-                </button>
+        <div className="flex flex-col gap-[24px]">
+            <button
+                type="button"
+                onClick={onBack}
+                className="flex items-center gap-[4px] text-[#f6f6f6] text-[14px] font-medium font-helvetica cursor-pointer w-fit"
+            >
+                <ChevronLeftIcon />
+                <span>{t('event.back_to_zones', 'Volver a zonas')}</span>
+            </button>
 
-                <div className="bg-[#141414] border-2 border-[#232323] rounded-[16px]">
-                    <div className="flex items-center justify-between px-[16px] h-[56px]">
-                        <span className="text-[#939393] text-[16px] font-medium font-helvetica">
-                            {t('event.zone', 'Zona')}:
-                        </span>
-                        <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica">
-                            {zoneData.zone.name}
-                        </span>
-                    </div>
+            <div className="flex flex-col gap-[16px]">
+                <div className="flex items-center gap-[6px]">
+                    <div
+                        className="w-[6px] h-[6px] rounded-full shrink-0"
+                        style={{ backgroundColor: RESERVATION_COLOR }}
+                    />
+                    <span className="text-[#f6f6f6] text-[20px] font-semibold font-borna">
+                        {zoneData.zone.name}
+                    </span>
                 </div>
 
                 {zoneData.zone.floorPlan && (
-                    <div className="flex flex-col gap-[4px]">
+                    <div className="flex flex-col gap-[8px]">
                         <div className="px-[6px]">
-                            <span className="text-[#939393] text-[16px] font-medium font-helvetica">
+                            <span className="text-[#939393] text-[14px] font-normal font-helvetica">
                                 {t('event.zone_floor_plan', 'Plano zona')}
                             </span>
                         </div>
@@ -242,7 +241,6 @@ const SelectionStep = ({
                     </div>
                 )}
 
-                {/* Desktop only: Quantity selector inline */}
                 <div className="hidden md:flex flex-col gap-[4px]">
                     <div className="px-[6px]">
                         <span className="text-[#939393] text-[14px] font-normal font-helvetica">
@@ -278,7 +276,7 @@ const SelectionStep = ({
                             <PlusIcon />
                         </button>
                     </div>
-                    {noTablesForPartySize && (
+                    {!hasAvailableReservationsForPartySize && partySize > 1 && (
                         <div className="px-[6px] mt-[4px]">
                             <span className="text-[#e5ff88] text-[12px] font-medium font-helvetica">
                                 {t('event.no_tables_for_party_size', 'No hay mesas disponibles para este número de personas')}
@@ -288,14 +286,14 @@ const SelectionStep = ({
                 </div>
 
                 <div className="flex flex-col gap-[16px]">
-                    {filteredReservations.length > 0 ? (
-                        filteredReservations.map(reservation => {
-                            const isDisabled = selectedReservationId !== null && selectedReservationId !== reservation.id;
+                    {reservationsWithAvailability.length > 0 ? (
+                        reservationsWithAvailability.map(({ reservation, isDisabledByPartySize }) => {
+                            const isDisabledBySelection = selectedReservationId !== null && selectedReservationId !== reservation.id;
 
                             return (
                                 <div
                                     key={reservation.id}
-                                    className={isDisabled ? 'opacity-50 pointer-events-none' : ''}
+                                    className={isDisabledBySelection ? 'opacity-50 pointer-events-none' : ''}
                                 >
                                     <ReservationCard
                                         reservation={reservation}
@@ -304,6 +302,7 @@ const SelectionStep = ({
                                         onMoreInfo={onMoreInfo}
                                         partySize={partySize}
                                         selectionMode="checkbox"
+                                        isDisabledByPartySize={isDisabledByPartySize}
                                     />
                                 </div>
                             );
@@ -311,13 +310,12 @@ const SelectionStep = ({
                     ) : (
                         <div className="flex items-center justify-center py-8">
                             <p className="text-[#939393] text-[14px] font-helvetica text-center">
-                                {t('event.no_reservations_for_party_size', 'No hay reservas disponibles para {{count}} personas', { count: partySize })}
+                                {t('event.no_reservations_available', 'No hay reservas disponibles')}
                             </p>
                         </div>
                     )}
                 </div>
 
-                {/* Desktop only: Continue button inline */}
                 <button
                     type="button"
                     onClick={onContinue}
@@ -326,26 +324,12 @@ const SelectionStep = ({
                 >
                     {t('event.continue', 'Continuar')}
                 </button>
-
-                <div className="px-[6px]">
-                    <p className="text-[12px] font-medium font-helvetica text-[rgba(246,246,246,0.5)]">
-                        {t('checkout.legal_text_prefix', 'Comprando esta entrada, abrirás una cuenta y aceptarás nuestras Condiciones de Uso generales, la Política de Privacidad y las ')}
-                        <Link
-                            to="/purchase-terms"
-                            className="text-[#ff336d] underline hover:opacity-80 transition-opacity"
-                        >
-                            {t('checkout.purchase_conditions_link', 'Condiciones de Compra')}
-                        </Link>
-                        {t('checkout.legal_text_suffix', ' de entradas. Procesamos tus datos personales de acuerdo con nuestra Política de Privacidad.')}
-                    </p>
-                </div>
             </div>
 
-            {/* Mobile only: Fixed bottom footer */}
             <div className="md:hidden fixed bottom-0 left-0 right-0 z-50">
                 <div className="h-[24px] bg-gradient-to-t from-[#050505] to-transparent pointer-events-none" />
-                <div className="bg-[#050505] px-[16px] pb-[24px]">
-                    <div className="flex flex-col gap-[12px]">
+                <div className="bg-[#050505] px-[16px] pb-[24px] flex flex-col gap-[16px]">
+                    <div className="flex flex-col gap-[4px]">
                         <div className="px-[6px]">
                             <span className="text-[#939393] text-[14px] font-normal font-helvetica">
                                 {t('event.attendees_count', 'Cantidad de asistentes')}*
@@ -380,7 +364,7 @@ const SelectionStep = ({
                                 <PlusIcon />
                             </button>
                         </div>
-                        {noTablesForPartySize && (
+                        {!hasAvailableReservationsForPartySize && partySize > 1 && (
                             <div className="px-[6px]">
                                 <span className="text-[#e5ff88] text-[12px] font-medium font-helvetica">
                                     {t('event.no_tables_for_party_size', 'No hay mesas disponibles para este número de personas')}
@@ -480,73 +464,62 @@ const FormStep = ({
     onContinue,
     total,
     zoneName,
-    partySize,
+    partySize = 1,
 }: FormStepProps) => {
     const { t } = useTranslation();
 
     const isFormValid = formData.reservationName.trim().length > 0;
 
     return (
-        <div className="flex flex-col md:gap-[32px]">
-            {/* Scrollable content area - with padding bottom on mobile for fixed footer */}
-            <div className="flex flex-col gap-[32px] md:pb-0 pb-[100px]">
-                <button
-                    type="button"
-                    onClick={onBack}
-                    className="flex items-center gap-2 text-[#939393] hover:text-[#f6f6f6] transition-colors self-start"
-                >
-                    <ChevronLeftIcon />
-                    <span className="text-[14px] font-medium font-helvetica">
-                        {t('common.back', 'Volver')}
-                    </span>
-                </button>
+        <div className="flex flex-col gap-[24px] pb-[200px] md:pb-0">
+            <button
+                type="button"
+                onClick={onBack}
+                className="flex items-center gap-[4px] text-[#f6f6f6] text-[14px] font-medium font-helvetica cursor-pointer w-fit"
+            >
+                <ChevronLeftIcon />
+                <span>{t('event.back_to_selection', 'Volver a selección')}</span>
+            </button>
+
+            <div className="flex flex-col gap-[16px]">
+                <ReservationSummaryCard
+                    reservation={selectedReservation.reservation}
+                    priceId={selectedReservation.priceId}
+                    quantity={selectedReservation.quantity}
+                    zoneName={zoneName}
+                    partySize={partySize}
+                />
 
                 <div className="flex flex-col gap-[4px]">
                     <div className="px-[6px]">
                         <span className="text-[#939393] text-[14px] font-normal font-helvetica">
-                            {t('event.reservation', 'Reserva')}
+                            {t('event.reservation_name', 'Nombre de la reserva')}*
                         </span>
                     </div>
-                    <ReservationSummaryCard
-                        reservation={selectedReservation.reservation}
-                        priceId={selectedReservation.priceId}
-                        quantity={selectedReservation.quantity}
-                        zoneName={zoneName}
-                        partySize={partySize}
+                    <input
+                        type="text"
+                        value={formData.reservationName}
+                        onChange={(e) => onFormChange({ ...formData, reservationName: e.target.value })}
+                        placeholder={t('event.reservation_name_placeholder', 'Ej: Mesa de Juan')}
+                        className="w-full h-[48px] bg-[#141414] border-[1.5px] border-[#232323] rounded-[12px] px-[16px] text-[#f6f6f6] text-[16px] font-normal font-helvetica placeholder:text-[#939393] focus:outline-none focus:border-[#939393]"
                     />
                 </div>
 
-                <div className="flex flex-col gap-[24px]">
-                    <div className="flex flex-col gap-[4px]">
-                        <div className="px-[6px]">
-                            <span className="text-[#939393] text-[14px] font-normal font-helvetica">
-                                {t('event.reservation_name', 'Nombre de la reserva')}*
-                            </span>
-                        </div>
-                        <input
-                            type="text"
-                            value={formData.reservationName}
-                            onChange={(e) => onFormChange({ ...formData, reservationName: e.target.value })}
-                            className="border-[1.5px] border-[#232323] rounded-[12px] px-[16px] py-[12px] bg-transparent text-[#f6f6f6] text-[16px] font-medium font-helvetica outline-none focus:border-[#939393] transition-colors"
-                        />
+                <div className="flex flex-col gap-[4px]">
+                    <div className="px-[6px]">
+                        <span className="text-[#939393] text-[14px] font-normal font-helvetica">
+                            {t('event.observations', 'Observaciones')} ({t('common.optional', 'opcional')})
+                        </span>
                     </div>
-
-                    <div className="flex flex-col gap-[4px]">
-                        <div className="px-[6px]">
-                            <span className="text-[#939393] text-[14px] font-normal font-helvetica">
-                                {t('event.observations', 'Observaciones')}
-                            </span>
-                        </div>
-                        <textarea
-                            value={formData.observations}
-                            onChange={(e) => onFormChange({ ...formData, observations: e.target.value })}
-                            rows={5}
-                            className="border-[1.5px] border-[#232323] rounded-[12px] px-[16px] py-[12px] bg-transparent text-[#f6f6f6] text-[16px] font-medium font-helvetica outline-none resize-none focus:border-[#939393] transition-colors h-[144px]"
-                        />
-                    </div>
+                    <textarea
+                        value={formData.observations}
+                        onChange={(e) => onFormChange({ ...formData, observations: e.target.value })}
+                        placeholder={t('event.observations_placeholder', 'Ej: Celebramos un cumpleaños')}
+                        rows={3}
+                        className="w-full bg-[#141414] border-[1.5px] border-[#232323] rounded-[12px] px-[16px] py-[12px] text-[#f6f6f6] text-[16px] font-normal font-helvetica placeholder:text-[#939393] focus:outline-none focus:border-[#939393] resize-none"
+                    />
                 </div>
 
-                {/* Desktop only: Pay button inline */}
                 <button
                     type="button"
                     onClick={onContinue}
@@ -557,20 +530,12 @@ const FormStep = ({
                 </button>
 
                 <div className="px-[6px]">
-                    <p className="text-[12px] font-medium font-helvetica text-[rgba(246,246,246,0.5)]">
-                        {t('checkout.legal_text_prefix', 'Comprando esta entrada, abrirás una cuenta y aceptarás nuestras Condiciones de Uso generales, la Política de Privacidad y las ')}
-                        <Link
-                            to="/purchase-terms"
-                            className="text-[#ff336d] underline hover:opacity-80 transition-opacity"
-                        >
-                            {t('checkout.purchase_conditions_link', 'Condiciones de Compra')}
-                        </Link>
-                        {t('checkout.legal_text_suffix', ' de entradas. Procesamos tus datos personales de acuerdo con nuestra Política de Privacidad.')}
+                    <p className="text-[#939393] text-[12px] font-normal font-helvetica">
+                        {t('event.purchase_terms', 'Al comprar esta entrada, crearás una cuenta y aceptarás nuestros Términos y Condiciones Generales de Uso, Política de Privacidad y Condiciones de Compra de Entradas. Procesamos tus datos personales de acuerdo con nuestra Política de Privacidad.')}
                     </p>
                 </div>
             </div>
 
-            {/* Mobile only: Fixed bottom footer */}
             <div className="md:hidden fixed bottom-0 left-0 right-0 z-50">
                 <div className="h-[24px] bg-gradient-to-t from-[#050505] to-transparent pointer-events-none" />
                 <div className="bg-[#050505] px-[16px] pb-[24px]">
@@ -618,65 +583,61 @@ const ReservationsFlow = ({
         reservations.forEach(reservation => {
             const zones = (reservation.zones && reservation.zones.length > 0)
                 ? reservation.zones
-                : [{ id: 'general', name: t('event.general_zone', 'General'), description: null, coverImage: null, floorPlan: null, isActive: true }];
+                : [{ id: 'default', name: 'General', isActive: true }];
 
             zones.forEach(zone => {
-                const existing = zoneMap.get(zone.id);
-                const minPrice = Math.min(...(reservation.prices?.map(p => p.finalPrice) || [0]));
-
-                if (existing) {
-                    existing.reservations.push(reservation);
-                    existing.minPrice = Math.min(existing.minPrice, minPrice);
-                } else {
+                if (!zoneMap.has(zone.id)) {
                     zoneMap.set(zone.id, {
-                        zone,
-                        reservations: [reservation],
-                        minPrice,
+                        zone: zone as ReservationZone,
+                        reservations: [],
+                        minPrice: Infinity,
                     });
+                }
+
+                const zoneData = zoneMap.get(zone.id)!;
+                zoneData.reservations.push(reservation);
+
+                const minReservationPrice = reservation.prices?.reduce((min, price) => {
+                    return price.finalPrice < min ? price.finalPrice : min;
+                }, Infinity) || Infinity;
+
+                if (minReservationPrice < zoneData.minPrice) {
+                    zoneData.minPrice = minReservationPrice;
                 }
             });
         });
 
-        return Array.from(zoneMap.values());
-    }, [reservations, t]);
+        return Array.from(zoneMap.values()).filter(z => z.minPrice !== Infinity);
+    }, [reservations]);
 
     const selectedReservationInfo = useMemo<SelectedReservationInfo | null>(() => {
-        for (const zoneData of zonesWithReservations) {
-            for (const reservation of zoneData.reservations) {
-                for (const price of reservation.prices || []) {
-                    const qty = selectedQuantities[price.id] || 0;
-                    if (qty > 0) {
-                        return {
-                            reservation,
-                            priceId: price.id,
-                            quantity: qty,
-                        };
-                    }
+        for (const reservation of reservations) {
+            for (const price of reservation.prices || []) {
+                const quantity = selectedQuantities[price.id] || 0;
+                if (quantity > 0) {
+                    return { reservation, priceId: price.id, quantity };
                 }
             }
         }
         return null;
-    }, [zonesWithReservations, selectedQuantities]);
+    }, [reservations, selectedQuantities]);
 
     useEffect(() => {
         if (hasInitialized || isLoading || zonesWithReservations.length === 0) return;
 
-        const hasSelectedItems = Object.values(selectedQuantities).some(qty => qty > 0);
+        if (storedFormData && storedFormData.partySize > 0) {
+            setPartySize(storedFormData.partySize);
+        }
 
-        if (hasSelectedItems) {
-            if (storedFormData) {
-                setFormData(storedFormData);
-                setPartySize(storedFormData.partySize);
-            }
-
+        const hasSelection = Object.values(selectedQuantities).some(q => q > 0);
+        if (hasSelection) {
             for (const zoneData of zonesWithReservations) {
-                const zoneHasSelection = zoneData.reservations.some(reservation =>
-                    reservation.prices?.some(price => (selectedQuantities[price.id] || 0) > 0)
+                const hasSelectionInZone = zoneData.reservations.some(r =>
+                    r.prices?.some(p => (selectedQuantities[p.id] || 0) > 0)
                 );
-
-                if (zoneHasSelection) {
+                if (hasSelectionInZone) {
                     setSelectedZone(zoneData);
-                    setCurrentStep(storedFormData?.reservationName ? 2 : 1);
+                    setCurrentStep(storedFormData ? 2 : 1);
                     break;
                 }
             }

@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+
 interface TicketPrice {
     id: string;
     name: string;
@@ -56,6 +58,8 @@ const TicketCard = ({
     isLoading = false,
     className = '',
 }: TicketCardProps) => {
+    const { t } = useTranslation();
+
     if (isLoading) {
         return (
             <div className={`relative flex flex-col bg-[#141414] border-2 border-[#232323] rounded-[16px] w-full overflow-visible animate-pulse ${className}`}>
@@ -103,8 +107,10 @@ const TicketCard = ({
     );
     const borderColor = hasSelectedQuantity ? '#e5ff88' : '#232323';
 
-    const isSinglePrice = ticket.prices?.length === 1;
-    const singlePrice = isSinglePrice ? ticket.prices[0] : null;
+    const productBenefits = ticket.benefits?.filter(b => b.type === 'PRODUCT') || [];
+    const productText = productBenefits.length > 0 
+        ? productBenefits.map(b => b.name).join(', ')
+        : null;
 
     return (
         <div
@@ -134,10 +140,7 @@ const TicketCard = ({
 
             <div className="absolute right-[160px] top-[8px] bottom-[8px] w-0 border-l-[1.5px] border-dashed border-[#232323] z-0" />
 
-            <div
-                className={`flex items-center h-[56px] px-[16px] border-b-[1.5px] border-[#232323] ${isSinglePrice ? 'cursor-pointer' : ''}`}
-                onClick={() => isSinglePrice && singlePrice && onMoreInfo?.(ticket, singlePrice)}
-            >
+            <div className="flex items-center h-[56px] px-[16px] border-b-[1.5px] border-[#232323]">
                 <div className="flex items-center gap-[6px]">
                     <div className="w-[6px] h-[6px] bg-[#d591ff] rounded-full shrink-0" />
                     <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica">
@@ -155,12 +158,11 @@ const TicketCard = ({
                     <div
                         key={price.id}
                         className={`
-                            flex items-center justify-between px-[16px] py-[12px] cursor-pointer
+                            flex items-center justify-between px-[16px] py-[12px]
                             ${!isLast ? 'border-b-[1.5px] border-[#232323]' : ''}
                         `}
-                        onClick={() => onMoreInfo?.(ticket, price)}
                     >
-                        <div className="flex flex-col gap-[10px]">
+                        <div className="flex flex-col gap-[4px]">
                             <div className="flex flex-col">
                                 {showPriceName && (
                                     <span className="text-[#939393] text-[14px] font-normal font-helvetica">
@@ -180,6 +182,21 @@ const TicketCard = ({
                                     )}
                                 </div>
                             </div>
+                            {productText && (
+                                <span className="text-[#939393] text-[12px] font-medium font-helvetica">
+                                    {productText}
+                                </span>
+                            )}
+                            <span 
+                                className="text-[#939393] text-[12px] font-medium font-helvetica cursor-pointer hover:text-[#f6f6f6] transition-colors"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    onMoreInfo?.(ticket, price);
+                                }}
+                            >
+                                {t('event.more_info', 'Más información')}
+                            </span>
                         </div>
 
                         <div className="flex items-center gap-[6px]">
@@ -199,7 +216,7 @@ const TicketCard = ({
                                 <MinusIcon />
                             </button>
                             <span className={`
-                                w-[32px] text-center text-[32px] font-semibold font-borna leading-none
+                                w-[32px] text-center text-[24px] font-bold font-helvetica leading-none
                                 ${quantity > 0 ? 'text-[#e5ff88]' : 'text-[#f6f6f6]'}
                             `}>
                                 {quantity}

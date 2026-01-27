@@ -56,7 +56,7 @@ const ClubProfile = ({
                         <img
                             src={logoUrl}
                             alt={`${name} logo`}
-                            className="absolute inset-0 w-full h-full object-cover rounded-full"
+                            className="absolute inset-0 w-full h-full object-cover rounded-full border-[3px] border-[#232323]"
                         />
                     )}
                 </div>

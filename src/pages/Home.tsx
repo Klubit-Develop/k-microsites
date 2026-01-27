@@ -29,6 +29,11 @@ interface Club {
     contactNumber: string;
     email: string;
     termsAndConditions: string | null;
+    address: string | null;
+    addressLocation: {
+        lat: number;
+        lng: number;
+    } | null;
 }
 
 interface Event {
@@ -166,7 +171,7 @@ const Home = () => {
     const clubQuery = useQuery({
         queryKey: ['club', clubSlug],
         queryFn: async (): Promise<Club> => {
-            const fields = 'id,logo,name,venueType,openingDays,openingTime,closingTime,images,contactNumber,email,termsAndConditions';
+            const fields = 'id,logo,name,venueType,openingDays,openingTime,closingTime,images,contactNumber,email,termsAndConditions,address,addressLocation';
             const response = await axiosInstance.get<ClubResponse>(
                 `/v2/clubs/slug/${clubSlug}?includeInactive=true&fields=${fields}`
             );
@@ -333,6 +338,13 @@ const Home = () => {
         navigate({ to: '/terms-and-conditions-club' });
     };
 
+    const handleMapClick = () => {
+        if (club?.addressLocation) {
+            const { lat, lng } = club.addressLocation;
+            window.open(`https://www.google.com/maps?q=${lat},${lng}`, '_blank');
+        }
+    };
+
     const club = clubQuery.data;
     const isLikesLoading = favoritesCountQuery.isLoading || (isAuthenticated && userFavoriteQuery.isLoading);
     const likesCount = favoritesCountQuery.data ?? 0;
@@ -496,13 +508,14 @@ const Home = () => {
 
                 <LocationCard
                     title={t('club.location')}
-                    address="Calle de Fortuny, 34, 28010. Madrid, España"
+                    address={club?.address || ''}
                     coordinates={{
-                        lat: 40.425935536837265,
-                        lng: -3.6897071108489854,
+                        lat: club?.addressLocation?.lat ?? 0,
+                        lng: club?.addressLocation?.lng ?? 0,
                     }}
                     legalText={club?.termsAndConditions ? t('club.legal_terms') : undefined}
                     onLegalClick={club?.termsAndConditions ? handleLegalClick : undefined}
+                    onMapClick={handleMapClick}
                 />
             </div>
 
@@ -544,13 +557,15 @@ const Home = () => {
                     </div>
 
                     <LocationCard
-                        address="Calle de Fortuny, 34, 28010. Madrid, España"
+                        title={t('club.location')}
+                        address={club?.address || ''}
                         coordinates={{
-                            lat: 40.425935536837265,
-                            lng: -3.6897071108489854,
+                            lat: club?.addressLocation?.lat ?? 0,
+                            lng: club?.addressLocation?.lng ?? 0,
                         }}
                         legalText={club?.termsAndConditions ? t('club.legal_terms') : undefined}
                         onLegalClick={club?.termsAndConditions ? handleLegalClick : undefined}
+                        onMapClick={handleMapClick}
                     />
                 </div>
 
