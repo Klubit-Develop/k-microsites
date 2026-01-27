@@ -172,7 +172,7 @@ const ForgotChangePage = () => {
 
             <div className="hidden lg:flex flex-1 flex-col items-center justify-center relative">
                 <Link to="/" className="absolute top-0 left-0">
-                    <LogoIcon width={149} height={42} />
+                    <LogoIcon width={129} height={42} />
                 </Link>
 
                 <div className="flex flex-col gap-4 items-center text-center w-full max-w-[600px] px-8" style={{ textShadow: '0px 0px 12px rgba(0, 0, 0, 0.5)' }}>
@@ -187,7 +187,7 @@ const ForgotChangePage = () => {
 
             <div className="lg:hidden w-full flex flex-col items-center flex-1 justify-center">
                 <div className="flex flex-col items-center w-full max-w-[390px] gap-12">
-                    <LogoIcon width={149} height={42} />
+                    <LogoIcon width={129} height={42} />
                     
                     <div className="flex flex-col gap-8 w-full">
                         <div className="flex flex-col gap-2 items-center text-center w-full" style={{ textShadow: '0px 0px 30px black' }}>

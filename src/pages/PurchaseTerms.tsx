@@ -20,7 +20,7 @@ const PurchaseTerms = () => {
             <div className="flex flex-col gap-[45px] w-full max-w-[500px] mx-auto px-4 pt-[120px] pb-[100px] md:pt-8 md:pb-8">
                 <button
                     onClick={handleBack}
-                    className="flex items-center gap-2 text-[#939393] hover:text-[#F6F6F6] transition-colors self-start cursor-pointer md:hidden"
+                    className="flex items-center gap-2 text-[#939393] hover:text-[#F6F6F6] transition-colors self-start cursor-pointer"
                 >
                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                         <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />

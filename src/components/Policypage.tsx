@@ -1,10 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from '@tanstack/react-router';
 
 import axiosInstance from '@/config/axiosConfig';
 import PageError from '@/components/common/PageError';
 
-type PolicyType = 'terms-and-conditions' | 'legal-notices' | 'privacy-policy' | 'cookie-policy';
+type PolicyType = 'terms-and-conditions' | 'legal-notices' | 'privacy-policy' | 'cookie-policy' | 'purchase-terms';
 
 interface SectionTranslation {
     id: string;
@@ -41,7 +42,8 @@ interface PolicyPageProps {
 }
 
 const PolicyPage = ({ type, title }: PolicyPageProps) => {
-    const { i18n } = useTranslation();
+    const { i18n, t } = useTranslation();
+    const navigate = useNavigate();
 
     const policyQuery = useQuery({
         queryKey: ['policy', type, i18n.language],
@@ -56,6 +58,14 @@ const PolicyPage = ({ type, title }: PolicyPageProps) => {
         refetchOnWindowFocus: false,
         retry: 1,
     });
+
+    const handleGoBack = () => {
+        if (window.history.length > 1) {
+            navigate({ to: '..' });
+        } else {
+            navigate({ to: '/' });
+        }
+    };
 
     if (policyQuery.isError) {
         return <PageError />;
@@ -88,7 +98,19 @@ const PolicyPage = ({ type, title }: PolicyPageProps) => {
 
     return (
         <div className="bg-[#050505] min-h-screen flex justify-center py-24">
-            <div className="flex flex-col gap-4 w-full max-w-[500px] px-6">
+            <div className="flex flex-col gap-8 w-full max-w-[500px] px-6">
+                <button
+                    onClick={handleGoBack}
+                    className="flex items-center gap-2 text-[#939393] hover:text-[#F6F6F6] transition-colors self-start cursor-pointer"
+                >
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    <span className="text-[14px] font-helvetica font-medium">
+                        {t('common.back')}
+                    </span>
+                </button>
+
                 <div className="flex gap-[2px] items-center px-[6px] w-full">
                     <h1
                         className="text-[#FF336D] text-[24px] font-semibold"
