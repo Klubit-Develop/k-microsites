@@ -34,7 +34,7 @@ const TabSelector = ({
     }
 
     return (
-        <div className={`flex items-center p-[4px] bg-[#141414] border-[1.5px] border-[#232323] rounded-2xl w-full ${className}`}>
+        <div className={`flex items-center p-[4px] bg-[#141414] border-[1.5px] border-[#232323] rounded-[16px] w-full ${className}`}>
             {tabs.map(tab => {
                 const hasItems = tabsWithItems.includes(tab.key);
                 

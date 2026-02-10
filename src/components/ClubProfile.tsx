@@ -62,7 +62,7 @@ const ClubProfile = ({
                 </div>
 
                 <div className="flex flex-col items-center justify-center py-1 w-full">
-                    <p className="font-bold text-2xl leading-normal text-center text-[#F6F6F6] font-helvetica">
+                    <p className="font-semibold text-2xl leading-normal text-center text-[#F6F6F6] font-borna">
                         {name}
                     </p>
                     <p className="text-sm leading-normal text-[#939393] truncate font-helvetica">

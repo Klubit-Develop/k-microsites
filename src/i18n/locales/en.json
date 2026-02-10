@@ -14,8 +14,8 @@
     "club": {
         "phone": "Phone",
         "email": "Email",
-        "like": "Favorite",
-        "likes": "Favorites",
+        "like": "favorite",
+        "likes": "favorites",
         "favorite_error": "Error updating favorite",
         "location": "Location",
         "legal_terms": "Read the club's legal terms"

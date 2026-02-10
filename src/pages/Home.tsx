@@ -469,7 +469,7 @@ const Home = () => {
     return (
         <>
             {/* Mobile Layout */}
-            <div className="flex flex-col gap-8 px-4 pt-[120px] pb-[360px] md:hidden bg-[#050505] min-h-screen">
+            <div className="flex flex-col gap-8 px-4 pt-[80px] pb-[80px] md:hidden bg-[#050505] min-h-screen">
                 <div className="flex flex-col gap-6 items-center">
                     <ClubProfile
                         name={club?.name || ''}
@@ -520,8 +520,8 @@ const Home = () => {
             </div>
 
             {/* Desktop Layout */}
-            <div className="hidden md:flex gap-8 px-34 my-10">
-                <div className="flex-1 flex flex-col gap-9 px-4 py-6">
+            <div className="hidden md:flex items-start justify-center w-full px-8 lg:px-16 xl:px-24 2xl:px-96 gap-8 py-20">
+                <div className="flex flex-col gap-9 w-full max-w-[500px]">
                     <div className="flex flex-col gap-6 items-center">
                         <ClubProfile
                             name={club?.name || ''}
@@ -569,7 +569,7 @@ const Home = () => {
                     />
                 </div>
 
-                <div className="flex-1 flex flex-col gap-9 px-4 py-6">
+                <div className="flex flex-col gap-9 w-full max-w-[500px]">
                     {renderEventsContent()}
                 </div>
             </div>

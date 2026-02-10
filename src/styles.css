@@ -4,6 +4,15 @@
   background-color: #050505;
 }
 
+button:not(:disabled),
+[role="button"]:not(:disabled) {
+  cursor: pointer;
+}
+
+a {
+  cursor: pointer;
+}
+
 @font-face {
   font-family: 'Borna';
   src: url('/assets/fonts/Borna/borna-regular-webfont.woff2') format('woff2'),

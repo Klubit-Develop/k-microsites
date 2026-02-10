@@ -80,7 +80,7 @@ const RrppProfile = ({
             </div>
 
             <div className="absolute flex gap-[10px] items-center justify-center left-1/2 -translate-x-1/2 top-0 w-[152px] px-[6px]">
-                <div className="flex-1 aspect-square rounded-[74.5px] border-[3px] border-[#5b6779]" />
+                <div className="flex-1 aspect-square rounded-[74.5px] border-[4px] border-[#5b6779]" />
                 <div className="absolute right-[15px] top-[8px] w-[30px] h-[28px]">
                     <img
                         src={BADGE_URL}

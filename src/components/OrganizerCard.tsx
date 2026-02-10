@@ -50,7 +50,7 @@ const OrganizerCard = ({
                 </h2>
             </div>
             <div
-                className={`flex gap-[12px] items-center p-[12px] bg-[#141414] border-2 border-[#232323] rounded-2xl shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)] w-full ${onClick ? 'cursor-pointer' : ''}`}
+                className={`flex gap-[12px] items-center p-[12px] bg-[#141414] border-2 border-[#232323] rounded-[16px] shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)] w-full ${onClick ? 'cursor-pointer' : ''}`}
                 onClick={onClick}
             >
                 <div className="relative w-[54px] h-[54px] shrink-0">

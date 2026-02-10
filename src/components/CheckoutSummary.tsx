@@ -281,7 +281,7 @@ const PaymentDetailsCard = ({ subtotal, serviceFee, discount, total }: PaymentDe
     const { t } = useTranslation();
 
     return (
-        <div className="bg-[#141414] border-2 border-[#232323] rounded-[24px] overflow-hidden w-full">
+        <div className="bg-[#141414] border-2 border-[#232323] rounded-[16px] overflow-hidden w-full">
             <div className="flex items-center justify-between px-[16px] h-[56px] border-b-[1.5px] border-[#232323]">
                 <span className="text-[#939393] text-[16px] font-medium font-helvetica">
                     {t('checkout.subtotal', 'Subtotal')}:
