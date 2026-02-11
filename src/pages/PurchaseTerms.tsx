@@ -1,17 +1,17 @@
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from '@tanstack/react-router';
+import { useRouter } from '@tanstack/react-router';
 import { useCheckoutStore } from '@/stores/useCheckoutStore';
 
 const PurchaseTerms = () => {
     const { t } = useTranslation();
-    const navigate = useNavigate();
-    const { eventSlug, eventDisplayInfo } = useCheckoutStore();
+    const router = useRouter();
+    const { eventDisplayInfo } = useCheckoutStore();
 
     const handleBack = () => {
-        if (eventSlug) {
-            navigate({ to: '/event/$slug', params: { slug: eventSlug } });
+        if (window.history.length > 1) {
+            router.history.back();
         } else {
-            navigate({ to: '/' });
+            router.navigate({ to: '/' });
         }
     };
 

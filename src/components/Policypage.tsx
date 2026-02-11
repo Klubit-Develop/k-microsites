@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from '@tanstack/react-router';
+import { useRouter } from '@tanstack/react-router';
 
 import axiosInstance from '@/config/axiosConfig';
 import PageError from '@/components/common/PageError';
@@ -43,7 +43,7 @@ interface PolicyPageProps {
 
 const PolicyPage = ({ type, title }: PolicyPageProps) => {
     const { i18n, t } = useTranslation();
-    const navigate = useNavigate();
+    const router = useRouter();
 
     const policyQuery = useQuery({
         queryKey: ['policy', type, i18n.language],
@@ -61,9 +61,9 @@ const PolicyPage = ({ type, title }: PolicyPageProps) => {
 
     const handleGoBack = () => {
         if (window.history.length > 1) {
-            navigate({ to: '..' });
+            router.history.back();
         } else {
-            navigate({ to: '/' });
+            router.navigate({ to: '/' });
         }
     };
 
