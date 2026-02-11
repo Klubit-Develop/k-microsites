@@ -105,7 +105,7 @@ const Incident = () => {
                 aria-hidden="true"
             />
             <div 
-                className="absolute inset-0 -z-10 opacity-75"
+                className="absolute inset-0 -z-10 opacity-50 lg:opacity-75"
                 style={{
                     backgroundImage: 'url(https://klubit.fra1.cdn.digitaloceanspaces.com/background-auth.jpg)',
                     backgroundSize: 'cover',
@@ -114,7 +114,7 @@ const Incident = () => {
                 aria-hidden="true"
             />
             <div 
-                className="absolute inset-0 -z-[5] bg-gradient-to-t lg:bg-gradient-to-r from-[#050505] lg:from-[rgba(5,5,5,0.75)] from-[35%] lg:from-0% to-[rgba(5,5,5,0.5)] lg:to-[rgba(5,5,5,0.38)]"
+                className="absolute inset-0 -z-[5] bg-gradient-to-t lg:bg-gradient-to-r from-[#050505] lg:from-[rgba(5,5,5,0.75)] from-[35%] lg:from-0% to-[rgba(5,5,5,0.75)] lg:to-[rgba(5,5,5,0.38)]"
                 aria-hidden="true"
             />
 
