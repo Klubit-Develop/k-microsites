@@ -114,8 +114,8 @@ const CheckoutTimer = ({ seconds }: { seconds: number }) => {
 
     return (
         <div className={`flex items-center justify-center p-[14px] border-[1.5px] border-solid rounded-[12px] w-full ${isLow
-                ? 'bg-[rgba(255,35,35,0.1)] border-[rgba(255,35,35,0.25)]'
-                : 'bg-[#141414] border-[#232323]'
+            ? 'bg-[rgba(255,35,35,0.1)] border-[rgba(255,35,35,0.25)]'
+            : 'bg-[#141414] border-[#232323]'
             }`}>
             <p className={`font-helvetica font-normal text-[14px] text-center leading-[100%] ${isLow ? 'text-[#ff2323]' : 'text-[#F6F6F6]'
                 }`}>
@@ -141,9 +141,9 @@ const EventInfoCard = ({ items }: { event: EventInfo; items: CartItem[] }) => {
 
     return (
         <div className="flex flex-col gap-[4px] w-full">
-            <span className="text-[#939393] text-[16px] font-medium font-helvetica px-[6px]">
+            <p className="text-[#939393] text-[16px] font-medium font-helvetica px-[6px] mb-2">
                 {t('checkout.your_order', 'Tu compra')}
-            </span>
+            </p>
             <div className="bg-[#141414] border-2 border-[#232323] rounded-[16px] w-full">
                 {items.map((item, index) => (
                     <div
@@ -322,43 +322,48 @@ const PaymentDetailsCard = ({ subtotal, serviceFee, discount, total }: PaymentDe
     const { t } = useTranslation();
 
     return (
-        <div className="bg-[#141414] border-2 border-[#232323] rounded-[16px] overflow-hidden w-full">
-            <div className="flex items-center justify-between px-[16px] h-[56px] border-b-[1.5px] border-[#232323]">
-                <span className="text-[#939393] text-[16px] font-medium font-helvetica">
-                    {t('checkout.subtotal', 'Subtotal')}:
-                </span>
-                <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica">
-                    {subtotal.toFixed(2).replace('.', ',')}€
-                </span>
-            </div>
-
-            <div className="flex items-center justify-between px-[16px] h-[56px]">
-                <span className="text-[#939393] text-[16px] font-medium font-helvetica">
-                    {t('checkout.service_fee', 'Gastos de gestión')}:
-                </span>
-                <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica">
-                    {serviceFee.toFixed(2).replace('.', ',')}€
-                </span>
-            </div>
-
-            {discount > 0 && (
-                <div className="flex items-center justify-between px-[16px] h-[56px]">
+        <div>
+            <p className="text-[#939393] text-[16px] font-medium font-helvetica px-[6px] mb-2">
+                {t('checkout.payment_details', 'Detalles pago')}
+            </p>
+            <div className="bg-[#141414] border-2 border-[#232323] rounded-[16px] overflow-hidden w-full">
+                <div className="flex items-center justify-between px-[16px] h-[56px] border-b-[1.5px] border-[#232323]">
                     <span className="text-[#939393] text-[16px] font-medium font-helvetica">
-                        {t('checkout.discount_label', 'Descuento')}:
+                        {t('checkout.subtotal', 'Subtotal')}:
                     </span>
                     <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica">
-                        -{discount.toFixed(2).replace('.', ',')}€
+                        {subtotal.toFixed(2).replace('.', ',')}€
                     </span>
                 </div>
-            )}
 
-            <div className="flex items-center justify-between px-[16px] h-[56px] border-t-[1.5px] border-[#232323]">
-                <span className="text-[#939393] text-[16px] font-medium font-helvetica">
-                    {t('checkout.total_price', 'Precio total')}:
-                </span>
-                <span className="text-[#f6f6f6] text-[24px] font-bold font-helvetica">
-                    {total.toFixed(2).replace('.', ',')}€
-                </span>
+                <div className="flex items-center justify-between px-[16px] h-[56px]">
+                    <span className="text-[#939393] text-[16px] font-medium font-helvetica">
+                        {t('checkout.service_fee', 'Gastos de gestión')}:
+                    </span>
+                    <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica">
+                        {serviceFee.toFixed(2).replace('.', ',')}€
+                    </span>
+                </div>
+
+                {discount > 0 && (
+                    <div className="flex items-center justify-between px-[16px] h-[56px]">
+                        <span className="text-[#939393] text-[16px] font-medium font-helvetica">
+                            {t('checkout.discount_label', 'Descuento')}:
+                        </span>
+                        <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica">
+                            -{discount.toFixed(2).replace('.', ',')}€
+                        </span>
+                    </div>
+                )}
+
+                <div className="flex items-center justify-between px-[16px] h-[56px] border-t-[1.5px] border-[#232323]">
+                    <span className="text-[#939393] text-[16px] font-medium font-helvetica">
+                        {t('checkout.total_price', 'Precio total')}:
+                    </span>
+                    <span className="text-[#f6f6f6] text-[24px] font-semibold font-borna">
+                        {total.toFixed(2).replace('.', ',')}€
+                    </span>
+                </div>
             </div>
         </div>
     );
