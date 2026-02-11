@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { cookieStorage } from '@/utils/cookieStorage';
 
 interface AuthState {
     user: any | null;
@@ -31,7 +32,19 @@ export const useAuthStore = create<AuthState>()(
             setHasHydrated: (state) => set({ _hasHydrated: state }),
         }),
         {
-            name: 'manager-klubit-auth',
+            name: 'klubit-auth',
+            storage: {
+                getItem: (name) => {
+                    const raw = cookieStorage.getItem(name) as string | null;
+                    return raw ? JSON.parse(raw) : null;
+                },
+                setItem: (name, value) => {
+                    cookieStorage.setItem(name, JSON.stringify(value));
+                },
+                removeItem: (name) => {
+                    cookieStorage.removeItem(name);
+                },
+            },
             onRehydrateStorage: () => (state) => {
                 state?.setHasHydrated(true);
             },
