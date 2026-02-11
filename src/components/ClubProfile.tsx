@@ -51,7 +51,7 @@ const ClubProfile = ({
         <div className={`flex flex-col gap-4 items-center justify-center px-6 w-full max-w-[370px] ${className}`}>
             <div className="flex flex-col gap-2 items-center w-full">
                 <div className="relative w-[140px] h-[140px] shrink-0 rounded-full shadow-[0px_0px_31px_0px_rgba(0,0,0,0.5)] overflow-hidden">
-                    <div className={`absolute inset-0 rounded-full border-[3px] border-[#232323] ${!logoUrl ? 'bg-[#323232]' : ''}`} />
+                    <div className={`absolute inset-0 rounded-full border-[4px] border-[#232323] ${!logoUrl ? 'bg-[#323232]' : ''}`} />
                     {logoUrl && (
                         <img
                             src={logoUrl}

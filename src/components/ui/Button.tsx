@@ -46,7 +46,7 @@ const Button = ({
                 flex items-center justify-center gap-2.5
                 w-full px-[72px] py-0
                 rounded-xl
-                font-helvetica font-bold text-base text-center
+                font-helvetica text-base text-center
                 transition-opacity
                 ${getVariantStyles()}
                 ${getStateStyles()}

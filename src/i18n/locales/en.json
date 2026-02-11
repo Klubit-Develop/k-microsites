@@ -18,7 +18,21 @@
         "likes": "favorites",
         "favorite_error": "Error updating favorite",
         "location": "Location",
-        "legal_terms": "Read the club's legal terms"
+        "legal_terms": "Read the club's legal terms",
+        "venue_type_CLUB": "Club",
+        "venue_type_DISCO": "Nightclub",
+        "venue_type_BAR": "Bar",
+        "venue_type_LOUNGE": "Lounge",
+        "venue_type_PUB": "Pub",
+        "venue_type_PROMOTER": "Promoter",
+        "days_MONDAY": "Monday",
+        "days_TUESDAY": "Tuesday",
+        "days_WEDNESDAY": "Wednesday",
+        "days_THURSDAY": "Thursday",
+        "days_FRIDAY": "Friday",
+        "days_SATURDAY": "Saturday",
+        "days_SUNDAY": "Sunday",
+        "days_range": "{{first}} to {{last}}"
     },
     "artist": {
         "today": "Today",

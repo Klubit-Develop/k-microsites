@@ -89,22 +89,14 @@ interface UserFavoritesResponse {
     };
 }
 
-const VENUE_TYPE_MAP: Record<string, string> = {
-    CLUB: 'Club',
-    DISCO: 'Discoteca',
-    BAR: 'Bar',
-    LOUNGE: 'Lounge',
-    PUB: 'Pub',
-};
-
-const DAY_MAP: Record<string, { es: string; en: string; order: number }> = {
-    MONDAY: { es: 'Lunes', en: 'Monday', order: 1 },
-    TUESDAY: { es: 'Martes', en: 'Tuesday', order: 2 },
-    WEDNESDAY: { es: 'Miércoles', en: 'Wednesday', order: 3 },
-    THURSDAY: { es: 'Jueves', en: 'Thursday', order: 4 },
-    FRIDAY: { es: 'Viernes', en: 'Friday', order: 5 },
-    SATURDAY: { es: 'Sábado', en: 'Saturday', order: 6 },
-    SUNDAY: { es: 'Domingo', en: 'Sunday', order: 7 },
+const DAY_ORDER: Record<string, number> = {
+    MONDAY: 1,
+    TUESDAY: 2,
+    WEDNESDAY: 3,
+    THURSDAY: 4,
+    FRIDAY: 5,
+    SATURDAY: 6,
+    SUNDAY: 7,
 };
 
 const MAX_EVENTS_TO_SHOW = 5;
@@ -267,32 +259,41 @@ const Home = () => {
         },
     });
 
+    const getVenueTypeLabel = (venueType: string): string => {
+        const key = `club.venue_type_${venueType}`;
+        const translated = t(key);
+        return translated !== key ? translated : venueType;
+    };
+
     const formatOpeningDays = (days: string[]): string => {
         if (!days || days.length === 0) return '';
 
-        const lang = i18n.language === 'en' ? 'en' : 'es';
-        const sortedDays = [...days].sort((a, b) => DAY_MAP[a]?.order - DAY_MAP[b]?.order);
+        const sortedDays = [...days].sort((a, b) => (DAY_ORDER[a] ?? 0) - (DAY_ORDER[b] ?? 0));
+
+        const translateDay = (day: string): string => {
+            const key = `club.days_${day}`;
+            const translated = t(key);
+            return translated !== key ? translated : day;
+        };
 
         if (sortedDays.length === 1) {
-            return DAY_MAP[sortedDays[0]]?.[lang] || sortedDays[0];
+            return translateDay(sortedDays[0]);
         }
 
         const isConsecutive = sortedDays.every((day, index) => {
             if (index === 0) return true;
-            const prevOrder = DAY_MAP[sortedDays[index - 1]]?.order;
-            const currentOrder = DAY_MAP[day]?.order;
+            const prevOrder = DAY_ORDER[sortedDays[index - 1]] ?? 0;
+            const currentOrder = DAY_ORDER[day] ?? 0;
             return currentOrder - prevOrder === 1;
         });
 
         if (isConsecutive && sortedDays.length > 2) {
-            const firstDay = DAY_MAP[sortedDays[0]]?.[lang];
-            const lastDay = DAY_MAP[sortedDays[sortedDays.length - 1]]?.[lang];
-            return lang === 'es'
-                ? `De ${firstDay} a ${lastDay}`
-                : `${firstDay} to ${lastDay}`;
+            const firstDay = translateDay(sortedDays[0]);
+            const lastDay = translateDay(sortedDays[sortedDays.length - 1]);
+            return t('club.days_range', { first: firstDay, last: lastDay });
         }
 
-        return sortedDays.map(day => DAY_MAP[day]?.[lang] || day).join(', ');
+        return sortedDays.map(day => translateDay(day)).join(', ');
     };
 
     const formatOperatingHours = (openingTime: string, closingTime: string): string => {
@@ -473,7 +474,7 @@ const Home = () => {
                 <div className="flex flex-col gap-6 items-center">
                     <ClubProfile
                         name={club?.name || ''}
-                        type={VENUE_TYPE_MAP[club?.venueType || ''] || club?.venueType || ''}
+                        type={getVenueTypeLabel(club?.venueType || '')}
                         operatingDays={formatOpeningDays(club?.openingDays || [])}
                         operatingHours={formatOperatingHours(club?.openingTime || '', club?.closingTime || '')}
                         logoUrl={club?.logo}
@@ -525,7 +526,7 @@ const Home = () => {
                     <div className="flex flex-col gap-6 items-center">
                         <ClubProfile
                             name={club?.name || ''}
-                            type={VENUE_TYPE_MAP[club?.venueType || ''] || club?.venueType || ''}
+                            type={getVenueTypeLabel(club?.venueType || '')}
                             operatingDays={formatOpeningDays(club?.openingDays || [])}
                             operatingHours={formatOperatingHours(club?.openingTime || '', club?.closingTime || '')}
                             logoUrl={club?.logo}

@@ -18,7 +18,21 @@
         "likes": "favoritos",
         "favorite_error": "Error al actualizar favorito",
         "location": "Ubicación",
-        "legal_terms": "Leer los términos legales del klub"
+        "legal_terms": "Leer los términos legales del klub",
+        "venue_type_CLUB": "Club",
+        "venue_type_DISCO": "Discoteca",
+        "venue_type_BAR": "Bar",
+        "venue_type_LOUNGE": "Lounge",
+        "venue_type_PUB": "Pub",
+        "venue_type_PROMOTER": "Promotora",
+        "days_MONDAY": "Lunes",
+        "days_TUESDAY": "Martes",
+        "days_WEDNESDAY": "Miércoles",
+        "days_THURSDAY": "Jueves",
+        "days_FRIDAY": "Viernes",
+        "days_SATURDAY": "Sábado",
+        "days_SUNDAY": "Domingo",
+        "days_range": "De {{first}} a {{last}}"
     },
     "artist": {
         "today": "Hoy",
