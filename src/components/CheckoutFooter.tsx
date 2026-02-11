@@ -88,7 +88,6 @@ const CheckoutFooter = ({
                     </p>
                 </div>
                 {/* Spacer for fixed button */}
-                <div className="h-[80px]" />
             </div>
 
             {/* Mobile fixed button */}

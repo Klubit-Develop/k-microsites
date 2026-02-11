@@ -471,7 +471,7 @@ const FormStep = ({
     const isFormValid = formData.reservationName.trim().length > 0;
 
     return (
-        <div className="flex flex-col gap-[24px] pb-[200px] md:pb-0">
+        <div className="flex flex-col gap-[24px] pb-[10px] md:pb-0">
             <button
                 type="button"
                 onClick={onBack}
@@ -482,6 +482,13 @@ const FormStep = ({
             </button>
 
             <div className="flex flex-col gap-[16px]">
+
+                <div className="px-[6px]">
+                    <span className="text-[#939393] text-[14px] font-normal font-helvetica">
+                        {t('event.reservation', 'Reserva')}*
+                    </span>
+                </div>
+
                 <ReservationSummaryCard
                     reservation={selectedReservation.reservation}
                     priceId={selectedReservation.priceId}
@@ -491,7 +498,7 @@ const FormStep = ({
                 />
 
                 <div className="flex flex-col gap-[4px]">
-                    <div className="px-[6px]">
+                    <div className="px-[6px] py-2.5">
                         <span className="text-[#939393] text-[14px] font-normal font-helvetica">
                             {t('event.reservation_name', 'Nombre de la reserva')}*
                         </span>
@@ -501,14 +508,14 @@ const FormStep = ({
                         value={formData.reservationName}
                         onChange={(e) => onFormChange({ ...formData, reservationName: e.target.value })}
                         placeholder={t('event.reservation_name_placeholder', 'Ej: Mesa de Juan')}
-                        className="w-full h-[48px] bg-[#141414] border-[1.5px] border-[#232323] rounded-[12px] px-[16px] text-[#f6f6f6] text-[16px] font-normal font-helvetica placeholder:text-[#939393] focus:outline-none focus:border-[#939393]"
+                        className="w-full h-[48px] border-[1.5px] border-[#232323] rounded-[12px] px-[16px] text-[#f6f6f6] text-[16px] font-normal font-helvetica placeholder:text-[#939393] focus:outline-none focus:border-[#939393]"
                     />
                 </div>
 
                 <div className="flex flex-col gap-[4px]">
-                    <div className="px-[6px]">
+                    <div className="px-[6px] py-2.5">
                         <span className="text-[#939393] text-[14px] font-normal font-helvetica">
-                            {t('event.observations', 'Observaciones')} ({t('common.optional', 'opcional')})
+                            {t('event.observations', 'Observaciones')}
                         </span>
                     </div>
                     <textarea
@@ -516,7 +523,7 @@ const FormStep = ({
                         onChange={(e) => onFormChange({ ...formData, observations: e.target.value })}
                         placeholder={t('event.observations_placeholder', 'Ej: Celebramos un cumpleaños')}
                         rows={3}
-                        className="w-full bg-[#141414] border-[1.5px] border-[#232323] rounded-[12px] px-[16px] py-[12px] text-[#f6f6f6] text-[16px] font-normal font-helvetica placeholder:text-[#939393] focus:outline-none focus:border-[#939393] resize-none"
+                        className="w-full border-[1.5px] border-[#232323] rounded-[12px] px-[16px] py-[12px] text-[#f6f6f6] text-[16px] font-normal font-helvetica placeholder:text-[#939393] focus:outline-none focus:border-[#939393] resize-none"
                     />
                 </div>
 

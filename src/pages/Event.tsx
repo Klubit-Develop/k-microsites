@@ -1547,7 +1547,7 @@ const Event = () => {
     const showMobileRatesView = currentStep === 1 && mobileShowRates;
 
     return (
-        <div className="bg-[#050505] min-h-screen flex flex-col items-center pt-[40px] pb-[50px] md:pt-24 md:pb-24">
+        <div className="bg-[#050505] md:min-h-screen flex flex-col items-center pt-[40px] pb-[40px] md:pt-24 md:pb-24">
             {/* Mobile: Back button above stepper */}
             {showMobileRatesView && (
                 <div className="w-full px-4 mb-8 md:hidden">
