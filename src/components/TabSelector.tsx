@@ -37,7 +37,7 @@ const TabSelector = ({
         <div className={`flex items-center p-[4px] bg-[#141414] border-[1.5px] border-[#232323] rounded-[16px] w-full ${className}`}>
             {tabs.map(tab => {
                 const hasItems = tabsWithItems.includes(tab.key);
-                
+
                 return (
                     <button
                         key={tab.key}
@@ -48,7 +48,7 @@ const TabSelector = ({
                             cursor-pointer
                             ${activeTab === tab.key
                                 ? 'bg-[#232323] text-[#f6f6f6]'
-                                : 'text-[#939393]'
+                                : 'text-[#939393] hover:text-[#f6f6f6] hover:bg-[#1a1a1a]'
                             }
                         `}
                     >

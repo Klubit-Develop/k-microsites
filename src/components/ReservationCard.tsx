@@ -207,7 +207,7 @@ const ReservationCard = ({
                 </div>
 
                 <div className="flex items-center px-[16px] py-[16px]">
-                    <div className="flex flex-col gap-[4px] flex-1 min-w-0 pr-[140px]">
+                    <div className="flex flex-col gap-[8px] flex-1 min-w-0 pr-[140px]">
                         <span className="text-[#f6f6f6] text-[16px] font-bold font-helvetica">
                             {price.finalPrice.toFixed(2).replace('.', ',')}€
                         </span>

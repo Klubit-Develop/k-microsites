@@ -179,8 +179,8 @@ const PromotionCard = ({
             </div>
 
             <div className="flex items-center justify-between px-[16px] py-[12px]">
-                <div className="flex flex-col gap-[4px]">
-                    <div className="flex items-center gap-[8px]">
+                <div className="flex flex-col gap-[6px]">
+                    <div className="flex items-center gap-[6px]">
                         <span className="text-[#f6f6f6] text-[16px] font-bold font-helvetica">
                             {formatPromotionPrice()}
                         </span>
@@ -196,7 +196,7 @@ const PromotionCard = ({
                         </span>
                     )}
                     <span
-                        className="text-[#939393] text-[12px] font-medium font-helvetica cursor-pointer hover:text-[#f6f6f6] transition-colors"
+                        className="text-[#939393] text-[12px] mt-1.5 font-medium font-helvetica cursor-pointer hover:text-[#f6f6f6] transition-colors"
                         onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();

@@ -200,14 +200,14 @@ const GuestlistCard = ({
                             ${isPriceSoldOut ? 'opacity-50' : ''}
                         `}
                     >
-                        <div className="flex flex-col gap-[4px]">
-                            <div className="flex flex-col">
+                        <div className="flex flex-col gap-[8px]">
+                            <div className="flex flex-col gap-1">
                                 {showPriceName && (
                                     <span className="text-[#939393] text-sm font-normal font-helvetica">
                                         {price.name}
                                     </span>
                                 )}
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-[12px]">
                                     <span className="text-[#f6f6f6] text-base font-bold font-helvetica">
                                         {price.finalPrice === 0 
                                             ? t('checkout.free', 'Gratis')

@@ -162,14 +162,14 @@ const TicketCard = ({
                             ${!isLast ? 'border-b-[1.5px] border-[#232323]' : ''}
                         `}
                     >
-                        <div className="flex flex-col gap-[4px]">
-                            <div className="flex flex-col">
+                        <div className="flex flex-col gap-[8px]">
+                            <div className="flex flex-col gap-1">
                                 {showPriceName && (
                                     <span className="text-[#939393] text-[14px] font-normal font-helvetica">
                                         {price.name}
                                     </span>
                                 )}
-                                <div className="flex items-center gap-[8px]">
+                                <div className="flex items-center gap-[12px]">
                                     <span className="text-[#f6f6f6] text-[16px] font-bold font-helvetica">
                                         {(price.finalPrice ?? 0).toFixed(2).replace('.', ',')}€
                                     </span>

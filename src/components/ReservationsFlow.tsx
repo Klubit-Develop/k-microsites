@@ -78,8 +78,8 @@ const ZoneCard = ({ zoneData, onClick, hasSelectedItems = false }: ZoneCardProps
             onClick={onClick}
             className={`w-full bg-[#141414] border-2 rounded-[16px] px-[16px] py-[16px] cursor-pointer transition-colors group text-left ${borderClass}`}
         >
-            <div className="flex flex-col gap-[2px]">
-                <div className="flex items-center gap-[6px]">
+            <div className="flex flex-col gap-[10px]">
+                <div className="flex items-center gap-[8px]">
                     <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica truncate">
                         {t('event.reservations_zone', 'Reservas')}: {zoneData.zone.name}
                     </span>
