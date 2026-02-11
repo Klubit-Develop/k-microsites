@@ -45,7 +45,7 @@ const EventDescription = ({
         <div className={`flex flex-col gap-[12px] w-full ${className}`}>
             {title && (
                 <div className="px-[6px]">
-                    <span className="text-[#f6f6f6] text-[16px] font-medium font-helvetica">
+                    <span className="text-[#ff336d] text-[20px] font-semibold font-borna">
                         {title}
                     </span>
                 </div>
