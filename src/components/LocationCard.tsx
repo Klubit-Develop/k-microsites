@@ -149,12 +149,6 @@ export const LocationCard: React.FC<LocationCardProps> = ({
       )}
 
       <div className="flex flex-col gap-3 items-start justify-center w-full p-3 bg-[#141414] border-2 border-[#232323] rounded-2xl shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)]">
-        <div className="flex gap-0.5 items-center px-1.5 w-full">
-          <p className="text-[#f6f6f6] text-sm font-normal leading-[100%] flex-1 font-helvetica">
-            {address}
-          </p>
-        </div>
-
         <div
           className={`relative w-full rounded-sm shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)] overflow-hidden ${onMapClick ? 'cursor-pointer' : ''}`}
           onClick={onMapClick}
@@ -173,6 +167,11 @@ export const LocationCard: React.FC<LocationCardProps> = ({
               <Marker position={center} />
             </GoogleMap>
           )}
+        </div>
+        <div className="flex gap-0.5 items-center px-1.5 w-full mt-1">
+          <p className="text-[#f6f6f6] text-sm font-normal leading-[100%] flex-1 font-helvetica">
+            {address}
+          </p>
         </div>
       </div>
 

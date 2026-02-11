@@ -507,17 +507,19 @@ const Home = () => {
 
                 {renderEventsContent()}
 
-                <LocationCard
-                    title={t('club.location')}
-                    address={club?.address || ''}
-                    coordinates={{
-                        lat: club?.addressLocation?.lat ?? 0,
-                        lng: club?.addressLocation?.lng ?? 0,
-                    }}
-                    legalText={club?.termsAndConditions ? t('club.legal_terms') : undefined}
-                    onLegalClick={club?.termsAndConditions ? handleLegalClick : undefined}
-                    onMapClick={handleMapClick}
-                />
+                {club?.address && club?.addressLocation && (
+                    <LocationCard
+                        title={t('club.location')}
+                        address={club.address}
+                        coordinates={{
+                            lat: club.addressLocation.lat,
+                            lng: club.addressLocation.lng,
+                        }}
+                        legalText={club?.termsAndConditions ? t('club.legal_terms') : undefined}
+                        onLegalClick={club?.termsAndConditions ? handleLegalClick : undefined}
+                        onMapClick={handleMapClick}
+                    />
+                )}
             </div>
 
             {/* Desktop Layout */}
@@ -557,17 +559,19 @@ const Home = () => {
                         />
                     </div>
 
-                    <LocationCard
-                        title={t('club.location')}
-                        address={club?.address || ''}
-                        coordinates={{
-                            lat: club?.addressLocation?.lat ?? 0,
-                            lng: club?.addressLocation?.lng ?? 0,
-                        }}
-                        legalText={club?.termsAndConditions ? t('club.legal_terms') : undefined}
-                        onLegalClick={club?.termsAndConditions ? handleLegalClick : undefined}
-                        onMapClick={handleMapClick}
-                    />
+                    {club?.address && club?.addressLocation && (
+                        <LocationCard
+                            title={t('club.location')}
+                            address={club.address}
+                            coordinates={{
+                                lat: club.addressLocation.lat,
+                                lng: club.addressLocation.lng,
+                            }}
+                            legalText={club?.termsAndConditions ? t('club.legal_terms') : undefined}
+                            onLegalClick={club?.termsAndConditions ? handleLegalClick : undefined}
+                            onMapClick={handleMapClick}
+                        />
+                    )}
                 </div>
 
                 <div className="flex flex-col gap-9 w-full max-w-[500px]">
