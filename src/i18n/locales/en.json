@@ -226,6 +226,7 @@
             "products": "Products",
             "promotions": "Promotions"
         },
+        "age": "years",
         "about": "About the event",
         "read_more": "Read more",
         "read_less": "Read less",

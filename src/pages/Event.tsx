@@ -1375,7 +1375,7 @@ const Event = () => {
     }, [selectedQuantities]);
 
     const allTags = useMemo(() => event ? [
-        ...(event.minimumAge ? [`+${event.minimumAge}`] : []),
+        ...(event.minimumAge ? [`+${event.minimumAge} ${t('event.age')}`] : []),
         ...(event.club?.venueType ? [VENUE_TYPE_MAP[event.club.venueType] || event.club.venueType] : []),
         ...event.vibes.slice(0, 2).map(v => v.name),
         ...event.musics.slice(0, 2).map(m => m.name),
