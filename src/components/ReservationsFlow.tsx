@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import ReservationCard, { type Reservation, type ReservationZone, type ReservationPrice } from './ReservationCard';
 import { scrollToTop } from '@/hooks/useScrollToTop';
+import Button from './ui/Button';
 
 interface ZoneWithReservations {
     zone: ReservationZone;
@@ -276,13 +277,6 @@ const SelectionStep = ({
                             <PlusIcon />
                         </button>
                     </div>
-                    {!hasAvailableReservationsForPartySize && partySize > 1 && (
-                        <div className="px-[6px] mt-[4px]">
-                            <span className="text-[#e5ff88] text-[12px] font-medium font-helvetica">
-                                {t('event.no_tables_for_party_size', 'No hay mesas disponibles para este número de personas')}
-                            </span>
-                        </div>
-                    )}
                 </div>
 
                 <div className="flex flex-col gap-[16px]">
@@ -316,14 +310,14 @@ const SelectionStep = ({
                     )}
                 </div>
 
-                <button
-                    type="button"
+                <Button
+                    variant="cta"
                     onClick={onContinue}
                     disabled={!hasSelection}
                     className={`hidden md:flex w-full h-[48px] rounded-[12px] items-center justify-center font-bold text-[16px] font-helvetica transition-opacity ${hasSelection ? 'bg-[#ff336d] text-[#f6f6f6] cursor-pointer hover:opacity-90' : 'bg-[#232323] text-[#939393] cursor-not-allowed'}`}
                 >
                     {t('event.continue', 'Continuar')}
-                </button>
+                </Button>
             </div>
 
             <div className="md:hidden fixed bottom-0 left-0 right-0 z-50">
@@ -364,21 +358,14 @@ const SelectionStep = ({
                                 <PlusIcon />
                             </button>
                         </div>
-                        {!hasAvailableReservationsForPartySize && partySize > 1 && (
-                            <div className="px-[6px]">
-                                <span className="text-[#e5ff88] text-[12px] font-medium font-helvetica">
-                                    {t('event.no_tables_for_party_size', 'No hay mesas disponibles para este número de personas')}
-                                </span>
-                            </div>
-                        )}
-                        <button
-                            type="button"
+                        <Button
+                            variant="cta"
                             onClick={onContinue}
                             disabled={!hasSelection}
                             className={`w-full h-[48px] rounded-[12px] flex items-center justify-center font-bold text-[16px] font-helvetica transition-opacity ${hasSelection ? 'bg-[#ff336d] text-[#f6f6f6] cursor-pointer hover:opacity-90' : 'bg-[#232323] text-[#939393] cursor-not-allowed'}`}
                         >
                             {t('event.continue', 'Continuar')}
-                        </button>
+                        </Button>
                     </div>
                 </div>
             </div>
@@ -527,14 +514,14 @@ const FormStep = ({
                     />
                 </div>
 
-                <button
-                    type="button"
+                <Button
+                    variant="cta"
                     onClick={onContinue}
                     disabled={!isFormValid}
                     className={`hidden md:flex w-full h-[48px] rounded-[12px] items-center justify-center font-bold text-[16px] font-helvetica transition-opacity ${isFormValid ? 'bg-[#ff336d] text-[#f6f6f6] cursor-pointer hover:opacity-90' : 'bg-[#232323] text-[#939393] cursor-not-allowed'}`}
                 >
                     {t('event.pay', 'Pagar')} - {total.toFixed(2).replace('.', ',')}€
-                </button>
+                </Button>
 
                 <div className="px-[6px]">
                     <p className="text-[#939393] text-[12px] font-normal font-helvetica">
@@ -546,14 +533,14 @@ const FormStep = ({
             <div className="md:hidden fixed bottom-0 left-0 right-0 z-50">
                 <div className="h-[24px] bg-gradient-to-t from-[#050505] to-transparent pointer-events-none" />
                 <div className="bg-[#050505] px-[16px] pb-[24px]">
-                    <button
-                        type="button"
+                    <Button
+                        variant="cta"
                         onClick={onContinue}
                         disabled={!isFormValid}
                         className={`w-full h-[48px] rounded-[12px] flex items-center justify-center font-bold text-[16px] font-helvetica transition-opacity ${isFormValid ? 'bg-[#ff336d] text-[#f6f6f6] cursor-pointer hover:opacity-90' : 'bg-[#232323] text-[#939393] cursor-not-allowed'}`}
                     >
                         {t('event.pay', 'Pagar')} - {total.toFixed(2).replace('.', ',')}€
-                    </button>
+                    </Button>
                 </div>
             </div>
         </div>
