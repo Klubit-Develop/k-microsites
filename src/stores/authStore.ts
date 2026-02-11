@@ -16,6 +16,28 @@ interface AuthState {
     setHasHydrated: (state: boolean) => void;
 }
 
+const fetchMe = async (token: string): Promise<any | null> => {
+    try {
+        const baseURL = import.meta.env.VITE_API_URL || 'https://api.klubit.io';
+        const response = await fetch(`${baseURL}/v2/auth/me`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!response.ok) return null;
+
+        const data = await response.json();
+        if (data.status === 'success' && data.data?.user) {
+            return data.data.user;
+        }
+        return null;
+    } catch {
+        return null;
+    }
+};
+
 export const useAuthStore = create<AuthState>()(
     persist(
         (set) => ({
@@ -45,8 +67,22 @@ export const useAuthStore = create<AuthState>()(
                     cookieStorage.removeItem(name);
                 },
             },
+            partialize: (state) => ({
+                token: state.token,
+            }) as unknown as AuthState,
             onRehydrateStorage: () => (state) => {
-                state?.setHasHydrated(true);
+                if (!state) return;
+                state.setHasHydrated(true);
+
+                if (state.token && !state.user) {
+                    fetchMe(state.token).then((user) => {
+                        if (user) {
+                            useAuthStore.getState().setUser(user);
+                        } else {
+                            useAuthStore.getState().logout();
+                        }
+                    });
+                }
             },
         }
     )
