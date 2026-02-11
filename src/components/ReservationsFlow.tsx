@@ -169,8 +169,6 @@ const SelectionStep = ({
             });
     }, [zoneData.reservations, partySize]);
 
-    const hasAvailableReservationsForPartySize = reservationsWithAvailability.some(r => !r.isDisabledByPartySize);
-
     const selectedReservationId = useMemo(() => {
         for (const reservation of zoneData.reservations) {
             const hasSelection = reservation.prices?.some(
