@@ -7,7 +7,7 @@ interface CheckoutTimerProps {
 const CheckoutTimer = ({ seconds }: CheckoutTimerProps) => {
     const { t } = useTranslation();
 
-    const isLow = seconds < 60;
+    const isLow = seconds <= 60;
 
     const formatTime = (secs: number): string => {
         const mins = Math.floor(secs / 60);
@@ -19,13 +19,13 @@ const CheckoutTimer = ({ seconds }: CheckoutTimerProps) => {
     };
 
     return (
-        <div className={`w-full h-[36px] flex items-center justify-center rounded-[12px] border-[1.5px] ${
+        <div className={`w-full flex items-center justify-center p-[14px] rounded-[12px] border-[1.5px] border-solid ${
             isLow
-                ? 'bg-[rgba(255,35,35,0.05)] border-[rgba(255,35,35,0.25)]'
-                : 'bg-transparent border-[#232323]'
+                ? 'bg-[rgba(255,35,35,0.1)] border-[rgba(255,35,35,0.25)]'
+                : 'bg-[#141414] border-[#232323]'
         }`}>
-            <span className={`text-[14px] font-normal font-helvetica ${
-                isLow ? 'text-[#ff2323]' : 'text-[#f6f6f6]'
+            <span className={`text-[14px] font-normal font-helvetica leading-[100%] text-center ${
+                isLow ? 'text-[#ff2323]' : 'text-[#F6F6F6]'
             }`}>
                 {formatTime(seconds)}
             </span>

@@ -59,12 +59,49 @@ interface CheckoutSummaryProps {
     isLoading?: boolean;
 }
 
+const MobileEventCard = ({ event }: { event: EventInfo }) => {
+    const { t } = useTranslation();
+
+    return (
+        <div className="flex flex-col gap-[4px] w-full md:hidden">
+            <span className="text-[#939393] text-[16px] font-medium font-helvetica px-[6px]">
+                {t('checkout.event', 'Evento')}
+            </span>
+            <div className="bg-[#141414] border-2 border-[#232323] rounded-[16px] w-full">
+                <div className="flex items-center gap-[10px] px-[16px] py-2.5">
+                    {event.coverImage && (
+                        <div className="relative shrink-0 w-[32px] h-[40px] rounded-[2px] border-[1.5px] border-[#232323] overflow-hidden shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]">
+                            <img
+                                src={event.coverImage}
+                                alt={event.name}
+                                className="absolute inset-0 w-full h-full object-cover"
+                            />
+                        </div>
+                    )}
+                    <div className="flex flex-col justify-center">
+                        <span className="text-[16px] font-medium font-borna text-[#F6F6F6] leading-[24px]">
+                            {event.name}
+                        </span>
+                        {event.date && (
+                            <span className="text-[14px] font-normal font-borna text-[#E5FF88] leading-[20px]">
+                                {event.date}
+                            </span>
+                        )}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 const IndicatorDot = ({ color }: { color: string }) => (
     <div className="w-[6px] h-[6px] rounded-full shrink-0" style={{ backgroundColor: color }} />
 );
 
 const CheckoutTimer = ({ seconds }: { seconds: number }) => {
     const { t } = useTranslation();
+
+    const isLow = seconds <= 60;
 
     const formatTime = (secs: number): string => {
         const mins = Math.floor(secs / 60);
@@ -76,8 +113,12 @@ const CheckoutTimer = ({ seconds }: { seconds: number }) => {
     };
 
     return (
-        <div className="flex items-center justify-center p-[14px] border-[1.5px] bg-[#141414] border-solid border-[#232323] rounded-[12px] w-full">
-            <p className="font-helvetica font-normal text-[14px] text-[#F6F6F6] text-center leading-[100%]">
+        <div className={`flex items-center justify-center p-[14px] border-[1.5px] border-solid rounded-[12px] w-full ${isLow
+                ? 'bg-[rgba(255,35,35,0.1)] border-[rgba(255,35,35,0.25)]'
+                : 'bg-[#141414] border-[#232323]'
+            }`}>
+            <p className={`font-helvetica font-normal text-[14px] text-center leading-[100%] ${isLow ? 'text-[#ff2323]' : 'text-[#F6F6F6]'
+                }`}>
                 {formatTime(seconds)}
             </p>
         </div>
@@ -206,7 +247,7 @@ const CouponSection = ({
 
             {isModalOpen && (
                 <div
-                    className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-[24px]"
+                    className="fixed inset-0 bg-black/60 flex items-center justify-center z-[60] p-[24px]"
                     onClick={(e) => {
                         if (e.target === e.currentTarget) {
                             handleCloseModal();
@@ -854,6 +895,8 @@ const CheckoutSummary = ({
         <>
             <div className="flex flex-col gap-[36px] w-full mx-auto py-[24px] pb-[120px] md:pb-[24px]">
                 <CheckoutTimer seconds={timeLeft} />
+
+                <MobileEventCard event={event} />
 
                 <EventInfoCard event={event} items={items} />
 
