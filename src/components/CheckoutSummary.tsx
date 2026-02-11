@@ -76,8 +76,8 @@ const CheckoutTimer = ({ seconds }: { seconds: number }) => {
     };
 
     return (
-        <div className="flex items-center justify-center p-[14px] border-[1.5px] border-solid border-[#232323] rounded-[12px] w-full">
-            <p className="font-helvetica font-normal text-[14px] text-[#f6f6f6] text-center leading-[100%]">
+        <div className="flex items-center justify-center p-[14px] border-[1.5px] bg-[#141414] border-solid border-[#232323] rounded-[12px] w-full">
+            <p className="font-helvetica font-normal text-[14px] text-[#F6F6F6] text-center leading-[100%]">
                 {formatTime(seconds)}
             </p>
         </div>
@@ -101,7 +101,7 @@ const EventInfoCard = ({ items }: { event: EventInfo; items: CartItem[] }) => {
     return (
         <div className="flex flex-col gap-[4px] w-full">
             <span className="text-[#939393] text-[16px] font-medium font-helvetica px-[6px]">
-                {t('checkout.your_order', 'Tu pedido')}
+                {t('checkout.your_order', 'Tu compra')}
             </span>
             <div className="bg-[#141414] border-2 border-[#232323] rounded-[16px] w-full">
                 {items.map((item, index) => (

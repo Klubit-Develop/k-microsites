@@ -71,7 +71,7 @@ const ZoneCard = ({ zoneData, onClick, hasSelectedItems = false }: ZoneCardProps
     const { t } = useTranslation();
     const borderClass = hasSelectedItems
         ? 'border-[#e5ff88]'
-        : 'border-[#232323] hover:border-[#939393]';
+        : 'border-[#232323] hover:bg-[#232323]';
 
     return (
         <button
@@ -215,14 +215,15 @@ const SelectionStep = ({
             </button>
 
             <div className="flex flex-col gap-[16px]">
-                <div className="flex items-center gap-[6px]">
-                    <div
-                        className="w-[6px] h-[6px] rounded-full shrink-0"
-                        style={{ backgroundColor: RESERVATION_COLOR }}
-                    />
-                    <span className="text-[#f6f6f6] text-[20px] font-semibold font-borna">
-                        {zoneData.zone.name}
-                    </span>
+                <div className="bg-[#141414] border-2 border-[#232323] rounded-[16px] px-[8px]">
+                    <div className="flex items-center gap-[24px] h-[56px] px-[8px] border-b-[1.5px] border-[#232323]">
+                        <span className="text-[#939393] text-[16px] font-medium font-helvetica whitespace-nowrap">
+                            {t('event.zone_label', 'Zona')}:
+                        </span>
+                        <span className="flex-1 text-[#f6f6f6] text-[16px] font-medium font-helvetica text-right truncate">
+                            {zoneData.zone.name}
+                        </span>
+                    </div>
                 </div>
 
                 {zoneData.zone.floorPlan && (

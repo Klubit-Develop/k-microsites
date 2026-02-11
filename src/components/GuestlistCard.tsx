@@ -68,7 +68,7 @@ const GuestlistCard = ({
         return (
             <div className={`relative flex flex-col bg-[#141414] border-2 border-[#232323] rounded-2xl w-full overflow-visible animate-pulse ${className}`}>
                 <div
-                    className="absolute right-[120px] md:right-[152px] top-[-2px] w-[18px] h-[10px] bg-[#050505] rounded-b-full z-10"
+                    className="absolute right-[127px] top-[-2px] w-[18px] h-[10px] bg-[#050505] rounded-b-full z-10"
                     style={{
                         borderLeft: '2px solid #232323',
                         borderRight: '2px solid #232323',
@@ -77,7 +77,7 @@ const GuestlistCard = ({
                 />
 
                 <div
-                    className="absolute right-[120px] md:right-[152px] bottom-[-2px] w-[18px] h-[10px] bg-[#050505] rounded-t-full z-10"
+                    className="absolute right-[127px] bottom-[-2px] w-[18px] h-[10px] bg-[#050505] rounded-t-full z-10"
                     style={{
                         borderLeft: '2px solid #232323',
                         borderRight: '2px solid #232323',
@@ -85,7 +85,7 @@ const GuestlistCard = ({
                     }}
                 />
 
-                <div className="absolute right-[128px] md:right-[160px] top-[8px] bottom-[8px] w-0 border-l-[1.5px] border-dashed border-[#232323] z-0" />
+                <div className="absolute right-[135px] top-[8px] bottom-[8px] w-0 border-l-[1.5px] border-dashed border-[#232323] z-0" />
 
                 <div className="flex items-center h-14 px-4 border-b-[1.5px] border-[#232323]">
                     <div className="h-5 w-32 bg-[#232323] rounded" />
@@ -150,7 +150,7 @@ const GuestlistCard = ({
             `}
         >
             <div
-                className="absolute right-[120px] md:right-[152px] top-[-2px] w-[18px] h-[10px] bg-[#050505] rounded-b-full z-10"
+                className="absolute right-[127px] top-[-2px] w-[18px] h-[10px] bg-[#050505] rounded-b-full z-10"
                 style={{
                     borderLeft: `2px solid ${borderColor}`,
                     borderRight: `2px solid ${borderColor}`,
@@ -159,7 +159,7 @@ const GuestlistCard = ({
             />
 
             <div
-                className="absolute right-[120px] md:right-[152px] bottom-[-2px] w-[18px] h-[10px] bg-[#050505] rounded-t-full z-10"
+                className="absolute right-[127px] bottom-[-2px] w-[18px] h-[10px] bg-[#050505] rounded-t-full z-10"
                 style={{
                     borderLeft: `2px solid ${borderColor}`,
                     borderRight: `2px solid ${borderColor}`,
@@ -167,7 +167,7 @@ const GuestlistCard = ({
                 }}
             />
 
-            <div className="absolute right-[128px] md:right-[160px] top-[8px] bottom-[8px] w-0 border-l-[1.5px] border-dashed border-[#232323] z-0" />
+            <div className="absolute right-[135px] top-[8px] bottom-[8px] w-0 border-l-[1.5px] border-dashed border-[#232323] z-0" />
 
             <div className="flex items-center h-14 px-4 border-b-[1.5px] border-[#232323]">
                 <div className="flex items-center gap-1.5">
