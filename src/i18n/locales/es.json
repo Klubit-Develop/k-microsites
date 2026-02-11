@@ -221,7 +221,7 @@
         },
         "tabs": {
             "tickets": "Entradas",
-            "guestlists": "Listas",
+            "guestlists": "Guestlists",
             "reservations": "Reservas",
             "products": "Productos",
             "promotions": "Promociones"
@@ -235,7 +235,7 @@
         "location": "Ubicación",
         "read_terms": "Leer los términos legales del klub",
         "more_info": "Más información",
-        "continue": "Continuar",
+        "continue": "Pagar",
         "pay": "Pagar",
         "purchase_terms": "Comprando esta entrada, abrirás una cuenta y aceptarás nuestras Condiciones de Uso generales, la Política de Privacidad y las Condiciones de Compra de entradas. Procesamos tus datos personales de acuerdo con nuestra Política de Privacidad.",
         "legal_text": "Comprando esta entrada, abrirás una cuenta y aceptarás nuestras Condiciones de Uso generales, la Política de Privacidad y las Condiciones de Compra de entradas. Procesamos tus datos personales de acuerdo con nuestra Política de Privacidad.",

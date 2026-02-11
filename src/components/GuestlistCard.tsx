@@ -262,7 +262,7 @@ const GuestlistCard = ({
                                 <MinusIcon />
                             </button>
                             <span className={`
-                                w-8 text-center text-2xl font-bold font-helvetica leading-none
+                                w-8 text-center text-2xl font-semibold font-borna leading-none
                                 ${quantity > 0 ? 'text-[#e5ff88]' : 'text-[#f6f6f6]'}
                             `}>
                                 {quantity}

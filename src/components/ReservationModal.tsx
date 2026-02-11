@@ -216,7 +216,7 @@ const ReservationCardInModal = ({
                                 <MinusIcon />
                             </button>
                             <span className={`
-                                w-[32px] text-center text-[24px] font-bold font-helvetica leading-none
+                                w-[32px] text-center text-[24px] font-semibold font-borna leading-none
                                 ${quantity > 0 ? 'text-[#e5ff88]' : 'text-[#f6f6f6]'}
                             `}>
                                 {quantity}
