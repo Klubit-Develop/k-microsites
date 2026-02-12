@@ -321,15 +321,17 @@ const EventTags = ({ minimumAge, venueType, vibes, musics }: EventTagsProps) => 
     if (tags.length === 0) return null;
 
     return (
-        <div className="flex flex-wrap gap-2 w-full">
-            {tags.map((tag, i) => (
-                <span
-                    key={i}
-                    className="h-9 flex items-center justify-center px-3.5 text-[14px] font-borna text-[#F6F6F6] bg-[#050505] border-[1.5px] border-[#232323] rounded-[20px] shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)]"
-                >
-                    {tag}
-                </span>
-            ))}
+        <div className="w-full overflow-x-auto scrollbar-hide -mx-6 px-6">
+            <div className="flex gap-2 w-max mx-auto">
+                {tags.map((tag, i) => (
+                    <span
+                        key={i}
+                        className="h-9 flex items-center justify-center px-3.5 text-[14px] font-borna text-[#F6F6F6] bg-[#050505] border-[1.5px] border-[#232323] rounded-[20px] shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)] whitespace-nowrap shrink-0"
+                    >
+                        {tag}
+                    </span>
+                ))}
+            </div>
         </div>
     );
 };
@@ -655,6 +657,123 @@ const PassbookCard = ({ walletAddress, userId, clubId }: PassbookCardProps) => {
     );
 };
 
+const formatPrice = (price: number): string => {
+    if (price === 0) return 'Gratis';
+    return `${price.toFixed(2).replace('.', ',')}€`;
+};
+
+const PaymentStatusIcon = () => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="12" fill="#50DD77" fillOpacity="0.2" />
+        <circle cx="12" cy="12" r="9" fill="#50DD77" />
+        <path d="M8.5 12.5L10.5 14.5L15.5 9.5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+);
+
+interface OrganizerCardProps {
+    club: Transaction['club'];
+}
+
+const OrganizerCard = ({ club }: OrganizerCardProps) => {
+    const { t } = useTranslation();
+    const venueLabel = club.venueType ? VENUE_TYPE_MAP[club.venueType] : undefined;
+
+    return (
+        <div className="flex flex-col gap-1 w-full">
+            <span className="text-[16px] font-borna font-medium text-[#939393] px-1.5">
+                {t('item_detail.organizer', 'Organizador')}
+            </span>
+            <div className="flex items-center gap-2 px-4 py-3 bg-[#141414] border-2 border-[#232323] rounded-2xl shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)]">
+                <div className="relative shrink-0 size-8 rounded-full border-[1.5px] border-[#232323] overflow-hidden shadow-[0px_0px_10.667px_0px_rgba(0,0,0,0.5)]">
+                    {club.logo ? (
+                        <img
+                            src={club.logo}
+                            alt={club.name}
+                            className="absolute inset-0 w-full h-full object-cover"
+                        />
+                    ) : (
+                        <div className="absolute inset-0 bg-[#323232]" />
+                    )}
+                </div>
+                <div className="flex items-center gap-1 min-w-0">
+                    <span className="text-[16px] font-borna font-medium text-[#F6F6F6] truncate">
+                        {club.name}
+                    </span>
+                    {venueLabel && (
+                        <>
+                            <span className="size-[3px] bg-[#939393] rounded-full shrink-0" />
+                            <span className="text-[14px] font-borna text-[#939393] shrink-0">
+                                {venueLabel}
+                            </span>
+                        </>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+interface PurchaseDetailCardProps {
+    transaction: Transaction;
+    item: TransactionItem;
+}
+
+const PurchaseDetailCard = ({ transaction, item }: PurchaseDetailCardProps) => {
+    const { t } = useTranslation();
+    const [isOpen, setIsOpen] = useState(false);
+
+    const price = formatPrice(item.unitPrice * item.quantity);
+    const purchaseDate = transaction.completedAt || transaction.createdAt;
+    const formattedDate = dayjs(purchaseDate).format('D MMM YYYY, HH:mm');
+    const reference = transaction.id
+        ? `LST-${dayjs(purchaseDate).format('YYYY')}-${transaction.id.slice(-6).toUpperCase()}`
+        : '-';
+
+    const isPaid = transaction.status === 'COMPLETED';
+
+    return (
+        <div className="flex flex-col gap-1 w-full">
+            <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="flex items-center justify-between px-1.5 cursor-pointer w-full"
+            >
+                <span className="text-[16px] font-borna font-medium text-[#939393]">
+                    {t('item_detail.purchase_detail', 'Detalle compra')}
+                </span>
+                <div className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}>
+                    <ChevronDownIcon />
+                </div>
+            </button>
+            {isOpen && (
+                <div className="flex flex-col bg-[#141414] border-2 border-[#232323] rounded-2xl overflow-hidden shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)] px-2">
+                    <InfoRow
+                        label={t('item_detail.price', 'Precio')}
+                        value={<span className="text-[#50DD77]">{price}</span>}
+                    />
+                    <InfoRow
+                        label={t('item_detail.payment_status', 'Estado de pago')}
+                        value={
+                            <span className="flex items-center gap-1.5 justify-end">
+                                <span className="text-[#50DD77]">{price}</span>
+                                {isPaid && <PaymentStatusIcon />}
+                            </span>
+                        }
+                    />
+                    <InfoRow
+                        label={t('item_detail.purchase_date', 'Fecha de compra')}
+                        value={formattedDate}
+                    />
+                    <InfoRow
+                        label={t('item_detail.reference', 'Referencia')}
+                        value={reference}
+                        hasBorder={false}
+                    />
+                </div>
+            )}
+        </div>
+    );
+};
+
 const ModalSkeleton = () => (
     <div className="flex flex-col gap-6 w-full animate-pulse">
         <div className="relative w-full h-[300px] bg-[#232323] rounded-b-none" />
@@ -833,8 +952,35 @@ const ItemDetailModal = ({ transactionId, itemId, isOpen, onClose, onBack }: Ite
             <div
                 className={`relative w-full max-w-[500px] max-h-[90vh] bg-[#0a0a0a] border-2 border-[#232323] rounded-t-[32px] overflow-hidden transition-transform duration-300 ease-out ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}
             >
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 pt-[5px] opacity-50 z-20">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 pt-[5px] opacity-50 z-30">
                     <div className="w-9 h-[5px] bg-[#F6F6F6]/50 rounded-full" />
+                </div>
+
+                <div className="absolute top-6 left-6 right-6 flex items-center justify-between z-30">
+                    <div>
+                        {onBack && (
+                            <button
+                                onClick={onBack}
+                                className="flex items-center justify-center size-9 bg-[#232323]/80 rounded-full shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)] cursor-pointer backdrop-blur-sm"
+                            >
+                                <BackIcon />
+                            </button>
+                        )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => setShowOptionsMenu(!showOptionsMenu)}
+                            className="flex items-center justify-center size-9 bg-[#232323]/80 rounded-full shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)] cursor-pointer backdrop-blur-sm"
+                        >
+                            <ThreeDotsIcon />
+                        </button>
+                        <button
+                            onClick={handleClose}
+                            className="flex items-center justify-center size-9 bg-[#232323]/80 rounded-full shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)] cursor-pointer backdrop-blur-sm"
+                        >
+                            <CloseIcon />
+                        </button>
+                    </div>
                 </div>
 
                 <div className="relative flex flex-col overflow-y-auto max-h-[90vh] scrollbar-hide" style={{ paddingBottom: showMostrarKard ? '96px' : '32px' }}>
@@ -848,33 +994,6 @@ const ItemDetailModal = ({ transactionId, itemId, isOpen, onClose, onBack }: Ite
                         )}
                         <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(10,10,10,0) 0%, #0a0a0a 40%)' }} />
                         <div className="absolute inset-0 backdrop-blur-[1.5px]" style={{ background: 'linear-gradient(to bottom, rgba(10,10,10,0) 0%, rgba(10,10,10,0.5) 40%)' }} />
-
-                        <div className="absolute top-6 left-6 right-6 flex items-center justify-between z-10">
-                            <div>
-                                {onBack && (
-                                    <button
-                                        onClick={onBack}
-                                        className="flex items-center justify-center size-9 bg-[#232323]/80 rounded-full shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)] cursor-pointer backdrop-blur-sm"
-                                    >
-                                        <BackIcon />
-                                    </button>
-                                )}
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <button
-                                    onClick={() => setShowOptionsMenu(!showOptionsMenu)}
-                                    className="flex items-center justify-center size-9 bg-[#232323]/80 rounded-full shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)] cursor-pointer backdrop-blur-sm"
-                                >
-                                    <ThreeDotsIcon />
-                                </button>
-                                <button
-                                    onClick={handleClose}
-                                    className="flex items-center justify-center size-9 bg-[#232323]/80 rounded-full shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)] cursor-pointer backdrop-blur-sm"
-                                >
-                                    <CloseIcon />
-                                </button>
-                            </div>
-                        </div>
                     </div>
 
                     {isLoading || !transaction || !item ? (
@@ -947,15 +1066,17 @@ const ItemDetailModal = ({ transactionId, itemId, isOpen, onClose, onBack }: Ite
                                 accessTotal={accessTotal}
                             />
 
-                            {canViewQR && item.walletAddress && !showMostrarKard && (
-                                <PassbookCard
-                                    walletAddress={item.walletAddress}
-                                    userId={user?.id || ''}
-                                    clubId={transaction.club.id}
-                                />
+                            {canViewQR && item.walletAddress && !eventPast && (
+                                <div id="mostrar-kard-section">
+                                    <PassbookCard
+                                        walletAddress={item.walletAddress}
+                                        userId={user?.id || ''}
+                                        clubId={transaction.club.id}
+                                    />
+                                </div>
                             )}
 
-                            {!canViewQR && isPurchaser && item.assignedToUserId && (
+                            {!canViewQR && isPurchaser && item.assignedToUserId && !eventPast && (
                                 <div className="flex flex-col items-center gap-3 p-6 bg-[#141414] border-2 border-[#232323] rounded-2xl">
                                     <div className="w-16 h-16 rounded-full bg-[#232323] flex items-center justify-center">
                                         <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
@@ -969,6 +1090,13 @@ const ItemDetailModal = ({ transactionId, itemId, isOpen, onClose, onBack }: Ite
                             )}
 
                             <ActivitySection item={item} />
+
+                            <OrganizerCard club={transaction.club} />
+
+                            <PurchaseDetailCard
+                                transaction={transaction}
+                                item={item}
+                            />
 
                             {transaction.club.address && transaction.club.addressLocation && (
                                 <LocationCard
