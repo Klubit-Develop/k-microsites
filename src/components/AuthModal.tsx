@@ -636,7 +636,7 @@ const AuthModal = ({ isOpen, onClose, onSuccess, eventSlug, checkoutSearchParams
             />
 
             <div
-                className={`relative bg-[#0A0A0A] w-full sm:max-w-[440px] max-h-[90vh] sm:max-h-[85vh] overflow-y-auto rounded-t-[32px] sm:rounded-[32px] border-2 border-[#232323] transition-all duration-200 ease-out ${isAnimating ? 'opacity-100 translate-y-0 sm:scale-100' : 'opacity-0 translate-y-8 sm:scale-95'}`}
+                className={`relative bg-[#0A0A0A] w-full sm:max-w-[440px] max-h-[80vh] sm:max-h-[85vh] overflow-y-auto rounded-t-[32px] sm:rounded-[32px] border-2 border-[#232323] transition-all duration-200 ease-out ${isAnimating ? 'opacity-100 translate-y-0 sm:scale-100' : 'opacity-0 translate-y-8 sm:scale-95'}`}
             >
                 {/* Header */}
                 <div className="sticky top-0 z-10 bg-[#0A0A0A] px-6 pt-6 pb-4">

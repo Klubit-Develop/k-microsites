@@ -244,7 +244,7 @@ const WalletKardsListModal = ({ isOpen, onClose, onKardClick }: WalletKardsListM
             onClick={handleBackdropClick}
         >
             <div
-                className={`relative w-full max-w-[500px] max-h-[90vh] bg-[#0a0a0a] border-2 border-[#232323] rounded-t-[32px] overflow-hidden flex flex-col transition-transform duration-300 ease-out ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}
+                className={`relative w-full max-w-[500px] max-h-[80vh] bg-[#0a0a0a] border-2 border-[#232323] rounded-t-[32px] overflow-hidden flex flex-col transition-transform duration-300 ease-out ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}
             >
                 <div className="absolute top-0 left-0 right-0 z-10 flex justify-center pt-[10px] pb-[6px]">
                     <div className="w-9 h-[5px] bg-[#F6F6F6] opacity-30 rounded-full" />

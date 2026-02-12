@@ -130,10 +130,10 @@ const PassbookModal = ({ isOpen, onClose, walletAddress, userId, clubId, clubNam
             onClick={handleClose}
         >
             <div
-                className={`relative w-full max-w-[500px] max-h-[90vh] bg-[#0a0a0a] border-2 border-[#232323] rounded-t-[32px] overflow-hidden transition-transform duration-300 ease-out ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}
+                className={`relative w-full max-w-[500px] max-h-[80vh] bg-[#0a0a0a] border-2 border-[#232323] rounded-t-[32px] overflow-hidden transition-transform duration-300 ease-out ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}
                 onClick={(e) => e.stopPropagation()}
             >
-                <div className="flex flex-col items-center px-6 pt-4 pb-8 overflow-y-auto max-h-[90vh]">
+                <div className="flex flex-col items-center px-6 pt-4 pb-8 overflow-y-auto max-h-[80vh]">
                     <div className="flex items-center justify-between w-full mb-6">
                         <span className="text-[18px] font-borna font-semibold text-[#F6F6F6]">
                             {t('passbook.title', 'Tu Kard')}

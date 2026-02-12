@@ -336,7 +336,7 @@ const TransactionItemsModal = ({ transactionId, isOpen, onClose }: TransactionIt
             onClick={handleBackdropClick}
         >
             <div
-                className={`relative w-full max-w-[500px] max-h-[90vh] bg-[#0a0a0a] border-2 border-[#232323] rounded-t-[32px] overflow-hidden transition-transform duration-300 ease-out ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}
+                className={`relative w-full max-w-[500px] max-h-[80vh] bg-[#0a0a0a] border-2 border-[#232323] rounded-t-[32px] overflow-hidden transition-transform duration-300 ease-out ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}
             >
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 pt-[5px] z-20">
                     <div className="w-9 h-[5px] bg-[#F6F6F6]/50 rounded-full" />
@@ -351,7 +351,7 @@ const TransactionItemsModal = ({ transactionId, isOpen, onClose }: TransactionIt
                     </button>
                 </div>
 
-                <div className="overflow-y-auto max-h-[90vh] scrollbar-hide">
+                <div className="overflow-y-auto max-h-[80vh] scrollbar-hide">
                     <div className="relative w-full h-[300px] shrink-0">
                         {event?.flyer && (
                             <img

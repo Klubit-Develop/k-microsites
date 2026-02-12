@@ -313,7 +313,7 @@ const ReservationModal = ({
             <div className="absolute inset-0 bg-black/70" />
 
             {/* Modal Content */}
-            <div className="relative bg-[#0A0A0A] border-2 border-[#232323] rounded-t-[32px] sm:rounded-[32px] w-full sm:max-w-[500px] max-h-[90vh] flex flex-col overflow-hidden">
+            <div className="relative bg-[#0A0A0A] border-2 border-[#232323] rounded-t-[32px] sm:rounded-[32px] w-full sm:max-w-[500px] max-h-[80vh] flex flex-col overflow-hidden">
                 {/* Drag indicator (mobile) */}
                 <div className="sm:hidden flex justify-center pt-[12px] pb-[8px]">
                     <div className="w-9 h-[5px] bg-[#F6F6F6] opacity-30 rounded-full" />
