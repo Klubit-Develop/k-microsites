@@ -531,7 +531,7 @@ const KlubKard = ({
     return (
         <div
             onClick={handleClick}
-            className="flex flex-col justify-between w-full h-[210px] p-[24px] rounded-[20px] border-[3px] border-[#232323] cursor-pointer overflow-hidden select-none"
+            className="flex flex-col justify-between w-full h-[250px] p-[24px] rounded-[20px] border-[3px] border-[#232323] cursor-pointer overflow-hidden select-none"
             style={{
                 background: `linear-gradient(to right, ${backgroundColor} 50%, #141414 100%)`,
                 ...tiltStyle,

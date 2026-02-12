@@ -225,7 +225,7 @@ const KlubKardDetail = ({ passbook, onQrClick }: KlubKardDetailProps) => {
 
     return (
         <div
-            className="relative flex flex-col items-start justify-between p-6 w-full max-w-[370px] h-[210px] rounded-2xl border-[3px] border-[#232323] shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)] select-none cursor-grab active:cursor-grabbing"
+            className="relative flex flex-col items-start justify-between p-6 w-full max-w-[370px] h-[250px] rounded-2xl border-[3px] border-[#232323] shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)] select-none cursor-grab active:cursor-grabbing"
             style={{
                 background: `linear-gradient(to right, ${bgColor} 50%, #141414)`,
                 ...tiltStyle,
