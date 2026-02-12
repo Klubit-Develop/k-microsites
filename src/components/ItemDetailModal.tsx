@@ -364,11 +364,13 @@ const AccessProgressBar = ({ remaining, total }: AccessProgressBarProps) => {
     const barColor = isFullyUsed ? '#FF336D' : '#50DD77';
 
     return (
-        <div className="w-full h-[3px] bg-[#232323] rounded-full overflow-hidden mt-1 mx-2 mb-2">
-            <div
-                className="h-full rounded-full transition-all duration-500"
-                style={{ width: `${percentage}%`, backgroundColor: barColor }}
-            />
+        <div className="px-1.5 pb-4 pt-1">
+            <div className="w-full h-[4px] bg-[#232323] rounded-full overflow-hidden">
+                <div
+                    className="h-full rounded-full transition-all duration-500"
+                    style={{ width: `${percentage}%`, backgroundColor: barColor }}
+                />
+            </div>
         </div>
     );
 };
@@ -590,6 +592,27 @@ const PASSBOOK_ICON_URL = 'https://klubit.fra1.cdn.digitaloceanspaces.com/icon.p
 
 const PassbookModal = ({ isOpen, onClose, walletAddress, userId, clubId, clubName, clubLogo, userName }: PassbookModalProps) => {
     const { t } = useTranslation();
+    const [isVisible, setIsVisible] = useState(false);
+    const [isAnimating, setIsAnimating] = useState(false);
+
+    useEffect(() => {
+        if (isOpen) {
+            setIsAnimating(true);
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    setIsVisible(true);
+                });
+            });
+        }
+    }, [isOpen]);
+
+    const handleClose = () => {
+        setIsVisible(false);
+        setTimeout(() => {
+            setIsAnimating(false);
+            onClose();
+        }, 300);
+    };
 
     const { data: passbookConfig } = useQuery({
         queryKey: ['passbookConfig', clubId],
@@ -630,15 +653,15 @@ const PassbookModal = ({ isOpen, onClose, walletAddress, userId, clubId, clubNam
     const stripUrl = passbookConfig?.stripUrl || PASSBOOK_STRIP_URL;
     const kardLevel = existingPassbook?.kardLevel || 'Member';
 
-    if (!isOpen) return null;
+    if (!isAnimating && !isOpen) return null;
 
     return createPortal(
         <div
-            className="fixed inset-0 z-[60] flex items-end justify-center bg-black/60 backdrop-blur-sm"
-            onClick={onClose}
+            className={`fixed inset-0 z-[60] flex items-end justify-center transition-all duration-300 ease-out ${isVisible ? 'bg-black/60 backdrop-blur-sm' : 'bg-transparent'}`}
+            onClick={handleClose}
         >
             <div
-                className="relative w-full max-w-[500px] max-h-[90vh] bg-[#0a0a0a] border-2 border-[#232323] rounded-t-[32px] overflow-hidden"
+                className={`relative w-full max-w-[500px] max-h-[90vh] bg-[#0a0a0a] border-2 border-[#232323] rounded-t-[32px] overflow-hidden transition-transform duration-300 ease-out ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}
                 onClick={(e) => e.stopPropagation()}
             >
                 <div className="absolute inset-x-0 top-0 h-[489px] pointer-events-none">
@@ -653,7 +676,7 @@ const PassbookModal = ({ isOpen, onClose, walletAddress, userId, clubId, clubNam
 
                 <div className="absolute top-6 right-6 z-20">
                     <button
-                        onClick={(e) => { e.stopPropagation(); onClose(); }}
+                        onClick={(e) => { e.stopPropagation(); handleClose(); }}
                         className="flex items-center justify-center size-9 bg-[#232323] rounded-full shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)] cursor-pointer"
                     >
                         <CloseIcon />
@@ -849,22 +872,101 @@ const PurchaseDetailCard = ({ transaction, item }: PurchaseDetailCardProps) => {
 };
 
 const ModalSkeleton = () => (
-    <div className="flex flex-col gap-6 w-full animate-pulse">
-        <div className="relative w-full h-[300px] bg-[#232323] rounded-b-none" />
-        <div className="flex flex-col items-center gap-2 px-6">
-            <div className="h-7 w-48 bg-[#232323] rounded" />
-            <div className="h-4 w-32 bg-[#232323] rounded" />
-            <div className="h-4 w-24 bg-[#232323] rounded" />
+    <div className="flex flex-col gap-8 px-6 -mt-20 relative z-10 pb-8 animate-pulse">
+        <div className="flex flex-col items-center gap-[2px] pt-4">
+            <div className="h-7 w-[260px] bg-[#232323] rounded-lg" />
+            <div className="h-4 w-[160px] bg-[#232323] rounded mt-1" />
+            <div className="h-4 w-[200px] bg-[#232323] rounded mt-1" />
         </div>
-        <div className="flex gap-2 justify-center px-6">
-            <div className="h-8 w-20 bg-[#232323] rounded-full" />
-            <div className="h-8 w-24 bg-[#232323] rounded-full" />
-            <div className="h-8 w-20 bg-[#232323] rounded-full" />
+
+        <div className="flex gap-2 justify-center flex-wrap">
+            <div className="h-[30px] w-[70px] bg-[#232323] rounded-full" />
+            <div className="h-[30px] w-[90px] bg-[#232323] rounded-full" />
+            <div className="h-[30px] w-[75px] bg-[#232323] rounded-full" />
+            <div className="h-[30px] w-[60px] bg-[#232323] rounded-full" />
         </div>
-        <div className="flex flex-col gap-2 px-6">
-            <div className="h-5 w-16 bg-[#232323] rounded" />
-            <div className="h-[200px] w-full bg-[#232323] rounded-2xl" />
+
+        <div className="flex flex-col gap-1 w-full">
+            <div className="h-5 w-[60px] bg-[#232323] rounded ml-1.5 mb-1" />
+            <div className="flex flex-col bg-[#141414] border-2 border-[#232323] rounded-2xl overflow-hidden shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)] px-2">
+                <div className="flex items-center justify-between px-2 py-3 border-b-[1.5px] border-[#232323]">
+                    <div className="h-5 w-[140px] bg-[#232323] rounded" />
+                    <div className="h-7 w-[52px] bg-[#232323] rounded-full" />
+                </div>
+                <div className="flex items-center justify-between px-2 py-3 border-b-[1.5px] border-[#232323]">
+                    <div className="h-4 w-[80px] bg-[#232323] rounded" />
+                    <div className="h-4 w-[120px] bg-[#232323] rounded" />
+                </div>
+                <div className="flex items-center justify-between px-2 py-3 border-b-[1.5px] border-[#232323]">
+                    <div className="h-4 w-[70px] bg-[#232323] rounded" />
+                    <div className="h-4 w-[100px] bg-[#232323] rounded" />
+                </div>
+                <div className="flex items-center justify-between px-2 py-3">
+                    <div className="h-5 w-[160px] bg-[#232323] rounded" />
+                    <div className="h-5 w-[40px] bg-[#232323] rounded" />
+                </div>
+                <div className="px-6 pb-4 pt-1">
+                    <div className="w-full h-[4px] bg-[#232323] rounded-full" />
+                </div>
+            </div>
         </div>
+
+        <div className="flex flex-col gap-1 w-full">
+            <div className="h-5 w-[140px] bg-[#232323] rounded ml-1.5 mb-1" />
+            <div className="flex flex-col bg-[#141414] border-2 border-[#232323] rounded-2xl overflow-hidden shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)] px-2">
+                <div className="flex items-center justify-between px-2 py-3 border-b-[1.5px] border-[#232323]">
+                    <div className="h-4 w-[100px] bg-[#232323] rounded" />
+                    <div className="h-4 w-[80px] bg-[#232323] rounded" />
+                </div>
+                <div className="flex items-center justify-between px-2 py-3">
+                    <div className="h-4 w-[90px] bg-[#232323] rounded" />
+                    <div className="h-4 w-[60px] bg-[#232323] rounded" />
+                </div>
+            </div>
+        </div>
+
+        <div className="flex flex-col gap-1 w-full">
+            <div className="h-5 w-[100px] bg-[#232323] rounded ml-1.5 mb-1" />
+            <div className="flex items-center gap-3 p-3 bg-[#141414] border-2 border-[#232323] rounded-2xl shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)]">
+                <div className="size-[54px] rounded-full bg-[#232323] shrink-0" />
+                <div className="flex flex-col gap-1.5 flex-1">
+                    <div className="h-5 w-[120px] bg-[#232323] rounded" />
+                    <div className="h-4 w-[80px] bg-[#232323] rounded" />
+                </div>
+            </div>
+        </div>
+
+        <div className="flex flex-col gap-1 w-full">
+            <div className="h-5 w-[120px] bg-[#232323] rounded ml-1.5 mb-1" />
+            <div className="flex flex-col bg-[#141414] border-2 border-[#232323] rounded-2xl overflow-hidden shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)] px-2">
+                <div className="flex items-center justify-between px-2 py-3 border-b-[1.5px] border-[#232323]">
+                    <div className="h-4 w-[60px] bg-[#232323] rounded" />
+                    <div className="h-4 w-[70px] bg-[#232323] rounded" />
+                </div>
+                <div className="flex items-center justify-between px-2 py-3 border-b-[1.5px] border-[#232323]">
+                    <div className="h-4 w-[110px] bg-[#232323] rounded" />
+                    <div className="h-4 w-[80px] bg-[#232323] rounded" />
+                </div>
+                <div className="flex items-center justify-between px-2 py-3 border-b-[1.5px] border-[#232323]">
+                    <div className="h-4 w-[130px] bg-[#232323] rounded" />
+                    <div className="h-4 w-[90px] bg-[#232323] rounded" />
+                </div>
+                <div className="flex items-center justify-between px-2 py-3">
+                    <div className="h-4 w-[80px] bg-[#232323] rounded" />
+                    <div className="h-4 w-[100px] bg-[#232323] rounded" />
+                </div>
+            </div>
+        </div>
+
+        <div className="flex flex-col gap-4 w-full">
+            <div className="h-7 w-[100px] bg-[#232323] rounded ml-1.5" />
+            <div className="flex flex-col gap-3 p-3 bg-[#141414] border-2 border-[#232323] rounded-2xl shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)]">
+                <div className="w-full h-[224px] bg-[#1a1a1a] rounded-sm" />
+                <div className="h-4 w-[200px] bg-[#232323] rounded ml-1.5" />
+            </div>
+        </div>
+
+        <div className="h-4 w-[260px] bg-[#232323] rounded ml-1.5" />
     </div>
 );
 
