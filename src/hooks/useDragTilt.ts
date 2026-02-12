@@ -4,10 +4,10 @@ interface DragTiltOptions {
     maxRotation?: number;
     sensitivity?: number;
     springDuration?: number;
+    dragThreshold?: number;
 }
 
 interface DragTiltResult {
-    ref: React.RefObject<HTMLDivElement | null>;
     style: React.CSSProperties;
     handlers: {
         onPointerDown: (e: React.PointerEvent) => void;
@@ -15,16 +15,19 @@ interface DragTiltResult {
         onPointerUp: (e: React.PointerEvent) => void;
         onPointerLeave: (e: React.PointerEvent) => void;
     };
+    wasDragged: () => boolean;
 }
 
 const useDragTilt = ({
     maxRotation = 15,
     sensitivity = 0.15,
     springDuration = 400,
+    dragThreshold = 6,
 }: DragTiltOptions = {}): DragTiltResult => {
-    const ref = useRef<HTMLDivElement>(null);
     const isDragging = useRef(false);
     const startX = useRef(0);
+    const dragDistance = useRef(0);
+    const wasDraggedRef = useRef(false);
     const [rotation, setRotation] = useState(0);
     const [isAnimating, setIsAnimating] = useState(false);
 
@@ -34,31 +37,39 @@ const useDragTilt = ({
     const handlePointerDown = useCallback((e: React.PointerEvent) => {
         isDragging.current = true;
         startX.current = e.clientX;
+        dragDistance.current = 0;
+        wasDraggedRef.current = false;
         setIsAnimating(false);
-        (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
+        (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
     }, []);
 
     const handlePointerMove = useCallback((e: React.PointerEvent) => {
         if (!isDragging.current) return;
         const deltaX = e.clientX - startX.current;
+        dragDistance.current = Math.abs(deltaX);
+        if (dragDistance.current > dragThreshold) {
+            wasDraggedRef.current = true;
+        }
         const rotateY = clamp(deltaX * sensitivity, -maxRotation, maxRotation);
         setRotation(rotateY);
-    }, [maxRotation, sensitivity]);
+    }, [maxRotation, sensitivity, dragThreshold]);
 
-    const release = useCallback(() => {
+    const release = useCallback((e?: React.PointerEvent) => {
         if (!isDragging.current) return;
         isDragging.current = false;
+        if (e) {
+            (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+        }
         setIsAnimating(true);
         setRotation(0);
     }, []);
 
     const handlePointerUp = useCallback((e: React.PointerEvent) => {
-        (e.target as HTMLElement).releasePointerCapture?.(e.pointerId);
-        release();
+        release(e);
     }, [release]);
 
-    const handlePointerLeave = useCallback(() => {
-        release();
+    const handlePointerLeave = useCallback((e: React.PointerEvent) => {
+        release(e);
     }, [release]);
 
     useEffect(() => {
@@ -76,8 +87,9 @@ const useDragTilt = ({
         touchAction: 'pan-y',
     };
 
+    const wasDragged = useCallback(() => wasDraggedRef.current, []);
+
     return {
-        ref,
         style,
         handlers: {
             onPointerDown: handlePointerDown,
@@ -85,6 +97,7 @@ const useDragTilt = ({
             onPointerUp: handlePointerUp,
             onPointerLeave: handlePointerLeave,
         },
+        wasDragged,
     };
 };
 

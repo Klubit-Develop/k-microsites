@@ -15,6 +15,7 @@ import EmptyUpcomingEvents from '@/components/EmptyUpcomingEvents';
 import WalletEventCard from '@/components/WalletEventCard';
 import WalletEventsListModal from '@/components/WalletEventsListModal';
 import WalletKardsListModal from '@/components/WalletKardsListModal';
+import useDragTilt from '@/hooks/useDragTilt';
 
 interface Transaction {
     id: string;
@@ -516,13 +517,34 @@ const KlubKard = ({
     const { t } = useTranslation();
     const venueLabel = getVenueTypeLabel(venueType, t);
 
+    const { style: tiltStyle, handlers, wasDragged } = useDragTilt({
+        maxRotation: 18,
+        sensitivity: 0.12,
+        springDuration: 450,
+    });
+
+    const handleClick = () => {
+        if (wasDragged()) return;
+        onClick();
+    };
+
     return (
-        <button
-            onClick={onClick}
-            className="flex flex-col justify-between w-full h-[210px] p-[24px] rounded-[20px] border-[3px] border-[#232323] cursor-pointer overflow-hidden"
+        <div
+            onClick={handleClick}
+            className="flex flex-col justify-between w-full h-[210px] p-[24px] rounded-[20px] border-[3px] border-[#232323] cursor-pointer overflow-hidden select-none"
             style={{
                 background: `linear-gradient(to right, ${backgroundColor} 50%, #141414 100%)`,
+                ...tiltStyle,
             }}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onClick();
+                }
+            }}
+            {...handlers}
         >
             <div
                 className="relative size-[54px] rounded-full border-[1.5px] border-[#232323] overflow-hidden shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)] shrink-0"
@@ -532,7 +554,7 @@ const KlubKard = ({
                     <img
                         src={clubLogo}
                         alt={clubName}
-                        className="absolute inset-0 w-full h-full object-cover"
+                        className="absolute inset-0 w-full h-full object-cover pointer-events-none"
                     />
                 ) : (
                     <div className="absolute inset-0 flex items-center justify-center">
@@ -557,7 +579,7 @@ const KlubKard = ({
                     </span>
                 )}
             </div>
-        </button>
+        </div>
     );
 };
 
