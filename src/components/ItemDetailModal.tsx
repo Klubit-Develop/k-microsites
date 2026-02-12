@@ -359,8 +359,7 @@ interface AccessProgressBarProps {
 }
 
 const AccessProgressBar = ({ remaining, total }: AccessProgressBarProps) => {
-    const used = total - remaining;
-    const percentage = total > 0 ? (used / total) * 100 : 0;
+    const percentage = total > 0 ? (remaining / total) * 100 : 0;
     const isFullyUsed = remaining <= 0;
     const barColor = isFullyUsed ? '#FF336D' : '#50DD77';
 
