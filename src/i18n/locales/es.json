@@ -333,7 +333,7 @@
     "wallet": {
         "event_live": "Evento en curso",
         "today": "Hoy",
-        "upcoming": "Próximos",
+        "upcoming": "Próximos eventos",
         "past": "Pasados",
         "empty_title": "Tu wallet está vacía",
         "empty_description": "Cuando compres entradas, aparecerán aquí",
@@ -353,7 +353,7 @@
         "delivered": "Entregado",
         "qr_transferred": "Esta entrada ya está en la wallet del destinatario",
         "your_kards": "Tus kards",
-        "klub_kards": "Klub Kards"
+        "klub_kards": "Kards"
     },
     "transaction": {
         "my_tickets": "Mis entradas",

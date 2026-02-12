@@ -353,7 +353,7 @@
         "delivered": "Delivered",
         "qr_transferred": "This ticket is already in the recipient's wallet",
         "your_kards": "Your kards",
-        "klub_kards": "Klub Kards"
+        "klub_kards": "Kards"
     },
     "transaction": {
         "my_tickets": "My tickets",

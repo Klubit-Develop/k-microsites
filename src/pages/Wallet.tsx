@@ -568,25 +568,34 @@ interface KlubKardProps {
     clubLogo: string;
     venueType: VenueType;
     backgroundColor: string;
+    foregroundColor: string;
+    labelColor: string;
     onClick: () => void;
 }
 
-const KlubKard = ({ clubName, clubLogo, venueType, backgroundColor, onClick }: KlubKardProps) => {
+const KlubKard = ({
+    clubName,
+    clubLogo,
+    venueType,
+    backgroundColor,
+    foregroundColor,
+    labelColor,
+    onClick,
+}: KlubKardProps) => {
     const { t } = useTranslation();
     const venueLabel = getVenueTypeLabel(venueType, t);
 
     return (
         <button
             onClick={onClick}
-            className="flex items-center gap-3 p-3 shrink-0 w-[340px] rounded-2xl border-2 border-[#232323] snap-start cursor-pointer"
-            style={{ backgroundColor }}
+            className="flex flex-col justify-between w-full h-[210px] p-[24px] rounded-[20px] border-[3px] border-[#232323] cursor-pointer overflow-hidden"
+            style={{
+                background: `linear-gradient(to right, ${backgroundColor} 50%, #141414 100%)`,
+            }}
         >
             <div
-                className="relative size-[42px] rounded-full overflow-hidden shrink-0"
-                style={{
-                    backgroundColor: 'rgba(35, 35, 35, 0.5)',
-                    boxShadow: '0px 0px 12px 0px rgba(0, 0, 0, 0.5)'
-                }}
+                className="relative size-[54px] rounded-full border-[1.5px] border-[#232323] overflow-hidden shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)] shrink-0"
+                style={{ backgroundColor }}
             >
                 {clubLogo ? (
                     <img
@@ -601,12 +610,18 @@ const KlubKard = ({ clubName, clubLogo, venueType, backgroundColor, onClick }: K
                 )}
             </div>
 
-            <div className="flex flex-col items-start w-full text-left">
-                <h3 className="text-[24px] font-borna font-semibold text-[#F6F6F6] leading-none truncate w-full">
+            <div className="flex flex-col items-start gap-0 w-full min-w-0">
+                <h3
+                    className="text-[24px] font-borna font-semibold leading-normal truncate w-full text-left"
+                    style={{ color: foregroundColor }}
+                >
                     {clubName}
                 </h3>
                 {venueLabel && (
-                    <span className="text-[14px] font-helvetica text-[#939393]">
+                    <span
+                        className="text-[14px] font-helvetica leading-normal text-left"
+                        style={{ color: labelColor }}
+                    >
                         {venueLabel}
                     </span>
                 )}
@@ -944,11 +959,11 @@ const KardsCarousel = ({ kards, onKardClick }: KardsCarouselProps) => {
 
     useEffect(() => {
         const scrollContainer = scrollRef.current;
-        if (!scrollContainer) return;
+        if (!scrollContainer || kards.length <= 1) return;
 
         const handleScroll = () => {
             const scrollLeft = scrollContainer.scrollLeft;
-            const cardWidth = 340 + 8;
+            const cardWidth = scrollContainer.offsetWidth;
             const newIndex = Math.round(scrollLeft / cardWidth);
             setCurrentIndex(Math.min(newIndex, kards.length - 1));
         };
@@ -961,6 +976,21 @@ const KardsCarousel = ({ kards, onKardClick }: KardsCarouselProps) => {
         if (kards.length > 3) {
             navigate({ to: '/wallet/kards' });
         }
+    };
+
+    const renderKard = (passbook: UserPassbook) => {
+        const config = passbook.club.passbookConfig;
+        return (
+            <KlubKard
+                clubName={passbook.club.name}
+                clubLogo={passbook.club.logo}
+                venueType={passbook.club.venueType}
+                backgroundColor={config?.backgroundColor || '#141414'}
+                foregroundColor={config?.foregroundColor || '#F6F6F6'}
+                labelColor={config?.labelColor || '#939393'}
+                onClick={() => onKardClick(passbook)}
+            />
+        );
     };
 
     return (
@@ -980,27 +1010,26 @@ const KardsCarousel = ({ kards, onKardClick }: KardsCarouselProps) => {
                 )}
             </button>
 
-            <div className="flex flex-col gap-2 items-center w-full">
-                <div className="relative w-full -mx-4">
-                    <div
-                        ref={scrollRef}
-                        className="flex gap-2 overflow-x-auto px-4 snap-x snap-mandatory [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
-                    >
-                        {kards.map((passbook) => (
-                            <KlubKard
-                                key={passbook.id}
-                                clubName={passbook.club.name}
-                                clubLogo={passbook.club.logo}
-                                venueType={passbook.club.venueType}
-                                backgroundColor={passbook.club.passbookConfig?.backgroundColor || '#141414'}
-                                onClick={() => onKardClick(passbook)}
-                            />
-                        ))}
+            {kards.length === 1 ? (
+                renderKard(kards[0])
+            ) : (
+                <div className="flex flex-col gap-2 items-center w-full">
+                    <div className="relative w-full -mx-4">
+                        <div
+                            ref={scrollRef}
+                            className="flex gap-3 overflow-x-auto px-4 snap-x snap-mandatory [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+                        >
+                            {kards.map((passbook) => (
+                                <div key={passbook.id} className="shrink-0 w-full snap-center">
+                                    {renderKard(passbook)}
+                                </div>
+                            ))}
+                        </div>
                     </div>
-                </div>
 
-                <PageDots total={kards.length} current={currentIndex} />
-            </div>
+                    <PageDots total={kards.length} current={currentIndex} />
+                </div>
+            )}
         </div>
     );
 };
