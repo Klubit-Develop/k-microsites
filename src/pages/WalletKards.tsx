@@ -4,7 +4,7 @@ import 'dayjs/locale/es';
 import 'dayjs/locale/en';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
-import { useNavigate, useParams } from '@tanstack/react-router';
+import { useParams } from '@tanstack/react-router';
 
 import axiosInstance from '@/config/axiosConfig';
 import { useAuthStore } from '@/stores/authStore';
@@ -13,6 +13,7 @@ import WalletEventCard, { WalletEventCardSkeleton } from '@/components/WalletEve
 import TransactionItemsModal from '@/components/TransactionItemsModal';
 import WalletEventsListModal from '@/components/WalletEventsListModal';
 import PassbookModal from '@/components/PassbookModal';
+import useDragTilt from '@/hooks/useDragTilt';
 
 type KardLevel = 'MEMBER' | 'BRONZE' | 'SILVER' | 'GOLD';
 type VenueType = 'CLUB' | 'PUB' | 'BAR' | 'LOUNGE' | 'RESTAURANT' | 'PROMOTER' | 'OTHER';
@@ -216,19 +217,27 @@ const KlubKardDetail = ({ passbook, onQrClick }: KlubKardDetailProps) => {
     const bgColor = passbook.club.passbookConfig?.backgroundColor || '#033f3e';
     const venueLabel = getVenueTypeLabel(passbook.club.venueType, t);
 
+    const { style: tiltStyle, handlers } = useDragTilt({
+        maxRotation: 18,
+        sensitivity: 0.12,
+        springDuration: 450,
+    });
+
     return (
         <div
-            className="relative flex flex-col items-start justify-between p-6 w-full max-w-[370px] h-[210px] rounded-2xl border-[3px] border-[#232323] shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)]"
+            className="relative flex flex-col items-start justify-between p-6 w-full max-w-[370px] h-[210px] rounded-2xl border-[3px] border-[#232323] shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)] select-none cursor-grab active:cursor-grabbing"
             style={{
                 background: `linear-gradient(to right, ${bgColor} 50%, #141414)`,
+                ...tiltStyle,
             }}
+            {...handlers}
         >
             <div className="relative w-[50px] h-[50px] rounded-full border-2 border-[#232323] overflow-hidden shadow-[0px_0px_11px_0px_rgba(0,0,0,0.5)]">
                 {passbook.club.logo ? (
                     <img
                         src={passbook.club.logo}
                         alt={passbook.club.name}
-                        className="absolute inset-0 w-full h-full object-cover"
+                        className="absolute inset-0 w-full h-full object-cover pointer-events-none"
                     />
                 ) : (
                     <div className="absolute inset-0 flex items-center justify-center bg-[#232323]">
@@ -329,7 +338,7 @@ const BenefitsSkeleton = () => (
 const WalletKards = () => {
     const { t, i18n } = useTranslation();
     const locale = i18n.language === 'en' ? 'en' : 'es';
-    const navigate = useNavigate();
+
     const { user } = useAuthStore();
     const { idKard } = useParams({ from: '/_authenticated/wallet/kards/$idKard' });
 
@@ -544,6 +553,8 @@ const WalletKards = () => {
                     clubName={passbook.club.name}
                     clubLogo={passbook.club.logo}
                     userName={`${user?.firstName || ''} ${user?.lastName || ''}`.trim()}
+                    passbookUrl={passbook.passbookUrl}
+                    googleWalletUrl={passbook.googleWalletUrl}
                 />
             )}
         </div>
