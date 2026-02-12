@@ -393,7 +393,7 @@ const Home = () => {
             return (
                 <div className={`flex flex-col gap-4 items-start w-full`}>
                     <div className="flex gap-2 items-center px-1.5 w-full">
-                        <h2 className="text-[#ff336d] text-[20px] font-semibold leading-normal whitespace-nowrap overflow-hidden text-ellipsis font-borna">
+                        <h2 className="text-[#ff336d] text-[24px] font-semibold leading-normal whitespace-nowrap overflow-hidden text-ellipsis font-borna">
                             {t('events.upcoming', 'Próximos eventos')}
                         </h2>
                     </div>

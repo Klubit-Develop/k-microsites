@@ -30,7 +30,7 @@ const EmptyUpcomingEvents = ({
                 </div>
 
                 <div className="flex flex-col gap-[8px] items-center px-[16px] text-center w-full">
-                    <p className="text-[#f6f6f6] text-[20px] font-semibold leading-normal w-full font-borna">
+                    <p className="text-[#f6f6f6] text-[24px] font-semibold leading-normal w-full font-borna">
                         {displayTitle}
                     </p>
                     <p className="text-[#939393] text-[16px] font-medium leading-[24px] w-full font-borna">
