@@ -430,14 +430,32 @@
         "activity": "Activity",
         "no_activity": "No activity yet for this rate",
         "access_validated": "Access validated",
-        "direction": "Direction",
+        "access_denied_short": "Access denied",
+        "access_denied": "This access has been denied and it will no longer be possible to access the event with it",
+        "access_sent": "Access sent",
+        "access_sent_to": "Access sent to",
+        "out_of_hours": "Out of schedule",
+        "direction": "Address",
         "event_cancelled": "Event cancelled",
         "event_finished": "Event finished",
         "guestlist_disclaimer": "Guestlists do not guarantee access. It is subject to capacity and venue criteria.",
-        "access_denied": "This access has been denied and it will no longer be possible to access the event with it",
         "rate_options": "Rate options",
         "report_incident": "Report incident",
         "hide_activity": "Hide from my activity",
-        "add_to_calendar": "Add to calendar"
+        "add_to_calendar": "Add to calendar",
+        "terms_prefix": "See the",
+        "terms_link": "Terms of use and conditions",
+        "terms_suffix": " of the rate.",
+        "organizer": "Organizer",
+        "purchase_detail": "Purchase detail",
+        "price": "Price",
+        "payment_status": "Payment status",
+        "purchase_date": "Purchase date",
+        "reference": "Reference"
+    },
+    "passbook": {
+        "club_name_label": "CLUB NAME",
+        "full_name": "FULL NAME",
+        "kard_label": "KARD"
     }
 }

@@ -1,15 +1,17 @@
 import { useState, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import dayjs from 'dayjs';
 import 'dayjs/locale/es';
 import 'dayjs/locale/en';
-import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import { QRCodeSVG } from 'qrcode.react';
+import { toast } from 'sonner';
 
 import axiosInstance from '@/config/axiosConfig';
 import LocationCard from '@/components/LocationCard';
+import IncidentModal from '@/components/IncidentModal';
 import { useAuthStore } from '@/stores/authStore';
 
 interface TransactionItem {
@@ -573,87 +575,160 @@ const ActivitySection = ({ item }: ActivitySectionProps) => {
     );
 };
 
-interface PassbookCardProps {
+interface PassbookModalProps {
+    isOpen: boolean;
+    onClose: () => void;
     walletAddress: string;
     userId: string;
     clubId: string;
+    clubName: string;
+    clubLogo: string;
+    userName: string;
 }
 
-const PassbookCard = ({ walletAddress, userId, clubId }: PassbookCardProps) => {
-    const { t, i18n } = useTranslation();
-    const isSpanish = i18n.language === 'es';
-    const [useAppleWallet, setUseAppleWallet] = useState(false);
-    const [isDetecting, setIsDetecting] = useState(true);
+const PASSBOOK_STRIP_URL = 'https://klubit.fra1.cdn.digitaloceanspaces.com/strip.png';
+const PASSBOOK_ICON_URL = 'https://klubit.fra1.cdn.digitaloceanspaces.com/icon.png';
 
-    useEffect(() => {
-        const ua = navigator.userAgent;
-        const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-        setUseAppleWallet(isIOS);
-        setIsDetecting(false);
-    }, []);
+const PassbookModal = ({ isOpen, onClose, walletAddress, userId, clubId, clubName, clubLogo, userName }: PassbookModalProps) => {
+    const { t } = useTranslation();
 
-    const handleAddToWallet = async () => {
-        try {
-            if (useAppleWallet) {
-                const response = await axiosInstance.get(
-                    `/v2/passbook/${walletAddress}/apple?clubId=${clubId}`,
-                    { responseType: 'blob' }
-                );
-                const blob = new Blob([response.data], { type: 'application/vnd.apple.pkpass' });
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `klubit-pass.pkpass`;
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-                document.body.removeChild(a);
-            } else {
-                const response = await axiosInstance.get(
-                    `/v2/passbook/${walletAddress}/google?clubId=${clubId}`
-                );
-                const data = response.data?.data;
-                const saveUrl = data?.saveUrl || data?.url;
-                if (saveUrl) {
-                    window.open(saveUrl, '_blank');
-                }
+    const { data: passbookConfig } = useQuery({
+        queryKey: ['passbookConfig', clubId],
+        queryFn: async () => {
+            const response = await axiosInstance.get(`/v2/wallet/clubs/${clubId}/config`);
+            if (response.data?.status === 'success') {
+                return response.data.data.config as {
+                    backgroundColor?: string;
+                    foregroundColor?: string;
+                    labelColor?: string;
+                    stripUrl?: string;
+                };
             }
-        } catch {
-            toast.error(t('transaction.passbook_error', 'Error generando pass'));
-        }
-    };
+            return null;
+        },
+        enabled: isOpen && !!clubId,
+        staleTime: 5 * 60 * 1000,
+    });
 
-    return (
-        <div className="flex flex-col gap-3 w-full items-center">
-            <div className="w-full max-w-[200px] aspect-square bg-white rounded-2xl p-3 flex items-center justify-center">
-                <QRCodeSVG
-                    value={walletAddress}
-                    size={176}
-                    level="H"
-                    bgColor="transparent"
-                />
-            </div>
-            <button
-                onClick={handleAddToWallet}
-                className="flex items-center justify-center cursor-pointer"
+    const { data: existingPassbook } = useQuery({
+        queryKey: ['userPassbook', userId, clubId],
+        queryFn: async () => {
+            const response = await axiosInstance.get(`/v2/wallet/user/${userId}/club/${clubId}`);
+            if (response.data?.status === 'success') {
+                return response.data.data as {
+                    kardLevel?: string;
+                };
+            }
+            return null;
+        },
+        enabled: isOpen && !!userId && !!clubId,
+        staleTime: 5 * 60 * 1000,
+    });
+
+    const bgColor = passbookConfig?.backgroundColor || '#141414';
+    const fgColor = passbookConfig?.foregroundColor || '#FFFFFF';
+    const lblColor = passbookConfig?.labelColor || '#E5FF88';
+    const stripUrl = passbookConfig?.stripUrl || PASSBOOK_STRIP_URL;
+    const kardLevel = existingPassbook?.kardLevel || 'Member';
+
+    if (!isOpen) return null;
+
+    return createPortal(
+        <div
+            className="fixed inset-0 z-[60] flex items-end justify-center bg-black/60 backdrop-blur-sm"
+            onClick={onClose}
+        >
+            <div
+                className="relative w-full max-w-[500px] max-h-[90vh] bg-[#0a0a0a] border-2 border-[#232323] rounded-t-[32px] overflow-hidden"
+                onClick={(e) => e.stopPropagation()}
             >
-                {isDetecting ? (
-                    <div className="w-[156px] h-[48px] bg-[#232323] rounded-md animate-pulse" />
-                ) : useAppleWallet ? (
-                    <img
-                        src={isSpanish ? '/assets/images/apple_es.svg' : '/assets/images/apple_en.svg'}
-                        alt={t('transaction.add_to_apple_wallet', 'Add to Apple Wallet')}
-                        className="h-[48px] w-auto"
-                    />
-                ) : (
-                    <img
-                        src={isSpanish ? '/assets/images/google_es.svg' : '/assets/images/google_en.svg'}
-                        alt={t('transaction.add_to_google_wallet', 'Add to Google Wallet')}
-                        className="h-[55px] w-auto"
-                    />
-                )}
-            </button>
-        </div>
+                <div className="absolute inset-x-0 top-0 h-[489px] pointer-events-none">
+                    <div className="absolute inset-0" style={{ backgroundColor: bgColor }} />
+                    <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(10,10,10,0) 0%, #0a0a0a 40%)' }} />
+                    <div className="absolute inset-0 backdrop-blur-[1.5px]" style={{ background: 'linear-gradient(to bottom, rgba(10,10,10,0) 0%, rgba(10,10,10,0.5) 40%)' }} />
+                </div>
+
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 pt-[5px] opacity-50 z-10">
+                    <div className="w-9 h-[5px] bg-[#F6F6F6]/50 rounded-full" />
+                </div>
+
+                <div className="absolute top-6 right-6 z-20">
+                    <button
+                        onClick={(e) => { e.stopPropagation(); onClose(); }}
+                        className="flex items-center justify-center size-9 bg-[#232323] rounded-full shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)] cursor-pointer"
+                    >
+                        <CloseIcon />
+                    </button>
+                </div>
+
+                <div className="relative z-10 flex flex-col items-center px-6 pt-[84px] pb-10">
+                    <div className="w-full max-w-[342px] rounded-[11px] overflow-hidden border border-[rgba(0,0,0,0.16)]" style={{ backgroundColor: bgColor }}>
+                        <div className="flex items-center justify-between px-4 py-3">
+                            <div className="size-7 rounded-full border-[1.15px] border-[#232323] overflow-hidden shadow-[0px_0px_6.37px_0px_rgba(0,0,0,0.5)]">
+                                {clubLogo ? (
+                                    <img src={clubLogo} alt={clubName} className="w-full h-full object-cover" />
+                                ) : (
+                                    <div className="w-full h-full bg-[#323232]" />
+                                )}
+                            </div>
+                            <div className="flex flex-col items-end text-right">
+                                <span className="text-[10.5px] font-semibold uppercase tracking-wide" style={{ color: lblColor, fontFamily: "'SF Pro Text', sans-serif" }}>
+                                    {t('passbook.club_name_label', 'NOMBRE KLUB')}
+                                </span>
+                                <span className="text-[20px]" style={{ color: fgColor, fontFamily: "'SF Pro Display', sans-serif" }}>
+                                    {clubName}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="relative w-full h-[118px] overflow-hidden">
+                            <img
+                                src={stripUrl}
+                                alt=""
+                                className="absolute inset-0 w-full h-full object-cover"
+                            />
+                        </div>
+
+                        <div className="flex items-start justify-between px-4 py-3">
+                            <div className="flex flex-col">
+                                <span className="text-[10.5px] font-semibold uppercase tracking-wide" style={{ color: lblColor, fontFamily: "'SF Pro Text', sans-serif" }}>
+                                    {t('passbook.full_name', 'NOMBRE COMPLETO')}
+                                </span>
+                                <span className="text-[20px]" style={{ color: fgColor, fontFamily: "'SF Pro Display', sans-serif" }}>
+                                    {userName}
+                                </span>
+                            </div>
+                            <div className="flex flex-col items-end text-right">
+                                <span className="text-[10.5px] font-semibold uppercase tracking-wide" style={{ color: lblColor, fontFamily: "'SF Pro Text', sans-serif" }}>
+                                    {t('passbook.kard_label', 'KARD')}
+                                </span>
+                                <span className="text-[20px]" style={{ color: fgColor, fontFamily: "'SF Pro Display', sans-serif" }}>
+                                    {kardLevel}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center justify-center py-4">
+                            <div className="bg-white rounded-[5px] p-3">
+                                <QRCodeSVG
+                                    value={walletAddress}
+                                    size={120}
+                                    level="H"
+                                    bgColor="transparent"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="flex items-center px-1.5 pb-1.5">
+                            <div className="size-5 rounded-[6.44px] overflow-hidden">
+                                <img src={PASSBOOK_ICON_URL} alt="Klubit" className="w-full h-full object-cover" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>,
+        document.body
     );
 };
 
@@ -797,11 +872,14 @@ const ModalSkeleton = () => (
 const ItemDetailModal = ({ transactionId, itemId, isOpen, onClose, onBack }: ItemDetailModalProps) => {
     const { t, i18n } = useTranslation();
     const { user } = useAuthStore();
+    const queryClient = useQueryClient();
     const locale = i18n.language === 'en' ? 'en' : 'es';
 
     const [isVisible, setIsVisible] = useState(false);
     const [isAnimating, setIsAnimating] = useState(false);
     const [showOptionsMenu, setShowOptionsMenu] = useState(false);
+    const [showPassbookModal, setShowPassbookModal] = useState(false);
+    const [showIncidentModal, setShowIncidentModal] = useState(false);
 
     useEffect(() => {
         if (isOpen) {
@@ -823,6 +901,58 @@ const ItemDetailModal = ({ transactionId, itemId, isOpen, onClose, onBack }: Ite
             document.body.style.overflow = '';
             onClose();
         }, 300);
+    };
+
+    const hideMutation = useMutation({
+        mutationFn: async () => {
+            const response = await axiosInstance.post(`/v2/transactions/${transactionId}/hide`);
+            return response.data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['transactions'] });
+            queryClient.invalidateQueries({ queryKey: ['transaction', transactionId] });
+            toast.success(t('item_detail.hidden_success', 'Transacción ocultada de tu actividad'));
+            setShowOptionsMenu(false);
+            handleClose();
+        },
+        onError: () => {
+            toast.error(t('item_detail.hidden_error', 'Error al ocultar la transacción'));
+        },
+    });
+
+    const handleReportIncident = () => {
+        setShowOptionsMenu(false);
+        setShowIncidentModal(true);
+    };
+
+    const handleHideActivity = () => {
+        hideMutation.mutate();
+    };
+
+    const handleAddToCalendar = async () => {
+        try {
+            const response = await axiosInstance.get(`/api/calendar/links/${transactionId}`);
+            const links = response.data?.data?.links;
+            if (!links) {
+                toast.error(t('item_detail.calendar_error', 'Error al generar enlaces de calendario'));
+                return;
+            }
+
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            const isAndroid = /Android/.test(navigator.userAgent);
+
+            if (isIOS) {
+                window.open(links.apple, '_blank');
+            } else if (isAndroid) {
+                window.open(links.google, '_blank');
+            } else {
+                window.open(links.google, '_blank');
+            }
+
+            setShowOptionsMenu(false);
+        } catch {
+            toast.error(t('item_detail.calendar_error', 'Error al generar enlaces de calendario'));
+        }
     };
 
     const { data: transaction, isLoading } = useQuery({
@@ -1066,17 +1196,7 @@ const ItemDetailModal = ({ transactionId, itemId, isOpen, onClose, onBack }: Ite
                                 accessTotal={accessTotal}
                             />
 
-                            {canViewQR && item.walletAddress && !eventPast && (
-                                <div id="mostrar-kard-section">
-                                    <PassbookCard
-                                        walletAddress={item.walletAddress}
-                                        userId={user?.id || ''}
-                                        clubId={transaction.club.id}
-                                    />
-                                </div>
-                            )}
-
-                            {!canViewQR && isPurchaser && item.assignedToUserId && !eventPast && (
+                            {!canViewQR && isPurchaser && item.assignedToUserId && (
                                 <div className="flex flex-col items-center gap-3 p-6 bg-[#141414] border-2 border-[#232323] rounded-2xl">
                                     <div className="w-16 h-16 rounded-full bg-[#232323] flex items-center justify-center">
                                         <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
@@ -1106,6 +1226,10 @@ const ItemDetailModal = ({ transactionId, itemId, isOpen, onClose, onBack }: Ite
                                         lng: transaction.club.addressLocation.lng,
                                     }}
                                     title={t('item_detail.direction', 'Dirección')}
+                                    onMapClick={() => {
+                                        const loc = transaction.club.addressLocation;
+                                        if (loc) window.open(`https://www.google.com/maps/search/?api=1&query=${loc.lat},${loc.lng}`, '_blank');
+                                    }}
                                 />
                             )}
 
@@ -1130,12 +1254,7 @@ const ItemDetailModal = ({ transactionId, itemId, isOpen, onClose, onBack }: Ite
                 {showMostrarKard && (
                     <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a] to-transparent pt-6 pb-6 px-6 z-20">
                         <button
-                            onClick={() => {
-                                const qrSection = document.getElementById('mostrar-kard-section');
-                                if (qrSection) {
-                                    qrSection.scrollIntoView({ behavior: 'smooth' });
-                                }
-                            }}
+                            onClick={() => setShowPassbookModal(true)}
                             className="w-full h-[48px] bg-[#232323] rounded-full flex items-center justify-center cursor-pointer border-2 border-[#232323] shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)]"
                         >
                             <span className="text-[16px] font-borna font-medium text-[#F6F6F6]">
@@ -1167,17 +1286,30 @@ const ItemDetailModal = ({ transactionId, itemId, isOpen, onClose, onBack }: Ite
                                 </h3>
                             </div>
                             <div className="flex flex-col gap-2">
-                                <button className="w-full h-[44px] bg-[#232323] rounded-xl flex items-center justify-center cursor-pointer">
+                                <button
+                                    onClick={handleReportIncident}
+                                    className="w-full h-[44px] bg-[#232323] rounded-xl flex items-center justify-center cursor-pointer"
+                                >
                                     <span className="text-[14px] font-helvetica font-medium text-[#F6F6F6]">
                                         {t('item_detail.report_incident', 'Reportar incidencia')}
                                     </span>
                                 </button>
-                                <button className="w-full h-[44px] bg-[#232323] rounded-xl flex items-center justify-center cursor-pointer">
+                                <button
+                                    onClick={handleHideActivity}
+                                    disabled={hideMutation.isPending}
+                                    className="w-full h-[44px] bg-[#232323] rounded-xl flex items-center justify-center cursor-pointer disabled:opacity-50"
+                                >
                                     <span className="text-[14px] font-helvetica font-medium text-[#F6F6F6]">
-                                        {t('item_detail.hide_activity', 'Ocultar de mi actividad')}
+                                        {hideMutation.isPending
+                                            ? t('common.loading', 'Cargando...')
+                                            : t('item_detail.hide_activity', 'Ocultar de mi actividad')
+                                        }
                                     </span>
                                 </button>
-                                <button className="w-full h-[44px] bg-[#232323] rounded-xl flex items-center justify-center cursor-pointer">
+                                <button
+                                    onClick={handleAddToCalendar}
+                                    className="w-full h-[44px] bg-[#232323] rounded-xl flex items-center justify-center cursor-pointer"
+                                >
                                     <span className="text-[14px] font-helvetica font-medium text-[#F6F6F6]">
                                         {t('item_detail.add_to_calendar', 'Añadir al calendario')}
                                     </span>
@@ -1186,6 +1318,28 @@ const ItemDetailModal = ({ transactionId, itemId, isOpen, onClose, onBack }: Ite
                         </div>
                     </div>
                 )}
+
+                {showPassbookModal && item?.walletAddress && transaction && (
+                    <PassbookModal
+                        isOpen={showPassbookModal}
+                        onClose={() => setShowPassbookModal(false)}
+                        walletAddress={item.walletAddress}
+                        userId={user?.id || ''}
+                        clubId={transaction.club.id}
+                        clubName={transaction.club.name}
+                        clubLogo={transaction.club.logo}
+                        userName={`${user?.firstName || ''} ${user?.lastName || ''}`.trim()}
+                    />
+                )}
+
+                <IncidentModal
+                    isOpen={showIncidentModal}
+                    onClose={() => setShowIncidentModal(false)}
+                    context={{
+                        eventName: transaction?.event?.name,
+                        transactionId,
+                    }}
+                />
             </div>
         </div>
     );

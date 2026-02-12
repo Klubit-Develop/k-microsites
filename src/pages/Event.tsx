@@ -185,6 +185,8 @@ interface Event {
     minimumAge: number;
     address: string;
     addressLocation: {
+        lng: number;
+        lat: number;
         type: string;
         coordinates: [number, number];
     };
@@ -1636,7 +1638,7 @@ const Event = () => {
                                 }}
                                 legalText={event.club?.termsAndConditions ? t('club.legal_terms', 'Leer los términos legales del klub') : undefined}
                                 onLegalClick={event.club?.termsAndConditions ? handleLegalClick : undefined}
-                                onMapClick={handleMapClick} 
+                                onMapClick={handleMapClick}
                             />
                         ) : null}
                     </>
@@ -1724,12 +1726,12 @@ const Event = () => {
                             title={t('event.location')}
                             address={event.address}
                             coordinates={{
-                                lat: event.addressLocation?.coordinates?.[1] ?? 0,
-                                lng: event.addressLocation?.coordinates?.[0] ?? 0,
+                                lat: event.addressLocation?.lat ?? 0,
+                                lng: event.addressLocation?.lng ?? 0,
                             }}
                             legalText={event.club?.termsAndConditions ? t('club.legal_terms', 'Leer los términos legales del klub') : undefined}
                             onLegalClick={event.club?.termsAndConditions ? handleLegalClick : undefined}
-                            onMapClick={handleMapClick} 
+                            onMapClick={handleMapClick}
                         />
                     ) : null}
                 </div>
