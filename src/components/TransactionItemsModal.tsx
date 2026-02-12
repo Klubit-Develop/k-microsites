@@ -213,13 +213,13 @@ const ItemRow = ({ item, onClick }: ItemRowProps) => {
 };
 
 const ModalSkeleton = () => (
-    <div className="flex flex-col gap-8 w-full animate-pulse">
-        <div className="flex flex-col items-center gap-2 pt-16">
+    <div className="flex flex-col gap-8 px-6 -mt-20 relative z-10 pb-8">
+        <div className="flex flex-col items-center gap-2 pt-4 animate-pulse">
             <div className="h-7 w-48 bg-[#232323] rounded" />
             <div className="h-4 w-32 bg-[#232323] rounded" />
             <div className="h-4 w-24 bg-[#232323] rounded" />
         </div>
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 animate-pulse">
             <div className="h-6 w-40 bg-[#232323] rounded" />
             <div className="flex flex-col gap-2">
                 <div className="h-[72px] w-full bg-[#232323] rounded-2xl" />
@@ -338,47 +338,54 @@ const TransactionItemsModal = ({ transactionId, isOpen, onClose }: TransactionIt
             <div
                 className={`relative w-full max-w-[500px] max-h-[90vh] bg-[#0a0a0a] border-2 border-[#232323] rounded-t-[32px] overflow-hidden transition-transform duration-300 ease-out ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}
             >
-                {event && (
-                    <div className="absolute inset-x-0 top-0 h-[300px] pointer-events-none">
-                        <img
-                            src={event.flyer}
-                            alt={event.name}
-                            className="w-full h-full object-cover"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#0a0a0a]/70 to-[#0a0a0a]" />
-                    </div>
-                )}
-
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 pt-[5px] opacity-50 z-10">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 pt-[5px] z-20">
                     <div className="w-9 h-[5px] bg-[#F6F6F6]/50 rounded-full" />
                 </div>
 
-                <div className="relative flex flex-col gap-8 px-6 pt-6 pb-8 overflow-y-auto max-h-[90vh] scrollbar-hide">
-                    <div className="flex items-start justify-end h-9">
-                        <button
-                            onClick={handleClose}
-                            className="flex items-center justify-center size-9 bg-[#232323] rounded-full shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)] cursor-pointer"
-                        >
-                            <CloseIcon />
-                        </button>
+                <div className="absolute top-6 right-6 z-20">
+                    <button
+                        onClick={handleClose}
+                        className="flex items-center justify-center size-9 bg-[#232323] rounded-full shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)] cursor-pointer"
+                    >
+                        <CloseIcon />
+                    </button>
+                </div>
+
+                <div className="overflow-y-auto max-h-[90vh] scrollbar-hide">
+                    <div className="relative w-full h-[300px] shrink-0">
+                        {event?.flyer && (
+                            <img
+                                src={event.flyer}
+                                alt={event.name}
+                                className="absolute inset-0 w-full h-full object-cover"
+                            />
+                        )}
+                        <div
+                            className="absolute inset-0"
+                            style={{ background: 'linear-gradient(to bottom, rgba(10,10,10,0) 0%, #0a0a0a 40%)' }}
+                        />
+                        <div
+                            className="absolute inset-0 backdrop-blur-[1.5px]"
+                            style={{ background: 'linear-gradient(to bottom, rgba(10,10,10,0) 0%, rgba(10,10,10,0.5) 40%)' }}
+                        />
                     </div>
 
                     {isLoading || !transaction ? (
                         <ModalSkeleton />
                     ) : (
-                        <>
-                            <div className="flex flex-col items-center gap-[2px] pt-16">
-                                <h2 className="text-[24px] font-borna font-semibold text-[#F6F6F6] text-center">
+                        <div className="flex flex-col gap-8 px-6 -mt-20 relative z-10 pb-8">
+                            <div className="flex flex-col items-center gap-[2px] pt-4">
+                                <h2 className="text-[24px] font-borna font-semibold text-[#F6F6F6] text-center leading-tight w-full">
                                     {event?.name}
                                 </h2>
                                 <div className="flex items-center gap-1">
-                                    <span className="text-[14px] font-helvetica text-[#E5FF88]">
+                                    <span className="text-[14px] font-borna text-[#E5FF88]">
                                         {dateDisplay}
                                     </span>
                                     {timeDisplay && (
                                         <>
                                             <span className="size-[3px] bg-[#E5FF88] rounded-full" />
-                                            <span className="text-[14px] font-helvetica text-[#E5FF88]">
+                                            <span className="text-[14px] font-borna text-[#E5FF88]">
                                                 {timeDisplay}
                                             </span>
                                         </>
@@ -409,7 +416,7 @@ const TransactionItemsModal = ({ transactionId, isOpen, onClose }: TransactionIt
                                     ))}
                                 </div>
                             </div>
-                        </>
+                        </div>
                     )}
                 </div>
             </div>
