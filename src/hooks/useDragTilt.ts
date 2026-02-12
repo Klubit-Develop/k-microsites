@@ -6,6 +6,9 @@ interface DragTiltOptions {
     springDuration?: number;
     dragThreshold?: number;
     axis?: 'horizontal' | 'vertical' | 'both';
+    fullSpin?: boolean;
+    momentumDecay?: number;
+    snapBack?: boolean;
 }
 
 interface DragTiltResult {
@@ -26,13 +29,23 @@ const useDragTilt = ({
     springDuration = 400,
     dragThreshold = 6,
     axis = 'both',
+    fullSpin = false,
+    momentumDecay = 0.95,
+    snapBack = true,
 }: DragTiltOptions = {}): DragTiltResult => {
     const elementRef = useRef<HTMLDivElement | null>(null);
     const isDragging = useRef(false);
     const startX = useRef(0);
     const startY = useRef(0);
+    const lastX = useRef(0);
+    const lastY = useRef(0);
+    const velocityX = useRef(0);
+    const velocityY = useRef(0);
     const dragDistance = useRef(0);
     const wasDraggedRef = useRef(false);
+    const animationFrame = useRef<number>(0);
+    const baseRotationY = useRef(0);
+    const baseRotationX = useRef(0);
     const [rotationY, setRotationY] = useState(0);
     const [rotationX, setRotationX] = useState(0);
     const [isAnimating, setIsAnimating] = useState(false);
@@ -54,10 +67,63 @@ const useDragTilt = ({
         return () => el.removeEventListener('touchmove', preventScroll);
     }, []);
 
+    useEffect(() => {
+        return () => {
+            if (animationFrame.current) {
+                cancelAnimationFrame(animationFrame.current);
+            }
+        };
+    }, []);
+
+    const startMomentum = useCallback(() => {
+        const decay = momentumDecay;
+        const tick = () => {
+            let vx = velocityX.current;
+            let vy = velocityY.current;
+
+            if (Math.abs(vx) < 0.1 && Math.abs(vy) < 0.1) {
+                velocityX.current = 0;
+                velocityY.current = 0;
+
+                if (snapBack) {
+                    setIsAnimating(true);
+                    setRotationY(0);
+                    setRotationX(0);
+                    baseRotationY.current = 0;
+                    baseRotationX.current = 0;
+                }
+                return;
+            }
+
+            vx *= decay;
+            vy *= decay;
+            velocityX.current = vx;
+            velocityY.current = vy;
+
+            baseRotationY.current += vx;
+            baseRotationX.current += vy;
+
+            setRotationY(baseRotationY.current);
+            setRotationX(baseRotationX.current);
+
+            animationFrame.current = requestAnimationFrame(tick);
+        };
+
+        animationFrame.current = requestAnimationFrame(tick);
+    }, [momentumDecay, snapBack]);
+
     const handlePointerDown = useCallback((e: React.PointerEvent) => {
+        if (animationFrame.current) {
+            cancelAnimationFrame(animationFrame.current);
+        }
+
         isDragging.current = true;
         startX.current = e.clientX;
         startY.current = e.clientY;
+        lastX.current = e.clientX;
+        lastY.current = e.clientY;
+        velocityX.current = 0;
+        velocityY.current = 0;
         dragDistance.current = 0;
         wasDraggedRef.current = false;
         setIsAnimating(false);
@@ -75,13 +141,32 @@ const useDragTilt = ({
             wasDraggedRef.current = true;
         }
 
-        if (axis === 'horizontal' || axis === 'both') {
-            setRotationY(clamp(deltaX * sensitivity, -maxRotation, maxRotation));
+        const frameVx = (e.clientX - lastX.current) * sensitivity;
+        const frameVy = -(e.clientY - lastY.current) * sensitivity;
+        lastX.current = e.clientX;
+        lastY.current = e.clientY;
+
+        velocityX.current = frameVx;
+        velocityY.current = frameVy;
+
+        if (fullSpin) {
+            if (axis === 'horizontal' || axis === 'both') {
+                baseRotationY.current += frameVx;
+                setRotationY(baseRotationY.current);
+            }
+            if (axis === 'vertical' || axis === 'both') {
+                baseRotationX.current += frameVy;
+                setRotationX(baseRotationX.current);
+            }
+        } else {
+            if (axis === 'horizontal' || axis === 'both') {
+                setRotationY(clamp(deltaX * sensitivity, -maxRotation, maxRotation));
+            }
+            if (axis === 'vertical' || axis === 'both') {
+                setRotationX(clamp(-deltaY * sensitivity, -maxRotation, maxRotation));
+            }
         }
-        if (axis === 'vertical' || axis === 'both') {
-            setRotationX(clamp(-deltaY * sensitivity, -maxRotation, maxRotation));
-        }
-    }, [maxRotation, sensitivity, dragThreshold, axis]);
+    }, [maxRotation, sensitivity, dragThreshold, axis, fullSpin]);
 
     const release = useCallback((e?: React.PointerEvent) => {
         if (!isDragging.current) return;
@@ -89,10 +174,15 @@ const useDragTilt = ({
         if (e) {
             (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
         }
-        setIsAnimating(true);
-        setRotationY(0);
-        setRotationX(0);
-    }, []);
+
+        if (fullSpin) {
+            startMomentum();
+        } else {
+            setIsAnimating(true);
+            setRotationY(0);
+            setRotationX(0);
+        }
+    }, [fullSpin, startMomentum]);
 
     const handlePointerUp = useCallback((e: React.PointerEvent) => {
         release(e);
