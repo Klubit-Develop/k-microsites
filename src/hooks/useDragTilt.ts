@@ -9,6 +9,7 @@ interface DragTiltOptions {
 }
 
 interface DragTiltResult {
+    ref: React.RefObject<HTMLDivElement | null>;
     style: React.CSSProperties;
     handlers: {
         onPointerDown: (e: React.PointerEvent) => void;
@@ -26,6 +27,7 @@ const useDragTilt = ({
     dragThreshold = 6,
     axis = 'both',
 }: DragTiltOptions = {}): DragTiltResult => {
+    const elementRef = useRef<HTMLDivElement | null>(null);
     const isDragging = useRef(false);
     const startX = useRef(0);
     const startY = useRef(0);
@@ -37,6 +39,20 @@ const useDragTilt = ({
 
     const clamp = (value: number, min: number, max: number) =>
         Math.min(Math.max(value, min), max);
+
+    useEffect(() => {
+        const el = elementRef.current;
+        if (!el) return;
+
+        const preventScroll = (e: TouchEvent) => {
+            if (isDragging.current) {
+                e.preventDefault();
+            }
+        };
+
+        el.addEventListener('touchmove', preventScroll, { passive: false });
+        return () => el.removeEventListener('touchmove', preventScroll);
+    }, []);
 
     const handlePointerDown = useCallback((e: React.PointerEvent) => {
         isDragging.current = true;
@@ -92,24 +108,19 @@ const useDragTilt = ({
         return () => clearTimeout(timer);
     }, [isAnimating, springDuration]);
 
-    const touchAction = axis === 'horizontal'
-        ? 'pan-y'
-        : axis === 'vertical'
-            ? 'pan-x'
-            : 'none';
-
     const style: React.CSSProperties = {
         transform: `perspective(800px) rotateY(${rotationY}deg) rotateX(${rotationX}deg)`,
         transition: isAnimating
             ? `transform ${springDuration}ms cubic-bezier(0.34, 1.56, 0.64, 1)`
             : 'none',
         willChange: 'transform',
-        touchAction,
+        touchAction: 'none',
     };
 
     const wasDragged = useCallback(() => wasDraggedRef.current, []);
 
     return {
+        ref: elementRef,
         style,
         handlers: {
             onPointerDown: handlePointerDown,
