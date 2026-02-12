@@ -8,12 +8,14 @@ interface DragTiltOptions {
     axis?: 'horizontal' | 'vertical' | 'both';
     fullSpin?: boolean;
     momentumDecay?: number;
-    snapBack?: boolean;
 }
 
 interface DragTiltResult {
     ref: React.RefObject<HTMLDivElement | null>;
-    style: React.CSSProperties;
+    containerStyle: React.CSSProperties;
+    frontStyle: React.CSSProperties;
+    backStyle: React.CSSProperties;
+    isFrontFace: boolean;
     handlers: {
         onPointerDown: (e: React.PointerEvent) => void;
         onPointerMove: (e: React.PointerEvent) => void;
@@ -23,6 +25,11 @@ interface DragTiltResult {
     wasDragged: () => boolean;
 }
 
+const normalizeAngle = (angle: number): number => {
+    const mod = ((angle % 360) + 360) % 360;
+    return mod;
+};
+
 const useDragTilt = ({
     maxRotation = 15,
     sensitivity = 0.15,
@@ -30,8 +37,7 @@ const useDragTilt = ({
     dragThreshold = 6,
     axis = 'both',
     fullSpin = false,
-    momentumDecay = 0.95,
-    snapBack = true,
+    momentumDecay = 0.92,
 }: DragTiltOptions = {}): DragTiltResult => {
     const elementRef = useRef<HTMLDivElement | null>(null);
     const isDragging = useRef(false);
@@ -52,6 +58,23 @@ const useDragTilt = ({
 
     const clamp = (value: number, min: number, max: number) =>
         Math.min(Math.max(value, min), max);
+
+    const getSnapTarget = (angle: number): number => {
+        const normalized = normalizeAngle(angle);
+        const fullTurns = Math.round(angle / 360) * 360;
+
+        if (normalized <= 90) return fullTurns;
+        if (normalized <= 270) return fullTurns + 180;
+        return fullTurns + 360;
+    };
+
+    const isFront = (yDeg: number, xDeg: number): boolean => {
+        const ny = normalizeAngle(yDeg);
+        const nx = normalizeAngle(xDeg);
+        const yBack = ny > 90 && ny < 270;
+        const xBack = nx > 90 && nx < 270;
+        return !(yBack !== xBack);
+    };
 
     useEffect(() => {
         const el = elementRef.current;
@@ -75,33 +98,45 @@ const useDragTilt = ({
         };
     }, []);
 
+    const snapToFace = useCallback(() => {
+        const targetY = (axis === 'horizontal' || axis === 'both')
+            ? getSnapTarget(baseRotationY.current)
+            : 0;
+        const targetX = (axis === 'vertical' || axis === 'both')
+            ? getSnapTarget(baseRotationX.current)
+            : 0;
+
+        baseRotationY.current = targetY;
+        baseRotationX.current = targetX;
+
+        setIsAnimating(true);
+        setRotationY(targetY);
+        setRotationX(targetX);
+    }, [axis]);
+
     const startMomentum = useCallback(() => {
-        const decay = momentumDecay;
         const tick = () => {
             let vx = velocityX.current;
             let vy = velocityY.current;
 
-            if (Math.abs(vx) < 0.1 && Math.abs(vy) < 0.1) {
+            if (Math.abs(vx) < 0.3 && Math.abs(vy) < 0.3) {
                 velocityX.current = 0;
                 velocityY.current = 0;
-
-                if (snapBack) {
-                    setIsAnimating(true);
-                    setRotationY(0);
-                    setRotationX(0);
-                    baseRotationY.current = 0;
-                    baseRotationX.current = 0;
-                }
+                snapToFace();
                 return;
             }
 
-            vx *= decay;
-            vy *= decay;
+            vx *= momentumDecay;
+            vy *= momentumDecay;
             velocityX.current = vx;
             velocityY.current = vy;
 
-            baseRotationY.current += vx;
-            baseRotationX.current += vy;
+            if (axis === 'horizontal' || axis === 'both') {
+                baseRotationY.current += vx;
+            }
+            if (axis === 'vertical' || axis === 'both') {
+                baseRotationX.current += vy;
+            }
 
             setRotationY(baseRotationY.current);
             setRotationX(baseRotationX.current);
@@ -110,7 +145,7 @@ const useDragTilt = ({
         };
 
         animationFrame.current = requestAnimationFrame(tick);
-    }, [momentumDecay, snapBack]);
+    }, [momentumDecay, axis, snapToFace]);
 
     const handlePointerDown = useCallback((e: React.PointerEvent) => {
         if (animationFrame.current) {
@@ -176,13 +211,18 @@ const useDragTilt = ({
         }
 
         if (fullSpin) {
-            startMomentum();
+            const hasVelocity = Math.abs(velocityX.current) > 0.5 || Math.abs(velocityY.current) > 0.5;
+            if (hasVelocity) {
+                startMomentum();
+            } else {
+                snapToFace();
+            }
         } else {
             setIsAnimating(true);
             setRotationY(0);
             setRotationX(0);
         }
-    }, [fullSpin, startMomentum]);
+    }, [fullSpin, startMomentum, snapToFace]);
 
     const handlePointerUp = useCallback((e: React.PointerEvent) => {
         release(e);
@@ -198,20 +238,44 @@ const useDragTilt = ({
         return () => clearTimeout(timer);
     }, [isAnimating, springDuration]);
 
-    const style: React.CSSProperties = {
-        transform: `perspective(800px) rotateY(${rotationY}deg) rotateX(${rotationX}deg)`,
-        transition: isAnimating
-            ? `transform ${springDuration}ms cubic-bezier(0.34, 1.56, 0.64, 1)`
-            : 'none',
-        willChange: 'transform',
+    const isFrontFace = isFront(rotationY, rotationX);
+
+    const containerStyle: React.CSSProperties = {
+        perspective: '800px',
         touchAction: 'none',
+    };
+
+    const sharedTransform = `rotateY(${rotationY}deg) rotateX(${rotationX}deg)`;
+    const sharedTransition = isAnimating
+        ? `transform ${springDuration}ms cubic-bezier(0.34, 1.56, 0.64, 1)`
+        : 'none';
+
+    const frontStyle: React.CSSProperties = {
+        transform: sharedTransform,
+        transition: sharedTransition,
+        willChange: 'transform',
+        backfaceVisibility: 'hidden',
+        WebkitBackfaceVisibility: 'hidden',
+    };
+
+    const backStyle: React.CSSProperties = {
+        transform: `${sharedTransform} rotateY(180deg)`,
+        transition: sharedTransition,
+        willChange: 'transform',
+        backfaceVisibility: 'hidden',
+        WebkitBackfaceVisibility: 'hidden',
+        position: 'absolute',
+        inset: 0,
     };
 
     const wasDragged = useCallback(() => wasDraggedRef.current, []);
 
     return {
         ref: elementRef,
-        style,
+        containerStyle,
+        frontStyle,
+        backStyle,
+        isFrontFace,
         handlers: {
             onPointerDown: handlePointerDown,
             onPointerMove: handlePointerMove,
