@@ -283,6 +283,7 @@ const KlubKardDetail = ({ passbook, userName, onQrClick }: KlubKardDetailProps) 
                 </div>
 
                 <button
+                    onPointerDown={(e) => e.stopPropagation()}
                     onClick={handleQrClick}
                     className="absolute top-[15px] right-[14px] flex items-center justify-center size-[42px] rounded-full backdrop-blur-[17.5px] bg-[rgba(0,0,0,0.3)] border border-white/10"
                 >
@@ -343,6 +344,7 @@ const KlubKardDetail = ({ passbook, userName, onQrClick }: KlubKardDetailProps) 
                 </div>
 
                 <button
+                    onPointerDown={(e) => e.stopPropagation()}
                     onClick={handleQrClick}
                     className="absolute bottom-[15px] right-[14px] flex items-center justify-center size-[42px] rounded-full backdrop-blur-[17.5px] bg-[rgba(0,0,0,0.3)] border border-white/10"
                 >
