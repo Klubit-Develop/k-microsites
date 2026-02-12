@@ -1000,11 +1000,11 @@ const Wallet = () => {
     const { t, i18n } = useTranslation();
     const locale = i18n.language === 'en' ? 'en' : 'es';
     const { user } = useAuthStore();
+    const navigate = useNavigate();
 
     const [selectedTransactionId, setSelectedTransactionId] = useState<string | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedKard, setSelectedKard] = useState<UserPassbook | null>(null);
-    const [isKardModalOpen, setIsKardModalOpen] = useState(false);
+
     const [eventsListVariant, setEventsListVariant] = useState<'upcoming' | 'past' | null>(null);
     const [isKardsListOpen, setIsKardsListOpen] = useState(false);
 
@@ -1030,13 +1030,7 @@ const Wallet = () => {
     });
 
     const handleKardClick = (passbook: UserPassbook) => {
-        setSelectedKard(passbook);
-        setIsKardModalOpen(true);
-    };
-
-    const handleKardModalClose = () => {
-        setIsKardModalOpen(false);
-        setSelectedKard(null);
+        navigate({ to: '/wallet/kards/$idKard', params: { idKard: passbook.id } });
     };
 
     const { featuredTransactions, upcomingTransactions, pastTransactions, isLive } = useMemo(() => {
@@ -1204,12 +1198,6 @@ const Wallet = () => {
                 />
             )}
 
-            <KardDetailModal
-                passbook={selectedKard}
-                isOpen={isKardModalOpen}
-                onClose={handleKardModalClose}
-            />
-
             {eventsListVariant && (
                 <WalletEventsListModal
                     isOpen={!!eventsListVariant}
@@ -1223,7 +1211,7 @@ const Wallet = () => {
                 onClose={() => setIsKardsListOpen(false)}
                 onKardClick={(passbook) => {
                     setIsKardsListOpen(false);
-                    handleKardClick(passbook);
+                    navigate({ to: '/wallet/kards/$idKard', params: { idKard: passbook.id } });
                 }}
             />
         </div>
