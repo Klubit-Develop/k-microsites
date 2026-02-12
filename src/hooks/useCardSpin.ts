@@ -7,12 +7,12 @@ const MIN_VELOCITY = 0.2;
 const MAX_VELOCITY = 30;
 const TAP_THRESHOLD_PX = 6;
 const TAP_THRESHOLD_MS = 250;
-const TAP_FLIP_VELOCITY = 12;
 
 interface UseCardSpinOptions {
     baseSpeed?: number;
     friction?: number;
     maxVelocity?: number;
+    onTap?: () => void;
 }
 
 const useCardSpin = (options?: UseCardSpinOptions) => {
@@ -20,6 +20,7 @@ const useCardSpin = (options?: UseCardSpinOptions) => {
         baseSpeed = BASE_SPEED,
         friction = FRICTION,
         maxVelocity = MAX_VELOCITY,
+        onTap,
     } = options || {};
 
     const rotation = useRef(0);
@@ -34,6 +35,9 @@ const useCardSpin = (options?: UseCardSpinOptions) => {
     const shimmerBackRef = useRef<HTMLDivElement | null>(null);
     const tapStart = useRef({ x: 0, y: 0, time: 0 });
     const wasDraggedRef = useRef(false);
+    const onTapRef = useRef(onTap);
+
+    onTapRef.current = onTap;
 
     const animate = useCallback(() => {
         if (!isDragging.current) {
@@ -103,7 +107,7 @@ const useCardSpin = (options?: UseCardSpinOptions) => {
         const dt = performance.now() - tapStart.current.time;
 
         if (dx < TAP_THRESHOLD_PX && dy < TAP_THRESHOLD_PX && dt < TAP_THRESHOLD_MS) {
-            velocity.current = TAP_FLIP_VELOCITY;
+            onTapRef.current?.();
             return;
         }
 
@@ -117,6 +121,11 @@ const useCardSpin = (options?: UseCardSpinOptions) => {
 
     const wasDragged = useCallback(() => wasDraggedRef.current, []);
 
+    const resetRotation = useCallback(() => {
+        rotation.current = 0;
+        velocity.current = baseSpeed;
+    }, [baseSpeed]);
+
     return {
         cardInnerRef,
         shimmerFrontRef,
@@ -128,6 +137,7 @@ const useCardSpin = (options?: UseCardSpinOptions) => {
             onPointerCancel,
         },
         wasDragged,
+        resetRotation,
     };
 };
 
