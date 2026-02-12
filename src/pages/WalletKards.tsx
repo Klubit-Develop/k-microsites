@@ -12,6 +12,7 @@ import { ChevronRightIcon } from '@/components/icons';
 import WalletEventCard, { WalletEventCardSkeleton } from '@/components/WalletEventCard';
 import TransactionItemsModal from '@/components/TransactionItemsModal';
 import WalletEventsListModal from '@/components/WalletEventsListModal';
+import PassbookModal from '@/components/PassbookModal';
 
 type KardLevel = 'MEMBER' | 'BRONZE' | 'SILVER' | 'GOLD';
 type VenueType = 'CLUB' | 'PUB' | 'BAR' | 'LOUNGE' | 'RESTAURANT' | 'PROMOTER' | 'OTHER';
@@ -47,6 +48,7 @@ interface UserPassbook {
     serialNumber: string;
     authenticationToken: string;
     kardLevel: KardLevel;
+    qrContent: string;
     passbookUrl: string;
     googleWalletUrl: string | null;
     createdAt: string;
@@ -204,20 +206,13 @@ const BenefitBadgeIcon = () => (
 
 interface KlubKardDetailProps {
     passbook: UserPassbook;
+    onQrClick: () => void;
 }
 
-const KlubKardDetail = ({ passbook }: KlubKardDetailProps) => {
+const KlubKardDetail = ({ passbook, onQrClick }: KlubKardDetailProps) => {
     const { t } = useTranslation();
     const bgColor = passbook.club.passbookConfig?.backgroundColor || '#033f3e';
     const venueLabel = getVenueTypeLabel(passbook.club.venueType, t);
-
-    const handleQrClick = () => {
-        const url = /iPhone|iPad|iPod/.test(navigator.userAgent)
-            ? passbook.passbookUrl : passbook.googleWalletUrl;
-        if (url) {
-            window.open(url, '_blank');
-        }
-    };
 
     return (
         <div
@@ -250,7 +245,7 @@ const KlubKardDetail = ({ passbook }: KlubKardDetailProps) => {
             </div>
 
             <button
-                onClick={handleQrClick}
+                onClick={onQrClick}
                 className="absolute top-[15px] right-[14px] flex items-center justify-center size-[42px] rounded-full backdrop-blur-[17.5px] bg-[rgba(0,0,0,0.3)] border border-white/10"
             >
                 <QrIcon />
@@ -339,6 +334,7 @@ const WalletKards = () => {
     const [selectedTransactionId, setSelectedTransactionId] = useState<string | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [eventsListVariant, setEventsListVariant] = useState<'upcoming' | 'past' | null>(null);
+    const [showPassbookModal, setShowPassbookModal] = useState(false);
 
     const { data: passbooks, isLoading: isLoadingPassbooks } = useQuery({
         queryKey: ['wallet-passbooks', user?.id],
@@ -432,7 +428,10 @@ const WalletKards = () => {
                 {isLoadingPassbooks ? (
                     <KardSkeleton />
                 ) : passbook ? (
-                    <KlubKardDetail passbook={passbook} />
+                    <KlubKardDetail
+                        passbook={passbook}
+                        onQrClick={() => setShowPassbookModal(true)}
+                    />
                 ) : (
                     <div className="flex items-center justify-center py-8">
                         <span className="text-[14px] font-helvetica text-[#939393]">
@@ -530,6 +529,19 @@ const WalletKards = () => {
                     isOpen={!!eventsListVariant}
                     onClose={() => setEventsListVariant(null)}
                     variant={eventsListVariant}
+                />
+            )}
+
+            {passbook && (
+                <PassbookModal
+                    isOpen={showPassbookModal}
+                    onClose={() => setShowPassbookModal(false)}
+                    walletAddress={passbook.qrContent}
+                    userId={user?.id || ''}
+                    clubId={passbook.clubId}
+                    clubName={passbook.club.name}
+                    clubLogo={passbook.club.logo}
+                    userName={`${user?.firstName || ''} ${user?.lastName || ''}`.trim()}
                 />
             )}
         </div>
