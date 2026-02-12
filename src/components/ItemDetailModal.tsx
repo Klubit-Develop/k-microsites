@@ -1081,6 +1081,8 @@ const ItemDetailModal = ({ transactionId, itemId, isOpen, onClose, onBack }: Ite
             <div
                 className={`relative w-full max-w-[500px] max-h-[90vh] bg-[#0a0a0a] border-2 border-[#232323] rounded-t-[32px] overflow-hidden transition-transform duration-300 ease-out ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}
             >
+                <div className="absolute top-0 left-0 right-0 h-[72px] z-20 pointer-events-none bg-gradient-to-b from-[#0a0a0a] via-[#0a0a0a]/80 to-transparent rounded-t-[32px]" />
+
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 pt-[5px] opacity-50 z-30">
                     <div className="w-9 h-[5px] bg-[#F6F6F6]/50 rounded-full" />
                 </div>
