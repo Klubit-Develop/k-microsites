@@ -186,66 +186,33 @@ const formatEventTimeRange = (startDate: string, startTime?: string, endTime?: s
     return `${startFormatted} - ${endFormatted}`;
 };
 
-const getVenueTypeLabel = (venueType: VenueType): string => {
-    switch (venueType) {
-        case 'CLUB': return 'Discoteca';
-        case 'PUB': return 'Pub';
-        case 'BAR': return 'Bar';
-        case 'LOUNGE': return 'Lounge';
-        case 'RESTAURANT': return 'Restaurante';
-        case 'PROMOTER': return 'Promotora';
-        case 'OTHER': return '';
-        default: return '';
+const formatFeaturedDate = (startDate: string, t: (key: string, fallback: string) => string): string => {
+    const eventDate = dayjs(startDate);
+    const today = dayjs();
+
+    if (eventDate.isSame(today, 'day')) {
+        return t('wallet.today', 'Hoy');
     }
+
+    const tomorrow = today.add(1, 'day');
+    if (eventDate.isSame(tomorrow, 'day')) {
+        return t('wallet.tomorrow', 'Mañana');
+    }
+
+    return eventDate.format('ddd, D MMM');
 };
 
-const getBenefitTypeLabel = (type: BenefitType, t: (key: string, fallback: string) => string): string => {
-    switch (type) {
-        case 'ACCESS': return t('wallet.benefit_type_access', 'Beneficio de acceso');
-        case 'CONSUME': return t('wallet.benefit_type_consume', 'Beneficio de consumo');
-        case 'CREDIT': return t('wallet.benefit_type_credit', 'Beneficio de crédito');
-        case 'DISCOUNT': return t('wallet.benefit_type_discount', 'Beneficio de descuento');
-        case 'ZONES': return t('wallet.benefit_type_zones', 'Beneficio de zonas');
-        default: return '';
-    }
-};
-
-const getUsageFrequencyLabel = (frequency: KardBenefit['usageFrequency'], t: (key: string, fallback: string) => string): string => {
-    switch (frequency) {
-        case 'UNLIMITED': return t('wallet.frequency_unlimited', 'Ilimitado');
-        case 'PER_DAY': return t('wallet.frequency_per_day', 'Por día');
-        case 'PER_WEEK': return t('wallet.frequency_per_week', 'Por semana');
-        case 'PER_MONTH': return t('wallet.frequency_per_month', 'Por mes');
-        case 'SINGLE_USE': return t('wallet.frequency_single_use', 'Un solo uso');
-        default: return '';
-    }
-};
-
-const getDurationLabel = (duration: KardBenefit['duration'], expirationDays: number | undefined, t: (key: string, fallback: string) => string): string => {
-    switch (duration) {
-        case 'PERMANENT': return t('wallet.duration_permanent', 'Permanente');
-        case 'SINGLE_USE': return t('wallet.duration_single_use', 'Un solo uso');
-        case 'EXPIRES_DAYS': return t('wallet.duration_expires_days', `Expira cada ${expirationDays} días`).replace('${days}', String(expirationDays));
-        default: return '';
-    }
-};
-
-const HomeIcon = () => (
-    <svg width="18" height="19" viewBox="0 0 18 19" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path
-            d="M2.25 7.25L9 2L15.75 7.25V15.5C15.75 15.8978 15.592 16.2794 15.3107 16.5607C15.0294 16.842 14.6478 17 14.25 17H3.75C3.35218 17 2.97064 16.842 2.68934 16.5607C2.40804 16.2794 2.25 15.8978 2.25 15.5V7.25Z"
-            stroke="#939393"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-        />
-        <path
-            d="M6.75 17V9.5H11.25V17"
-            stroke="#939393"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-        />
+const PersonIcon = () => (
+    <svg width="12" height="16" viewBox="0 0 12 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g clip-path="url(#clip0_4603_12338)">
+            <path d="M10.8411 13.7607L9.56114 9.91992H1.88034L0.600342 13.7607" stroke="#939393" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="bevel" />
+            <path d="M5.72138 7.35828C7.13523 7.35828 8.28138 6.21213 8.28138 4.79828C8.28138 3.38443 7.13523 2.23828 5.72138 2.23828C4.30753 2.23828 3.16138 3.38443 3.16138 4.79828C3.16138 6.21213 4.30753 7.35828 5.72138 7.35828Z" stroke="#939393" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="bevel" />
+        </g>
+        <defs>
+            <clipPath id="clip0_4603_12338">
+                <rect width="11.4408" height="12.7216" fill="white" transform="translate(0 1.63867)" />
+            </clipPath>
+        </defs>
     </svg>
 );
 
@@ -266,64 +233,138 @@ const TicketWallet = ({ transaction, isLive = false, onClick }: TicketWalletProp
     const showCountdown = eventToday && !isLive && hoursUntil > 0;
 
     const timeRange = formatEventTimeRange(event.startDate, event.startTime, event.endTime);
+    const dateLabel = formatFeaturedDate(event.startDate, t);
+    const location = club.address || club.name;
 
     return (
         <button
             onClick={onClick}
-            className="relative flex flex-col w-full rounded-2xl border-2 border-[#232323] overflow-hidden shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)] cursor-pointer text-left"
+            className="relative flex flex-col w-full rounded-2xl border-2 border-[#232323] overflow-hidden shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)] cursor-pointer"
         >
-            <div className="absolute inset-0">
+            <div className="absolute inset-0 pointer-events-none rounded-2xl">
                 <img
                     src={event.flyer}
                     alt={event.name}
-                    className="w-full h-full object-cover"
+                    className="absolute inset-0 w-full h-full object-cover rounded-2xl"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#141414] from-25% to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#141414] from-[25%] to-transparent rounded-2xl" />
             </div>
 
-            <div className="relative flex flex-col items-start justify-between h-[200px] p-4">
-                <div className="flex items-center justify-between w-full">
+            <div className="relative flex flex-col items-start gap-[42px] pt-[100px] pb-4 px-4 w-full">
+                <div className="absolute top-3.5 left-3.5 right-3.5 flex items-center justify-between">
                     {isLive ? (
                         <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[#141414] rounded-full shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]">
-                            <span className="text-[14px] font-helvetica text-[#F6F6F6]">
+                            <span className="text-[14px] font-borna text-[#F6F6F6]">
                                 {t('wallet.event_live', 'Evento en curso')}
                             </span>
                             <span className="relative flex size-2">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#50DD77] opacity-75" />
-                                <span className="relative inline-flex rounded-full size-2 bg-[#50DD77]" />
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FF2323] opacity-75" />
+                                <span className="relative inline-flex rounded-full size-2 bg-[#FF2323]" />
                             </span>
                         </div>
                     ) : showCountdown ? (
                         <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[#141414] rounded-full shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]">
-                            <span className="text-[14px] font-helvetica text-[#F6F6F6]">
+                            <span className="text-[14px] font-borna text-[#F6F6F6]">
                                 {t('wallet.starts_in_hours', 'Empieza en {{hours}}h').replace('{{hours}}', String(hoursUntil))}
                             </span>
                         </div>
-                    ) : null}
+                    ) : (
+                        <div />
+                    )}
 
-                    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[#141414] rounded-full shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)] ml-auto">
-                        <span className="text-[14px] font-helvetica text-[#F6F6F6]">
-                            {t('wallet.ticket_count', '{{count}} entradas').replace('{{count}}', String(totalQuantity))}
+                    <div className="flex items-center gap-1 px-2 py-1 bg-[#232323] border-[1.5px] border-[#232323] rounded-full shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]">
+                        <span className="text-[14px] font-borna text-[#939393]">
+                            {totalQuantity}
                         </span>
+                        <div className="flex items-center justify-center h-4">
+                            <PersonIcon />
+                        </div>
                     </div>
                 </div>
 
-                <div className="flex flex-col gap-1 w-full">
-                    <h3 className="text-[20px] font-borna font-semibold text-[#F6F6F6] leading-tight truncate">
+                <div className="flex flex-col gap-0.5 items-center justify-end w-full" style={{ textShadow: '0px 0px 30px black' }}>
+                    <h3 className="text-[20px] font-borna font-semibold text-[#F6F6F6] leading-none text-center w-full truncate">
                         {event.name}
                     </h3>
-                    <div className="flex items-center gap-2">
-                        <span className="text-[14px] font-helvetica text-[#939393]">
+
+                    <div className="flex items-center gap-1 justify-center w-full">
+                        <span className="text-[14px] font-borna text-[#E5FF88] leading-5 truncate">
+                            {dateLabel}
+                        </span>
+                        <span className="size-[3px] bg-[#E5FF88] rounded-full shrink-0" />
+                        <span className="text-[14px] font-borna text-[#E5FF88] leading-5 whitespace-nowrap">
                             {timeRange}
                         </span>
-                        <span className="text-[14px] font-helvetica text-[#939393]">·</span>
-                        <span className="text-[14px] font-helvetica text-[#939393] truncate">
-                            {club.name}
+                    </div>
+
+                    <div className="flex items-center gap-1.5 justify-center py-px w-full">
+                        <span className="text-[13px] leading-none pt-0.5">📍</span>
+                        <span className="text-[14px] font-borna text-[#939393] leading-5 truncate">
+                            {location}
                         </span>
                     </div>
                 </div>
             </div>
         </button>
+    );
+};
+
+interface FeaturedCarouselProps {
+    transactions: Transaction[];
+    isLive: boolean;
+    onTransactionClick: (transactionId: string) => void;
+}
+
+const FeaturedCarousel = ({ transactions, isLive, onTransactionClick }: FeaturedCarouselProps) => {
+    const scrollRef = useRef<HTMLDivElement>(null);
+    const [currentIndex, setCurrentIndex] = useState(0);
+
+    useEffect(() => {
+        const scrollContainer = scrollRef.current;
+        if (!scrollContainer || transactions.length <= 1) return;
+
+        const handleScroll = () => {
+            const scrollLeft = scrollContainer.scrollLeft;
+            const cardWidth = scrollContainer.offsetWidth;
+            const newIndex = Math.round(scrollLeft / cardWidth);
+            setCurrentIndex(Math.min(newIndex, transactions.length - 1));
+        };
+
+        scrollContainer.addEventListener('scroll', handleScroll);
+        return () => scrollContainer.removeEventListener('scroll', handleScroll);
+    }, [transactions.length]);
+
+    if (transactions.length === 1) {
+        return (
+            <TicketWallet
+                transaction={transactions[0]}
+                isLive={isLive}
+                onClick={() => onTransactionClick(transactions[0].id)}
+            />
+        );
+    }
+
+    return (
+        <div className="flex flex-col gap-2 items-center w-full">
+            <div className="relative w-full -mx-4">
+                <div
+                    ref={scrollRef}
+                    className="flex gap-3 overflow-x-auto px-4 snap-x snap-mandatory [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+                >
+                    {transactions.map((transaction, index) => (
+                        <div key={transaction.id} className="shrink-0 w-full snap-center">
+                            <TicketWallet
+                                transaction={transaction}
+                                isLive={index === 0 && isLive}
+                                onClick={() => onTransactionClick(transaction.id)}
+                            />
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            <PageDots total={transactions.length} current={currentIndex} />
+        </div>
     );
 };
 
@@ -448,56 +489,102 @@ const WalletEmpty = () => {
                         )}
                     </div>
 
-                    <div className="flex flex-col gap-2 items-center px-4 text-center w-full">
-                        <span className="text-[#F6F6F6] text-[24px] font-semibold font-borna">
-                            {t('wallet.empty_title', 'Tu wallet está vacía')}
-                        </span>
-                        <span className="text-[#939393] text-[16px] font-medium font-helvetica">
-                            {t('wallet.empty_description', 'Compra y empieza a disfrutar de ventajas exclusivas en tus klubs favoritos.')}
-                        </span>
+                    <div className="flex flex-col gap-2 items-center text-center">
+                        <h2 className="text-[24px] font-borna font-semibold text-[#F6F6F6] leading-none">
+                            {t('wallet.hello_name', 'Hola, {{name}}').replace('{{name}}', firstName || t('wallet.user', 'Usuario'))}
+                        </h2>
+                        <p className="text-[14px] font-helvetica text-[#939393]">
+                            {t('wallet.empty_description', 'Aún no tienes entradas. Descubre eventos cerca de ti.')}
+                        </p>
                     </div>
                 </div>
 
                 <Button
+                    variant="cta"
                     onClick={() => navigate({ to: '/' })}
-                    className="w-full"
+                    className="w-full max-w-[300px]"
                 >
-                    {t('wallet.explore_events', 'Descubrir eventos')}
+                    {t('wallet.discover_events', 'Descubrir eventos')}
                 </Button>
             </div>
         </div>
     );
 };
 
+const HomeIcon = () => (
+    <svg width="18" height="19" viewBox="0 0 18 19" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path
+            d="M2.25 7.25L9 2L15.75 7.25V15.5C15.75 15.8978 15.592 16.2794 15.3107 16.5607C15.0294 16.842 14.6478 17 14.25 17H3.75C3.35218 17 2.97064 16.842 2.68934 16.5607C2.40804 16.2794 2.25 15.8978 2.25 15.5V7.25Z"
+            stroke="#939393"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        />
+        <path
+            d="M6.75 17V9.5H11.25V17"
+            stroke="#939393"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        />
+    </svg>
+);
+
+const getKardLevelLabel = (level: KardLevel, t: (key: string, fallback: string) => string): string => {
+    switch (level) {
+        case 'MEMBER': return t('wallet.level_member', 'Member');
+        case 'BRONZE': return t('wallet.level_bronze', 'Bronze');
+        case 'SILVER': return t('wallet.level_silver', 'Silver');
+        case 'GOLD': return t('wallet.level_gold', 'Gold');
+        default: return '';
+    }
+};
+
+const getVenueTypeLabel = (venueType: VenueType, t: (key: string, fallback: string) => string): string => {
+    switch (venueType) {
+        case 'CLUB': return t('wallet.venue_club', 'Club');
+        case 'PUB': return t('wallet.venue_pub', 'Pub');
+        case 'BAR': return t('wallet.venue_bar', 'Bar');
+        case 'LOUNGE': return t('wallet.venue_lounge', 'Lounge');
+        case 'RESTAURANT': return t('wallet.venue_restaurant', 'Restaurant');
+        case 'PROMOTER': return t('wallet.venue_promoter', 'Promoter');
+        case 'OTHER': return t('wallet.venue_other', 'Venue');
+        default: return '';
+    }
+};
+
+const getDurationLabel = (duration: string, expirationDays?: number, t?: (key: string, fallback: string) => string): string => {
+    if (!t) return '';
+    switch (duration) {
+        case 'PERMANENT': return t('wallet.duration_permanent', 'Permanente');
+        case 'SINGLE_USE': return t('wallet.duration_single_use', 'Un solo uso');
+        case 'EXPIRES_DAYS': return t('wallet.duration_expires_days', `Expira cada ${expirationDays} días`).replace('${days}', String(expirationDays));
+        default: return '';
+    }
+};
+
 interface KlubKardProps {
     clubName: string;
     clubLogo: string;
-    venueType?: VenueType;
-    backgroundColor?: string;
-    onClick?: () => void;
+    venueType: VenueType;
+    backgroundColor: string;
+    onClick: () => void;
 }
 
-const KlubKard = ({
-    clubName,
-    clubLogo,
-    venueType,
-    backgroundColor = '#232323',
-    onClick
-}: KlubKardProps) => {
-    const venueLabel = venueType ? getVenueTypeLabel(venueType) : '';
+const KlubKard = ({ clubName, clubLogo, venueType, backgroundColor, onClick }: KlubKardProps) => {
+    const { t } = useTranslation();
+    const venueLabel = getVenueTypeLabel(venueType, t);
 
     return (
         <button
             onClick={onClick}
-            className="relative flex flex-col justify-between shrink-0 w-[340px] h-[210px] p-6 rounded-[20px] border-[3px] border-[#232323] cursor-pointer overflow-hidden snap-center"
-            style={{
-                background: `linear-gradient(to right, ${backgroundColor} 0%, ${backgroundColor} 50%, #141414 100%)`,
-            }}
+            className="flex items-center gap-3 p-3 shrink-0 w-[340px] rounded-2xl border-2 border-[#232323] snap-start cursor-pointer"
+            style={{ backgroundColor }}
         >
             <div
-                className="relative size-[54px] rounded-full border-[1.5px] border-[#232323] overflow-hidden"
+                className="relative size-[42px] rounded-full overflow-hidden shrink-0"
                 style={{
-                    backgroundColor: clubLogo ? backgroundColor : 'rgba(35, 35, 35, 0.5)',
+                    backgroundColor: 'rgba(35, 35, 35, 0.5)',
                     boxShadow: '0px 0px 12px 0px rgba(0, 0, 0, 0.5)'
                 }}
             >
@@ -549,10 +636,10 @@ const PageDots = ({ total, current }: PageDotsProps) => {
                     <div
                         key={index}
                         className={`rounded-full transition-all ${isActive
-                                ? 'bg-[#F6F6F6] size-2'
-                                : isEdge && dotsToShow === maxDots
-                                    ? 'bg-[#F6F6F6] opacity-30 size-1.5'
-                                    : 'bg-[#F6F6F6] opacity-30 size-2'
+                            ? 'bg-[#F6F6F6] size-2'
+                            : isEdge && dotsToShow === maxDots
+                                ? 'bg-[#F6F6F6] opacity-30 size-1.5'
+                                : 'bg-[#F6F6F6] opacity-30 size-2'
                             }`}
                     />
                 );
@@ -581,50 +668,66 @@ interface InfoRowProps {
 }
 
 const InfoRow = ({ label, value, valueColor = '#F6F6F6', isLast = false }: InfoRowProps) => (
-    <div className={`flex items-center justify-between gap-6 px-4 py-3 h-14 ${!isLast ? 'border-b-[1.5px] border-[#232323]' : ''}`}>
-        <span className="text-[16px] font-helvetica font-medium text-[#939393] whitespace-nowrap">
-            {label}
-        </span>
-        <span className="text-[16px] font-helvetica font-medium text-right" style={{ color: valueColor }}>
-            {value}
-        </span>
+    <div className={`flex items-center justify-between gap-6 px-4 py-3 h-14 ${!isLast ? 'border-b border-[#232323]' : ''}`}>
+        <span className="text-[14px] font-helvetica text-[#939393] shrink-0">{label}</span>
+        <span className="text-[14px] font-helvetica text-right truncate" style={{ color: valueColor }}>{value}</span>
     </div>
 );
 
-interface InfoBlockRowProps {
-    label: string;
-    value: string;
-    isLast?: boolean;
+interface BenefitCardProps {
+    benefit: KardBenefit;
+    onClick: () => void;
 }
 
-const InfoBlockRow = ({ label, value, isLast = false }: InfoBlockRowProps) => (
-    <div className={`flex flex-col gap-1 px-4 py-4 ${!isLast ? 'border-b-[1.5px] border-[#232323]' : ''}`}>
-        <span className="text-[16px] font-helvetica font-medium text-[#939393]">
-            {label}
-        </span>
-        <span className="text-[16px] font-helvetica font-medium text-[#F6F6F6]">
-            {value}
-        </span>
-    </div>
-);
+const BenefitCard = ({ benefit, onClick }: BenefitCardProps) => {
+    const { t } = useTranslation();
 
-interface InfoCardProps {
-    title: string;
-    children: React.ReactNode;
-}
+    const getBenefitIcon = (type: BenefitType): string => {
+        switch (type) {
+            case 'ACCESS': return '🎟️';
+            case 'CONSUME': return '🍸';
+            case 'CREDIT': return '💰';
+            case 'DISCOUNT': return '🏷️';
+            case 'ZONES': return '🚪';
+            default: return '🎁';
+        }
+    };
 
-const InfoCard = ({ title, children }: InfoCardProps) => (
-    <div className="flex flex-col gap-1 w-full">
-        <div className="px-1.5">
-            <span className="text-[16px] font-helvetica font-medium text-[#939393]">
-                {title}
-            </span>
-        </div>
-        <div className="bg-[#141414] border-2 border-[#232323] rounded-2xl overflow-hidden">
-            {children}
-        </div>
-    </div>
-);
+    const getBenefitTypeLabel = (type: BenefitType): string => {
+        switch (type) {
+            case 'ACCESS': return t('wallet.benefit_access', 'Acceso');
+            case 'CONSUME': return t('wallet.benefit_consume', 'Consumición');
+            case 'CREDIT': return t('wallet.benefit_credit', 'Crédito');
+            case 'DISCOUNT': return t('wallet.benefit_discount', 'Descuento');
+            case 'ZONES': return t('wallet.benefit_zones', 'Zonas');
+            default: return '';
+        }
+    };
+
+    return (
+        <button
+            onClick={onClick}
+            className="flex items-center gap-3 p-3 bg-[#141414] border-2 border-[#232323] rounded-2xl cursor-pointer text-left w-full"
+        >
+            <div className="flex items-center justify-center size-10 bg-[#232323] rounded-xl shrink-0">
+                <span className="text-[20px]">{getBenefitIcon(benefit.type)}</span>
+            </div>
+
+            <div className="flex flex-col flex-1 min-w-0">
+                <span className="text-[16px] font-helvetica font-medium text-[#F6F6F6] truncate">
+                    {benefit.name}
+                </span>
+                <span className="text-[14px] font-helvetica text-[#939393] truncate">
+                    {getBenefitTypeLabel(benefit.type)}
+                </span>
+            </div>
+
+            <div className="shrink-0">
+                <ChevronRightIcon />
+            </div>
+        </button>
+    );
+};
 
 interface BenefitDetailModalProps {
     benefit: KardBenefit | null;
@@ -636,368 +739,64 @@ interface BenefitDetailModalProps {
 }
 
 const BenefitDetailModal = ({ benefit, backgroundColor, passbook, isOpen, onClose, onBack }: BenefitDetailModalProps) => {
-    const { t, i18n } = useTranslation();
-    const [isVisible, setIsVisible] = useState(false);
-    const [isAnimating, setIsAnimating] = useState(false);
-    const [showQRView, setShowQRView] = useState(false);
-
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    const isSpanish = i18n.language === 'es' || i18n.language.startsWith('es-');
-
-    useEffect(() => {
-        if (isOpen) {
-            setIsAnimating(true);
-            setShowQRView(false);
-            document.body.style.overflow = 'hidden';
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    setIsVisible(true);
-                });
-            });
-        }
-    }, [isOpen]);
-
-    const handleClose = () => {
-        setIsVisible(false);
-        setTimeout(() => {
-            setIsAnimating(false);
-            setShowQRView(false);
-            document.body.style.overflow = '';
-            onClose();
-        }, 300);
-    };
-
-    const handleBack = () => {
-        if (showQRView) {
-            setShowQRView(false);
-        } else {
-            setIsVisible(false);
-            setTimeout(() => {
-                setIsAnimating(false);
-                onBack();
-            }, 300);
-        }
-    };
-
-    const handleBackdropClick = (e: React.MouseEvent) => {
-        if (e.target === e.currentTarget) {
-            handleClose();
-        }
-    };
-
-    const handleUseBenefit = () => {
-        setShowQRView(true);
-    };
-
-    const handleAddToWallet = () => {
-        if (!passbook) return;
-        const url = isIOS ? passbook.passbookUrl : passbook.googleWalletUrl;
-        if (url) {
-            window.open(url, '_blank');
-        }
-    };
-
-    if (!isAnimating && !isOpen) return null;
-    if (!benefit) return null;
-
-    const benefitTitle = getBenefitTypeLabel(benefit.type, t);
-    const frequencyLabel = getUsageFrequencyLabel(benefit.usageFrequency, t);
-    const durationLabel = getDurationLabel(benefit.duration, benefit.expirationDays, t);
-    const eventsValue = benefit.events === 'ALL' ? t('wallet.all_events', 'Todos') : (benefit.events as string[]).join(', ');
-    const ratesValue = benefit.rates === 'ALL' ? t('wallet.all_rates', 'Todas') : (benefit.rates as string[]).join(', ');
-
-    const renderDetailsSection = () => {
-        switch (benefit.type) {
-            case 'ACCESS':
-                return (
-                    <InfoCard title={t('wallet.details', 'Detalles')}>
-                        <InfoRow
-                            label={t('wallet.access', 'Acceso')}
-                            value={benefit.accessType || t('wallet.free', 'Gratuito')}
-                            isLast
-                        />
-                    </InfoCard>
-                );
-
-            case 'CONSUME':
-                return (
-                    <InfoCard title={t('wallet.details', 'Detalles')}>
-                        {benefit.items?.map((item, index) => (
-                            <div
-                                key={index}
-                                className={`flex items-center gap-1.5 px-4 py-3 ${index !== (benefit.items?.length || 0) - 1 ? 'border-b-[1.5px] border-[#232323]' : ''}`}
-                            >
-                                <div className="size-1.5 rounded-full bg-[#939393]" />
-                                <span className="text-[16px] font-helvetica font-medium text-[#F6F6F6]">
-                                    {item.name}
-                                </span>
-                                <span className="text-[16px] font-helvetica font-bold text-[#F6F6F6] ml-auto">
-                                    x{item.quantity}
-                                </span>
-                            </div>
-                        ))}
-                    </InfoCard>
-                );
-
-            case 'CREDIT':
-                return (
-                    <InfoCard title={t('wallet.details', 'Detalles')}>
-                        <InfoRow
-                            label={t('wallet.total_amount', 'Cantidad total')}
-                            value={`${benefit.totalAmount?.toFixed(2)} €`}
-                        />
-                        <InfoRow
-                            label={t('wallet.available_amount', 'Cantidad disponible')}
-                            value={`${benefit.availableAmount?.toFixed(2)} €`}
-                            valueColor="#50DD77"
-                            isLast
-                        />
-                    </InfoCard>
-                );
-
-            case 'DISCOUNT':
-                return (
-                    <InfoCard title={t('wallet.details', 'Detalles')}>
-                        <InfoRow
-                            label={t('wallet.discount', 'Descuento')}
-                            value={`${benefit.discountPercentage}%`}
-                        />
-                        <InfoRow
-                            label={t('wallet.applies_to', 'Aplica a')}
-                            value={benefit.discountAppliesTo?.join(', ') || ''}
-                        />
-                        <InfoRow
-                            label={t('wallet.max_discount', 'Descuento máximo')}
-                            value={`${benefit.maxDiscount?.toFixed(2)} €`}
-                            isLast
-                        />
-                    </InfoCard>
-                );
-
-            case 'ZONES':
-                return (
-                    <InfoCard title={t('wallet.details', 'Detalles')}>
-                        <InfoBlockRow
-                            label={t('wallet.zones', 'Zonas')}
-                            value={benefit.zones?.join(', ') || ''}
-                            isLast
-                        />
-                    </InfoCard>
-                );
-
-            default:
-                return null;
-        }
-    };
-
-    return (
-        <div
-            className={`fixed inset-0 z-50 flex items-end justify-center transition-all duration-300 ease-out ${isVisible ? 'bg-black/60 backdrop-blur-sm' : 'bg-transparent'}`}
-            onClick={handleBackdropClick}
-        >
-            <div
-                className={`relative w-full max-w-[500px] max-h-[90vh] bg-[#0a0a0a] border-2 border-[#232323] rounded-t-[32px] overflow-hidden transition-transform duration-300 ease-out ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}
-            >
-                <div className="absolute inset-x-0 top-0 h-[489px] pointer-events-none overflow-hidden">
-                    <div
-                        className="absolute inset-0"
-                        style={{ backgroundColor }}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#0a0a0a]/70 to-[#0a0a0a]" />
-                    <div className="absolute inset-0 backdrop-blur-[1.5px] bg-gradient-to-b from-transparent to-[rgba(10,10,10,0.5)]" />
-                </div>
-
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 pt-[5px] opacity-50 z-10">
-                    <div className="w-9 h-[5px] bg-[#F6F6F6]/50 rounded-full" />
-                </div>
-
-                {!showQRView && (
-                    <div className="absolute bottom-0 left-0 right-0 z-20 pointer-events-none">
-                        <div className="bg-gradient-to-t from-[#050505] via-[#050505]/60 to-transparent pt-4 pb-[42px] px-4">
-                            <button
-                                onClick={handleUseBenefit}
-                                className="flex items-center justify-center w-full h-12 bg-[#FF336D] rounded-xl cursor-pointer pointer-events-auto"
-                            >
-                                <span className="text-[16px] font-helvetica font-bold text-[#F6F6F6]">
-                                    {t('wallet.use_benefit', 'Usar beneficio')}
-                                </span>
-                            </button>
-                        </div>
-                    </div>
-                )}
-
-                {showQRView ? (
-                    <div className="relative flex flex-col gap-8 px-6 pt-6 pb-8 overflow-y-auto max-h-[90vh] scrollbar-hide">
-                        <div className="flex items-center justify-between h-9">
-                            <button
-                                onClick={handleBack}
-                                className="flex items-center justify-center size-9 bg-[#232323] rounded-full shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)] cursor-pointer"
-                            >
-                                <BackIcon />
-                            </button>
-                            <button
-                                onClick={handleClose}
-                                className="flex items-center justify-center size-9 bg-[#232323] rounded-full shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)] cursor-pointer"
-                            >
-                                <CloseIcon />
-                            </button>
-                        </div>
-
-                        <div className="flex flex-col gap-1 w-full">
-                            <span className="text-[16px] font-helvetica font-medium text-[#939393] px-1.5">
-                                {t('wallet.passbook', 'Passbook')}
-                            </span>
-                            <div className="flex flex-col items-center gap-4 p-3 bg-[#141414] border-2 border-[#232323] rounded-2xl shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)]">
-                                <div className="flex items-center justify-center p-4 bg-white rounded-[5px]">
-                                    <img
-                                        src={`https://api.qrserver.com/v1/create-qr-code/?size=157x157&data=${encodeURIComponent(passbook?.serialNumber || '')}`}
-                                        alt="QR Code"
-                                        className="size-[157px]"
-                                    />
-                                </div>
-
-                                <button
-                                    onClick={handleAddToWallet}
-                                    className="cursor-pointer hover:opacity-80 transition-opacity"
-                                >
-                                    {isIOS ? (
-                                        <img
-                                            src={isSpanish ? '/assets/images/apple_es.svg' : '/assets/images/apple_en.svg'}
-                                            alt={t('wallet.add_to_apple_wallet', 'Añadir a Apple Wallet')}
-                                            className="h-[48px] w-auto"
-                                        />
-                                    ) : (
-                                        <img
-                                            src={isSpanish ? '/assets/images/google_es.svg' : '/assets/images/google_en.svg'}
-                                            alt={t('wallet.add_to_google_wallet', 'Añadir a Google Wallet')}
-                                            className="h-[55px] w-auto"
-                                        />
-                                    )}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                ) : (
-                    <div className="relative flex flex-col gap-8 px-6 pt-6 pb-[110px] overflow-y-auto max-h-[90vh] scrollbar-hide">
-                        <div className="flex items-center justify-between h-9">
-                            <button
-                                onClick={handleBack}
-                                className="flex items-center justify-center size-9 bg-[#232323] rounded-full shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)] cursor-pointer"
-                            >
-                                <BackIcon />
-                            </button>
-                            <button
-                                onClick={handleClose}
-                                className="flex items-center justify-center size-9 bg-[#232323] rounded-full shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)] cursor-pointer"
-                            >
-                                <CloseIcon />
-                            </button>
-                        </div>
-
-                        <div className="flex flex-col items-center gap-6">
-                            <div className="flex items-center justify-center size-[90px] bg-[#232323] rounded-full">
-                                <span className="text-[24px] font-borna font-semibold text-[#939393]">TBD</span>
-                            </div>
-                            <h2 className="text-[24px] font-borna font-semibold text-[#F6F6F6] text-center">
-                                {benefitTitle}
-                            </h2>
-                        </div>
-
-                        {renderDetailsSection()}
-
-                        <InfoCard title={t('wallet.temporality', 'Temporalidad')}>
-                            <InfoRow
-                                label={t('wallet.usage_frequency', 'Frecuencia de uso')}
-                                value={frequencyLabel}
-                            />
-                            <InfoRow
-                                label={t('wallet.duration', 'Duración')}
-                                value={durationLabel}
-                                isLast
-                            />
-                        </InfoCard>
-
-                        <InfoCard title={t('wallet.scope', 'Alcance')}>
-                            {benefit.type === 'ACCESS' && (benefit.events !== 'ALL' || benefit.rates !== 'ALL') ? (
-                                <>
-                                    <InfoBlockRow
-                                        label={t('wallet.events', 'Eventos')}
-                                        value={eventsValue}
-                                    />
-                                    <InfoBlockRow
-                                        label={t('wallet.rates', 'Tarifas')}
-                                        value={ratesValue}
-                                        isLast
-                                    />
-                                </>
-                            ) : (
-                                <>
-                                    <InfoRow
-                                        label={t('wallet.events', 'Eventos')}
-                                        value={eventsValue}
-                                    />
-                                    <InfoRow
-                                        label={t('wallet.rates', 'Tarifas')}
-                                        value={ratesValue}
-                                        isLast
-                                    />
-                                </>
-                            )}
-                        </InfoCard>
-                    </div>
-                )}
-            </div>
-        </div>
-    );
-};
-
-interface BenefitCardProps {
-    benefit: KardBenefit;
-    onClick: () => void;
-}
-
-const BenefitCard = ({ benefit, onClick }: BenefitCardProps) => {
     const { t } = useTranslation();
 
-    const getBenefitDescription = (): string => {
-        switch (benefit.type) {
-            case 'ACCESS':
-                return benefit.accessType || t('wallet.free_access', 'Acceso gratuito');
-            case 'CONSUME':
-                return benefit.items?.map(i => `${i.name} x${i.quantity}`).join(', ') || '';
-            case 'CREDIT':
-                return `${benefit.availableAmount?.toFixed(2)} € ${t('wallet.available', 'disponible')}`;
-            case 'DISCOUNT':
-                return `${benefit.discountPercentage}% ${t('wallet.off', 'descuento')}`;
-            case 'ZONES':
-                return benefit.zones?.join(', ') || '';
-            default:
-                return '';
-        }
-    };
+    if (!isOpen || !benefit) return null;
 
     return (
-        <button
-            onClick={onClick}
-            className="flex items-center gap-3 p-3 bg-[#141414] border-2 border-[#232323] rounded-2xl shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)] cursor-pointer text-left w-full"
-        >
-            <div className="flex items-center justify-center size-12 bg-[rgba(35,35,35,0.5)] border-[1.5px] border-[#232323] rounded-[4px]">
-                <div className="flex items-center justify-center size-9 bg-[#232323] rounded-full">
-                    <span className="text-[8px] font-borna font-semibold text-[#939393]">TBD</span>
+        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center">
+            <div className="absolute inset-0 bg-black/70" onClick={onClose} />
+
+            <div className="relative w-full max-w-[500px] max-h-[90vh] bg-[#141414] rounded-t-2xl md:rounded-2xl border-2 border-[#232323] overflow-hidden">
+                <div className="flex items-center justify-between p-4 border-b border-[#232323]">
+                    <button onClick={onBack} className="flex items-center justify-center size-8">
+                        <BackIcon />
+                    </button>
+                    <h3 className="text-[18px] font-borna font-semibold text-[#F6F6F6]">
+                        {benefit.name}
+                    </h3>
+                    <button onClick={onClose} className="flex items-center justify-center size-8">
+                        <CloseIcon />
+                    </button>
+                </div>
+
+                <div className="flex flex-col gap-4 p-4 overflow-y-auto max-h-[calc(90vh-68px)]">
+                    {benefit.description && (
+                        <p className="text-[14px] font-helvetica text-[#939393]">
+                            {benefit.description}
+                        </p>
+                    )}
+
+                    <div className="flex flex-col bg-[#0A0A0A] rounded-xl border border-[#232323] overflow-hidden">
+                        <InfoRow
+                            label={t('wallet.usage', 'Uso')}
+                            value={getDurationLabel(benefit.duration, benefit.expirationDays, t)}
+                        />
+                        {benefit.discountPercentage && (
+                            <InfoRow
+                                label={t('wallet.discount', 'Descuento')}
+                                value={`${benefit.discountPercentage}%`}
+                                valueColor="#E5FF88"
+                            />
+                        )}
+                        {benefit.totalAmount !== undefined && benefit.availableAmount !== undefined && (
+                            <InfoRow
+                                label={t('wallet.available', 'Disponible')}
+                                value={`${benefit.availableAmount}€ / ${benefit.totalAmount}€`}
+                                valueColor="#E5FF88"
+                            />
+                        )}
+                        {benefit.items && benefit.items.length > 0 && (
+                            <InfoRow
+                                label={t('wallet.items', 'Items')}
+                                value={benefit.items.map(i => `${i.quantity}x ${i.name}`).join(', ')}
+                                isLast
+                            />
+                        )}
+                    </div>
                 </div>
             </div>
-            <div className="flex flex-col py-1.5 flex-1 min-w-0">
-                <span className="text-[16px] font-helvetica font-medium text-[#F6F6F6] truncate">
-                    {getBenefitTypeLabel(benefit.type, t)}
-                </span>
-                <span className="text-[14px] font-helvetica text-[#939393] truncate">
-                    {getBenefitDescription()}
-                </span>
-            </div>
-            <div className="shrink-0">
-                <ChevronRightIcon />
-            </div>
-        </button>
+        </div>
     );
 };
 
@@ -1009,155 +808,95 @@ interface KardDetailModalProps {
 
 const KardDetailModal = ({ passbook, isOpen, onClose }: KardDetailModalProps) => {
     const { t } = useTranslation();
-    const [isVisible, setIsVisible] = useState(false);
-    const [isAnimating, setIsAnimating] = useState(false);
     const [selectedBenefit, setSelectedBenefit] = useState<KardBenefit | null>(null);
     const [isBenefitModalOpen, setIsBenefitModalOpen] = useState(false);
 
-    useEffect(() => {
-        if (isOpen) {
-            setIsAnimating(true);
-            document.body.style.overflow = 'hidden';
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    setIsVisible(true);
-                });
-            });
-        }
-    }, [isOpen]);
+    if (!isOpen || !passbook) return null;
 
-    const handleClose = () => {
-        setIsVisible(false);
-        setTimeout(() => {
-            setIsAnimating(false);
-            document.body.style.overflow = '';
-            onClose();
-        }, 300);
-    };
-
-    const handleBackdropClick = (e: React.MouseEvent) => {
-        if (e.target === e.currentTarget) {
-            handleClose();
-        }
-    };
+    const backgroundColor = passbook.club.passbookConfig?.backgroundColor || '#141414';
+    const mockBenefits = passbook.benefits || [];
 
     const handleBenefitClick = (benefit: KardBenefit) => {
         setSelectedBenefit(benefit);
-        setIsVisible(false);
-        setTimeout(() => {
-            setIsBenefitModalOpen(true);
-        }, 300);
+        setIsBenefitModalOpen(true);
     };
 
     const handleBenefitModalClose = () => {
         setIsBenefitModalOpen(false);
         setSelectedBenefit(null);
-        document.body.style.overflow = '';
-        onClose();
     };
 
     const handleBenefitModalBack = () => {
         setIsBenefitModalOpen(false);
         setSelectedBenefit(null);
-        requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-                setIsVisible(true);
-            });
-        });
     };
-
-    if (!isAnimating && !isOpen && !isBenefitModalOpen) return null;
-    if (!passbook) return null;
-
-    const backgroundColor = passbook.club.passbookConfig?.backgroundColor || '#141414';
-    const venueLabel = passbook.club.venueType ? getVenueTypeLabel(passbook.club.venueType) : '';
-
-    const mockBenefits: KardBenefit[] = passbook.benefits || [
-        {
-            id: '1',
-            type: 'ACCESS',
-            name: 'Acceso gratuito',
-            accessType: 'Gratuito',
-            usageFrequency: 'UNLIMITED',
-            duration: 'SINGLE_USE',
-            events: ['Morris Night Club', 'Morris sábado'],
-            rates: 'ALL',
-        },
-    ];
 
     return (
         <>
-            {(isAnimating || isOpen) && !isBenefitModalOpen && (
-                <div
-                    className={`fixed inset-0 z-50 flex items-end justify-center transition-all duration-300 ease-out ${isVisible ? 'bg-black/60 backdrop-blur-sm' : 'bg-transparent'}`}
-                    onClick={handleBackdropClick}
-                >
-                    <div
-                        className={`relative w-full max-w-[500px] max-h-[90vh] bg-[#0a0a0a] border-2 border-[#232323] rounded-t-[32px] overflow-hidden transition-transform duration-300 ease-out ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}
-                    >
-                        <div className="absolute inset-x-0 top-0 h-[489px] pointer-events-none overflow-hidden">
+            <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center">
+                <div className="absolute inset-0 bg-black/70" onClick={onClose} />
+
+                <div className="relative w-full max-w-[500px] max-h-[90vh] bg-[#141414] rounded-t-2xl md:rounded-2xl border-2 border-[#232323] overflow-hidden">
+                    <div className="flex items-center justify-between p-4 border-b border-[#232323]">
+                        <div className="size-8" />
+                        <h3 className="text-[18px] font-borna font-semibold text-[#F6F6F6]">
+                            {passbook.club.name}
+                        </h3>
+                        <button onClick={onClose} className="flex items-center justify-center size-8">
+                            <CloseIcon />
+                        </button>
+                    </div>
+
+                    <div className="flex flex-col gap-6 p-4 overflow-y-auto max-h-[calc(90vh-68px)]">
+                        <div className="flex flex-col gap-3 items-center">
                             <div
-                                className="absolute inset-0"
-                                style={{ backgroundColor }}
+                                className="relative size-16 rounded-full overflow-hidden"
+                                style={{
+                                    backgroundColor: 'rgba(35, 35, 35, 0.5)',
+                                    boxShadow: '0px 0px 12px 0px rgba(0, 0, 0, 0.5)'
+                                }}
+                            >
+                                {passbook.club.logo ? (
+                                    <img
+                                        src={passbook.club.logo}
+                                        alt={passbook.club.name}
+                                        className="absolute inset-0 w-full h-full object-cover"
+                                    />
+                                ) : (
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                        <HomeIcon />
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="flex flex-col items-center gap-1">
+                                <h3 className="text-[24px] font-borna font-semibold text-[#F6F6F6]">
+                                    {passbook.club.name}
+                                </h3>
+                                <span className="text-[14px] font-helvetica text-[#939393]">
+                                    {getKardLevelLabel(passbook.kardLevel, t)} · {getVenueTypeLabel(passbook.club.venueType, t)}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col bg-[#0A0A0A] rounded-xl border border-[#232323] overflow-hidden">
+                            <InfoRow
+                                label={t('wallet.serial', 'Serial')}
+                                value={passbook.serialNumber}
                             />
-                            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#0a0a0a]/70 to-[#0a0a0a]" />
-                            <div className="absolute inset-0 backdrop-blur-[1.5px] bg-gradient-to-b from-transparent to-[rgba(10,10,10,0.5)]" />
+                            <InfoRow
+                                label={t('wallet.level', 'Nivel')}
+                                value={getKardLevelLabel(passbook.kardLevel, t)}
+                                valueColor="#E5FF88"
+                            />
+                            <InfoRow
+                                label={t('wallet.member_since', 'Miembro desde')}
+                                value={dayjs(passbook.createdAt).format('DD/MM/YYYY')}
+                                isLast
+                            />
                         </div>
 
-                        <div className="absolute top-0 left-1/2 -translate-x-1/2 pt-[5px] opacity-50 z-10">
-                            <div className="w-9 h-[5px] bg-[#F6F6F6]/50 rounded-full" />
-                        </div>
-
-                        <div className="relative flex flex-col gap-8 px-6 pt-6 pb-8 overflow-y-auto max-h-[90vh] scrollbar-hide">
-                            <div className="flex items-start justify-end h-9">
-                                <button
-                                    onClick={handleClose}
-                                    className="flex items-center justify-center size-9 bg-[#232323] rounded-full shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)] cursor-pointer"
-                                >
-                                    <CloseIcon />
-                                </button>
-                            </div>
-
-                            <div className="flex justify-center">
-                                <div
-                                    className="relative flex flex-col justify-between w-[340px] h-[210px] p-6 rounded-[20px] border-[3px] border-[#232323]"
-                                    style={{
-                                        background: `linear-gradient(to right, ${backgroundColor} 0%, ${backgroundColor} 50%, #141414 100%)`,
-                                    }}
-                                >
-                                    <div
-                                        className="relative size-[54px] rounded-full border-[1.5px] border-[#232323] overflow-hidden"
-                                        style={{
-                                            backgroundColor: passbook.club.logo ? backgroundColor : 'rgba(35, 35, 35, 0.5)',
-                                            boxShadow: '0px 0px 12px 0px rgba(0, 0, 0, 0.5)'
-                                        }}
-                                    >
-                                        {passbook.club.logo ? (
-                                            <img
-                                                src={passbook.club.logo}
-                                                alt={passbook.club.name}
-                                                className="absolute inset-0 w-full h-full object-cover"
-                                            />
-                                        ) : (
-                                            <div className="absolute inset-0 flex items-center justify-center">
-                                                <HomeIcon />
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    <div className="flex flex-col items-start w-full text-left">
-                                        <h3 className="text-[24px] font-borna font-semibold text-[#F6F6F6] leading-none truncate w-full">
-                                            {passbook.club.name}
-                                        </h3>
-                                        {venueLabel && (
-                                            <span className="text-[14px] font-helvetica text-[#939393]">
-                                                {venueLabel}
-                                            </span>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-
+                        {mockBenefits.length > 0 && (
                             <div className="flex flex-col gap-4">
                                 <div className="px-1.5">
                                     <h3 className="text-[24px] font-borna font-semibold text-[#FF336D]">
@@ -1175,10 +914,10 @@ const KardDetailModal = ({ passbook, isOpen, onClose }: KardDetailModalProps) =>
                                     ))}
                                 </div>
                             </div>
-                        </div>
+                        )}
                     </div>
                 </div>
-            )}
+            </div>
 
             <BenefitDetailModal
                 benefit={selectedBenefit}
@@ -1388,16 +1127,11 @@ const Wallet = () => {
     return (
         <div className="flex flex-col gap-9 w-full max-w-[500px] mx-auto px-4 pt-[120px] pb-[100px] md:py-8">
             {featuredTransactions.length > 0 && (
-                <div className="flex flex-col gap-4">
-                    {featuredTransactions.map((transaction, index) => (
-                        <TicketWallet
-                            key={transaction.id}
-                            transaction={transaction}
-                            isLive={index === 0 && isLive}
-                            onClick={() => handleTransactionClick(transaction.id)}
-                        />
-                    ))}
-                </div>
+                <FeaturedCarousel
+                    transactions={featuredTransactions}
+                    isLive={isLive}
+                    onTransactionClick={handleTransactionClick}
+                />
             )}
 
             {kardsData && kardsData.length > 0 && (
