@@ -12,7 +12,9 @@ import { ChevronRightIcon } from '@/components/icons';
 import Button from '@/components/ui/Button';
 import TransactionItemsModal from '@/components/TransactionItemsModal';
 import EmptyUpcomingEvents from '@/components/EmptyUpcomingEvents';
+
 import WalletEventCard from '@/components/WalletEventCard';
+import WalletEventsListModal from '@/components/WalletEventsListModal';
 
 interface Transaction {
     id: string;
@@ -369,31 +371,37 @@ const FeaturedCarousel = ({ transactions, isLive, onTransactionClick }: Featured
         </div>
     );
 };
+
 interface SectionHeaderProps {
     title: string;
     to?: string;
+    onClick?: () => void;
     showArrow?: boolean;
 }
 
-const SectionHeader = ({ title, to, showArrow = false }: SectionHeaderProps) => {
+const SectionHeader = ({ title, to, onClick, showArrow = false }: SectionHeaderProps) => {
     const navigate = useNavigate();
 
     const handleClick = () => {
-        if (to) {
+        if (onClick) {
+            onClick();
+        } else if (to) {
             navigate({ to });
         }
     };
 
+    const isClickable = showArrow && (!!onClick || !!to);
+
     return (
         <button
             onClick={handleClick}
-            className={`flex gap-2 items-center px-1.5 ${to && showArrow ? 'cursor-pointer' : 'cursor-default'}`}
-            disabled={!to || !showArrow}
+            className={`flex gap-2 items-center px-1.5 ${isClickable ? 'cursor-pointer' : 'cursor-default'}`}
+            disabled={!isClickable}
         >
             <span className="text-[#FF336D] text-[24px] font-semibold leading-none whitespace-nowrap overflow-hidden text-ellipsis font-borna">
                 {title}
             </span>
-            {showArrow && to && (
+            {isClickable && (
                 <div className="flex items-center pt-1">
                     <ChevronRightIcon />
                 </div>
@@ -1002,6 +1010,7 @@ const Wallet = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedKard, setSelectedKard] = useState<UserPassbook | null>(null);
     const [isKardModalOpen, setIsKardModalOpen] = useState(false);
+    const [eventsListVariant, setEventsListVariant] = useState<'upcoming' | 'past' | null>(null);
 
     const { data, isLoading, error } = useQuery({
         queryKey: ['wallet-transactions'],
@@ -1133,7 +1142,7 @@ const Wallet = () => {
                 <div className="flex flex-col gap-3">
                     <SectionHeader
                         title={t('wallet.upcoming', 'Próximos')}
-                        to="/wallet/upcoming"
+                        onClick={() => setEventsListVariant('upcoming')}
                         showArrow={upcomingTransactions.length > 5}
                     />
                     {upcomingTransactions.length > 0 ? (
@@ -1167,7 +1176,7 @@ const Wallet = () => {
                 <div className="flex flex-col gap-3">
                     <SectionHeader
                         title={t('wallet.past', 'Pasados')}
-                        to="/wallet/past"
+                        onClick={() => setEventsListVariant('past')}
                         showArrow={pastTransactions.length > 1}
                     />
                     <div className="flex flex-col gap-2">
@@ -1203,6 +1212,14 @@ const Wallet = () => {
                 isOpen={isKardModalOpen}
                 onClose={handleKardModalClose}
             />
+
+            {eventsListVariant && (
+                <WalletEventsListModal
+                    isOpen={!!eventsListVariant}
+                    onClose={() => setEventsListVariant(null)}
+                    variant={eventsListVariant}
+                />
+            )}
         </div>
     );
 };
