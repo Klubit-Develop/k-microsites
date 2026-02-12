@@ -8,6 +8,8 @@ interface DragTiltOptions {
     axis?: 'horizontal' | 'vertical' | 'both';
     fullSpin?: boolean;
     momentumDecay?: number;
+    maxVelocity?: number;
+    velocitySmoothing?: number;
 }
 
 interface DragTiltResult {
@@ -38,6 +40,8 @@ const useDragTilt = ({
     axis = 'both',
     fullSpin = false,
     momentumDecay = 0.92,
+    maxVelocity = 12,
+    velocitySmoothing = 0.4,
 }: DragTiltOptions = {}): DragTiltResult => {
     const elementRef = useRef<HTMLDivElement | null>(null);
     const isDragging = useRef(false);
@@ -45,8 +49,11 @@ const useDragTilt = ({
     const startY = useRef(0);
     const lastX = useRef(0);
     const lastY = useRef(0);
+    const lastTime = useRef(0);
     const velocityX = useRef(0);
     const velocityY = useRef(0);
+    const smoothVelocityX = useRef(0);
+    const smoothVelocityY = useRef(0);
     const dragDistance = useRef(0);
     const wasDraggedRef = useRef(false);
     const animationFrame = useRef<number>(0);
@@ -157,8 +164,11 @@ const useDragTilt = ({
         startY.current = e.clientY;
         lastX.current = e.clientX;
         lastY.current = e.clientY;
+        lastTime.current = performance.now();
         velocityX.current = 0;
         velocityY.current = 0;
+        smoothVelocityX.current = 0;
+        smoothVelocityY.current = 0;
         dragDistance.current = 0;
         wasDraggedRef.current = false;
         setIsAnimating(false);
@@ -176,21 +186,36 @@ const useDragTilt = ({
             wasDraggedRef.current = true;
         }
 
-        const frameVx = (e.clientX - lastX.current) * sensitivity;
-        const frameVy = -(e.clientY - lastY.current) * sensitivity;
+        const now = performance.now();
+        const dt = now - lastTime.current;
+
+        if (dt < 1) return;
+
+        const timeFactor = Math.min(dt / 16, 2.5);
+
+        const rawVx = ((e.clientX - lastX.current) / timeFactor) * sensitivity;
+        const rawVy = (-(e.clientY - lastY.current) / timeFactor) * sensitivity;
+
         lastX.current = e.clientX;
         lastY.current = e.clientY;
+        lastTime.current = now;
 
-        velocityX.current = frameVx;
-        velocityY.current = frameVy;
+        const clampedVx = clamp(rawVx, -maxVelocity, maxVelocity);
+        const clampedVy = clamp(rawVy, -maxVelocity, maxVelocity);
+
+        smoothVelocityX.current += (clampedVx - smoothVelocityX.current) * velocitySmoothing;
+        smoothVelocityY.current += (clampedVy - smoothVelocityY.current) * velocitySmoothing;
+
+        velocityX.current = smoothVelocityX.current;
+        velocityY.current = smoothVelocityY.current;
 
         if (fullSpin) {
             if (axis === 'horizontal' || axis === 'both') {
-                baseRotationY.current += frameVx;
+                baseRotationY.current += smoothVelocityX.current * timeFactor;
                 setRotationY(baseRotationY.current);
             }
             if (axis === 'vertical' || axis === 'both') {
-                baseRotationX.current += frameVy;
+                baseRotationX.current += smoothVelocityY.current * timeFactor;
                 setRotationX(baseRotationX.current);
             }
         } else {
@@ -201,7 +226,7 @@ const useDragTilt = ({
                 setRotationX(clamp(-deltaY * sensitivity, -maxRotation, maxRotation));
             }
         }
-    }, [maxRotation, sensitivity, dragThreshold, axis, fullSpin]);
+    }, [maxRotation, sensitivity, dragThreshold, axis, fullSpin, maxVelocity, velocitySmoothing]);
 
     const release = useCallback((e?: React.PointerEvent) => {
         if (!isDragging.current) return;
