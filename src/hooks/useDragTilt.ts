@@ -1,4 +1,5 @@
 import { useRef, useCallback, useState, useEffect } from 'react';
+import { useDrag } from '@use-gesture/react';
 
 interface DragTiltOptions {
     maxRotation?: number;
@@ -10,24 +11,12 @@ interface DragTiltOptions {
     momentumDecay?: number;
 }
 
-interface DragTiltResult {
-    ref: React.RefObject<HTMLDivElement | null>;
-    containerStyle: React.CSSProperties;
-    frontStyle: React.CSSProperties;
-    backStyle: React.CSSProperties;
-    isFrontFace: boolean;
-    handlers: {
-        onPointerDown: (e: React.PointerEvent) => void;
-        onPointerMove: (e: React.PointerEvent) => void;
-        onPointerUp: (e: React.PointerEvent) => void;
-        onPointerLeave: (e: React.PointerEvent) => void;
-    };
-    wasDragged: () => boolean;
-}
-
 const normalizeAngle = (angle: number): number => {
     return ((angle % 360) + 360) % 360;
 };
+
+const clamp = (value: number, min: number, max: number) =>
+    Math.min(Math.max(value, min), max);
 
 const useDragTilt = ({
     maxRotation = 15,
@@ -37,27 +26,17 @@ const useDragTilt = ({
     axis = 'both',
     fullSpin = false,
     momentumDecay = 0.92,
-}: DragTiltOptions = {}): DragTiltResult => {
+}: DragTiltOptions = {}) => {
     const elementRef = useRef<HTMLDivElement | null>(null);
-    const isDragging = useRef(false);
-    const startX = useRef(0);
-    const startY = useRef(0);
-    const prevX = useRef(0);
-    const prevY = useRef(0);
-    const prevTime = useRef(0);
-    const velocityX = useRef(0);
-    const velocityY = useRef(0);
-    const dragDistance = useRef(0);
     const wasDraggedRef = useRef(false);
     const animationFrame = useRef<number>(0);
     const baseRotationY = useRef(0);
     const baseRotationX = useRef(0);
+    const momentumVx = useRef(0);
+    const momentumVy = useRef(0);
     const [rotationY, setRotationY] = useState(0);
     const [rotationX, setRotationX] = useState(0);
     const [isAnimating, setIsAnimating] = useState(false);
-
-    const clamp = (value: number, min: number, max: number) =>
-        Math.min(Math.max(value, min), max);
 
     const getSnapTarget = (angle: number): number => {
         const normalized = normalizeAngle(angle);
@@ -75,20 +54,6 @@ const useDragTilt = ({
         const xBack = nx > 90 && nx < 270;
         return !(yBack !== xBack);
     };
-
-    useEffect(() => {
-        const el = elementRef.current;
-        if (!el) return;
-
-        const preventScroll = (e: TouchEvent) => {
-            if (isDragging.current) {
-                e.preventDefault();
-            }
-        };
-
-        el.addEventListener('touchmove', preventScroll, { passive: false });
-        return () => el.removeEventListener('touchmove', preventScroll);
-    }, []);
 
     useEffect(() => {
         return () => {
@@ -115,8 +80,8 @@ const useDragTilt = ({
     }, [axis]);
 
     const startMomentum = useCallback(() => {
-        let vx = clamp(velocityX.current, -15, 15);
-        let vy = clamp(velocityY.current, -15, 15);
+        let vx = clamp(momentumVx.current, -15, 15);
+        let vy = clamp(momentumVy.current, -15, 15);
 
         const tick = () => {
             if (Math.abs(vx) < 0.3 && Math.abs(vy) < 0.3) {
@@ -143,113 +108,93 @@ const useDragTilt = ({
         animationFrame.current = requestAnimationFrame(tick);
     }, [momentumDecay, axis, snapToFace]);
 
-    const handlePointerDown = useCallback((e: React.PointerEvent) => {
-        if (animationFrame.current) {
-            cancelAnimationFrame(animationFrame.current);
-        }
-
-        isDragging.current = true;
-        startX.current = e.clientX;
-        startY.current = e.clientY;
-        prevX.current = e.clientX;
-        prevY.current = e.clientY;
-        prevTime.current = performance.now();
-        velocityX.current = 0;
-        velocityY.current = 0;
-        dragDistance.current = 0;
-        wasDraggedRef.current = false;
-        setIsAnimating(false);
-        (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-    }, []);
-
-    const handlePointerMove = useCallback((e: React.PointerEvent) => {
-        if (!isDragging.current) return;
-
-        const dx = e.clientX - startX.current;
-        const dy = e.clientY - startY.current;
-        dragDistance.current = Math.sqrt(dx * dx + dy * dy);
-
-        if (dragDistance.current > dragThreshold) {
-            wasDraggedRef.current = true;
-        }
-
-        const now = performance.now();
-        const dt = now - prevTime.current;
-
-        if (dt > 0) {
-            const frameDx = e.clientX - prevX.current;
-            const frameDy = e.clientY - prevY.current;
-            const instantVx = (frameDx / Math.max(dt, 8)) * 16 * sensitivity;
-            const instantVy = (-frameDy / Math.max(dt, 8)) * 16 * sensitivity;
-            velocityX.current = velocityX.current * 0.7 + instantVx * 0.3;
-            velocityY.current = velocityY.current * 0.7 + instantVy * 0.3;
-        }
-
-        prevX.current = e.clientX;
-        prevY.current = e.clientY;
-        prevTime.current = now;
-
-        if (fullSpin) {
-            if (axis === 'horizontal' || axis === 'both') {
-                setRotationY(baseRotationY.current + dx * sensitivity);
-            }
-            if (axis === 'vertical' || axis === 'both') {
-                setRotationX(baseRotationX.current + -dy * sensitivity);
-            }
-        } else {
-            if (axis === 'horizontal' || axis === 'both') {
-                setRotationY(clamp(dx * sensitivity, -maxRotation, maxRotation));
-            }
-            if (axis === 'vertical' || axis === 'both') {
-                setRotationX(clamp(-dy * sensitivity, -maxRotation, maxRotation));
-            }
-        }
-    }, [maxRotation, sensitivity, dragThreshold, axis, fullSpin]);
-
-    const release = useCallback((e?: React.PointerEvent) => {
-        if (!isDragging.current) return;
-        isDragging.current = false;
-        if (e) {
-            (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
-        }
-
-        if (fullSpin) {
-            const totalDx = (e ? e.clientX : prevX.current) - startX.current;
-            const totalDy = (e ? e.clientY : prevY.current) - startY.current;
-
-            if (axis === 'horizontal' || axis === 'both') {
-                baseRotationY.current += totalDx * sensitivity;
-            }
-            if (axis === 'vertical' || axis === 'both') {
-                baseRotationX.current += -totalDy * sensitivity;
+    const bind = useDrag(
+        ({ movement: [mx, my], velocity: [vx, vy], direction: [dirX, dirY], distance: [distX, distY], active, first, memo }) => {
+            if (first) {
+                if (animationFrame.current) {
+                    cancelAnimationFrame(animationFrame.current);
+                }
+                wasDraggedRef.current = false;
+                setIsAnimating(false);
+                return [baseRotationY.current, baseRotationX.current];
             }
 
-            const hasVelocity = Math.abs(velocityX.current) > 0.5 || Math.abs(velocityY.current) > 0.5;
-            if (hasVelocity) {
-                startMomentum();
+            const [savedBaseY, savedBaseX] = (memo as [number, number]) ?? [baseRotationY.current, baseRotationX.current];
+            const totalDistance = Math.hypot(distX, distY);
+
+            if (totalDistance > dragThreshold) {
+                wasDraggedRef.current = true;
+            }
+
+            if (active) {
+                if (fullSpin) {
+                    if (axis === 'horizontal' || axis === 'both') {
+                        setRotationY(savedBaseY + mx * sensitivity);
+                    }
+                    if (axis === 'vertical' || axis === 'both') {
+                        setRotationX(savedBaseX + -my * sensitivity);
+                    }
+                } else {
+                    if (axis === 'horizontal' || axis === 'both') {
+                        setRotationY(clamp(mx * sensitivity, -maxRotation, maxRotation));
+                    }
+                    if (axis === 'vertical' || axis === 'both') {
+                        setRotationX(clamp(-my * sensitivity, -maxRotation, maxRotation));
+                    }
+                }
             } else {
-                snapToFace();
+                if (fullSpin) {
+                    if (axis === 'horizontal' || axis === 'both') {
+                        baseRotationY.current = savedBaseY + mx * sensitivity;
+                    }
+                    if (axis === 'vertical' || axis === 'both') {
+                        baseRotationX.current = savedBaseX + -my * sensitivity;
+                    }
+
+                    momentumVx.current = vx * dirX * sensitivity * 16;
+                    momentumVy.current = -vy * dirY * sensitivity * 16;
+
+                    const hasVelocity = vx > 0.1 || vy > 0.1;
+                    if (hasVelocity) {
+                        startMomentum();
+                    } else {
+                        snapToFace();
+                    }
+                } else {
+                    setIsAnimating(true);
+                    setRotationY(0);
+                    setRotationX(0);
+                }
             }
-        } else {
-            setIsAnimating(true);
-            setRotationY(0);
-            setRotationX(0);
+
+            return memo;
+        },
+        {
+            pointer: { capture: true, touch: true },
+            threshold: 0,
+            filterTaps: true,
         }
-    }, [fullSpin, sensitivity, axis, startMomentum, snapToFace]);
-
-    const handlePointerUp = useCallback((e: React.PointerEvent) => {
-        release(e);
-    }, [release]);
-
-    const handlePointerLeave = useCallback((e: React.PointerEvent) => {
-        release(e);
-    }, [release]);
+    );
 
     useEffect(() => {
         if (!isAnimating) return;
         const timer = setTimeout(() => setIsAnimating(false), springDuration);
         return () => clearTimeout(timer);
     }, [isAnimating, springDuration]);
+
+    useEffect(() => {
+        const el = elementRef.current;
+        if (!el) return;
+
+        const preventScroll = (e: TouchEvent) => {
+            if (wasDraggedRef.current) {
+                e.preventDefault();
+            }
+        };
+
+        el.addEventListener('touchmove', preventScroll, { passive: false });
+        return () => el.removeEventListener('touchmove', preventScroll);
+    }, []);
 
     const isFrontFace = isFront(rotationY, rotationX);
 
@@ -289,12 +234,7 @@ const useDragTilt = ({
         frontStyle,
         backStyle,
         isFrontFace,
-        handlers: {
-            onPointerDown: handlePointerDown,
-            onPointerMove: handlePointerMove,
-            onPointerUp: handlePointerUp,
-            onPointerLeave: handlePointerLeave,
-        },
+        handlers: bind(),
         wasDragged,
     };
 };
