@@ -433,28 +433,22 @@ const WalletEmpty = () => {
     const { user } = useAuthStore();
 
     const firstName = user?.firstName || '';
-    const lastName = user?.lastName || '';
-    const avatar = user?.avatar || null;
 
-    const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
-    const hasAvatar = avatar && avatar.trim() !== '';
+    const WALLET_URL = 'https://klubit.fra1.cdn.digitaloceanspaces.com/icon-wallet.png';
 
     return (
         <div className="flex flex-col items-center justify-center w-full max-w-[500px] mx-auto px-4 pt-[120px] pb-[100px] md:py-16">
             <div className="flex flex-col gap-8 items-center justify-center py-8 w-full">
                 <div className="flex flex-col gap-6 items-center w-full">
                     <div className="flex items-center justify-center size-[90px] bg-[#232323] rounded-full overflow-hidden">
-                        {hasAvatar ? (
+                        <div className="relative w-[74px] h-[82px]">
                             <img
-                                src={avatar}
-                                alt={`${firstName} ${lastName}`}
-                                className="size-full object-cover"
+                                src={WALLET_URL}
+                                alt="Disco ball"
+                                className="w-full h-full object-contain"
+                                style={{ filter: 'drop-shadow(0px 0px 30px rgba(255, 255, 255, 0.25))' }}
                             />
-                        ) : (
-                            <span className="text-[#939393] text-[24px] font-semibold font-borna">
-                                {initials || '?'}
-                            </span>
-                        )}
+                        </div>
                     </div>
 
                     <div className="flex flex-col gap-2 items-center text-center">
