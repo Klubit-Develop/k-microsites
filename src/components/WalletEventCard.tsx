@@ -1,15 +1,15 @@
-interface EventCardHzProps {
+interface WalletEventCardProps {
     title: string;
     date: string;
     time: string;
     location: string;
     imageUrl?: string;
     onClick?: () => void;
+    variant?: 'upcoming' | 'past';
     className?: string;
-    isLoading?: boolean;
 }
 
-const EventCardHzSkeleton = () => (
+const WalletEventCardSkeleton = () => (
     <div className="flex items-center gap-[12px] p-[12px] bg-[#141414] border-2 border-[#232323] rounded-[16px] shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)] animate-pulse">
         <div className="w-[50px] h-[62.5px] shrink-0 bg-[#232323] rounded-[4px]" />
         <div className="flex-1 flex flex-col gap-2 min-w-0">
@@ -20,24 +20,24 @@ const EventCardHzSkeleton = () => (
     </div>
 );
 
-const EventCardHz = ({
+const WalletEventCard = ({
     title,
     date,
     time,
     location,
     imageUrl,
     onClick,
+    variant = 'upcoming',
     className = '',
-    isLoading = false,
-}: EventCardHzProps) => {
-    if (isLoading) {
-        return <EventCardHzSkeleton />;
-    }
+}: WalletEventCardProps) => {
+    const isPast = variant === 'past';
+    const dateTimeColor = isPast ? 'text-[#939393]' : 'text-[#e5ff88]';
+    const dotColor = isPast ? 'bg-[#939393]' : 'bg-[#e5ff88]';
 
     return (
-        <div
+        <button
             onClick={onClick}
-            className={`flex items-center gap-[12px] p-[12px] bg-[#141414] border-2 border-[#232323] rounded-[16px] shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)] cursor-pointer transition-colors duration-200 hover:bg-[#1a1a1a] ${className}`}
+            className={`flex items-center gap-[12px] p-[12px] bg-[#141414] border-2 border-[#232323] rounded-[16px] shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)] cursor-pointer transition-colors duration-200 hover:bg-[#1a1a1a] text-left w-full ${className}`}
         >
             <div className="relative w-[54px] h-[68px] shrink-0 shadow-[0px_0px_11px_0px_rgba(0,0,0,0.5)]">
                 <div className="absolute inset-0 border-2 border-[#232323] rounded-[4px] overflow-hidden">
@@ -45,7 +45,7 @@ const EventCardHz = ({
                         <img
                             src={imageUrl}
                             alt={title}
-                            className="w-full h-full object-cover"
+                            className={`w-full h-full object-cover ${isPast ? 'grayscale opacity-60' : ''}`}
                         />
                     ) : (
                         <div className="w-full h-full bg-[#232323]" />
@@ -59,11 +59,11 @@ const EventCardHz = ({
                 </p>
 
                 <div className="flex items-center gap-[4px]">
-                    <span className="text-[#e5ff88] text-[14px] font-normal leading-[20px] truncate font-borna">
+                    <span className={`${dateTimeColor} text-[14px] font-normal leading-[20px] truncate font-borna`}>
                         {date}
                     </span>
-                    <div className="w-[3px] h-[3px] rounded-full bg-[#e5ff88] shrink-0" />
-                    <span className="text-[#e5ff88] text-[14px] font-normal leading-[20px] truncate font-borna">
+                    <div className={`w-[3px] h-[3px] rounded-full ${dotColor} shrink-0`} />
+                    <span className={`${dateTimeColor} text-[14px] font-normal leading-[20px] truncate font-borna`}>
                         {time}
                     </span>
                 </div>
@@ -75,9 +75,9 @@ const EventCardHz = ({
                     </span>
                 </div>
             </div>
-        </div>
+        </button>
     );
 };
 
-export { EventCardHzSkeleton };
-export default EventCardHz;
+export { WalletEventCardSkeleton };
+export default WalletEventCard;

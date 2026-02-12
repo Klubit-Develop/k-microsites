@@ -11,6 +11,8 @@ import { useAuthStore } from '@/stores/authStore';
 import { ChevronRightIcon } from '@/components/icons';
 import Button from '@/components/ui/Button';
 import TransactionItemsModal from '@/components/TransactionItemsModal';
+import EmptyUpcomingEvents from '@/components/EmptyUpcomingEvents';
+import WalletEventCard from '@/components/WalletEventCard';
 
 interface Transaction {
     id: string;
@@ -367,49 +369,6 @@ const FeaturedCarousel = ({ transactions, isLive, onTransactionClick }: Featured
         </div>
     );
 };
-
-interface WalletEventCardProps {
-    title: string;
-    date: string;
-    time: string;
-    location: string;
-    imageUrl: string;
-    onClick: () => void;
-}
-
-const WalletEventCard = ({ title, date, time, location, imageUrl, onClick }: WalletEventCardProps) => {
-    return (
-        <button
-            onClick={onClick}
-            className="flex items-center gap-3 p-3 bg-[#141414] border-2 border-[#232323] rounded-2xl cursor-pointer text-left"
-        >
-            <div className="relative size-16 rounded-xl overflow-hidden shrink-0">
-                <img
-                    src={imageUrl}
-                    alt={title}
-                    className="w-full h-full object-cover"
-                />
-            </div>
-
-            <div className="flex flex-col gap-0.5 flex-1 min-w-0">
-                <h4 className="text-[16px] font-helvetica font-medium text-[#F6F6F6] truncate">
-                    {title}
-                </h4>
-                <span className="text-[14px] font-helvetica text-[#939393] truncate">
-                    {date} · {time}
-                </span>
-                <span className="text-[14px] font-helvetica text-[#939393] truncate">
-                    {location}
-                </span>
-            </div>
-
-            <div className="shrink-0">
-                <ChevronRightIcon />
-            </div>
-        </button>
-    );
-};
-
 interface SectionHeaderProps {
     title: string;
     to?: string;
@@ -1177,22 +1136,30 @@ const Wallet = () => {
                         to="/wallet/upcoming"
                         showArrow={upcomingTransactions.length > 5}
                     />
-                    <div className="flex flex-col gap-2">
-                        {upcomingTransactions.slice(0, 5).map((transaction) => {
-                            const cardProps = formatTransactionForCard(transaction);
-                            return (
-                                <WalletEventCard
-                                    key={transaction.id}
-                                    title={cardProps.title}
-                                    date={cardProps.date}
-                                    time={cardProps.time}
-                                    location={cardProps.location}
-                                    imageUrl={cardProps.imageUrl}
-                                    onClick={() => handleTransactionClick(transaction.id)}
-                                />
-                            );
-                        })}
-                    </div>
+                    {upcomingTransactions.length > 0 ? (
+                        <div className="flex flex-col gap-2">
+                            {upcomingTransactions.slice(0, 5).map((transaction) => {
+                                const cardProps = formatTransactionForCard(transaction);
+                                return (
+                                    <WalletEventCard
+                                        key={transaction.id}
+                                        title={cardProps.title}
+                                        date={cardProps.date}
+                                        time={cardProps.time}
+                                        location={cardProps.location}
+                                        imageUrl={cardProps.imageUrl}
+                                        variant="upcoming"
+                                        onClick={() => handleTransactionClick(transaction.id)}
+                                    />
+                                );
+                            })}
+                        </div>
+                    ) : (
+                        <EmptyUpcomingEvents
+                            title={t('wallet.empty_upcoming_title', 'Nada por aquí')}
+                            description={t('wallet.empty_upcoming_subtitle', 'Cuando compres entradas, aparecerán aquí')}
+                        />
+                    )}
                 </div>
             )}
 
@@ -1201,23 +1168,24 @@ const Wallet = () => {
                     <SectionHeader
                         title={t('wallet.past', 'Pasados')}
                         to="/wallet/past"
-                        showArrow={pastTransactions.length > 5}
+                        showArrow={pastTransactions.length > 1}
                     />
                     <div className="flex flex-col gap-2">
-                        {pastTransactions.slice(0, 5).map((transaction) => {
-                            const cardProps = formatTransactionForCard(transaction);
+                        {(() => {
+                            const cardProps = formatTransactionForCard(pastTransactions[0]);
                             return (
                                 <WalletEventCard
-                                    key={transaction.id}
+                                    key={pastTransactions[0].id}
                                     title={cardProps.title}
                                     date={cardProps.date}
                                     time={cardProps.time}
                                     location={cardProps.location}
                                     imageUrl={cardProps.imageUrl}
-                                    onClick={() => handleTransactionClick(transaction.id)}
+                                    variant="past"
+                                    onClick={() => handleTransactionClick(pastTransactions[0].id)}
                                 />
                             );
-                        })}
+                        })()}
                     </div>
                 </div>
             )}

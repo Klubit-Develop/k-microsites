@@ -12,7 +12,7 @@ interface EventSectionProps {
 const EventSectionSkeleton = () => (
     <div className="flex flex-col gap-4 items-start w-full animate-pulse">
         <div className="flex gap-0.5 items-center px-1.5 w-full">
-            <div className="h-7 w-32 bg-[#232323] rounded" />
+            <div className="h-6 w-32 bg-[#232323] rounded" />
         </div>
         <div className="flex flex-col gap-2 w-full">
             {[1, 2].map((i) => (
@@ -51,15 +51,15 @@ const EventSection = ({
                         onClick={onHeaderClick}
                         className="flex gap-2 items-center cursor-pointer"
                     >
-                        <h2 className="text-[#ff336d] text-[24px] font-semibold leading-normal whitespace-nowrap overflow-hidden text-ellipsis font-borna">
+                        <h2 className="text-[#ff336d] text-[20px] font-semibold leading-normal whitespace-nowrap overflow-hidden text-ellipsis font-borna">
                             {title}
                         </h2>
-                        <div className="flex items-center pt-1">
+                        <div className="flex items-center pt-0.5">
                             <ChevronRightIcon />
                         </div>
                     </button>
                 ) : (
-                    <h2 className="text-[#ff336d] text-[24px] font-semibold leading-normal whitespace-nowrap overflow-hidden text-ellipsis font-borna">
+                    <h2 className="text-[#ff336d] text-[20px] font-semibold leading-normal whitespace-nowrap overflow-hidden text-ellipsis font-borna">
                         {title}
                     </h2>
                 )}
