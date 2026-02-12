@@ -15,6 +15,7 @@ import EmptyUpcomingEvents from '@/components/EmptyUpcomingEvents';
 
 import WalletEventCard from '@/components/WalletEventCard';
 import WalletEventsListModal from '@/components/WalletEventsListModal';
+import WalletKardsListModal from '@/components/WalletKardsListModal';
 
 interface Transaction {
     id: string;
@@ -720,7 +721,7 @@ interface BenefitDetailModalProps {
     onBack: () => void;
 }
 
-const BenefitDetailModal = ({ benefit, backgroundColor, passbook, isOpen, onClose, onBack }: BenefitDetailModalProps) => {
+const BenefitDetailModal = ({ benefit, isOpen, onClose, onBack }: BenefitDetailModalProps) => {
     const { t } = useTranslation();
 
     if (!isOpen || !benefit) return null;
@@ -916,11 +917,11 @@ const KardDetailModal = ({ passbook, isOpen, onClose }: KardDetailModalProps) =>
 interface KardsCarouselProps {
     kards: UserPassbook[];
     onKardClick: (passbook: UserPassbook) => void;
+    onHeaderClick?: () => void;
 }
 
-const KardsCarousel = ({ kards, onKardClick }: KardsCarouselProps) => {
+const KardsCarousel = ({ kards, onKardClick, onHeaderClick }: KardsCarouselProps) => {
     const { t } = useTranslation();
-    const navigate = useNavigate();
     const scrollRef = useRef<HTMLDivElement>(null);
     const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -940,8 +941,8 @@ const KardsCarousel = ({ kards, onKardClick }: KardsCarouselProps) => {
     }, [kards.length]);
 
     const handleHeaderClick = () => {
-        if (kards.length > 3) {
-            navigate({ to: '/wallet/kards' });
+        if (kards.length > 3 && onHeaderClick) {
+            onHeaderClick();
         }
     };
 
@@ -1011,6 +1012,7 @@ const Wallet = () => {
     const [selectedKard, setSelectedKard] = useState<UserPassbook | null>(null);
     const [isKardModalOpen, setIsKardModalOpen] = useState(false);
     const [eventsListVariant, setEventsListVariant] = useState<'upcoming' | 'past' | null>(null);
+    const [isKardsListOpen, setIsKardsListOpen] = useState(false);
 
     const { data, isLoading, error } = useQuery({
         queryKey: ['wallet-transactions'],
@@ -1135,6 +1137,7 @@ const Wallet = () => {
                 <KardsCarousel
                     kards={kardsData}
                     onKardClick={handleKardClick}
+                    onHeaderClick={() => setIsKardsListOpen(true)}
                 />
             )}
 
@@ -1220,6 +1223,15 @@ const Wallet = () => {
                     variant={eventsListVariant}
                 />
             )}
+
+            <WalletKardsListModal
+                isOpen={isKardsListOpen}
+                onClose={() => setIsKardsListOpen(false)}
+                onKardClick={(passbook) => {
+                    setIsKardsListOpen(false);
+                    handleKardClick(passbook);
+                }}
+            />
         </div>
     );
 };

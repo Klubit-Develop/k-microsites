@@ -32,8 +32,6 @@ import { Route as CheckoutCancelRouteImport } from './routes/checkout.cancel'
 import { Route as ArtistSlugRouteImport } from './routes/artist.$slug'
 import { Route as AuthenticatedWalletRouteImport } from './routes/_authenticated/wallet'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
-import { Route as AuthenticatedWalletUpcomingRouteImport } from './routes/_authenticated/wallet.upcoming'
-import { Route as AuthenticatedWalletPastRouteImport } from './routes/_authenticated/wallet.past'
 import { Route as AuthenticatedWalletKardsRouteImport } from './routes/_authenticated/wallet.kards'
 
 const VerifyRoute = VerifyRouteImport.update({
@@ -150,17 +148,6 @@ const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedWalletUpcomingRoute =
-  AuthenticatedWalletUpcomingRouteImport.update({
-    id: '/upcoming',
-    path: '/upcoming',
-    getParentRoute: () => AuthenticatedWalletRoute,
-  } as any)
-const AuthenticatedWalletPastRoute = AuthenticatedWalletPastRouteImport.update({
-  id: '/past',
-  path: '/past',
-  getParentRoute: () => AuthenticatedWalletRoute,
-} as any)
 const AuthenticatedWalletKardsRoute =
   AuthenticatedWalletKardsRouteImport.update({
     id: '/kards',
@@ -192,8 +179,6 @@ export interface FileRoutesByFullPath {
   '/event/$slug': typeof EventSlugRoute
   '/rrpp/$slug': typeof RrppSlugRoute
   '/wallet/kards': typeof AuthenticatedWalletKardsRoute
-  '/wallet/past': typeof AuthenticatedWalletPastRoute
-  '/wallet/upcoming': typeof AuthenticatedWalletUpcomingRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -219,8 +204,6 @@ export interface FileRoutesByTo {
   '/event/$slug': typeof EventSlugRoute
   '/rrpp/$slug': typeof RrppSlugRoute
   '/wallet/kards': typeof AuthenticatedWalletKardsRoute
-  '/wallet/past': typeof AuthenticatedWalletPastRoute
-  '/wallet/upcoming': typeof AuthenticatedWalletUpcomingRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -248,8 +231,6 @@ export interface FileRoutesById {
   '/event/$slug': typeof EventSlugRoute
   '/rrpp/$slug': typeof RrppSlugRoute
   '/_authenticated/wallet/kards': typeof AuthenticatedWalletKardsRoute
-  '/_authenticated/wallet/past': typeof AuthenticatedWalletPastRoute
-  '/_authenticated/wallet/upcoming': typeof AuthenticatedWalletUpcomingRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -277,8 +258,6 @@ export interface FileRouteTypes {
     | '/event/$slug'
     | '/rrpp/$slug'
     | '/wallet/kards'
-    | '/wallet/past'
-    | '/wallet/upcoming'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -304,8 +283,6 @@ export interface FileRouteTypes {
     | '/event/$slug'
     | '/rrpp/$slug'
     | '/wallet/kards'
-    | '/wallet/past'
-    | '/wallet/upcoming'
   id:
     | '__root__'
     | '/'
@@ -332,8 +309,6 @@ export interface FileRouteTypes {
     | '/event/$slug'
     | '/rrpp/$slug'
     | '/_authenticated/wallet/kards'
-    | '/_authenticated/wallet/past'
-    | '/_authenticated/wallet/upcoming'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -523,20 +498,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProfileRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/wallet/upcoming': {
-      id: '/_authenticated/wallet/upcoming'
-      path: '/upcoming'
-      fullPath: '/wallet/upcoming'
-      preLoaderRoute: typeof AuthenticatedWalletUpcomingRouteImport
-      parentRoute: typeof AuthenticatedWalletRoute
-    }
-    '/_authenticated/wallet/past': {
-      id: '/_authenticated/wallet/past'
-      path: '/past'
-      fullPath: '/wallet/past'
-      preLoaderRoute: typeof AuthenticatedWalletPastRouteImport
-      parentRoute: typeof AuthenticatedWalletRoute
-    }
     '/_authenticated/wallet/kards': {
       id: '/_authenticated/wallet/kards'
       path: '/kards'
@@ -549,14 +510,10 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedWalletRouteChildren {
   AuthenticatedWalletKardsRoute: typeof AuthenticatedWalletKardsRoute
-  AuthenticatedWalletPastRoute: typeof AuthenticatedWalletPastRoute
-  AuthenticatedWalletUpcomingRoute: typeof AuthenticatedWalletUpcomingRoute
 }
 
 const AuthenticatedWalletRouteChildren: AuthenticatedWalletRouteChildren = {
   AuthenticatedWalletKardsRoute: AuthenticatedWalletKardsRoute,
-  AuthenticatedWalletPastRoute: AuthenticatedWalletPastRoute,
-  AuthenticatedWalletUpcomingRoute: AuthenticatedWalletUpcomingRoute,
 }
 
 const AuthenticatedWalletRouteWithChildren =
