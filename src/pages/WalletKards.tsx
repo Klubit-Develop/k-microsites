@@ -4,7 +4,7 @@ import 'dayjs/locale/es';
 import 'dayjs/locale/en';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
-import { useNavigate, useSearch } from '@tanstack/react-router';
+import { useNavigate, useParams } from '@tanstack/react-router';
 
 import axiosInstance from '@/config/axiosConfig';
 import { useAuthStore } from '@/stores/authStore';
@@ -140,22 +140,22 @@ const formatEventTimeRange = (startTime?: string, endTime?: string): string => {
 
 const QrIcon = () => (
     <svg width="21" height="21" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M2.05 2.05H4.7V4.7H2.05V2.05Z" fill="white" stroke="white" strokeWidth="0.5" />
-        <path d="M16.3 2.05H18.95V4.7H16.3V2.05Z" fill="white" stroke="white" strokeWidth="0.5" />
-        <path d="M2.05 16.3H4.7V18.95H2.05V16.3Z" fill="white" stroke="white" strokeWidth="0.5" />
-        <path d="M16.3 16.3H18.95V18.95H16.3V16.3Z" fill="white" stroke="white" strokeWidth="0.5" />
-        <path d="M18.95 2.05V2.05" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
-        <path d="M5.81 5.81H10.5V10.5H5.81V5.81Z" fill="white" fillOpacity="0.3" />
-        <rect x="2.05" y="10.5" width="8.45" height="0.01" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
-        <rect x="10.5" y="2.05" width="0.01" height="0.01" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
-        <rect x="10.5" y="14.25" width="0.01" height="0.01" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
-        <rect x="10.5" y="10.5" width="4.7" height="0.01" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
-        <rect x="10.5" y="2.05" width="0.01" height="0.01" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
-        <rect x="10.5" y="18" width="0.01" height="0.01" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
+        <rect x="2" y="2" width="5.5" height="5.5" rx="1" stroke="white" strokeWidth="1.5" />
+        <rect x="13.5" y="2" width="5.5" height="5.5" rx="1" stroke="white" strokeWidth="1.5" />
+        <rect x="2" y="13.5" width="5.5" height="5.5" rx="1" stroke="white" strokeWidth="1.5" />
+        <rect x="13.5" y="13.5" width="5.5" height="5.5" rx="1" stroke="white" strokeWidth="1.5" />
+        <rect x="4.25" y="4.25" width="1" height="1" fill="white" />
+        <rect x="15.75" y="4.25" width="1" height="1" fill="white" />
+        <rect x="4.25" y="15.75" width="1" height="1" fill="white" />
+        <rect x="9.5" y="2" width="2" height="2" rx="0.5" fill="white" />
+        <rect x="9.5" y="9.5" width="2" height="2" rx="0.5" fill="white" />
+        <rect x="2" y="9.5" width="2" height="2" rx="0.5" fill="white" />
+        <rect x="9.5" y="17" width="2" height="2" rx="0.5" fill="white" />
+        <rect x="17" y="9.5" width="2" height="2" rx="0.5" fill="white" />
     </svg>
 );
 
-const BenefitIcon = () => (
+const BenefitBadgeIcon = () => (
     <svg width="45" height="52" viewBox="0 0 45 52" fill="none" xmlns="http://www.w3.org/2000/svg">
         <defs>
             <linearGradient id="benefitGold" x1="22.5" y1="0" x2="22.5" y2="52" gradientUnits="userSpaceOnUse">
@@ -254,7 +254,7 @@ const BenefitCardRow = ({ benefit, onClick }: BenefitCardRowProps) => {
             className="flex items-center gap-3 p-3 bg-[#141414] border-2 border-[#232323] rounded-2xl shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)] text-left w-full transition-colors duration-200 hover:bg-[#1a1a1a]"
         >
             <div className="flex items-center justify-center shrink-0 size-[90px] p-[2px]">
-                <BenefitIcon />
+                <BenefitBadgeIcon />
             </div>
 
             <div className="flex flex-col flex-1 min-w-0 justify-center">
@@ -284,7 +284,7 @@ const KardSkeleton = () => (
 const BenefitsSkeleton = () => (
     <div className="flex flex-col gap-2 w-full animate-pulse">
         {[1, 2, 3].map((i) => (
-            <div key={i} className="h-[93px] w-full bg-[#232323] rounded-2xl" />
+            <div key={i} className="h-[114px] w-full bg-[#232323] rounded-2xl" />
         ))}
     </div>
 );
@@ -302,7 +302,7 @@ const WalletKards = () => {
     const locale = i18n.language === 'en' ? 'en' : 'es';
     const navigate = useNavigate();
     const { user } = useAuthStore();
-    const { clubId } = useSearch({ from: '/_authenticated/wallet/kards' });
+    const { idKard } = useParams({ from: '/_authenticated/wallet/kards/$idKard' });
 
     const { data: passbooks, isLoading: isLoadingPassbooks } = useQuery({
         queryKey: ['wallet-passbooks', user?.id],
@@ -316,10 +316,11 @@ const WalletKards = () => {
     });
 
     const passbook = useMemo(() => {
-        if (!passbooks || !clubId) return null;
-        return passbooks.find((p) => p.clubId === clubId) || null;
-    }, [passbooks, clubId]);
+        if (!passbooks || !idKard) return null;
+        return passbooks.find((p) => p.id === idKard) || null;
+    }, [passbooks, idKard]);
 
+    const clubId = passbook?.clubId;
     const backgroundColor = passbook?.club.passbookConfig?.backgroundColor || '#033f3e';
 
     const { data: upcomingEvents, isLoading: isLoadingUpcoming } = useQuery({
@@ -356,10 +357,6 @@ const WalletKards = () => {
         navigate({ to: '/event/$slug', params: { slug } });
     };
 
-    if (!clubId) {
-        return null;
-    }
-
     return (
         <div className="relative min-h-screen bg-[#050505]">
             <div className="absolute top-0 left-0 right-0 h-[504px] z-0">
@@ -386,6 +383,10 @@ const WalletKards = () => {
                             {t('wallet.kard_not_found', 'Kard no encontrada')}
                         </span>
                     </div>
+                )}
+
+                {isLoadingPassbooks && !passbook && (
+                    <BenefitsSkeleton />
                 )}
 
                 {benefits.length > 0 && (

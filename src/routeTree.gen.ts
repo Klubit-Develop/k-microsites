@@ -32,7 +32,7 @@ import { Route as CheckoutCancelRouteImport } from './routes/checkout.cancel'
 import { Route as ArtistSlugRouteImport } from './routes/artist.$slug'
 import { Route as AuthenticatedWalletRouteImport } from './routes/_authenticated/wallet'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
-import { Route as AuthenticatedWalletKardsRouteImport } from './routes/_authenticated/wallet.kards'
+import { Route as AuthenticatedWalletKardsIdKardRouteImport } from './routes/_authenticated/wallet.kards.$idKard'
 
 const VerifyRoute = VerifyRouteImport.update({
   id: '/verify',
@@ -148,10 +148,10 @@ const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedWalletKardsRoute =
-  AuthenticatedWalletKardsRouteImport.update({
-    id: '/kards',
-    path: '/kards',
+const AuthenticatedWalletKardsIdKardRoute =
+  AuthenticatedWalletKardsIdKardRouteImport.update({
+    id: '/kards/$idKard',
+    path: '/kards/$idKard',
     getParentRoute: () => AuthenticatedWalletRoute,
   } as any)
 
@@ -178,7 +178,7 @@ export interface FileRoutesByFullPath {
   '/checkout/success': typeof CheckoutSuccessRoute
   '/event/$slug': typeof EventSlugRoute
   '/rrpp/$slug': typeof RrppSlugRoute
-  '/wallet/kards': typeof AuthenticatedWalletKardsRoute
+  '/wallet/kards/$idKard': typeof AuthenticatedWalletKardsIdKardRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -203,7 +203,7 @@ export interface FileRoutesByTo {
   '/checkout/success': typeof CheckoutSuccessRoute
   '/event/$slug': typeof EventSlugRoute
   '/rrpp/$slug': typeof RrppSlugRoute
-  '/wallet/kards': typeof AuthenticatedWalletKardsRoute
+  '/wallet/kards/$idKard': typeof AuthenticatedWalletKardsIdKardRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -230,7 +230,7 @@ export interface FileRoutesById {
   '/checkout/success': typeof CheckoutSuccessRoute
   '/event/$slug': typeof EventSlugRoute
   '/rrpp/$slug': typeof RrppSlugRoute
-  '/_authenticated/wallet/kards': typeof AuthenticatedWalletKardsRoute
+  '/_authenticated/wallet/kards/$idKard': typeof AuthenticatedWalletKardsIdKardRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -257,7 +257,7 @@ export interface FileRouteTypes {
     | '/checkout/success'
     | '/event/$slug'
     | '/rrpp/$slug'
-    | '/wallet/kards'
+    | '/wallet/kards/$idKard'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -282,7 +282,7 @@ export interface FileRouteTypes {
     | '/checkout/success'
     | '/event/$slug'
     | '/rrpp/$slug'
-    | '/wallet/kards'
+    | '/wallet/kards/$idKard'
   id:
     | '__root__'
     | '/'
@@ -308,7 +308,7 @@ export interface FileRouteTypes {
     | '/checkout/success'
     | '/event/$slug'
     | '/rrpp/$slug'
-    | '/_authenticated/wallet/kards'
+    | '/_authenticated/wallet/kards/$idKard'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -498,22 +498,22 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProfileRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/wallet/kards': {
-      id: '/_authenticated/wallet/kards'
-      path: '/kards'
-      fullPath: '/wallet/kards'
-      preLoaderRoute: typeof AuthenticatedWalletKardsRouteImport
+    '/_authenticated/wallet/kards/$idKard': {
+      id: '/_authenticated/wallet/kards/$idKard'
+      path: '/kards/$idKard'
+      fullPath: '/wallet/kards/$idKard'
+      preLoaderRoute: typeof AuthenticatedWalletKardsIdKardRouteImport
       parentRoute: typeof AuthenticatedWalletRoute
     }
   }
 }
 
 interface AuthenticatedWalletRouteChildren {
-  AuthenticatedWalletKardsRoute: typeof AuthenticatedWalletKardsRoute
+  AuthenticatedWalletKardsIdKardRoute: typeof AuthenticatedWalletKardsIdKardRoute
 }
 
 const AuthenticatedWalletRouteChildren: AuthenticatedWalletRouteChildren = {
-  AuthenticatedWalletKardsRoute: AuthenticatedWalletKardsRoute,
+  AuthenticatedWalletKardsIdKardRoute: AuthenticatedWalletKardsIdKardRoute,
 }
 
 const AuthenticatedWalletRouteWithChildren =

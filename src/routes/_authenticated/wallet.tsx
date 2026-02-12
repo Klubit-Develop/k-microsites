@@ -7,7 +7,7 @@ export const Route = createFileRoute('/_authenticated/wallet')({
 
 function WalletLayout() {
     const kardsMatch = useMatch({
-        from: '/_authenticated/wallet/kards',
+        from: '/_authenticated/wallet/kards/$idKard',
         shouldThrow: false
     })
 

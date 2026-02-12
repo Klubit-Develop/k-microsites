@@ -657,7 +657,7 @@ const PassbookModal = ({ isOpen, onClose, walletAddress, userId, clubId, clubNam
 
     return createPortal(
         <div
-            className={`fixed inset-0 z-[60] flex items-end justify-center transition-all duration-300 ease-out ${isVisible ? 'bg-black/60 backdrop-blur-sm' : 'bg-transparent'}`}
+            className={`fixed inset-0 z-[60] flex items-end justify-center transition-all duration-300 ease-out overscroll-none touch-none ${isVisible ? 'bg-black/60 backdrop-blur-sm' : 'bg-transparent'}`}
             onClick={handleClose}
         >
             <div
@@ -683,7 +683,7 @@ const PassbookModal = ({ isOpen, onClose, walletAddress, userId, clubId, clubNam
                     </button>
                 </div>
 
-                <div className="relative z-10 flex flex-col items-center px-6 pt-[84px] pb-10">
+                <div className="relative z-10 flex flex-col items-center px-6 pt-[84px] pb-10 overflow-y-auto max-h-[90vh] overscroll-contain touch-pan-y">
                     <div className="w-full max-w-[342px] rounded-[11px] overflow-hidden border border-[rgba(0,0,0,0.16)]" style={{ backgroundColor: bgColor }}>
                         <div className="flex items-center justify-between px-4 py-3">
                             <div className="size-7 rounded-full border-[1.15px] border-[#232323] overflow-hidden shadow-[0px_0px_6.37px_0px_rgba(0,0,0,0.5)]">
@@ -1012,6 +1012,8 @@ const ItemDetailModal = ({ transactionId, itemId, isOpen, onClose, onBack }: Ite
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['transactions'] });
             queryClient.invalidateQueries({ queryKey: ['transaction', transactionId] });
+            queryClient.invalidateQueries({ queryKey: ['wallet-transactions'] });
+            queryClient.invalidateQueries({ queryKey: ['wallet-events-list'] });
             toast.success(t('item_detail.hidden_success', 'Transacción ocultada de tu actividad'));
             setShowOptionsMenu(false);
             handleClose();
@@ -1177,13 +1179,13 @@ const ItemDetailModal = ({ transactionId, itemId, isOpen, onClose, onBack }: Ite
 
     return (
         <div
-            className={`fixed inset-0 z-50 flex items-end justify-center transition-all duration-300 ease-out ${isVisible ? 'bg-black/60 backdrop-blur-sm' : 'bg-transparent'}`}
+            className={`fixed inset-0 z-50 flex items-end justify-center transition-all duration-300 ease-out overscroll-none touch-none ${isVisible ? 'bg-black/60 backdrop-blur-sm' : 'bg-transparent'}`}
             onClick={handleBackdropClick}
         >
             <div
                 className={`relative w-full max-w-[500px] max-h-[90vh] bg-[#0a0a0a] border-2 border-[#232323] rounded-t-[32px] overflow-hidden transition-transform duration-300 ease-out ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}
             >
-                <div className="absolute top-0 left-0 right-0 h-[72px] z-20 pointer-events-none bg-gradient-to-b from-[#0a0a0a] via-[#0a0a0a]/80 to-transparent rounded-t-[32px]" />
+                <div className="absolute top-0 left-0 right-0 h-[140px] z-20 pointer-events-none rounded-t-[32px]" style={{ background: 'linear-gradient(to bottom, #0a0a0a 0%, #0a0a0a 40%, rgba(10,10,10,0.85) 60%, rgba(10,10,10,0.4) 80%, transparent 100%)' }} />
 
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 pt-[5px] opacity-50 z-30">
                     <div className="w-9 h-[5px] bg-[#F6F6F6]/50 rounded-full" />
@@ -1216,7 +1218,7 @@ const ItemDetailModal = ({ transactionId, itemId, isOpen, onClose, onBack }: Ite
                     </div>
                 </div>
 
-                <div className="relative flex flex-col overflow-y-auto max-h-[90vh] scrollbar-hide" style={{ paddingBottom: showMostrarKard ? '96px' : '32px' }}>
+                <div className="relative flex flex-col overflow-y-auto max-h-[90vh] scrollbar-hide overscroll-contain touch-pan-y" style={{ paddingBottom: showMostrarKard ? '96px' : '32px' }}>
                     <div className="relative w-full h-[300px] shrink-0">
                         {eventData?.flyer && (
                             <img
@@ -1355,21 +1357,23 @@ const ItemDetailModal = ({ transactionId, itemId, isOpen, onClose, onBack }: Ite
                 </div>
 
                 {showMostrarKard && (
-                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a] to-transparent pt-6 pb-6 px-6 z-20">
-                        <button
-                            onClick={() => setShowPassbookModal(true)}
-                            className="w-full h-[48px] bg-[#232323] rounded-full flex items-center justify-center cursor-pointer border-2 border-[#232323] shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)]"
-                        >
-                            <span className="text-[16px] font-borna font-medium text-[#F6F6F6]">
-                                {t('item_detail.show_kard', 'Mostrar Kard')}
-                            </span>
-                        </button>
+                    <div className="absolute bottom-0 left-0 right-0 z-20 pointer-events-none" style={{ background: 'linear-gradient(to top, #0a0a0a 0%, #0a0a0a 40%, rgba(10,10,10,0.85) 60%, rgba(10,10,10,0.4) 80%, transparent 100%)', height: '140px' }}>
+                        <div className="absolute bottom-0 left-0 right-0 px-6 pb-6 pointer-events-auto">
+                            <button
+                                onClick={() => setShowPassbookModal(true)}
+                                className="w-full h-[48px] bg-[#232323] rounded-full flex items-center justify-center cursor-pointer border-2 border-[#232323] shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)]"
+                            >
+                                <span className="text-[16px] font-borna font-medium text-[#F6F6F6]">
+                                    {t('item_detail.show_kard', 'Mostrar Kard')}
+                                </span>
+                            </button>
+                        </div>
                     </div>
                 )}
 
                 {showOptionsMenu && (
                     <div
-                        className="fixed inset-0 z-50 flex items-end justify-center"
+                        className="fixed inset-0 z-50 flex items-end justify-center overscroll-none touch-none"
                         onClick={() => setShowOptionsMenu(false)}
                     >
                         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
