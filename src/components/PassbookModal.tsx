@@ -77,6 +77,8 @@ const PassbookModal = ({ isOpen, onClose, walletAddress, userId, clubId, clubNam
             if (response.data?.status === 'success') {
                 return response.data.data as {
                     kardLevel?: string;
+                    passbookUrl?: string;
+                    googleWalletUrl?: string | null;
                 };
             }
             return null;
@@ -91,29 +93,32 @@ const PassbookModal = ({ isOpen, onClose, walletAddress, userId, clubId, clubNam
     const stripUrl = passbookConfig?.stripUrl || PASSBOOK_STRIP_URL;
     const kardLevel = existingPassbook?.kardLevel || 'Member';
 
+    const resolvedPassbookUrl = passbookUrl || existingPassbook?.passbookUrl;
+    const resolvedGoogleWalletUrl = googleWalletUrl || existingPassbook?.googleWalletUrl;
+
     const walletBadge = useMemo(() => {
         const lang = i18n.language === 'en' ? 'en' : 'es';
         const ua = navigator.userAgent;
         const isIOS = /iPad|iPhone|iPod|Macintosh/.test(ua) && 'ontouchend' in document;
 
-        if (isIOS && passbookUrl) {
+        if (isIOS && resolvedPassbookUrl) {
             return {
-                url: passbookUrl,
+                url: resolvedPassbookUrl,
                 badge: `/assets/images/apple_${lang}.svg`,
                 alt: t('transaction.add_to_apple_wallet', 'Añadir a Apple Wallet'),
             };
         }
 
-        if (!isIOS && googleWalletUrl) {
+        if (!isIOS && resolvedGoogleWalletUrl) {
             return {
-                url: googleWalletUrl,
+                url: resolvedGoogleWalletUrl,
                 badge: `/assets/images/google_${lang}.svg`,
                 alt: t('transaction.add_to_google_wallet', 'Añadir a Google Wallet'),
             };
         }
 
         return null;
-    }, [passbookUrl, googleWalletUrl, i18n.language, t]);
+    }, [resolvedPassbookUrl, resolvedGoogleWalletUrl, i18n.language, t]);
 
     if (!isAnimating && !isOpen) return null;
 
@@ -126,29 +131,25 @@ const PassbookModal = ({ isOpen, onClose, walletAddress, userId, clubId, clubNam
                 className={`relative w-full max-w-[500px] max-h-[90vh] bg-[#0a0a0a] border-2 border-[#232323] rounded-t-[32px] overflow-hidden transition-transform duration-300 ease-out ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}
                 onClick={(e) => e.stopPropagation()}
             >
-                <div className="absolute inset-x-0 top-0 h-[489px] pointer-events-none">
-                    <div className="absolute inset-0" style={{ backgroundColor: bgColor }} />
-                    <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(10,10,10,0) 0%, #0a0a0a 40%)' }} />
-                    <div className="absolute inset-0 backdrop-blur-[1.5px]" style={{ background: 'linear-gradient(to bottom, rgba(10,10,10,0) 0%, rgba(10,10,10,0.5) 40%)' }} />
-                </div>
+                <div className="flex flex-col items-center px-6 pt-4 pb-8 overflow-y-auto max-h-[90vh]">
+                    <div className="flex items-center justify-between w-full mb-6">
+                        <span className="text-[18px] font-borna font-semibold text-[#F6F6F6]">
+                            {t('passbook.title', 'Tu Kard')}
+                        </span>
+                        <button
+                            onClick={handleClose}
+                            className="flex items-center justify-center size-8 rounded-full bg-[#232323] cursor-pointer"
+                        >
+                            <CloseIcon />
+                        </button>
+                    </div>
 
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 pt-[5px] opacity-50 z-10">
-                    <div className="w-9 h-[5px] bg-[#F6F6F6]/50 rounded-full" />
-                </div>
-
-                <div className="absolute top-6 right-6 z-20">
-                    <button
-                        onClick={(e) => { e.stopPropagation(); handleClose(); }}
-                        className="flex items-center justify-center size-9 bg-[#232323] rounded-full shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)] cursor-pointer"
+                    <div
+                        className="w-full max-w-[342px] rounded-[14px] overflow-hidden shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)]"
+                        style={{ backgroundColor: bgColor }}
                     >
-                        <CloseIcon />
-                    </button>
-                </div>
-
-                <div className="relative z-10 flex flex-col items-center px-6 pt-[84px] pb-10 overflow-y-auto max-h-[90vh] overscroll-contain touch-pan-y">
-                    <div className="w-full max-w-[342px] rounded-[11px] overflow-hidden border border-[rgba(0,0,0,0.16)]" style={{ backgroundColor: bgColor }}>
-                        <div className="flex items-center justify-between px-4 py-3">
-                            <div className="size-7 rounded-full border-[1.15px] border-[#232323] overflow-hidden shadow-[0px_0px_6.37px_0px_rgba(0,0,0,0.5)]">
+                        <div className="flex items-start justify-between px-4 pt-3 pb-2">
+                            <div className="relative size-[40px] rounded-full overflow-hidden border border-[#323232]" style={{ backgroundColor: bgColor }}>
                                 {clubLogo ? (
                                     <img src={clubLogo} alt={clubName} className="w-full h-full object-cover" />
                                 ) : (
