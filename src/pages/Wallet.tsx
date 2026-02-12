@@ -207,11 +207,43 @@ const formatFeaturedDate = (startDate: string, t: (key: string, fallback: string
     return eventDate.format('ddd, D MMM');
 };
 
+const getVenueTypeLabel = (venueType: VenueType, t: (key: string, fallback: string) => string): string => {
+    switch (venueType) {
+        case 'CLUB': return t('wallet.venue_club', 'Club');
+        case 'PUB': return t('wallet.venue_pub', 'Pub');
+        case 'BAR': return t('wallet.venue_bar', 'Bar');
+        case 'LOUNGE': return t('wallet.venue_lounge', 'Lounge');
+        case 'RESTAURANT': return t('wallet.venue_restaurant', 'Restaurant');
+        case 'PROMOTER': return t('wallet.venue_promoter', 'Promoter');
+        case 'OTHER': return t('wallet.venue_other', 'Venue');
+        default: return '';
+    }
+};
+
+const HomeIcon = () => (
+    <svg width="18" height="19" viewBox="0 0 18 19" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path
+            d="M2.25 7.25L9 2L15.75 7.25V15.5C15.75 15.8978 15.592 16.2794 15.3107 16.5607C15.0294 16.842 14.6478 17 14.25 17H3.75C3.35218 17 2.97064 16.842 2.68934 16.5607C2.40804 16.2794 2.25 15.8978 2.25 15.5V7.25Z"
+            stroke="#939393"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        />
+        <path
+            d="M6.75 17V9.5H11.25V17"
+            stroke="#939393"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        />
+    </svg>
+);
+
 const PersonIcon = () => (
     <svg width="12" height="16" viewBox="0 0 12 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <g clip-path="url(#clip0_4603_12338)">
-            <path d="M10.8411 13.7607L9.56114 9.91992H1.88034L0.600342 13.7607" stroke="#939393" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="bevel" />
-            <path d="M5.72138 7.35828C7.13523 7.35828 8.28138 6.21213 8.28138 4.79828C8.28138 3.38443 7.13523 2.23828 5.72138 2.23828C4.30753 2.23828 3.16138 3.38443 3.16138 4.79828C3.16138 6.21213 4.30753 7.35828 5.72138 7.35828Z" stroke="#939393" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="bevel" />
+        <g clipPath="url(#clip0_4603_12338)">
+            <path d="M10.8411 13.7607L9.56114 9.91992H1.88034L0.600342 13.7607" stroke="#939393" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="bevel" />
+            <path d="M5.72138 7.35828C7.13523 7.35828 8.28138 6.21213 8.28138 4.79828C8.28138 3.38443 7.13523 2.23828 5.72138 2.23828C4.30753 2.23828 3.16138 3.38443 3.16138 4.79828C3.16138 6.21213 4.30753 7.35828 5.72138 7.35828Z" stroke="#939393" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="bevel" />
         </g>
         <defs>
             <clipPath id="clip0_4603_12338">
@@ -373,6 +405,277 @@ const FeaturedCarousel = ({ transactions, isLive, onTransactionClick }: Featured
     );
 };
 
+interface KlubKardProps {
+    clubName: string;
+    clubLogo: string;
+    venueType: VenueType;
+    backgroundColor: string;
+    foregroundColor: string;
+    labelColor: string;
+    kardLevel?: KardLevel;
+    onClick: () => void;
+}
+
+const KlubKard = ({
+    clubName,
+    clubLogo,
+    venueType,
+    backgroundColor,
+    foregroundColor,
+    labelColor,
+    kardLevel,
+    onClick,
+}: KlubKardProps) => {
+    const { t } = useTranslation();
+    const venueLabel = getVenueTypeLabel(venueType, t);
+
+    const { ref, containerStyle, frontStyle, backStyle, handlers, wasDragged } = useDragTilt({
+        fullSpin: true,
+        sensitivity: 0.3,
+        springDuration: 500,
+        momentumDecay: 0.92,
+        axis: 'horizontal',
+    });
+
+    const handleClick = () => {
+        if (wasDragged()) return;
+        onClick();
+    };
+
+    const cardClasses = 'flex flex-col justify-between w-full h-full p-[24px] rounded-[20px] border-[3px] border-[#232323] overflow-hidden select-none';
+
+    return (
+        <div
+            ref={ref}
+            style={containerStyle}
+            onClick={handleClick}
+            className="relative w-full h-[210px] cursor-pointer"
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onClick();
+                }
+            }}
+            {...handlers}
+        >
+            <div
+                className={cardClasses}
+                style={{
+                    background: `linear-gradient(to right, ${backgroundColor} 50%, #141414 100%)`,
+                    ...frontStyle,
+                }}
+            >
+                <div
+                    className="relative size-[54px] rounded-full border-[1.5px] border-[#232323] overflow-hidden shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)] shrink-0"
+                    style={{ backgroundColor }}
+                >
+                    {clubLogo ? (
+                        <img
+                            src={clubLogo}
+                            alt={clubName}
+                            className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+                        />
+                    ) : (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <HomeIcon />
+                        </div>
+                    )}
+                </div>
+
+                <div className="flex flex-col items-start gap-0 w-full min-w-0">
+                    <h3
+                        className="text-[24px] font-borna font-semibold leading-normal truncate w-full text-left"
+                        style={{ color: foregroundColor }}
+                    >
+                        {clubName}
+                    </h3>
+                    {venueLabel && (
+                        <span
+                            className="text-[14px] font-helvetica leading-normal text-left"
+                            style={{ color: labelColor }}
+                        >
+                            {venueLabel}
+                        </span>
+                    )}
+                </div>
+            </div>
+
+            <div
+                className={`${cardClasses} justify-center items-center gap-3`}
+                style={{
+                    background: `linear-gradient(to left, ${backgroundColor} 50%, #141414 100%)`,
+                    ...backStyle,
+                }}
+            >
+                <div className="flex flex-col items-center gap-1">
+                    <span
+                        className="text-[11px] font-helvetica font-medium tracking-wider uppercase"
+                        style={{ color: labelColor }}
+                    >
+                        {t('passbook.club_name_label', 'CLUB NAME')}
+                    </span>
+                    <span
+                        className="text-[18px] font-borna font-semibold leading-none"
+                        style={{ color: foregroundColor }}
+                    >
+                        {clubName}
+                    </span>
+                </div>
+
+                {kardLevel && (
+                    <div className="flex flex-col items-center gap-1">
+                        <span
+                            className="text-[11px] font-helvetica font-medium tracking-wider uppercase"
+                            style={{ color: labelColor }}
+                        >
+                            {t('passbook.kard_label', 'KARD')}
+                        </span>
+                        <span
+                            className="text-[14px] font-borna font-medium leading-none"
+                            style={{ color: foregroundColor }}
+                        >
+                            {kardLevel.charAt(0) + kardLevel.slice(1).toLowerCase()}
+                        </span>
+                    </div>
+                )}
+
+                {venueLabel && (
+                    <span
+                        className="text-[13px] font-helvetica"
+                        style={{ color: labelColor }}
+                    >
+                        {venueLabel}
+                    </span>
+                )}
+            </div>
+        </div>
+    );
+};
+
+interface PageDotsProps {
+    total: number;
+    current: number;
+}
+
+const PageDots = ({ total, current }: PageDotsProps) => {
+    if (total <= 1) return null;
+
+    const maxDots = 5;
+    const dotsToShow = Math.min(total, maxDots);
+
+    return (
+        <div className="flex items-center justify-center gap-2 px-3 py-2">
+            {Array.from({ length: dotsToShow }).map((_, index) => {
+                const isEdge = index === 0 || index === dotsToShow - 1;
+                const isActive = index === current % dotsToShow;
+
+                return (
+                    <div
+                        key={index}
+                        className={`rounded-full transition-all ${isActive
+                            ? 'bg-[#F6F6F6] size-2'
+                            : isEdge && dotsToShow === maxDots
+                                ? 'bg-[#F6F6F6] opacity-30 size-1.5'
+                                : 'bg-[#F6F6F6] opacity-30 size-2'
+                            }`}
+                    />
+                );
+            })}
+        </div>
+    );
+};
+
+interface KardsCarouselProps {
+    kards: UserPassbook[];
+    onKardClick: (passbook: UserPassbook) => void;
+    onHeaderClick?: () => void;
+}
+
+const KardsCarousel = ({ kards, onKardClick, onHeaderClick }: KardsCarouselProps) => {
+    const { t } = useTranslation();
+    const scrollRef = useRef<HTMLDivElement>(null);
+    const [currentIndex, setCurrentIndex] = useState(0);
+
+    useEffect(() => {
+        const scrollContainer = scrollRef.current;
+        if (!scrollContainer || kards.length <= 1) return;
+
+        const handleScroll = () => {
+            const scrollLeft = scrollContainer.scrollLeft;
+            const cardWidth = scrollContainer.offsetWidth;
+            const newIndex = Math.round(scrollLeft / cardWidth);
+            setCurrentIndex(Math.min(newIndex, kards.length - 1));
+        };
+
+        scrollContainer.addEventListener('scroll', handleScroll);
+        return () => scrollContainer.removeEventListener('scroll', handleScroll);
+    }, [kards.length]);
+
+    const handleHeaderClick = () => {
+        if (kards.length > 3 && onHeaderClick) {
+            onHeaderClick();
+        }
+    };
+
+    const renderKard = (passbook: UserPassbook) => {
+        const config = passbook.club.passbookConfig;
+        return (
+            <KlubKard
+                clubName={passbook.club.name}
+                clubLogo={passbook.club.logo}
+                venueType={passbook.club.venueType}
+                backgroundColor={config?.backgroundColor || '#141414'}
+                foregroundColor={config?.foregroundColor || '#F6F6F6'}
+                labelColor={config?.labelColor || '#939393'}
+                kardLevel={passbook.kardLevel}
+                onClick={() => onKardClick(passbook)}
+            />
+        );
+    };
+
+    return (
+        <div className="flex flex-col gap-4 w-full">
+            <button
+                onClick={handleHeaderClick}
+                className={`flex gap-2 items-center px-1.5 ${kards.length > 3 ? 'cursor-pointer' : 'cursor-default'}`}
+                disabled={kards.length <= 3}
+            >
+                <span className="text-[#FF336D] text-[24px] font-semibold leading-none whitespace-nowrap overflow-hidden text-ellipsis font-borna">
+                    {t('wallet.klub_kards', 'Klub Kards')}
+                </span>
+                {kards.length > 3 && (
+                    <div className="flex items-center pt-1">
+                        <ChevronRightIcon />
+                    </div>
+                )}
+            </button>
+
+            {kards.length === 1 ? (
+                renderKard(kards[0])
+            ) : (
+                <div className="flex flex-col gap-2 items-center w-full">
+                    <div className="relative w-full -mx-4">
+                        <div
+                            ref={scrollRef}
+                            className="flex gap-3 overflow-x-auto px-4 snap-x snap-mandatory [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+                        >
+                            {kards.map((passbook) => (
+                                <div key={passbook.id} className="shrink-0 w-full snap-center">
+                                    {renderKard(passbook)}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <PageDots total={kards.length} current={currentIndex} />
+                </div>
+            )}
+        </div>
+    );
+};
+
 interface SectionHeaderProps {
     title: string;
     to?: string;
@@ -459,247 +762,6 @@ const WalletEmpty = () => {
                     </div>
                 </div>
             </div>
-        </div>
-    );
-};
-
-const HomeIcon = () => (
-    <svg width="18" height="19" viewBox="0 0 18 19" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path
-            d="M2.25 7.25L9 2L15.75 7.25V15.5C15.75 15.8978 15.592 16.2794 15.3107 16.5607C15.0294 16.842 14.6478 17 14.25 17H3.75C3.35218 17 2.97064 16.842 2.68934 16.5607C2.40804 16.2794 2.25 15.8978 2.25 15.5V7.25Z"
-            stroke="#939393"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-        />
-        <path
-            d="M6.75 17V9.5H11.25V17"
-            stroke="#939393"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-        />
-    </svg>
-);
-
-const getVenueTypeLabel = (venueType: VenueType, t: (key: string, fallback: string) => string): string => {
-    switch (venueType) {
-        case 'CLUB': return t('wallet.venue_club', 'Club');
-        case 'PUB': return t('wallet.venue_pub', 'Pub');
-        case 'BAR': return t('wallet.venue_bar', 'Bar');
-        case 'LOUNGE': return t('wallet.venue_lounge', 'Lounge');
-        case 'RESTAURANT': return t('wallet.venue_restaurant', 'Restaurant');
-        case 'PROMOTER': return t('wallet.venue_promoter', 'Promoter');
-        case 'OTHER': return t('wallet.venue_other', 'Venue');
-        default: return '';
-    }
-};
-
-interface KlubKardProps {
-    clubName: string;
-    clubLogo: string;
-    venueType: VenueType;
-    backgroundColor: string;
-    foregroundColor: string;
-    labelColor: string;
-    onClick: () => void;
-}
-
-const KlubKard = ({
-    clubName,
-    clubLogo,
-    venueType,
-    backgroundColor,
-    foregroundColor,
-    labelColor,
-    onClick,
-}: KlubKardProps) => {
-    const { t } = useTranslation();
-    const venueLabel = getVenueTypeLabel(venueType, t);
-
-    const { style: tiltStyle, handlers, wasDragged } = useDragTilt({
-        maxRotation: 18,
-        sensitivity: 0.12,
-        springDuration: 450,
-    });
-
-    const handleClick = () => {
-        if (wasDragged()) return;
-        onClick();
-    };
-
-    return (
-        <div
-            onClick={handleClick}
-            className="flex flex-col justify-between w-full h-[250px] p-[24px] rounded-[20px] border-[3px] border-[#232323] cursor-pointer overflow-hidden select-none"
-            style={{
-                background: `linear-gradient(to right, ${backgroundColor} 50%, #141414 100%)`,
-                ...tiltStyle,
-            }}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    onClick();
-                }
-            }}
-            {...handlers}
-        >
-            <div
-                className="relative size-[54px] rounded-full border-[1.5px] border-[#232323] overflow-hidden shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)] shrink-0"
-                style={{ backgroundColor }}
-            >
-                {clubLogo ? (
-                    <img
-                        src={clubLogo}
-                        alt={clubName}
-                        className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-                    />
-                ) : (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                        <HomeIcon />
-                    </div>
-                )}
-            </div>
-
-            <div className="flex flex-col items-start gap-0 w-full min-w-0">
-                <h3
-                    className="text-[24px] font-borna font-semibold leading-normal truncate w-full text-left"
-                    style={{ color: foregroundColor }}
-                >
-                    {clubName}
-                </h3>
-                {venueLabel && (
-                    <span
-                        className="text-[14px] font-helvetica leading-normal text-left"
-                        style={{ color: labelColor }}
-                    >
-                        {venueLabel}
-                    </span>
-                )}
-            </div>
-        </div>
-    );
-};
-
-interface PageDotsProps {
-    total: number;
-    current: number;
-}
-
-const PageDots = ({ total, current }: PageDotsProps) => {
-    if (total <= 1) return null;
-
-    const maxDots = 5;
-    const dotsToShow = Math.min(total, maxDots);
-
-    return (
-        <div className="flex items-center justify-center gap-2 px-3 py-2">
-            {Array.from({ length: dotsToShow }).map((_, index) => {
-                const isEdge = index === 0 || index === dotsToShow - 1;
-                const isActive = index === current % dotsToShow;
-
-                return (
-                    <div
-                        key={index}
-                        className={`rounded-full transition-all ${isActive
-                            ? 'bg-[#F6F6F6] size-2'
-                            : isEdge && dotsToShow === maxDots
-                                ? 'bg-[#F6F6F6] opacity-30 size-1.5'
-                                : 'bg-[#F6F6F6] opacity-30 size-2'
-                            }`}
-                    />
-                );
-            })}
-        </div>
-    );
-};
-
-interface KardsCarouselProps {
-    kards: UserPassbook[];
-    onKardClick: (passbook: UserPassbook) => void;
-    onHeaderClick?: () => void;
-}
-
-const KardsCarousel = ({ kards, onKardClick, onHeaderClick }: KardsCarouselProps) => {
-    const { t } = useTranslation();
-    const scrollRef = useRef<HTMLDivElement>(null);
-    const [currentIndex, setCurrentIndex] = useState(0);
-
-    useEffect(() => {
-        const scrollContainer = scrollRef.current;
-        if (!scrollContainer || kards.length <= 1) return;
-
-        const handleScroll = () => {
-            const scrollLeft = scrollContainer.scrollLeft;
-            const cardWidth = scrollContainer.offsetWidth;
-            const newIndex = Math.round(scrollLeft / cardWidth);
-            setCurrentIndex(Math.min(newIndex, kards.length - 1));
-        };
-
-        scrollContainer.addEventListener('scroll', handleScroll);
-        return () => scrollContainer.removeEventListener('scroll', handleScroll);
-    }, [kards.length]);
-
-    const handleHeaderClick = () => {
-        if (kards.length > 3 && onHeaderClick) {
-            onHeaderClick();
-        }
-    };
-
-    const renderKard = (passbook: UserPassbook) => {
-        const config = passbook.club.passbookConfig;
-        return (
-            <KlubKard
-                clubName={passbook.club.name}
-                clubLogo={passbook.club.logo}
-                venueType={passbook.club.venueType}
-                backgroundColor={config?.backgroundColor || '#141414'}
-                foregroundColor={config?.foregroundColor || '#F6F6F6'}
-                labelColor={config?.labelColor || '#939393'}
-                onClick={() => onKardClick(passbook)}
-            />
-        );
-    };
-
-    return (
-        <div className="flex flex-col gap-4 w-full">
-            <button
-                onClick={handleHeaderClick}
-                className={`flex gap-2 items-center px-1.5 ${kards.length > 3 ? 'cursor-pointer' : 'cursor-default'}`}
-                disabled={kards.length <= 3}
-            >
-                <span className="text-[#FF336D] text-[24px] font-semibold leading-none whitespace-nowrap overflow-hidden text-ellipsis font-borna">
-                    {t('wallet.klub_kards', 'Klub Kards')}
-                </span>
-                {kards.length > 3 && (
-                    <div className="flex items-center pt-1">
-                        <ChevronRightIcon />
-                    </div>
-                )}
-            </button>
-
-            {kards.length === 1 ? (
-                renderKard(kards[0])
-            ) : (
-                <div className="flex flex-col gap-2 items-center w-full">
-                    <div className="relative w-full -mx-4">
-                        <div
-                            ref={scrollRef}
-                            className="flex gap-3 overflow-x-auto px-4 snap-x snap-mandatory [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
-                        >
-                            {kards.map((passbook) => (
-                                <div key={passbook.id} className="shrink-0 w-full snap-center">
-                                    {renderKard(passbook)}
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    <PageDots total={kards.length} current={currentIndex} />
-                </div>
-            )}
         </div>
     );
 };

@@ -1,12 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
-import { createPortal } from 'react-dom';
 import dayjs from 'dayjs';
 import 'dayjs/locale/es';
 import 'dayjs/locale/en';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
-import { QRCodeSVG } from 'qrcode.react';
 import { toast } from 'sonner';
 
 import axiosInstance from '@/config/axiosConfig';
