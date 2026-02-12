@@ -13,7 +13,7 @@ import WalletEventCard, { WalletEventCardSkeleton } from '@/components/WalletEve
 import TransactionItemsModal from '@/components/TransactionItemsModal';
 import WalletEventsListModal from '@/components/WalletEventsListModal';
 import PassbookModal from '@/components/PassbookModal';
-import useDragTilt from '@/hooks/useDragTilt';
+import useCardSpin from '@/hooks/useCardSpin';
 
 type KardLevel = 'MEMBER' | 'BRONZE' | 'SILVER' | 'GOLD';
 type VenueType = 'CLUB' | 'PUB' | 'BAR' | 'LOUNGE' | 'RESTAURANT' | 'PROMOTER' | 'OTHER';
@@ -223,6 +223,17 @@ interface KlubKardDetailProps {
     onQrClick: () => void;
 }
 
+/**
+ * KlubKardDetail - Updated component with physics-based 3D continuous spin.
+ *
+ * INTEGRATION:
+ * 1. Copy useCardSpin.ts to src/hooks/useCardSpin.ts
+ * 2. Replace the existing KlubKardDetail component in src/pages/WalletKards.tsx
+ *    with this version.
+ * 3. Update the import: replace `useDragTilt` with `useCardSpin` from '@/hooks/useCardSpin'
+ * 4. Remove the useDragTilt import if no longer used elsewhere in the file.
+ */
+
 const KlubKardDetail = ({ passbook, userName, onQrClick }: KlubKardDetailProps) => {
     const { t } = useTranslation();
     const bgColor = passbook.club.passbookConfig?.backgroundColor || '#033f3e';
@@ -230,126 +241,167 @@ const KlubKardDetail = ({ passbook, userName, onQrClick }: KlubKardDetailProps) 
     const labelColor = passbook.club.passbookConfig?.labelColor || '#939393';
     const venueLabel = getVenueTypeLabel(passbook.club.venueType, t);
 
-    const { ref, containerStyle, frontStyle, backStyle, handlers, wasDragged } = useDragTilt({
-        fullSpin: true,
-        sensitivity: 0.3,
-        springDuration: 500,
-        momentumDecay: 0.92,
-        axis: 'horizontal',
-    });
+    const { cardInnerRef, shimmerFrontRef, shimmerBackRef, handlers, wasDragged } = useCardSpin();
 
     const handleQrClick = () => {
         if (wasDragged()) return;
         onQrClick();
     };
 
-    const cardClasses = 'flex flex-col items-start justify-between p-6 w-full h-full rounded-2xl border-[3px] border-[#232323] shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)]';
+    const faceClasses = 'absolute inset-0 flex flex-col p-6 w-full h-full rounded-2xl border-[3px] border-[#232323] overflow-hidden select-none';
 
     return (
         <div
-            ref={ref}
-            style={containerStyle}
-            className="relative w-full max-w-[370px] h-[250px] select-none cursor-grab active:cursor-grabbing"
+            style={{ perspective: 1200, touchAction: 'none' }}
+            className="w-full max-w-[370px] h-[250px] cursor-grab active:cursor-grabbing"
             {...handlers}
         >
             <div
-                className={cardClasses}
-                style={{
-                    background: `linear-gradient(to right, ${bgColor} 50%, #141414)`,
-                    ...frontStyle,
-                }}
+                ref={cardInnerRef}
+                className="relative w-full h-full"
+                style={{ transformStyle: 'preserve-3d' }}
             >
-                <div className="relative w-[50px] h-[50px] rounded-full border-2 border-[#232323] overflow-hidden shadow-[0px_0px_11px_0px_rgba(0,0,0,0.5)]">
-                    {passbook.club.logo ? (
-                        <img
-                            src={passbook.club.logo}
-                            alt={passbook.club.name}
-                            className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-                        />
-                    ) : (
-                        <div className="absolute inset-0 flex items-center justify-center bg-[#232323]">
-                            <span className="text-[20px]">🏠</span>
+                {/* ══ FRONT ══ */}
+                <div
+                    className={faceClasses}
+                    style={{
+                        background: `linear-gradient(135deg, ${bgColor} 0%, ${bgColor} 50%, #141414 100%)`,
+                        backfaceVisibility: 'hidden',
+                        WebkitBackfaceVisibility: 'hidden',
+                        boxShadow: `0 20px 60px -12px ${bgColor}33, 0 8px 24px rgba(0,0,0,0.5)`,
+                    }}
+                >
+                    <div
+                        ref={shimmerFrontRef}
+                        className="absolute inset-0 pointer-events-none z-[3]"
+                    />
+                    <div
+                        className="absolute inset-0 pointer-events-none z-[2] opacity-[0.03]"
+                        style={{
+                            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
+                        }}
+                    />
+                    <div
+                        className="absolute -top-10 -right-10 w-40 h-40 z-[1]"
+                        style={{ background: `radial-gradient(circle, ${bgColor}30 0%, transparent 70%)` }}
+                    />
+
+                    <div className="relative z-[2] flex flex-col justify-between h-full">
+                        <div className="relative w-[50px] h-[50px] rounded-full border-2 border-[#232323] overflow-hidden shadow-[0px_0px_11px_0px_rgba(0,0,0,0.5)]">
+                            {passbook.club.logo ? (
+                                <img
+                                    src={passbook.club.logo}
+                                    alt={passbook.club.name}
+                                    className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+                                />
+                            ) : (
+                                <div
+                                    className="absolute inset-0 flex items-center justify-center bg-[#232323]"
+                                >
+                                    <span className="text-[20px] font-borna font-bold" style={{ color: fgColor }}>
+                                        {passbook.club.name.charAt(0)}
+                                    </span>
+                                </div>
+                            )}
                         </div>
-                    )}
+
+                        <div className="flex flex-col items-start w-full">
+                            <h2
+                                className="text-[24px] font-borna font-semibold leading-none truncate w-full"
+                                style={{ color: fgColor }}
+                            >
+                                {passbook.club.name} Kard
+                            </h2>
+                            <span className="text-[14px] font-borna leading-[20px]" style={{ color: labelColor }}>
+                                {venueLabel}
+                            </span>
+                        </div>
+                    </div>
+
+                    <button
+                        onPointerDown={(e) => e.stopPropagation()}
+                        onClick={handleQrClick}
+                        className="absolute top-[15px] right-[14px] z-[4] flex items-center justify-center size-[42px] rounded-full backdrop-blur-[17.5px] bg-[rgba(0,0,0,0.3)] border border-white/10"
+                    >
+                        <QrIcon />
+                    </button>
                 </div>
 
-                <div className="flex flex-col items-start w-full">
-                    <h2 className="text-[24px] font-borna font-semibold text-[#F6F6F6] leading-none truncate w-full">
-                        {passbook.club.name} Kard
-                    </h2>
-                    <span className="text-[14px] font-borna text-[#939393] leading-[20px]">
-                        {venueLabel}
-                    </span>
-                </div>
-
-                <button
-                    onPointerDown={(e) => e.stopPropagation()}
-                    onClick={handleQrClick}
-                    className="absolute top-[15px] right-[14px] flex items-center justify-center size-[42px] rounded-full backdrop-blur-[17.5px] bg-[rgba(0,0,0,0.3)] border border-white/10"
+                {/* ══ BACK ══ */}
+                <div
+                    className={faceClasses}
+                    style={{
+                        background: `linear-gradient(135deg, #141414 0%, ${bgColor} 50%, ${bgColor} 100%)`,
+                        backfaceVisibility: 'hidden',
+                        WebkitBackfaceVisibility: 'hidden',
+                        boxShadow: `0 20px 60px -12px ${bgColor}33, 0 8px 24px rgba(0,0,0,0.5)`,
+                        transform: 'rotateY(180deg)',
+                    }}
                 >
-                    <QrIcon />
-                </button>
-            </div>
+                    <div
+                        ref={shimmerBackRef}
+                        className="absolute inset-0 pointer-events-none z-[3]"
+                    />
+                    <div
+                        className="absolute -bottom-10 -left-10 w-40 h-40 z-[1]"
+                        style={{ background: `radial-gradient(circle, ${bgColor}30 0%, transparent 70%)` }}
+                    />
 
-            <div
-                className={`${cardClasses} justify-center items-center gap-3`}
-                style={{
-                    background: `linear-gradient(to left, ${bgColor} 50%, #141414)`,
-                    ...backStyle,
-                }}
-            >
-                <div className="flex flex-col items-center gap-1">
-                    <span
-                        className="text-[11px] font-helvetica font-medium tracking-wider uppercase"
-                        style={{ color: labelColor }}
+                    <div className="relative z-[2] flex flex-col justify-center gap-5 h-full pt-2">
+                        <div className="flex flex-col gap-0.5">
+                            <span
+                                className="text-[11px] font-helvetica font-medium tracking-wider uppercase"
+                                style={{ color: labelColor }}
+                            >
+                                {t('passbook.club_name_label', 'NOMBRE KLUB')}
+                            </span>
+                            <span
+                                className="text-[20px] font-borna font-semibold leading-tight"
+                                style={{ color: fgColor }}
+                            >
+                                {passbook.club.name}
+                            </span>
+                        </div>
+
+                        <div className="flex flex-col gap-0.5">
+                            <span
+                                className="text-[11px] font-helvetica font-medium tracking-wider uppercase"
+                                style={{ color: labelColor }}
+                            >
+                                {t('passbook.full_name', 'NOMBRE COMPLETO')}
+                            </span>
+                            <span
+                                className="text-[18px] font-borna font-medium leading-tight"
+                                style={{ color: fgColor }}
+                            >
+                                {userName}
+                            </span>
+                        </div>
+
+                        <div className="flex flex-col gap-0.5">
+                            <span
+                                className="text-[11px] font-helvetica font-medium tracking-wider uppercase"
+                                style={{ color: labelColor }}
+                            >
+                                {t('passbook.kard_label', 'KARD')}
+                            </span>
+                            <span
+                                className="text-[16px] font-borna font-medium leading-tight"
+                                style={{ color: fgColor }}
+                            >
+                                {getKardLevelLabel(passbook.kardLevel)}
+                            </span>
+                        </div>
+                    </div>
+
+                    <button
+                        onPointerDown={(e) => e.stopPropagation()}
+                        onClick={handleQrClick}
+                        className="absolute bottom-[15px] right-[14px] z-[4] flex items-center justify-center size-[42px] rounded-full backdrop-blur-[17.5px] bg-[rgba(0,0,0,0.3)] border border-white/10"
                     >
-                        {t('passbook.club_name_label', 'CLUB NAME')}
-                    </span>
-                    <span
-                        className="text-[18px] font-borna font-semibold leading-none"
-                        style={{ color: fgColor }}
-                    >
-                        {passbook.club.name}
-                    </span>
+                        <QrIcon />
+                    </button>
                 </div>
-
-                <div className="flex flex-col items-center gap-1">
-                    <span
-                        className="text-[11px] font-helvetica font-medium tracking-wider uppercase"
-                        style={{ color: labelColor }}
-                    >
-                        {t('passbook.full_name', 'FULL NAME')}
-                    </span>
-                    <span
-                        className="text-[16px] font-borna font-medium leading-none"
-                        style={{ color: fgColor }}
-                    >
-                        {userName}
-                    </span>
-                </div>
-
-                <div className="flex flex-col items-center gap-1">
-                    <span
-                        className="text-[11px] font-helvetica font-medium tracking-wider uppercase"
-                        style={{ color: labelColor }}
-                    >
-                        {t('passbook.kard_label', 'KARD')}
-                    </span>
-                    <span
-                        className="text-[14px] font-borna font-medium leading-none"
-                        style={{ color: fgColor }}
-                    >
-                        {getKardLevelLabel(passbook.kardLevel)}
-                    </span>
-                </div>
-
-                <button
-                    onPointerDown={(e) => e.stopPropagation()}
-                    onClick={handleQrClick}
-                    className="absolute bottom-[15px] right-[14px] flex items-center justify-center size-[42px] rounded-full backdrop-blur-[17.5px] bg-[rgba(0,0,0,0.3)] border border-white/10"
-                >
-                    <QrIcon />
-                </button>
             </div>
         </div>
     );
