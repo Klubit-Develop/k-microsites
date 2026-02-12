@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import dayjs from 'dayjs';
 import 'dayjs/locale/es';
 import 'dayjs/locale/en';
@@ -9,7 +9,9 @@ import { useNavigate, useParams } from '@tanstack/react-router';
 import axiosInstance from '@/config/axiosConfig';
 import { useAuthStore } from '@/stores/authStore';
 import { ChevronRightIcon } from '@/components/icons';
-import EventCardHz, { EventCardHzSkeleton } from '@/components/EventCardHz';
+import WalletEventCard, { WalletEventCardSkeleton } from '@/components/WalletEventCard';
+import TransactionItemsModal from '@/components/TransactionItemsModal';
+import WalletEventsListModal from '@/components/WalletEventsListModal';
 
 type KardLevel = 'MEMBER' | 'BRONZE' | 'SILVER' | 'GOLD';
 type VenueType = 'CLUB' | 'PUB' | 'BAR' | 'LOUNGE' | 'RESTAURANT' | 'PROMOTER' | 'OTHER';
@@ -75,31 +77,53 @@ interface PassbooksResponse {
     message: string;
 }
 
-interface ClubEvent {
+interface Transaction {
     id: string;
-    name: string;
-    slug: string;
-    flyer: string;
-    startDate: string;
-    startTime: string;
-    endTime: string;
-    address?: string;
+    type: string;
+    status: 'PENDING' | 'COMPLETED' | 'CANCELLED' | 'EXPIRED' | 'REFUNDED';
+    totalPrice: number;
+    currency: string;
+    createdAt: string;
+    updatedAt: string;
+    completedAt: string | null;
+    event: {
+        id: string;
+        name: string;
+        slug: string;
+        flyer: string;
+        startDate: string;
+        endDate?: string;
+        startTime?: string;
+        endTime?: string;
+    };
     club: {
         id: string;
         name: string;
+        slug: string;
+        logo: string;
+        address?: string;
+    };
+    user: {
+        id: string;
+        firstName: string;
+        lastName: string;
+        avatar: string;
+    };
+    _count: {
+        items: number;
     };
 }
 
-interface EventsResponse {
+interface BackendResponse {
     status: 'success' | 'error';
     code: string;
     data: {
-        data: ClubEvent[];
+        data: Transaction[];
         meta: {
             total: number;
+            count: number;
+            limit: number;
             hasMore: boolean;
-            currentPage: number;
-            totalPages: number;
         };
     };
     message: string;
@@ -129,13 +153,22 @@ const getBenefitTypeLabel = (type: BenefitType, t: (key: string, fallback: strin
     }
 };
 
+const isEventUpcoming = (startDate: string): boolean => {
+    return dayjs(startDate).isAfter(dayjs(), 'day');
+};
+
 const formatEventDate = (dateString: string, locale: string): string => {
     return dayjs(dateString).locale(locale).format('ddd, D MMMM');
 };
 
-const formatEventTimeRange = (startTime?: string, endTime?: string): string => {
-    if (!startTime || !endTime) return '';
-    return `${startTime} - ${endTime}`;
+const formatEventTimeRange = (startDate: string, startTime?: string, endTime?: string): string => {
+    if (startTime && endTime) {
+        return `${startTime} - ${endTime}`;
+    }
+    const start = dayjs(startDate);
+    const startFormatted = start.format('HH:mm');
+    const endFormatted = start.add(6, 'hour').format('HH:mm');
+    return `${startFormatted} - ${endFormatted}`;
 };
 
 const QrIcon = () => (
@@ -156,29 +189,16 @@ const QrIcon = () => (
 );
 
 const BenefitBadgeIcon = () => (
-    <svg width="45" height="52" viewBox="0 0 45 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg width="90" height="90" viewBox="0 0 90 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="45" cy="45" r="40" stroke="url(#gold_gradient)" strokeWidth="2" />
+        <circle cx="45" cy="45" r="32" stroke="url(#gold_gradient)" strokeWidth="1.5" />
+        <path d="M45 25L49.5 37H62L51.75 44.5L55.5 57L45 49L34.5 57L38.25 44.5L28 37H40.5L45 25Z" fill="url(#gold_gradient)" />
         <defs>
-            <linearGradient id="benefitGold" x1="22.5" y1="0" x2="22.5" y2="52" gradientUnits="userSpaceOnUse">
+            <linearGradient id="gold_gradient" x1="45" y1="5" x2="45" y2="85" gradientUnits="userSpaceOnUse">
                 <stop offset="0.25" stopColor="#978061" />
                 <stop offset="1" stopColor="#7f6649" />
             </linearGradient>
         </defs>
-        <path
-            d="M38.2 11.5L37.4 7.0L36.4 5.8L31.7 3.7L27.9 0.5L26.7 0L22.5 0.7L18.3 0L17.1 0.5L13.3 3.7L8.6 5.8L7.6 7.0L6.8 11.5L4.4 15.6V17.1L6.8 21.2L7.6 25.7L8.6 26.9L13.3 29.0L17.1 32.2L18.3 32.7L22.5 32.0L26.7 32.7L27.9 32.2L31.7 29.0L36.4 26.9L37.4 25.7L38.2 21.2L40.6 17.1V15.6L38.2 11.5Z"
-            fill="url(#benefitGold)"
-            fillOpacity="0.4"
-        />
-        <path
-            d="M38.2 11.5L37.4 7.0L36.4 5.8L31.7 3.7L27.9 0.5L26.7 0L22.5 0.7L18.3 0L17.1 0.5L13.3 3.7L8.6 5.8L7.6 7.0L6.8 11.5L4.4 15.6V17.1L6.8 21.2L7.6 25.7L8.6 26.9L13.3 29.0L17.1 32.2L18.3 32.7L22.5 32.0L26.7 32.7L27.9 32.2L31.7 29.0L36.4 26.9L37.4 25.7L38.2 21.2L40.6 17.1V15.6L38.2 11.5ZM34.8 20.0L34.6 20.5L33.9 24.5L30.7 26.3L30.2 26.6L27.0 29.5L23.3 28.8H22.7L19.0 29.5L15.8 26.6L15.3 26.3L11.1 24.5L10.4 20.5L10.2 20.0L7.1 16.4L10.2 12.7L10.4 12.2L11.1 8.3L15.3 6.5L15.8 6.1L19.0 3.3L22.7 4.0H23.3L27.0 3.3L30.2 6.1L30.7 6.5L33.9 8.3L34.6 12.2L34.8 12.7L37.9 16.4L34.8 20.0Z"
-            fill="url(#benefitGold)"
-        />
-        <path
-            d="M25.5 12.5L23.6 7.0H21.1L19.2 12.5L13.3 12.5L12.8 14.0L17.6 17.7L15.8 23.8L17.1 24.7L22.5 21.1L27.9 24.7L29.2 23.8L27.4 17.7L32.2 14.0L31.7 12.5H25.5Z"
-            fill="url(#benefitGold)"
-        />
-        <text x="22.5" y="46" textAnchor="middle" fill="url(#benefitGold)" fontSize="6" fontFamily="Borna, sans-serif" fontWeight="600">
-            KLUBIT
-        </text>
     </svg>
 );
 
@@ -188,13 +208,12 @@ interface KlubKardDetailProps {
 
 const KlubKardDetail = ({ passbook }: KlubKardDetailProps) => {
     const { t } = useTranslation();
-    const config = passbook.club.passbookConfig;
-    const bgColor = config?.backgroundColor || '#033f3e';
+    const bgColor = passbook.club.passbookConfig?.backgroundColor || '#033f3e';
     const venueLabel = getVenueTypeLabel(passbook.club.venueType, t);
 
     const handleQrClick = () => {
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-        const url = isIOS ? passbook.passbookUrl : passbook.googleWalletUrl;
+        const url = /iPhone|iPad|iPod/.test(navigator.userAgent)
+            ? passbook.passbookUrl : passbook.googleWalletUrl;
         if (url) {
             window.open(url, '_blank');
         }
@@ -277,6 +296,27 @@ const BenefitCardRow = ({ benefit, onClick }: BenefitCardRowProps) => {
     );
 };
 
+const SectionHeader = ({ title, onClick, showArrow = false }: { title: string; onClick?: () => void; showArrow?: boolean }) => {
+    const isClickable = showArrow && !!onClick;
+
+    return (
+        <button
+            onClick={isClickable ? onClick : undefined}
+            className={`flex gap-2 items-center px-1.5 ${isClickable ? 'cursor-pointer' : 'cursor-default'}`}
+            disabled={!isClickable}
+        >
+            <span className="text-[#FF336D] text-[24px] font-semibold leading-none whitespace-nowrap overflow-hidden text-ellipsis font-borna">
+                {title}
+            </span>
+            {isClickable && (
+                <div className="flex items-center pt-1">
+                    <ChevronRightIcon />
+                </div>
+            )}
+        </button>
+    );
+};
+
 const KardSkeleton = () => (
     <div className="w-full max-w-[370px] h-[210px] bg-[#232323] rounded-2xl animate-pulse" />
 );
@@ -289,20 +329,16 @@ const BenefitsSkeleton = () => (
     </div>
 );
 
-const EventsSkeleton = () => (
-    <div className="flex flex-col gap-2 w-full">
-        {[1, 2].map((i) => (
-            <EventCardHzSkeleton key={i} />
-        ))}
-    </div>
-);
-
 const WalletKards = () => {
     const { t, i18n } = useTranslation();
     const locale = i18n.language === 'en' ? 'en' : 'es';
     const navigate = useNavigate();
     const { user } = useAuthStore();
     const { idKard } = useParams({ from: '/_authenticated/wallet/kards/$idKard' });
+
+    const [selectedTransactionId, setSelectedTransactionId] = useState<string | null>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [eventsListVariant, setEventsListVariant] = useState<'upcoming' | 'past' | null>(null);
 
     const { data: passbooks, isLoading: isLoadingPassbooks } = useQuery({
         queryKey: ['wallet-passbooks', user?.id],
@@ -323,38 +359,58 @@ const WalletKards = () => {
     const clubId = passbook?.clubId;
     const backgroundColor = passbook?.club.passbookConfig?.backgroundColor || '#033f3e';
 
-    const { data: upcomingEvents, isLoading: isLoadingUpcoming } = useQuery({
-        queryKey: ['kard-events-upcoming', clubId],
+    const { data: transactions, isLoading: isLoadingTransactions } = useQuery({
+        queryKey: ['wallet-transactions'],
         queryFn: async () => {
-            const from = dayjs().startOf('day').toISOString();
-            const fields = 'id,name,slug,flyer,startDate,startTime,endTime,address,club';
-            const response = await axiosInstance.get<EventsResponse>(
-                `/v2/events/club/${clubId}?startDateFrom=${from}&fields=${fields}&limit=5&page=1`
+            const response = await axiosInstance.get<BackendResponse>(
+                '/v2/transactions/me?status=COMPLETED&limit=50'
             );
             return response.data.data.data;
         },
-        enabled: !!clubId,
+        enabled: !!user?.id,
     });
 
-    const { data: pastEvents, isLoading: isLoadingPast } = useQuery({
-        queryKey: ['kard-events-past', clubId],
-        queryFn: async () => {
-            const to = dayjs().startOf('day').toISOString();
-            const fields = 'id,name,slug,flyer,startDate,startTime,endTime,address,club';
-            const response = await axiosInstance.get<EventsResponse>(
-                `/v2/events/club/${clubId}?startDateTo=${to}&fields=${fields}&limit=5&page=1`
-            );
-            return response.data.data.data;
-        },
-        enabled: !!clubId,
-    });
+    const { upcomingTransactions, pastTransactions } = useMemo(() => {
+        if (!transactions || !clubId) {
+            return { upcomingTransactions: [], pastTransactions: [] };
+        }
+
+        const clubTransactions = transactions.filter((tx) => tx.club.id === clubId);
+        const upcoming: Transaction[] = [];
+        const past: Transaction[] = [];
+
+        for (const transaction of clubTransactions) {
+            if (isEventUpcoming(transaction.event.startDate)) {
+                upcoming.push(transaction);
+            } else {
+                past.push(transaction);
+            }
+        }
+
+        upcoming.sort((a, b) => dayjs(a.event.startDate).diff(dayjs(b.event.startDate)));
+        past.sort((a, b) => dayjs(b.event.startDate).diff(dayjs(a.event.startDate)));
+
+        return { upcomingTransactions: upcoming, pastTransactions: past };
+    }, [transactions, clubId]);
 
     const benefits = passbook?.benefits || [];
-    const hasUpcoming = upcomingEvents && upcomingEvents.length > 0;
-    const hasPast = pastEvents && pastEvents.length > 0;
 
-    const handleEventClick = (slug: string) => {
-        navigate({ to: '/event/$slug', params: { slug } });
+    const formatTransactionForCard = (transaction: Transaction) => ({
+        title: transaction.event.name,
+        date: formatEventDate(transaction.event.startDate, locale),
+        time: formatEventTimeRange(transaction.event.startDate, transaction.event.startTime, transaction.event.endTime),
+        location: transaction.club.address || transaction.club.name,
+        imageUrl: transaction.event.flyer,
+    });
+
+    const handleTransactionClick = (transactionId: string) => {
+        setSelectedTransactionId(transactionId);
+        setIsModalOpen(true);
+    };
+
+    const handleModalClose = () => {
+        setIsModalOpen(false);
+        setSelectedTransactionId(null);
     };
 
     return (
@@ -390,12 +446,8 @@ const WalletKards = () => {
                 )}
 
                 {benefits.length > 0 && (
-                    <div className="flex flex-col gap-4 items-start w-full">
-                        <div className="flex items-center px-1.5 w-full">
-                            <h3 className="text-[#FF336D] text-[20px] font-semibold leading-none font-borna">
-                                {t('wallet.your_benefits', 'Tus beneficios')}
-                            </h3>
-                        </div>
+                    <div className="flex flex-col gap-3 items-start w-full">
+                        <SectionHeader title={t('wallet.your_benefits', 'Tus beneficios')} />
                         <div className="flex flex-col gap-2 w-full">
                             {benefits.map((benefit) => (
                                 <BenefitCardRow key={benefit.id} benefit={benefit} />
@@ -404,63 +456,82 @@ const WalletKards = () => {
                     </div>
                 )}
 
-                {(isLoadingUpcoming || hasUpcoming) && (
-                    <div className="flex flex-col gap-4 items-start w-full">
-                        <div className="flex items-center px-1.5 w-full">
-                            <h3 className="text-[#FF336D] text-[20px] font-semibold leading-none font-borna">
-                                {t('wallet.upcoming_events', 'Próximos eventos')}
-                            </h3>
-                        </div>
-                        {isLoadingUpcoming ? (
-                            <EventsSkeleton />
+                {(isLoadingTransactions || upcomingTransactions.length > 0) && (
+                    <div className="flex flex-col gap-3 items-start w-full">
+                        <SectionHeader
+                            title={t('wallet.upcoming', 'Próximos')}
+                            onClick={() => setEventsListVariant('upcoming')}
+                            showArrow={upcomingTransactions.length > 1}
+                        />
+                        {isLoadingTransactions ? (
+                            <div className="flex flex-col gap-2 w-full">
+                                <WalletEventCardSkeleton />
+                            </div>
                         ) : (
                             <div className="flex flex-col gap-2 w-full">
-                                {upcomingEvents?.map((event) => (
-                                    <EventCardHz
-                                        key={event.id}
-                                        title={event.name}
-                                        date={formatEventDate(event.startDate, locale)}
-                                        time={formatEventTimeRange(event.startTime, event.endTime)}
-                                        location={event.club?.name || event.address || ''}
-                                        imageUrl={event.flyer}
-                                        onClick={() => handleEventClick(event.slug)}
-                                    />
-                                ))}
+                                {(() => {
+                                    const cardProps = formatTransactionForCard(upcomingTransactions[0]);
+                                    return (
+                                        <WalletEventCard
+                                            key={upcomingTransactions[0].id}
+                                            title={cardProps.title}
+                                            date={cardProps.date}
+                                            time={cardProps.time}
+                                            location={cardProps.location}
+                                            imageUrl={cardProps.imageUrl}
+                                            variant="upcoming"
+                                            onClick={() => handleTransactionClick(upcomingTransactions[0].id)}
+                                        />
+                                    );
+                                })()}
                             </div>
                         )}
                     </div>
                 )}
 
-                {(isLoadingPast || hasPast) && (
-                    <div className="flex flex-col gap-4 items-start w-full">
-                        <div className="flex items-center gap-0 px-1.5 w-full">
-                            <h3 className="text-[#FF336D] text-[20px] font-semibold leading-none font-borna">
-                                {t('wallet.past_events', 'Pasados')}
-                            </h3>
-                            <div className="flex items-center pt-0.5">
-                                <ChevronRightIcon />
-                            </div>
-                        </div>
-                        {isLoadingPast ? (
-                            <EventsSkeleton />
-                        ) : (
-                            <div className="flex flex-col gap-2 w-full">
-                                {pastEvents?.map((event) => (
-                                    <EventCardHz
-                                        key={event.id}
-                                        title={event.name}
-                                        date={formatEventDate(event.startDate, locale)}
-                                        time={formatEventTimeRange(event.startTime, event.endTime)}
-                                        location={event.club?.name || event.address || ''}
-                                        imageUrl={event.flyer}
-                                        onClick={() => handleEventClick(event.slug)}
+                {pastTransactions.length > 0 && (
+                    <div className="flex flex-col gap-3 items-start w-full">
+                        <SectionHeader
+                            title={t('wallet.past', 'Pasados')}
+                            onClick={() => setEventsListVariant('past')}
+                            showArrow={pastTransactions.length > 1}
+                        />
+                        <div className="flex flex-col gap-2 w-full">
+                            {(() => {
+                                const cardProps = formatTransactionForCard(pastTransactions[0]);
+                                return (
+                                    <WalletEventCard
+                                        key={pastTransactions[0].id}
+                                        title={cardProps.title}
+                                        date={cardProps.date}
+                                        time={cardProps.time}
+                                        location={cardProps.location}
+                                        imageUrl={cardProps.imageUrl}
+                                        variant="past"
+                                        onClick={() => handleTransactionClick(pastTransactions[0].id)}
                                     />
-                                ))}
-                            </div>
-                        )}
+                                );
+                            })()}
+                        </div>
                     </div>
                 )}
             </div>
+
+            {selectedTransactionId && (
+                <TransactionItemsModal
+                    transactionId={selectedTransactionId}
+                    isOpen={isModalOpen}
+                    onClose={handleModalClose}
+                />
+            )}
+
+            {eventsListVariant && (
+                <WalletEventsListModal
+                    isOpen={!!eventsListVariant}
+                    onClose={() => setEventsListVariant(null)}
+                    variant={eventsListVariant}
+                />
+            )}
         </div>
     );
 };
