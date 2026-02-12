@@ -72,8 +72,8 @@ interface WalletEventsListModalProps {
 
 const isEventUpcoming = (startDate: string): boolean => {
     const eventDate = dayjs(startDate);
-    const today = dayjs();
-    return eventDate.isAfter(today, 'day');
+    const now = dayjs();
+    return eventDate.isSame(now, 'day') || eventDate.isAfter(now, 'day');
 };
 
 const isEventPast = (startDate: string): boolean => {

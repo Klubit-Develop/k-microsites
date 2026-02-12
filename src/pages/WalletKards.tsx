@@ -156,7 +156,9 @@ const getBenefitTypeLabel = (type: BenefitType, t: (key: string, fallback: strin
 };
 
 const isEventUpcoming = (startDate: string): boolean => {
-    return dayjs(startDate).isAfter(dayjs(), 'day');
+    const eventDate = dayjs(startDate);
+    const now = dayjs();
+    return eventDate.isSame(now, 'day') || eventDate.isAfter(now, 'day');
 };
 
 const formatEventDate = (dateString: string, locale: string): string => {
@@ -460,7 +462,7 @@ const WalletKards = () => {
                         <SectionHeader
                             title={t('wallet.upcoming', 'Próximos')}
                             onClick={() => setEventsListVariant('upcoming')}
-                            showArrow={upcomingTransactions.length > 1}
+                            showArrow={upcomingTransactions.length > 3}
                         />
                         {isLoadingTransactions ? (
                             <div className="flex flex-col gap-2 w-full">
@@ -468,21 +470,21 @@ const WalletKards = () => {
                             </div>
                         ) : (
                             <div className="flex flex-col gap-2 w-full">
-                                {(() => {
-                                    const cardProps = formatTransactionForCard(upcomingTransactions[0]);
+                                {upcomingTransactions.slice(0, 3).map((transaction) => {
+                                    const cardProps = formatTransactionForCard(transaction);
                                     return (
                                         <WalletEventCard
-                                            key={upcomingTransactions[0].id}
+                                            key={transaction.id}
                                             title={cardProps.title}
                                             date={cardProps.date}
                                             time={cardProps.time}
                                             location={cardProps.location}
                                             imageUrl={cardProps.imageUrl}
                                             variant="upcoming"
-                                            onClick={() => handleTransactionClick(upcomingTransactions[0].id)}
+                                            onClick={() => handleTransactionClick(transaction.id)}
                                         />
                                     );
-                                })()}
+                                })}
                             </div>
                         )}
                     </div>
