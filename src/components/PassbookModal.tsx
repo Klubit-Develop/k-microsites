@@ -75,11 +75,13 @@ const PassbookModal = ({ isOpen, onClose, walletAddress, userId, clubId, clubNam
         queryFn: async () => {
             const response = await axiosInstance.get(`/v2/wallet/user/${userId}/club/${clubId}`);
             if (response.data?.status === 'success') {
-                return response.data.data as {
+                const raw = response.data.data;
+                const passbook = raw?.userPassbook ?? raw;
+                return passbook as {
                     kardLevel?: string;
                     passbookUrl?: string;
                     googleWalletUrl?: string | null;
-                };
+                } | null;
             }
             return null;
         },
