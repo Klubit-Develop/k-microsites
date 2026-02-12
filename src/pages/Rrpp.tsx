@@ -231,7 +231,7 @@ const Rrpp = () => {
     );
 
     return (
-        <div className="bg-[#050505] min-h-screen flex justify-center pt-[120px] pb-[360px] md:pt-24 md:pb-24">
+        <div className="bg-[#050505] min-h-screen flex justify-center pt-[100px] pb-[100px] md:pt-24 md:pb-24">
             <div className="flex flex-col gap-[32px] w-full max-w-[500px] px-4 md:px-6">
                 <RRPPProfile
                     firstName={user?.firstName || ''}

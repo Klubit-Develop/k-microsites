@@ -59,7 +59,7 @@ const EventSection = ({
                         </div>
                     </button>
                 ) : (
-                    <h2 className="text-[#ff336d] text-[20px] font-semibold leading-normal whitespace-nowrap overflow-hidden text-ellipsis font-borna">
+                    <h2 className="text-[#ff336d] text-[24px] font-semibold leading-normal whitespace-nowrap overflow-hidden text-ellipsis font-borna">
                         {title}
                     </h2>
                 )}

@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 interface RRPPProfileProps {
     firstName: string;
     lastName: string;
@@ -7,8 +9,6 @@ interface RRPPProfileProps {
     className?: string;
 }
 
-const BADGE_URL = 'https://klubit.fra1.cdn.digitaloceanspaces.com/badge-rrpp.png';
-
 const InitialsAvatar = ({ firstName, lastName }: { firstName: string; lastName: string }) => {
     const firstInitial = firstName?.charAt(0) || '';
     const lastInitial = lastName?.charAt(0) || '';
@@ -16,7 +16,7 @@ const InitialsAvatar = ({ firstName, lastName }: { firstName: string; lastName: 
 
     return (
         <div className="w-full h-full rounded-[74.5px] bg-gradient-to-b from-[#2a2a2a] to-[#1a1a1a] flex items-center justify-center">
-            <span className="text-[#f6f6f6] text-[48px] font-semibold select-none font-borna">
+            <span className="text-[#939393] text-[56px] font-semibold select-none font-borna pt-1">
                 {initials}
             </span>
         </div>
@@ -33,6 +33,7 @@ const RrppProfile = ({
 }: RRPPProfileProps) => {
     const fullName = `${firstName} ${lastName}`;
     const hasAvatar = avatar && avatar.trim() !== '';
+    const [imgError, setImgError] = useState(false);
 
     if (isLoading) {
         return (
@@ -52,10 +53,11 @@ const RrppProfile = ({
         <div className={`flex flex-col gap-[8px] items-center justify-center px-[24px] relative rounded-[10px] w-full ${className}`}>
             <div className="flex items-center px-[6px]">
                 <div className="relative rounded-[74.5px] shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)] w-[140px] h-[140px] border-[3px] border-[#232323] overflow-hidden">
-                    {hasAvatar ? (
+                    {hasAvatar && !imgError ? (
                         <img
                             src={avatar}
                             alt={fullName}
+                            onError={() => setImgError(true)}
                             className="absolute inset-0 w-full h-full object-cover opacity-90 rounded-[74.5px]"
                         />
                     ) : (
@@ -76,17 +78,6 @@ const RrppProfile = ({
                     <span className="text-[#939393] text-[14px] font-normal leading-normal font-helvetica whitespace-nowrap">
                         RRPP
                     </span>
-                </div>
-            </div>
-
-            <div className="absolute flex gap-[10px] items-center justify-center left-1/2 -translate-x-1/2 top-0 w-[152px] px-[6px]">
-                <div className="flex-1 aspect-square rounded-[74.5px] border-[4px] border-[#5b6779]" />
-                <div className="absolute right-[15px] top-[8px] w-[30px] h-[28px]">
-                    <img
-                        src={BADGE_URL}
-                        alt="RRPP badge"
-                        className="absolute inset-0 w-full h-full object-cover"
-                    />
                 </div>
             </div>
         </div>

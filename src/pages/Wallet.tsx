@@ -9,7 +9,6 @@ import { useNavigate } from '@tanstack/react-router';
 import axiosInstance from '@/config/axiosConfig';
 import { useAuthStore } from '@/stores/authStore';
 import { ChevronRightIcon } from '@/components/icons';
-import Button from '@/components/ui/Button';
 import TransactionItemsModal from '@/components/TransactionItemsModal';
 import EmptyUpcomingEvents from '@/components/EmptyUpcomingEvents';
 
@@ -429,7 +428,6 @@ const WalletSkeleton = () => {
 
 const WalletEmpty = () => {
     const { t } = useTranslation();
-    const navigate = useNavigate();
     const { user } = useAuthStore();
 
     const firstName = user?.firstName || '';
@@ -440,15 +438,14 @@ const WalletEmpty = () => {
         <div className="flex flex-col items-center justify-center w-full max-w-[500px] mx-auto px-4 pt-[120px] pb-[100px] md:py-16">
             <div className="flex flex-col gap-8 items-center justify-center py-8 w-full">
                 <div className="flex flex-col gap-6 items-center w-full">
-                    <div className="flex items-center justify-center size-[90px] bg-[#232323] rounded-full overflow-hidden">
-                        <div className="relative w-[74px] h-[82px]">
-                            <img
-                                src={WALLET_URL}
-                                alt="Disco ball"
-                                className="w-full h-full object-contain"
-                                style={{ filter: 'drop-shadow(0px 0px 30px rgba(255, 255, 255, 0.25))' }}
-                            />
-                        </div>
+
+                    <div className="relative w-[144px] h-[152px]">
+                        <img
+                            src={WALLET_URL}
+                            alt="Disco ball"
+                            className="w-full h-full object-contain"
+                            style={{ filter: 'drop-shadow(0px 0px 30px rgba(255, 255, 255, 0.25))' }}
+                        />
                     </div>
 
                     <div className="flex flex-col gap-2 items-center text-center">
@@ -460,14 +457,6 @@ const WalletEmpty = () => {
                         </p>
                     </div>
                 </div>
-
-                <Button
-                    variant="cta"
-                    onClick={() => navigate({ to: '/' })}
-                    className="w-full max-w-[300px]"
-                >
-                    {t('wallet.discover_events', 'Descubrir eventos')}
-                </Button>
             </div>
         </div>
     );
