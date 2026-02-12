@@ -60,6 +60,13 @@ const ITEM_TYPE_COLORS: Record<string, string> = {
     PRODUCT: '#22C55E',
 };
 
+const PersonIconXS = () => (
+    <svg width="12" height="13" viewBox="0 0 12 13" fill="none">
+        <path d="M6 6.5C7.38071 6.5 8.5 5.38071 8.5 4C8.5 2.61929 7.38071 1.5 6 1.5C4.61929 1.5 3.5 2.61929 3.5 4C3.5 5.38071 4.61929 6.5 6 6.5Z" fill="#939393" />
+        <path d="M6 8C3.79086 8 2 9.79086 2 12H10C10 9.79086 8.20914 8 6 8Z" fill="#939393" />
+    </svg>
+);
+
 const CheckoutSuccess = () => {
     const { t, i18n } = useTranslation();
     const navigate = useNavigate();
@@ -117,6 +124,14 @@ const CheckoutSuccess = () => {
 
     const formatDate = (dateString: string): string => {
         const date = new Date(dateString);
+        const now = new Date();
+        const isToday =
+            date.getDate() === now.getDate() &&
+            date.getMonth() === now.getMonth() &&
+            date.getFullYear() === now.getFullYear();
+
+        if (isToday) return t('checkout_success.today', 'Hoy');
+
         const locale = i18n.language === 'en' ? 'en-US' : 'es-ES';
         return date.toLocaleDateString(locale, {
             weekday: 'short',
@@ -246,12 +261,15 @@ const CheckoutSuccess = () => {
         );
     }
 
+    const timeString = formatTime(transaction.event.startTime, transaction.event.endTime);
+    const locationName = transaction.club?.name || transaction.event.address;
+
     return (
         <div className="bg-[#050505] min-h-screen flex items-center justify-center px-4 pt-[120px] pb-[100px] md:pt-24 md:pb-24">
             <div className="flex flex-col gap-8 md:gap-9 items-center w-full max-w-[500px]">
                 <div className="size-[100px] md:size-[120px] flex items-center justify-center">
-                    <img 
-                        src="https://klubit.fra1.cdn.digitaloceanspaces.com/icon-confeti.png" 
+                    <img
+                        src="https://klubit.fra1.cdn.digitaloceanspaces.com/icon-confeti.png"
                         alt="Confetti"
                         className="w-[80px] h-[80px] md:w-[96px] md:h-[96px] object-contain"
                     />
@@ -266,67 +284,74 @@ const CheckoutSuccess = () => {
                     </p>
                 </div>
 
-                {groupedItems && Object.values(groupedItems).map((item, index) => (
-                    <div
-                        key={index}
-                        className="w-full rounded-2xl border-2 border-[#232323] overflow-hidden shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)]"
-                    >
-                        <div className="relative h-[200px] md:h-[240px] w-full">
+                <div className="w-full rounded-[16px] border-2 border-[#232323] overflow-hidden shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)] relative">
+                    <div className="relative pt-[90px] px-[16px] pb-[16px]">
+                        <div className="absolute inset-0 pointer-events-none rounded-[14px] overflow-hidden">
                             <img
                                 src={transaction.event.flyer}
                                 alt={transaction.event.name}
                                 className="absolute inset-0 w-full h-full object-cover"
                             />
-                            
-                            <div className="absolute inset-0 bg-gradient-to-t from-[#141414] from-50% to-transparent" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-[#141414] from-[55%] to-transparent" />
+                        </div>
 
-                            <div className="absolute inset-0 flex flex-col justify-end p-4">
-                                <div className="absolute top-3 right-3 bg-[#141414] rounded-[25px] px-2 py-1 shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]">
-                                    <span className="text-sm font-bold font-helvetica text-[#f6f6f6] min-w-[24px] text-center">
-                                        x{item.quantity}
+                        <div className="relative flex flex-col gap-[16px]">
+                            <div className="flex flex-col gap-[2px] items-center w-full" style={{ textShadow: '0 0 30px black' }}>
+                                <h2 className="text-[20px] font-semibold font-borna text-[#f6f6f6] text-center leading-[100%] w-full">
+                                    {transaction.event.name}
+                                </h2>
+                                <div className="flex items-center gap-[4px] justify-center w-full">
+                                    <span className="text-[14px] font-normal font-borna text-[#e5ff88] leading-[20px] truncate">
+                                        {formatDate(transaction.event.startDate)}
                                     </span>
+                                    {timeString && (
+                                        <>
+                                            <span className="size-[3px] rounded-full bg-[#e5ff88] shrink-0" />
+                                            <span className="text-[14px] font-normal font-borna text-[#e5ff88] leading-[20px] truncate">
+                                                {timeString}
+                                            </span>
+                                        </>
+                                    )}
                                 </div>
-
-                                <div className="flex flex-col gap-2 w-full">
-                                    <h2 className="text-xl md:text-2xl font-semibold font-borna text-[#f6f6f6]">
-                                        {transaction.event.name}
-                                    </h2>
-
-                                    <div className="flex flex-col gap-0.5">
-                                        <div className="flex items-center gap-1 flex-wrap">
-                                            <span className="text-sm font-normal font-helvetica text-[#E5FF88]">
-                                                {formatDate(transaction.event.startDate)}
-                                            </span>
-                                            <span className="size-[3px] rounded-full bg-[#E5FF88]" />
-                                            <span className="text-sm font-normal font-helvetica text-[#E5FF88]">
-                                                {formatTime(transaction.event.startTime, transaction.event.endTime)}
-                                            </span>
-                                        </div>
-
-                                        {(transaction.club?.name || transaction.event.address) && (
-                                            <div className="flex items-center gap-1.5 py-px">
-                                                <span className="text-[13px]">📍</span>
-                                                <span className="text-sm font-normal font-helvetica text-[#939393] truncate">
-                                                    {transaction.club?.name || transaction.event.address}
-                                                </span>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    <div className="flex items-center gap-1.5 pt-2 border-t-[1.5px] border-[#232323]">
-                                        <span
-                                            className="size-1.5 rounded-full"
-                                            style={{ backgroundColor: getItemColor(item.itemType) }}
-                                        />
-                                        <span className="text-base font-medium font-helvetica text-[#f6f6f6]">
-                                            {item.name}
+                                {locationName && (
+                                    <div className="flex items-center gap-[6px] justify-center w-full py-px">
+                                        <span className="text-[13px] leading-[100%] pt-[2px]">📍</span>
+                                        <span className="text-[14px] font-normal font-borna text-[#939393] leading-[20px] truncate">
+                                            {locationName}
                                         </span>
                                     </div>
-                                </div>
+                                )}
                             </div>
+
+                            {groupedItems && (
+                                <div className="flex flex-col gap-[12px] w-full">
+                                    {Object.values(groupedItems).map((item, index) => (
+                                        <div
+                                            key={index}
+                                            className="flex items-center justify-between pt-[12px] border-t-[1.5px] border-[#232323]"
+                                        >
+                                            <div className="flex items-center gap-[6px]">
+                                                <span
+                                                    className="size-[6px] rounded-full shrink-0"
+                                                    style={{ backgroundColor: getItemColor(item.itemType) }}
+                                                />
+                                                <span className="text-[16px] font-medium font-borna text-[#f6f6f6] leading-[24px]">
+                                                    {item.name}
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center gap-[4px] px-[8px] py-[4px] bg-[#232323] border-[1.5px] border-[#232323] rounded-[25px] shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)] min-w-[29px] justify-center">
+                                                <span className="text-[14px] font-normal font-borna text-[#939393] leading-[20px] text-center">
+                                                    {item.quantity}
+                                                </span>
+                                                <PersonIconXS />
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </div>
-                ))}
+                </div>
 
                 <Button variant="cta" onClick={handleGoToWallet} className="w-full">
                     {t('checkout_success.go_to_wallet', 'Ir a la wallet')}

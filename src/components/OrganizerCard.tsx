@@ -58,7 +58,7 @@ const OrganizerCard = ({
                         <img
                             src={organizer.logo}
                             alt={organizer.name}
-                            className="w-full h-full object-cover rounded-full border-4 border-[#232323] shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]"
+                            className="w-full h-full object-cover rounded-full border-2 border-[#232323] shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]"
                         />
                     ) : (
                         <div className="w-full h-full flex items-center justify-center bg-[#323232] rounded-full border-2 border-[#232323] shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]">
