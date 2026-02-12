@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import dayjs from 'dayjs';
 import 'dayjs/locale/es';
 import 'dayjs/locale/en';
@@ -26,6 +26,7 @@ interface TransactionItem {
     assignedToPhone?: string | null;
     assignedToCountry?: string | null;
     assignedToEmail?: string | null;
+    validatedAt?: string | null;
     assignedToUser?: {
         id: string;
         firstName: string;
@@ -50,16 +51,24 @@ interface TransactionItem {
         name: string;
         ageRequired?: string;
         termsAndConditions?: string;
+        zones?: Array<{ id: string; name: string }>;
+        benefits?: Array<{ id: string; name: string; type?: string }>;
     } | null;
     guestlist?: {
         id: string;
         name: string;
         startTime?: string;
         endTime?: string;
+        zones?: Array<{ id: string; name: string }>;
+        benefits?: Array<{ id: string; name: string; type?: string }>;
     } | null;
     reservation?: {
         id: string;
         name: string;
+        partySize?: number;
+        maxPersonsPerReservation?: number;
+        zones?: Array<{ id: string; name: string }>;
+        benefits?: Array<{ id: string; name: string; type?: string }>;
     } | null;
     promotion?: {
         id: string;
@@ -77,6 +86,16 @@ interface TransactionItem {
         id: string;
         name: string;
     } | null;
+    history?: Array<{
+        id: string;
+        action: string;
+        createdAt: string;
+        performedBy?: {
+            id: string;
+            firstName: string;
+            lastName: string;
+        } | null;
+    }>;
 }
 
 interface Transaction {
@@ -97,6 +116,28 @@ interface Transaction {
         endDate?: string;
         startTime?: string;
         endTime?: string;
+        minimumAge?: number;
+        vibes?: Array<{ id: string; name: string }>;
+        musics?: Array<{ id: string; name: string }>;
+        tags?: string[];
+        tickets?: Array<{
+            id: string;
+            name: string;
+            zones?: Array<{ id: string; name: string }>;
+            benefits?: Array<{ id: string; name: string; type?: string }>;
+        }>;
+        guestlists?: Array<{
+            id: string;
+            name: string;
+            zones?: Array<{ id: string; name: string }>;
+            benefits?: Array<{ id: string; name: string; type?: string }>;
+        }>;
+        reservations?: Array<{
+            id: string;
+            name: string;
+            zones?: Array<{ id: string; name: string }>;
+            benefits?: Array<{ id: string; name: string; type?: string }>;
+        }>;
     };
     club: {
         id: string;
@@ -108,6 +149,7 @@ interface Transaction {
             lat: number;
             lng: number;
         } | null;
+        venueType?: string;
     };
     user: {
         id: string;
@@ -125,6 +167,39 @@ interface BackendResponse {
     message: string;
 }
 
+interface EventResponse {
+    status: 'success' | 'error';
+    code: string;
+    data: { event: FullEvent };
+    message: string;
+}
+
+interface FullEvent {
+    id: string;
+    minimumAge?: number;
+    vibes?: Array<{ id: string; name: string }>;
+    musics?: Array<{ id: string; name: string }>;
+    tickets?: Array<{
+        id: string;
+        name: string;
+        zones?: Array<{ id: string; name: string }>;
+        benefits?: Array<{ id: string; name: string; type?: string }>;
+    }>;
+    guestlists?: Array<{
+        id: string;
+        name: string;
+        zones?: Array<{ id: string; name: string }>;
+        benefits?: Array<{ id: string; name: string; type?: string }>;
+    }>;
+    reservations?: Array<{
+        id: string;
+        name: string;
+        zones?: Array<{ id: string; name: string }>;
+        benefits?: Array<{ id: string; name: string; type?: string }>;
+    }>;
+    products?: Array<{ id: string; name: string }>;
+}
+
 interface ItemDetailModalProps {
     transactionId: string;
     itemId: string;
@@ -133,56 +208,48 @@ interface ItemDetailModalProps {
     onBack?: () => void;
 }
 
+const VENUE_TYPE_MAP: Record<string, string> = {
+    CLUB: 'Discoteca',
+    DISCO: 'Discoteca',
+    BAR: 'Bar',
+    LOUNGE: 'Lounge',
+    PUB: 'Pub',
+    RESTAURANT: 'Restaurante',
+};
+
+const isEventToday = (startDate: string): boolean => {
+    return dayjs(startDate).isSame(dayjs(), 'day');
+};
+
+const isEventPast = (startDate: string): boolean => {
+    return dayjs(startDate).isBefore(dayjs(), 'day');
+};
+
 const formatEventDate = (dateString: string, locale: string): string => {
     const date = dayjs(dateString).locale(locale);
     return date.format('ddd, D MMMM');
 };
 
-const formatPrice = (price: number, t: (key: string, fallback: string) => string): string => {
-    if (price === 0) return t('checkout.free', 'Gratis');
-    return `${price.toFixed(2)}€`;
-};
-
-const formatTimeRange = (startTime?: string, endTime?: string): string => {
-    if (startTime && endTime) {
-        return `${startTime}h - ${endTime}h`;
-    }
-    return '';
-};
-
 const getItemTypeDotColor = (itemType: string): string => {
     switch (itemType) {
-        case 'TICKET':
-            return '#D591FF';
-        case 'GUESTLIST':
-            return '#FFCE1F';
-        case 'RESERVATION':
-            return '#3FE8E8';
-        case 'PROMOTION':
-            return '#FF336D';
-        case 'PRODUCT':
-            return '#00D1FF';
-        default:
-            return '#939393';
+        case 'TICKET': return '#D591FF';
+        case 'GUESTLIST': return '#FFCE1F';
+        case 'RESERVATION': return '#3FE8E8';
+        case 'PROMOTION': return '#FF336D';
+        case 'PRODUCT': return '#00D1FF';
+        default: return '#939393';
     }
 };
 
 const getItemName = (item: TransactionItem): string => {
+    if (item.ticketPrice?.name) return item.ticketPrice.name;
+    if (item.guestlistPrice?.name) return item.guestlistPrice.name;
     if (item.ticket?.name) return item.ticket.name;
     if (item.guestlist?.name) return item.guestlist.name;
     if (item.reservation?.name) return item.reservation.name;
     if (item.product?.name) return item.product.name;
     if (item.promotion?.name) return item.promotion.name;
-    if (item.ticketPrice?.name) return item.ticketPrice.name;
-    if (item.guestlistPrice?.name) return item.guestlistPrice.name;
     return 'Item';
-};
-
-const getItemTimeRange = (item: TransactionItem): string => {
-    if (item.guestlist?.startTime && item.guestlist?.endTime) {
-        return formatTimeRange(item.guestlist.startTime, item.guestlist.endTime);
-    }
-    return '';
 };
 
 const CloseIcon = () => (
@@ -197,125 +264,309 @@ const BackIcon = () => (
     </svg>
 );
 
-const UsersIcon = ({ className = "w-6 h-6" }: { className?: string }) => (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" />
-        <path d="M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z" />
+const ThreeDotsIcon = () => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="5" r="1.5" fill="#F6F6F6" />
+        <circle cx="12" cy="12" r="1.5" fill="#F6F6F6" />
+        <circle cx="12" cy="19" r="1.5" fill="#F6F6F6" />
     </svg>
 );
 
-interface EventCardInfoProps {
-    event: Transaction['event'];
-    locale: string;
+const PersonIcon = () => (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+        <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="#939393" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z" stroke="#939393" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+);
+
+const ChevronDownIcon = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <path d="M6 9L12 15L18 9" stroke="#939393" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+);
+
+const ChevronUpIcon = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <path d="M18 15L12 9L6 15" stroke="#939393" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+);
+
+interface EventTagsProps {
+    minimumAge?: number;
+    venueType?: string;
+    vibes?: Array<{ name: string }>;
+    musics?: Array<{ name: string }>;
 }
 
-const EventCardInfo = ({ event, locale }: EventCardInfoProps) => {
+const EventTags = ({ minimumAge, venueType, vibes, musics }: EventTagsProps) => {
+    const tags: string[] = [];
+
+    if (minimumAge && minimumAge > 0) {
+        tags.push(`+${minimumAge} años`);
+    }
+
+    if (venueType) {
+        const mapped = VENUE_TYPE_MAP[venueType];
+        if (mapped) tags.push(mapped);
+    }
+
+    if (vibes) {
+        vibes.forEach(v => tags.push(v.name));
+    }
+
+    if (musics) {
+        musics.forEach(m => tags.push(m.name));
+    }
+
+    if (tags.length === 0) return null;
+
+    return (
+        <div className="flex flex-wrap gap-2 w-full">
+            {tags.map((tag, i) => (
+                <span
+                    key={i}
+                    className="h-9 flex items-center justify-center px-3.5 text-[14px] font-borna text-[#F6F6F6] bg-[#050505] border-[1.5px] border-[#232323] rounded-[20px] shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)]"
+                >
+                    {tag}
+                </span>
+            ))}
+        </div>
+    );
+};
+
+interface InfoRowProps {
+    label: string;
+    value: React.ReactNode;
+    hasBorder?: boolean;
+}
+
+const InfoRow = ({ label, value, hasBorder = true }: InfoRowProps) => (
+    <div className={`flex items-center justify-between px-2 py-3 min-h-[56px] ${hasBorder ? 'border-b-[1.5px] border-[#232323]' : ''}`}>
+        <span className="text-[16px] font-borna font-medium text-[#F6F6F6] shrink-0">{label}</span>
+        <div className="flex-1 ml-6 text-right">
+            <span className="text-[16px] font-borna font-medium text-[#939393]">{value}</span>
+        </div>
+    </div>
+);
+
+interface AccessProgressBarProps {
+    remaining: number;
+    total: number;
+}
+
+const AccessProgressBar = ({ remaining, total }: AccessProgressBarProps) => {
+    const used = total - remaining;
+    const percentage = total > 0 ? (used / total) * 100 : 0;
+    const isFullyUsed = remaining <= 0;
+    const barColor = isFullyUsed ? '#FF336D' : '#50DD77';
+
+    return (
+        <div className="w-full h-[3px] bg-[#232323] rounded-full overflow-hidden mt-1 mx-2 mb-2">
+            <div
+                className="h-full rounded-full transition-all duration-500"
+                style={{ width: `${percentage}%`, backgroundColor: barColor }}
+            />
+        </div>
+    );
+};
+
+interface TarifaCardProps {
+    item: TransactionItem;
+    zones: string[];
+    products: string[];
+    titularName?: string;
+    accessRemaining: number;
+    accessTotal: number;
+}
+
+const TarifaCard = ({ item, zones, products, titularName, accessRemaining, accessTotal }: TarifaCardProps) => {
     const { t } = useTranslation();
-    const formattedDate = formatEventDate(event.startDate, locale);
-    const formattedTime = event.startTime && event.endTime 
-        ? `${event.startTime}h - ${event.endTime}h`
-        : event.startTime 
-            ? `${event.startTime}h`
-            : '';
+    const itemName = getItemName(item);
+    const dotColor = getItemTypeDotColor(item.itemType);
+    const isProduct = item.itemType === 'PRODUCT';
+    const partySize = item.reservation?.partySize || item.reservation?.maxPersonsPerReservation;
+
+    const sectionTitle = isProduct
+        ? t('item_detail.product_section', 'Producto')
+        : t('transaction.rate', 'Tarifa');
 
     return (
         <div className="flex flex-col gap-1 w-full">
-            <span className="text-[16px] font-helvetica font-medium text-[#939393] px-1.5">
-                {t('checkout.event', 'Evento')}
+            <span className="text-[16px] font-borna font-medium text-[#939393] px-1.5">
+                {sectionTitle}
             </span>
-            <div className="flex flex-col bg-[#141414] border-2 border-[#232323] rounded-2xl overflow-hidden">
-                <div className="flex items-center gap-3 px-4 py-3 border-b-[1.5px] border-[#232323]">
-                    <div className="relative shrink-0 w-[30px] h-[37.5px] rounded-[2px] border border-[#232323] overflow-hidden shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]">
-                        <img
-                            src={event.flyer}
-                            alt={event.name}
-                            className="absolute inset-0 w-full h-full object-cover"
+            <div className="flex flex-col bg-[#141414] border-2 border-[#232323] rounded-2xl overflow-hidden shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)] px-2">
+                <div className="flex items-center justify-between px-2 py-3 border-b-[1.5px] border-[#232323]">
+                    <div className="flex items-center gap-1.5">
+                        <span
+                            className="size-1.5 rounded-full shrink-0"
+                            style={{ backgroundColor: dotColor }}
                         />
-                    </div>
-                    <div className="flex flex-col gap-1">
-                        <span className="text-[16px] font-helvetica font-medium text-[#F6F6F6]">
-                            {event.name}
+                        <span className="text-[16px] font-borna font-medium text-[#F6F6F6]">
+                            {itemName}
                         </span>
-                        <div className="flex items-center gap-1">
-                            <span className="text-[14px] font-helvetica text-[#E5FF88]">
-                                {formattedDate}
-                            </span>
-                            {formattedTime && (
-                                <>
-                                    <span className="size-[3px] bg-[#E5FF88] rounded-full" />
-                                    <span className="text-[14px] font-helvetica text-[#E5FF88]">
-                                        {formattedTime}
-                                    </span>
-                                </>
-                            )}
-                        </div>
+                    </div>
+                    <div className="flex items-center gap-1 px-2 py-1 bg-[#232323] border-[1.5px] border-[#232323] rounded-full shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]">
+                        <span className="text-[14px] font-borna text-[#939393]">
+                            {partySize || item.quantity}
+                        </span>
+                        <PersonIcon />
                     </div>
                 </div>
+
+                {titularName && (
+                    <InfoRow
+                        label={t('item_detail.titular', 'Titular')}
+                        value={titularName}
+                    />
+                )}
+
+                {!isProduct && (
+                    <InfoRow
+                        label={t('item_detail.product', 'Producto')}
+                        value={products.length > 0 ? products.join(', ') : t('item_detail.no_consumption', 'Sin consumición')}
+                    />
+                )}
+
+                {zones.length > 0 && (
+                    <InfoRow
+                        label={t('item_detail.accessible_zones', 'Zonas accesibles')}
+                        value={zones.join(', ')}
+                    />
+                )}
+
+                <div className="flex items-center justify-between px-2 py-3">
+                    <span className="text-[16px] font-borna font-medium text-[#F6F6F6] shrink-0">
+                        {isProduct
+                            ? t('item_detail.availability', 'Disponibilidad')
+                            : t('item_detail.available_accesses', 'Accesos disponibles')
+                        }
+                    </span>
+                    <div className="flex items-center gap-0.5 ml-6">
+                        <span className={`text-[16px] font-borna font-medium ${accessRemaining <= 0 ? 'text-[#FF336D]' : 'text-[#50DD77]'}`}>
+                            {accessRemaining}
+                        </span>
+                        <span className="text-[16px] font-borna font-medium text-[#939393]">
+                            / {accessTotal}
+                        </span>
+                    </div>
+                </div>
+                <AccessProgressBar remaining={accessRemaining} total={accessTotal} />
             </div>
         </div>
     );
 };
 
-interface TarifaCardInfoProps {
+interface ActivitySectionProps {
     item: TransactionItem;
 }
 
-const TarifaCardInfo = ({ item }: TarifaCardInfoProps) => {
+const ActivitySection = ({ item }: ActivitySectionProps) => {
     const { t } = useTranslation();
-    const itemName = getItemName(item);
-    const dotColor = getItemTypeDotColor(item.itemType);
-    const price = formatPrice(item.unitPrice, t);
-    const timeRange = getItemTimeRange(item);
+    const [isOpen, setIsOpen] = useState(true);
+
+    const history = item.history || [];
+
+    const hasActivity = history.length > 0 || item.validatedAt;
 
     return (
         <div className="flex flex-col gap-1 w-full">
-            <span className="text-[16px] font-helvetica font-medium text-[#939393] px-1.5">
-                {t('transaction.rate', 'Tarifa')}
-            </span>
-            <div className="flex flex-col bg-[#141414] border-2 border-[#232323] rounded-2xl overflow-hidden">
-                <div className="flex items-center justify-between px-4 py-3 border-b-[1.5px] border-[#232323]">
-                    <div className="flex items-center gap-1.5">
-                        <span 
-                            className="size-1.5 rounded-full"
-                            style={{ backgroundColor: dotColor }}
-                        />
-                        <span className="text-[16px] font-helvetica font-medium text-[#F6F6F6]">
-                            {itemName}
-                        </span>
-                    </div>
-                    <div className="flex items-center gap-1 text-[#939393]">
-                        <UsersIcon className="w-3.5 h-3.5" />
-                        <span className="text-[14px] font-helvetica">
-                            {item.quantity}
-                        </span>
-                    </div>
-                </div>
+            <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="flex items-center justify-between px-1.5 cursor-pointer w-full"
+            >
+                <span className="text-[16px] font-borna font-medium text-[#939393]">
+                    {t('item_detail.activity', 'Actividad')}
+                </span>
+                {isOpen ? <ChevronUpIcon /> : <ChevronDownIcon />}
+            </button>
+            {isOpen && (
+                <div className="flex flex-col gap-2">
+                    {!hasActivity && (
+                        <p className="text-[14px] font-borna text-[#939393]/60 text-center py-4">
+                            {t('item_detail.no_activity', 'Aún no tienes actividad en esta tarifa')}
+                        </p>
+                    )}
 
-                <div className="flex items-center justify-between px-4 py-3 border-b-[1.5px] border-[#232323]">
-                    <span className="text-[16px] font-helvetica font-medium text-[#939393]">
-                        {t('transaction.price', 'Precio:')}
-                    </span>
-                    <div className="flex items-center gap-2">
-                        <span className="text-[16px] font-helvetica font-medium text-[#F6F6F6]">
-                            {price}
-                        </span>
-                        {item.unitPrice === 0 && (
-                            <span className="text-[18px]">🎁</span>
-                        )}
-                    </div>
-                </div>
+                    {item.validatedAt && (
+                        <div className="flex items-center gap-2.5 p-3 bg-[#141414] border-2 border-[#232323] rounded-2xl shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)]">
+                            <div className="relative shrink-0 size-9 flex items-center justify-center">
+                                <div className="absolute inset-0 rounded-full bg-[#50DD77]/20" />
+                                <div className="absolute inset-[3px] rounded-full bg-[#50DD77]/40" />
+                                <div className="absolute inset-[6px] rounded-full bg-[#50DD77]" />
+                            </div>
+                            <div className="flex flex-col flex-1 min-w-0">
+                                <span className="text-[14px] font-borna text-[#F6F6F6] truncate">
+                                    {t('item_detail.access_validated', 'Acceso validado')}
+                                </span>
+                                <span className="text-[14px] font-borna text-[#939393]">
+                                    {dayjs(item.validatedAt).format('D MMM YYYY, HH:mm')}
+                                </span>
+                            </div>
+                        </div>
+                    )}
 
-                {timeRange && (
-                    <div className="flex items-center justify-between px-4 py-3 border-b-[1.5px] border-[#232323]">
-                        <span className="text-[16px] font-helvetica font-medium text-[#939393]">
-                            {t('transaction.schedule', 'Horario:')}
-                        </span>
-                        <span className="text-[16px] font-helvetica font-medium text-[#F6F6F6]">
-                            {timeRange}
-                        </span>
-                    </div>
-                )}
-            </div>
+                    {history.map((entry) => {
+                        const isValidation = entry.action === 'VALIDATED';
+                        const isDenied = entry.action === 'DENIED' || entry.action === 'REJECTED';
+                        const isSent = entry.action === 'SENT' || entry.action === 'TRANSFERRED';
+
+                        let iconBg = '#50DD77';
+                        let label = entry.action;
+                        let sublabel = '';
+
+                        if (isValidation) {
+                            iconBg = '#50DD77';
+                            label = t('item_detail.access_validated', 'Acceso validado');
+                        } else if (isDenied) {
+                            iconBg = '#FF336D';
+                            label = t('item_detail.access_denied_short', 'Acceso denegado');
+                            sublabel = t('item_detail.out_of_hours', 'Fuera de horario');
+                        } else if (isSent) {
+                            iconBg = '#5B8DEF';
+                            const toName = entry.performedBy
+                                ? `${entry.performedBy.firstName} ${entry.performedBy.lastName?.charAt(0)}.`
+                                : '';
+                            label = toName
+                                ? `${t('item_detail.access_sent_to', 'Acceso enviado a')} ${toName}`
+                                : t('item_detail.access_sent', 'Acceso enviado');
+                        }
+
+                        if (isValidation && item.validatedAt) return null;
+
+                        return (
+                            <div key={entry.id} className="flex items-center gap-2.5 p-3 bg-[#141414] border-2 border-[#232323] rounded-2xl shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)]">
+                                <div className="relative shrink-0 size-9 flex items-center justify-center">
+                                    <div className="absolute inset-0 rounded-full" style={{ backgroundColor: `${iconBg}20` }} />
+                                    <div className="absolute inset-[3px] rounded-full" style={{ backgroundColor: `${iconBg}40` }} />
+                                    <div className="absolute inset-[6px] rounded-full" style={{ backgroundColor: iconBg }} />
+                                </div>
+                                <div className="flex flex-col flex-1 min-w-0">
+                                    <div className="flex items-center gap-1">
+                                        <span className="text-[14px] font-borna text-[#F6F6F6] truncate">
+                                            {label}
+                                        </span>
+                                        {sublabel && (
+                                            <>
+                                                <span className="size-[3px] bg-[#939393] rounded-full shrink-0" />
+                                                <span className="text-[14px] font-borna text-[#939393] shrink-0">
+                                                    {sublabel}
+                                                </span>
+                                            </>
+                                        )}
+                                    </div>
+                                    <span className="text-[14px] font-borna text-[#939393]">
+                                        {dayjs(entry.createdAt).format('D MMM YYYY, HH:mm')}
+                                    </span>
+                                </div>
+                                {isSent && (
+                                    <ChevronDownIcon />
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
         </div>
     );
 };
@@ -328,219 +579,99 @@ interface PassbookCardProps {
 
 const PassbookCard = ({ walletAddress, userId, clubId }: PassbookCardProps) => {
     const { t, i18n } = useTranslation();
-    const [isGenerating, setIsGenerating] = useState(false);
-    const [walletLinks, setWalletLinks] = useState<{ ios: string; android: string | null } | null>(null);
+    const isSpanish = i18n.language === 'es';
+    const [useAppleWallet, setUseAppleWallet] = useState(false);
+    const [isDetecting, setIsDetecting] = useState(true);
 
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    const isAndroid = /Android/.test(navigator.userAgent);
-    const isSpanish = i18n.language === 'es' || i18n.language.startsWith('es-');
-    const useAppleWallet = isIOS || (!isIOS && !isAndroid);
+    useEffect(() => {
+        const ua = navigator.userAgent;
+        const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        setUseAppleWallet(isIOS);
+        setIsDetecting(false);
+    }, []);
 
     const handleAddToWallet = async () => {
-        if (walletLinks) {
-            const url = useAppleWallet ? walletLinks.ios : walletLinks.android;
-            if (url) {
-                window.open(url, '_blank');
-            }
-            return;
-        }
-
-        setIsGenerating(true);
         try {
-            const response = await axiosInstance.post('/v2/wallet/generate', {
-                userId,
-                clubId,
-                kardLevel: 'MEMBER',
-                qrContent: walletAddress,
-            });
-
-            const links = response.data.data.walletLinks;
-            setWalletLinks(links);
-
-            const url = useAppleWallet ? links.ios : links.android;
-            if (url) {
-                window.open(url, '_blank');
+            if (useAppleWallet) {
+                const response = await axiosInstance.get(
+                    `/v2/passbook/${walletAddress}/apple?clubId=${clubId}`,
+                    { responseType: 'blob' }
+                );
+                const blob = new Blob([response.data], { type: 'application/vnd.apple.pkpass' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `klubit-pass.pkpass`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            } else {
+                const response = await axiosInstance.get(
+                    `/v2/passbook/${walletAddress}/google?clubId=${clubId}`
+                );
+                const data = response.data?.data;
+                const saveUrl = data?.saveUrl || data?.url;
+                if (saveUrl) {
+                    window.open(saveUrl, '_blank');
+                }
             }
         } catch {
-            toast.error(t('transaction.passbook_error', 'Error al generar el pase'));
-        } finally {
-            setIsGenerating(false);
+            toast.error(t('transaction.passbook_error', 'Error generando pass'));
         }
     };
 
     return (
-        <div className="flex flex-col gap-1 w-full">
-            <span className="text-[16px] font-helvetica font-medium text-[#939393] px-1.5">
-                {t('transaction.passbook', 'Passbook')}*
-            </span>
-            <div className="flex flex-col items-center gap-4 p-3 bg-[#141414] border-2 border-[#232323] rounded-2xl shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)]">
-                <div className="flex items-center justify-center p-4 bg-white rounded-[5px]">
-                    <QRCodeSVG
-                        value={walletAddress}
-                        size={157}
-                        level="M"
-                        includeMargin={false}
-                    />
-                </div>
-
-                <button
-                    onClick={handleAddToWallet}
-                    disabled={isGenerating}
-                    className={`transition-opacity ${isGenerating ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:opacity-80'}`}
-                >
-                    {isGenerating ? (
-                        <div className="w-[156px] h-[48px] bg-[#232323] rounded-md animate-pulse" />
-                    ) : useAppleWallet ? (
-                        <img 
-                            src={isSpanish ? '/assets/images/apple_es.svg' : '/assets/images/apple_en.svg'}
-                            alt={t('transaction.add_to_apple_wallet', 'Add to Apple Wallet')}
-                            className="h-[48px] w-auto"
-                        />
-                    ) : (
-                        <img 
-                            src={isSpanish ? '/assets/images/google_es.svg' : '/assets/images/google_en.svg'}
-                            alt={t('transaction.add_to_google_wallet', 'Add to Google Wallet')}
-                            className="h-[55px] w-auto"
-                        />
-                    )}
-                </button>
+        <div className="flex flex-col gap-3 w-full items-center">
+            <div className="w-full max-w-[200px] aspect-square bg-white rounded-2xl p-3 flex items-center justify-center">
+                <QRCodeSVG
+                    value={walletAddress}
+                    size={176}
+                    level="H"
+                    bgColor="transparent"
+                />
             </div>
+            <button
+                onClick={handleAddToWallet}
+                className="flex items-center justify-center cursor-pointer"
+            >
+                {isDetecting ? (
+                    <div className="w-[156px] h-[48px] bg-[#232323] rounded-md animate-pulse" />
+                ) : useAppleWallet ? (
+                    <img
+                        src={isSpanish ? '/assets/images/apple_es.svg' : '/assets/images/apple_en.svg'}
+                        alt={t('transaction.add_to_apple_wallet', 'Add to Apple Wallet')}
+                        className="h-[48px] w-auto"
+                    />
+                ) : (
+                    <img
+                        src={isSpanish ? '/assets/images/google_es.svg' : '/assets/images/google_en.svg'}
+                        alt={t('transaction.add_to_google_wallet', 'Add to Google Wallet')}
+                        className="h-[55px] w-auto"
+                    />
+                )}
+            </button>
         </div>
     );
 };
 
-interface AssignmentStatusCardProps {
-    item: TransactionItem;
-    currentUserId: string;
-    transactionUserId: string;
-}
-
-const AssignmentStatusCard = ({ item, currentUserId, transactionUserId }: AssignmentStatusCardProps) => {
-    const { t } = useTranslation();
-    
-    const isPurchaser = currentUserId === transactionUserId || currentUserId === item.purchasedById;
-    const isRecipient = currentUserId === item.assignedToUserId;
-    const isSentToOther = !item.isForMe && (item.assignedToUserId || item.status === 'PENDING_CLAIM');
-    
-    if (item.isForMe || (!isSentToOther)) {
-        return null;
-    }
-
-    if (item.assignedToUser && isPurchaser) {
-        return (
-            <div className="flex flex-col gap-1 w-full">
-                <span className="text-[16px] font-helvetica font-medium text-[#939393] px-1.5">
-                    {t('wallet.sent_to', 'Enviado a')}
-                </span>
-                <div className="flex items-center gap-3 p-4 bg-[#141414] border-2 border-[#232323] rounded-2xl">
-                    {item.assignedToUser.avatar ? (
-                        <img 
-                            src={item.assignedToUser.avatar} 
-                            alt={item.assignedToUser.firstName}
-                            className="w-12 h-12 rounded-full object-cover"
-                        />
-                    ) : (
-                        <div className="w-12 h-12 rounded-full bg-[#232323] flex items-center justify-center">
-                            <UsersIcon className="w-6 h-6 text-[#939393]" />
-                        </div>
-                    )}
-                    <div className="flex flex-col gap-0.5">
-                        <span className="text-[16px] font-helvetica font-medium text-[#F6F6F6]">
-                            {item.assignedToUser.firstName} {item.assignedToUser.lastName}
-                        </span>
-                        {item.assignedToUser.username && (
-                            <span className="text-[14px] font-helvetica text-[#939393]">
-                                @{item.assignedToUser.username}
-                            </span>
-                        )}
-                    </div>
-                    <div className="ml-auto">
-                        <div className="px-3 py-1 bg-[#22C55E]/20 rounded-full">
-                            <span className="text-[12px] font-helvetica font-medium text-[#22C55E]">
-                                {t('wallet.delivered', 'Entregado')}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
-    if (item.status === 'PENDING_CLAIM' && isPurchaser) {
-        const formattedPhone = item.assignedToPhone 
-            ? `+${item.assignedToCountry || ''} ${item.assignedToPhone.slice(0, 3)}...${item.assignedToPhone.slice(-2)}`
-            : '';
-        
-        return (
-            <div className="flex flex-col gap-1 w-full">
-                <span className="text-[16px] font-helvetica font-medium text-[#939393] px-1.5">
-                    {t('wallet.sent_to', 'Enviado a')}
-                </span>
-                <div className="flex items-center gap-3 p-4 bg-[#141414] border-2 border-[#232323] rounded-2xl">
-                    <div className="w-12 h-12 rounded-full bg-[#232323] flex items-center justify-center">
-                        <UsersIcon className="w-6 h-6 text-[#939393]" />
-                    </div>
-                    <div className="flex flex-col gap-0.5">
-                        <span className="text-[16px] font-helvetica font-medium text-[#F6F6F6]">
-                            {formattedPhone}
-                        </span>
-                        <span className="text-[13px] font-helvetica text-[#939393]">
-                            {t('wallet.pending_registration', 'Pendiente de registro')}
-                        </span>
-                    </div>
-                    <div className="ml-auto">
-                        <div className="px-3 py-1 bg-[#FFCE1F]/20 rounded-full">
-                            <span className="text-[12px] font-helvetica font-medium text-[#FFCE1F]">
-                                {t('wallet.pending', 'Pendiente')}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
-    if (isRecipient && item.purchasedBy) {
-        return (
-            <div className="flex flex-col gap-1 w-full">
-                <span className="text-[16px] font-helvetica font-medium text-[#939393] px-1.5">
-                    {t('wallet.received_from', 'Recibido de')}
-                </span>
-                <div className="flex items-center gap-3 p-4 bg-[#141414] border-2 border-[#232323] rounded-2xl">
-                    {item.purchasedBy.avatar ? (
-                        <img 
-                            src={item.purchasedBy.avatar} 
-                            alt={item.purchasedBy.firstName}
-                            className="w-12 h-12 rounded-full object-cover"
-                        />
-                    ) : (
-                        <div className="w-12 h-12 rounded-full bg-[#232323] flex items-center justify-center">
-                            <UsersIcon className="w-6 h-6 text-[#939393]" />
-                        </div>
-                    )}
-                    <div className="flex flex-col gap-0.5">
-                        <span className="text-[16px] font-helvetica font-medium text-[#F6F6F6]">
-                            {item.purchasedBy.firstName} {item.purchasedBy.lastName}
-                        </span>
-                        {item.purchasedBy.username && (
-                            <span className="text-[14px] font-helvetica text-[#939393]">
-                                @{item.purchasedBy.username}
-                            </span>
-                        )}
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
-    return null;
-};
-
 const ModalSkeleton = () => (
-    <div className="flex flex-col gap-6 w-full animate-pulse p-6">
-        <div className="h-[100px] w-full bg-[#232323] rounded-2xl" />
-        <div className="h-[120px] w-full bg-[#232323] rounded-2xl" />
-        <div className="h-[250px] w-full bg-[#232323] rounded-2xl" />
+    <div className="flex flex-col gap-6 w-full animate-pulse">
+        <div className="relative w-full h-[300px] bg-[#232323] rounded-b-none" />
+        <div className="flex flex-col items-center gap-2 px-6">
+            <div className="h-7 w-48 bg-[#232323] rounded" />
+            <div className="h-4 w-32 bg-[#232323] rounded" />
+            <div className="h-4 w-24 bg-[#232323] rounded" />
+        </div>
+        <div className="flex gap-2 justify-center px-6">
+            <div className="h-8 w-20 bg-[#232323] rounded-full" />
+            <div className="h-8 w-24 bg-[#232323] rounded-full" />
+            <div className="h-8 w-20 bg-[#232323] rounded-full" />
+        </div>
+        <div className="flex flex-col gap-2 px-6">
+            <div className="h-5 w-16 bg-[#232323] rounded" />
+            <div className="h-[200px] w-full bg-[#232323] rounded-2xl" />
+        </div>
     </div>
 );
 
@@ -551,6 +682,7 @@ const ItemDetailModal = ({ transactionId, itemId, isOpen, onClose, onBack }: Ite
 
     const [isVisible, setIsVisible] = useState(false);
     const [isAnimating, setIsAnimating] = useState(false);
+    const [showOptionsMenu, setShowOptionsMenu] = useState(false);
 
     useEffect(() => {
         if (isOpen) {
@@ -568,6 +700,7 @@ const ItemDetailModal = ({ transactionId, itemId, isOpen, onClose, onBack }: Ite
         setIsVisible(false);
         setTimeout(() => {
             setIsAnimating(false);
+            setShowOptionsMenu(false);
             document.body.style.overflow = '';
             onClose();
         }, 300);
@@ -585,13 +718,23 @@ const ItemDetailModal = ({ transactionId, itemId, isOpen, onClose, onBack }: Ite
         enabled: isOpen && !!transactionId,
     });
 
+    const eventSlug = transaction?.event?.slug;
+    const { data: fullEvent } = useQuery({
+        queryKey: ['event-detail', eventSlug],
+        queryFn: async () => {
+            const response = await axiosInstance.get<EventResponse>(
+                `/v2/events/slug/${eventSlug}`
+            );
+            return response.data.data.event;
+        },
+        enabled: !!eventSlug,
+    });
+
     const handleBackdropClick = (e: React.MouseEvent) => {
         if (e.target === e.currentTarget) {
             handleClose();
         }
     };
-
-    if (!isAnimating && !isOpen) return null;
 
     const item = transaction?.items?.find((i: { id: string }) => i.id === itemId) as TransactionItem | undefined;
 
@@ -599,6 +742,88 @@ const ItemDetailModal = ({ transactionId, itemId, isOpen, onClose, onBack }: Ite
     const isRecipient = user?.id === item?.assignedToUserId;
     const isPendingClaim = item?.status === 'PENDING_CLAIM';
     const canViewQR = item?.isForMe || isRecipient || (isPurchaser && isPendingClaim);
+    const isValidated = item?.status === 'VALIDATED';
+    const isCancelled = item?.status === 'CANCELLED';
+    const isDeniedAccess = isCancelled;
+
+    const eventData = transaction?.event;
+    const eventPast = eventData ? isEventPast(eventData.startDate) : false;
+    const eventToday = eventData ? isEventToday(eventData.startDate) : false;
+
+    const enrichedData = useMemo(() => {
+        if (!item || !fullEvent) {
+            return { zones: [] as string[], products: [] as string[], titularName: undefined as string | undefined };
+        }
+
+        let zones: string[] = [];
+        let products: string[] = [];
+
+        if (item.itemType === 'TICKET' && item.ticketId) {
+            const ticket = item.ticket;
+            const eventTicket = fullEvent.tickets?.find(t => t.id === item.ticketId);
+            const source = eventTicket || ticket;
+            if (source?.zones) zones = source.zones.map(z => z.name);
+            if (source?.benefits) {
+                products = source.benefits
+                    .filter(b => b.type === 'PRODUCT')
+                    .map(b => b.name);
+            }
+        } else if (item.itemType === 'GUESTLIST' && item.guestlistId) {
+            const guestlist = item.guestlist;
+            const eventGuestlist = fullEvent.guestlists?.find(g => g.id === item.guestlistId);
+            const source = eventGuestlist || guestlist;
+            if (source?.zones) zones = source.zones.map(z => z.name);
+            if (source?.benefits) {
+                products = source.benefits
+                    .filter(b => b.type === 'PRODUCT')
+                    .map(b => b.name);
+            }
+        } else if (item.itemType === 'RESERVATION' && item.reservationId) {
+            const reservation = item.reservation;
+            const eventReservation = fullEvent.reservations?.find(r => r.id === item.reservationId);
+            const source = eventReservation || reservation;
+            if (source?.zones) zones = source.zones.map(z => z.name);
+            if (source?.benefits) {
+                products = source.benefits
+                    .filter(b => b.type === 'PRODUCT')
+                    .map(b => b.name);
+            }
+        }
+
+        let titularName: string | undefined;
+        if (item.itemType === 'TICKET' || item.itemType === 'RESERVATION') {
+            if (item.isForMe && user) {
+                titularName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || undefined;
+            } else if (item.assignedToUser) {
+                titularName = `${item.assignedToUser.firstName} ${item.assignedToUser.lastName}`.trim();
+            }
+        }
+
+        return { zones, products, titularName };
+    }, [item, fullEvent, user]);
+
+    const accessTotal = item?.quantity || 1;
+    const accessRemaining = useMemo(() => {
+        if (!item) return 0;
+        if (isValidated) return 0;
+        if (item.status === 'CANCELLED' || item.status === 'TRANSFERRED') return 0;
+        if (item.status === 'ACTIVE' || item.status === 'PENDING_CLAIM') return accessTotal;
+        return accessTotal;
+    }, [item, isValidated, accessTotal]);
+
+    const dateDisplay = eventData
+        ? eventToday
+            ? t('wallet.today', 'Hoy')
+            : formatEventDate(eventData.startDate, locale)
+        : '';
+
+    const timeDisplay = eventData?.startTime && eventData?.endTime
+        ? `${eventData.startTime} - ${eventData.endTime}`
+        : eventData?.startTime || '';
+
+    const showMostrarKard = canViewQR && item?.walletAddress && !eventPast && !isCancelled;
+
+    if (!isAnimating && !isOpen) return null;
 
     return (
         <div
@@ -608,45 +833,121 @@ const ItemDetailModal = ({ transactionId, itemId, isOpen, onClose, onBack }: Ite
             <div
                 className={`relative w-full max-w-[500px] max-h-[90vh] bg-[#0a0a0a] border-2 border-[#232323] rounded-t-[32px] overflow-hidden transition-transform duration-300 ease-out ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}
             >
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 pt-[5px] opacity-50 z-10">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 pt-[5px] opacity-50 z-20">
                     <div className="w-9 h-[5px] bg-[#F6F6F6]/50 rounded-full" />
                 </div>
 
-                <div className="relative flex flex-col gap-6 px-6 pt-6 pb-8 overflow-y-auto max-h-[90vh] scrollbar-hide">
-                    <div className="flex items-center justify-between h-9">
-                        {onBack ? (
-                            <button
-                                onClick={onBack}
-                                className="flex items-center justify-center size-9 bg-[#232323] rounded-full shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)] cursor-pointer"
-                            >
-                                <BackIcon />
-                            </button>
-                        ) : (
-                            <div />
+                <div className="relative flex flex-col overflow-y-auto max-h-[90vh] scrollbar-hide" style={{ paddingBottom: showMostrarKard ? '96px' : '32px' }}>
+                    <div className="relative w-full h-[300px] shrink-0">
+                        {eventData?.flyer && (
+                            <img
+                                src={eventData.flyer}
+                                alt={eventData.name}
+                                className="absolute inset-0 w-full h-full object-cover"
+                            />
                         )}
-                        <button
-                            onClick={handleClose}
-                            className="flex items-center justify-center size-9 bg-[#232323] rounded-full shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)] cursor-pointer"
-                        >
-                            <CloseIcon />
-                        </button>
+                        <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(10,10,10,0) 0%, #0a0a0a 40%)' }} />
+                        <div className="absolute inset-0 backdrop-blur-[1.5px]" style={{ background: 'linear-gradient(to bottom, rgba(10,10,10,0) 0%, rgba(10,10,10,0.5) 40%)' }} />
+
+                        <div className="absolute top-6 left-6 right-6 flex items-center justify-between z-10">
+                            <div>
+                                {onBack && (
+                                    <button
+                                        onClick={onBack}
+                                        className="flex items-center justify-center size-9 bg-[#232323]/80 rounded-full shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)] cursor-pointer backdrop-blur-sm"
+                                    >
+                                        <BackIcon />
+                                    </button>
+                                )}
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => setShowOptionsMenu(!showOptionsMenu)}
+                                    className="flex items-center justify-center size-9 bg-[#232323]/80 rounded-full shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)] cursor-pointer backdrop-blur-sm"
+                                >
+                                    <ThreeDotsIcon />
+                                </button>
+                                <button
+                                    onClick={handleClose}
+                                    className="flex items-center justify-center size-9 bg-[#232323]/80 rounded-full shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)] cursor-pointer backdrop-blur-sm"
+                                >
+                                    <CloseIcon />
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
                     {isLoading || !transaction || !item ? (
                         <ModalSkeleton />
                     ) : (
-                        <>
-                            <EventCardInfo event={transaction.event} locale={locale} />
+                        <div className="flex flex-col gap-8 px-6 -mt-20 relative z-10 pb-8">
+                            {(eventPast || isCancelled) && (
+                                <div className="flex justify-center">
+                                    <div className={`px-2.5 py-1 rounded-[25px] shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)] ${isCancelled ? 'bg-[#FF336D]/20' : 'bg-[#141414]'}`}>
+                                        <span className={`text-[14px] font-borna ${isCancelled ? 'text-[#FF336D]' : 'text-[#939393]'}`}>
+                                            {isCancelled
+                                                ? `${t('item_detail.event_cancelled', 'Evento cancelado')} ❌`
+                                                : `${t('item_detail.event_finished', 'Evento finalizado')}  👋`
+                                            }
+                                        </span>
+                                    </div>
+                                </div>
+                            )}
 
-                            <TarifaCardInfo item={item} />
+                            <div className="flex flex-col items-center gap-[2px] pt-4">
+                                <h2 className="text-[24px] font-borna font-semibold text-[#F6F6F6] text-center leading-tight w-full">
+                                    {eventData?.name}
+                                </h2>
+                                <div className="flex items-center gap-1">
+                                    <span className={`text-[14px] font-borna ${eventPast || isCancelled ? 'text-[#939393]' : 'text-[#E5FF88]'}`}>
+                                        {dateDisplay}
+                                    </span>
+                                    {timeDisplay && (
+                                        <>
+                                            <span className={`size-[3px] rounded-full ${eventPast || isCancelled ? 'bg-[#939393]' : 'bg-[#E5FF88]'}`} />
+                                            <span className={`text-[14px] font-borna ${eventPast || isCancelled ? 'text-[#939393]' : 'text-[#E5FF88]'}`}>
+                                                {timeDisplay}
+                                            </span>
+                                        </>
+                                    )}
+                                </div>
+                                <div className="flex items-center gap-1.5 py-px">
+                                    <span className="text-[13px]">📍</span>
+                                    <span className="text-[14px] font-borna text-[#939393]">
+                                        {transaction.club?.address || transaction.club?.name}
+                                    </span>
+                                </div>
+                            </div>
 
-                            <AssignmentStatusCard
-                                item={item}
-                                currentUserId={user?.id || ''}
-                                transactionUserId={transaction.user.id}
+                            <EventTags
+                                minimumAge={fullEvent?.minimumAge}
+                                venueType={transaction.club?.venueType}
+                                vibes={fullEvent?.vibes}
+                                musics={fullEvent?.musics}
                             />
 
-                            {canViewQR && item.walletAddress && (
+                            {item.itemType === 'GUESTLIST' && !isDeniedAccess && (
+                                <p className="text-[14px] font-helvetica text-[#939393] text-center leading-relaxed">
+                                    {t('item_detail.guestlist_disclaimer', 'Las guestlists no garantizan el acceso. Está sujeta a aforo y criterio del local.')}
+                                </p>
+                            )}
+
+                            {isDeniedAccess && (
+                                <p className="text-[14px] font-helvetica text-[#FF336D] text-center leading-relaxed">
+                                    {t('item_detail.access_denied', 'Este acceso ha sido denegado por lo que ya no será posible acceder con el mismo al evento')}
+                                </p>
+                            )}
+
+                            <TarifaCard
+                                item={item}
+                                zones={enrichedData.zones}
+                                products={enrichedData.products}
+                                titularName={enrichedData.titularName}
+                                accessRemaining={accessRemaining}
+                                accessTotal={accessTotal}
+                            />
+
+                            {canViewQR && item.walletAddress && !showMostrarKard && (
                                 <PassbookCard
                                     walletAddress={item.walletAddress}
                                     userId={user?.id || ''}
@@ -655,24 +956,19 @@ const ItemDetailModal = ({ transactionId, itemId, isOpen, onClose, onBack }: Ite
                             )}
 
                             {!canViewQR && isPurchaser && item.assignedToUserId && (
-                                <div className="flex flex-col gap-1 w-full">
-                                    <span className="text-[16px] font-helvetica font-medium text-[#939393] px-1.5">
-                                        {t('transaction.passbook', 'Passbook')}
-                                    </span>
-                                    <div className="flex flex-col items-center gap-3 p-6 bg-[#141414] border-2 border-[#232323] rounded-2xl">
-                                        <div className="w-16 h-16 rounded-full bg-[#232323] flex items-center justify-center">
-                                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
-                                                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke="#22C55E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                            </svg>
-                                        </div>
-                                        <div className="text-center">
-                                            <p className="text-[14px] font-helvetica text-[#939393]">
-                                                {t('wallet.qr_transferred', 'Esta entrada ya está en la wallet del destinatario')}
-                                            </p>
-                                        </div>
+                                <div className="flex flex-col items-center gap-3 p-6 bg-[#141414] border-2 border-[#232323] rounded-2xl">
+                                    <div className="w-16 h-16 rounded-full bg-[#232323] flex items-center justify-center">
+                                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                                            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke="#22C55E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                        </svg>
                                     </div>
+                                    <p className="text-[14px] font-helvetica text-[#939393] text-center">
+                                        {t('wallet.qr_transferred', 'Esta entrada ya está en la wallet del destinatario')}
+                                    </p>
                                 </div>
                             )}
+
+                            <ActivitySection item={item} />
 
                             {transaction.club.address && transaction.club.addressLocation && (
                                 <LocationCard
@@ -681,20 +977,87 @@ const ItemDetailModal = ({ transactionId, itemId, isOpen, onClose, onBack }: Ite
                                         lat: transaction.club.addressLocation.lat,
                                         lng: transaction.club.addressLocation.lng,
                                     }}
+                                    title={t('item_detail.direction', 'Dirección')}
                                 />
                             )}
 
-                            <Link 
+                            <Link
                                 to="/purchase-terms"
                                 className="px-1.5 text-left"
                             >
-                                <span className="text-[12px] font-helvetica font-medium text-[#F6F6F6]/50 underline">
-                                    {t('transaction.read_terms', 'Leer los términos de compra de la tarifa')}
+                                <span className="text-[16px] font-borna font-medium text-[#939393]">
+                                    {t('item_detail.terms_prefix', 'Ver los ')}{' '}
+                                </span>
+                                <span className="text-[12px] font-helvetica font-medium text-[#939393] underline">
+                                    {t('item_detail.terms_link', 'Términos de uso y condiciones')}
+                                </span>
+                                <span className="text-[16px] font-borna font-medium text-[#939393]">
+                                    {t('item_detail.terms_suffix', ' de la tarifa.')}
                                 </span>
                             </Link>
-                        </>
+                        </div>
                     )}
                 </div>
+
+                {showMostrarKard && (
+                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a] to-transparent pt-6 pb-6 px-6 z-20">
+                        <button
+                            onClick={() => {
+                                const qrSection = document.getElementById('mostrar-kard-section');
+                                if (qrSection) {
+                                    qrSection.scrollIntoView({ behavior: 'smooth' });
+                                }
+                            }}
+                            className="w-full h-[48px] bg-[#232323] rounded-full flex items-center justify-center cursor-pointer border-2 border-[#232323] shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)]"
+                        >
+                            <span className="text-[16px] font-borna font-medium text-[#F6F6F6]">
+                                {t('item_detail.show_kard', 'Mostrar Kard')}
+                            </span>
+                        </button>
+                    </div>
+                )}
+
+                {showOptionsMenu && (
+                    <div
+                        className="fixed inset-0 z-50 flex items-end justify-center"
+                        onClick={() => setShowOptionsMenu(false)}
+                    >
+                        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+                        <div
+                            className="relative w-full max-w-[500px] bg-[#141414] border-2 border-[#232323] rounded-t-[32px] p-6 z-10"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <div className="flex flex-col gap-1 mb-4">
+                                <button
+                                    onClick={() => setShowOptionsMenu(false)}
+                                    className="absolute top-6 right-6 flex items-center justify-center size-9 bg-[#232323] rounded-full cursor-pointer"
+                                >
+                                    <CloseIcon />
+                                </button>
+                                <h3 className="text-[18px] font-borna font-semibold text-[#F6F6F6]">
+                                    {t('item_detail.rate_options', 'Opciones de la tarifa')}
+                                </h3>
+                            </div>
+                            <div className="flex flex-col gap-2">
+                                <button className="w-full h-[44px] bg-[#232323] rounded-xl flex items-center justify-center cursor-pointer">
+                                    <span className="text-[14px] font-helvetica font-medium text-[#F6F6F6]">
+                                        {t('item_detail.report_incident', 'Reportar incidencia')}
+                                    </span>
+                                </button>
+                                <button className="w-full h-[44px] bg-[#232323] rounded-xl flex items-center justify-center cursor-pointer">
+                                    <span className="text-[14px] font-helvetica font-medium text-[#F6F6F6]">
+                                        {t('item_detail.hide_activity', 'Ocultar de mi actividad')}
+                                    </span>
+                                </button>
+                                <button className="w-full h-[44px] bg-[#232323] rounded-xl flex items-center justify-center cursor-pointer">
+                                    <span className="text-[14px] font-helvetica font-medium text-[#F6F6F6]">
+                                        {t('item_detail.add_to_calendar', 'Añadir al calendario')}
+                                    </span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );

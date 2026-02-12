@@ -422,5 +422,27 @@
         "copied": "Enlace copiado al portapapeles",
         "copy_error": "No se pudo copiar el enlace",
         "share_error": "No se pudo compartir"
+    },
+    "item_detail": {
+        "product_section": "Producto",
+        "titular": "Titular",
+        "product": "Producto",
+        "no_consumption": "Sin consumición",
+        "accessible_zones": "Zonas accesibles",
+        "available_accesses": "Accesos disponibles",
+        "availability": "Disponibilidad",
+        "show_kard": "Mostrar Kard",
+        "activity": "Actividad",
+        "no_activity": "Aún no tienes actividad en esta tarifa",
+        "access_validated": "Acceso validado",
+        "direction": "Dirección",
+        "event_cancelled": "Evento cancelado",
+        "event_finished": "Evento finalizado",
+        "guestlist_disclaimer": "Las guestlists no garantizan el acceso. Está sujeta a aforo y criterio del local.",
+        "access_denied": "Este acceso ha sido denegado por lo que ya no será posible acceder con el mismo al evento",
+        "rate_options": "Opciones de la tarifa",
+        "report_incident": "Reportar incidencia",
+        "hide_activity": "Ocultar de mi actividad",
+        "add_to_calendar": "Añadir al calendario"
     }
 }

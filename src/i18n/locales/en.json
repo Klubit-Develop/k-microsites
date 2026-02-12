@@ -417,5 +417,27 @@
         "avatar_edit_title": "Edit image",
         "avatar_edit_description": "Drag to adjust position and use the slider to zoom.",
         "avatar_confirm": "Confirm"
+    },
+    "item_detail": {
+        "product_section": "Product",
+        "titular": "Holder",
+        "product": "Product",
+        "no_consumption": "No consumption",
+        "accessible_zones": "Accessible zones",
+        "available_accesses": "Available accesses",
+        "availability": "Availability",
+        "show_kard": "Show Kard",
+        "activity": "Activity",
+        "no_activity": "No activity yet for this rate",
+        "access_validated": "Access validated",
+        "direction": "Direction",
+        "event_cancelled": "Event cancelled",
+        "event_finished": "Event finished",
+        "guestlist_disclaimer": "Guestlists do not guarantee access. It is subject to capacity and venue criteria.",
+        "access_denied": "This access has been denied and it will no longer be possible to access the event with it",
+        "rate_options": "Rate options",
+        "report_incident": "Report incident",
+        "hide_activity": "Hide from my activity",
+        "add_to_calendar": "Add to calendar"
     }
 }
