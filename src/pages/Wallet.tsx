@@ -275,7 +275,7 @@ const TicketWallet = ({ transaction, isLive = false, onClick }: TicketWalletProp
     return (
         <button
             onClick={onClick}
-            className="relative flex flex-col w-full rounded-2xl border-2 border-[#232323] overflow-hidden shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)] cursor-pointer"
+            className="relative flex h-[220px] flex-col w-full rounded-2xl border-2 border-[#232323] overflow-hidden shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)] cursor-pointer"
         >
             <div className="absolute inset-0 pointer-events-none rounded-2xl">
                 <img
@@ -286,7 +286,7 @@ const TicketWallet = ({ transaction, isLive = false, onClick }: TicketWalletProp
                 <div className="absolute inset-0 bg-gradient-to-t from-[#141414] from-[25%] to-transparent rounded-2xl" />
             </div>
 
-            <div className="relative flex flex-col items-start gap-[42px] pt-[100px] pb-4 px-4 w-full">
+            <div className="relative flex flex-col items-start gap-[42px] pt-[130px] pb-4 px-4 w-full">
                 <div className="absolute top-3.5 left-3.5 right-3.5 flex items-center justify-between">
                     {isLive ? (
                         <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[#141414] rounded-full shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]">
@@ -801,7 +801,7 @@ const Wallet = () => {
     }
 
     return (
-        <div className="flex flex-col gap-9 w-full max-w-[500px] mx-auto px-4 pt-[120px] pb-[100px] md:py-8">
+        <div className="flex flex-col gap-9 w-full max-w-[450px] mx-auto px-4 pt-[120px] pb-[100px] md:py-8">
             {featuredTransactions.length > 0 && (
                 <FeaturedCarousel
                     transactions={featuredTransactions}

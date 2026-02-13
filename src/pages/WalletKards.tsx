@@ -520,7 +520,7 @@ const WalletKards = () => {
                 />
             </div>
 
-            <div className="relative z-10 flex flex-col gap-8 items-center w-full max-w-[500px] mx-auto px-4 pt-[80px] pb-[80px]">
+            <div className="relative z-10 flex flex-col gap-8 items-center w-full max-w-[450px] mx-auto px-4 pt-[80px] pb-[80px]">
                 {isLoadingPassbooks ? (
                     <KardSkeleton />
                 ) : passbook ? (
