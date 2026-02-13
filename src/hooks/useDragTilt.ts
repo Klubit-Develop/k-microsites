@@ -22,6 +22,8 @@ interface DragTiltOptions {
     baseSpeed?: number;
     friction?: number;
     maxVelocity?: number;
+    maxTiltX?: number;
+    verticalSensitivity?: number;
     enableShadow?: boolean;
     enableShimmer?: boolean;
     enableWobble?: boolean;
@@ -54,6 +56,8 @@ const useDragTilt = (options?: DragTiltOptions): DragTiltResult => {
         baseSpeed = BASE_SPEED,
         friction = FRICTION,
         maxVelocity = MAX_VELOCITY,
+        maxTiltX = 8,
+        verticalSensitivity = 0.08,
         enableShadow = true,
         enableShimmer = true,
         enableWobble = true,
@@ -77,6 +81,8 @@ const useDragTilt = (options?: DragTiltOptions): DragTiltResult => {
     const isSpringBack = useRef(false);
     const springStartTime = useRef(0);
     const springFrom = useRef(0);
+    const dragTiltX = useRef(0);
+    const springFromX = useRef(0);
 
     onTapRef.current = onTap;
 
@@ -92,7 +98,8 @@ const useDragTilt = (options?: DragTiltOptions): DragTiltResult => {
         const rad = (norm / 180) * Math.PI;
 
         const wobbleX = enableWobble ? 2 + Math.sin(rad * 0.5) * 0.5 : 0;
-        el.style.transform = `rotateY(${deg}deg) rotateX(${wobbleX}deg)`;
+        const totalTiltX = wobbleX + dragTiltX.current;
+        el.style.transform = `rotateY(${deg}deg) rotateX(${totalTiltX}deg)`;
 
         if (enableShadow) {
             const edgeDir = Math.cos(rad);
@@ -116,6 +123,8 @@ const useDragTilt = (options?: DragTiltOptions): DragTiltResult => {
             } else {
                 velocity.current += (baseSpeed - velocity.current) * 0.008;
             }
+            dragTiltX.current *= 0.92;
+            if (Math.abs(dragTiltX.current) < 0.01) dragTiltX.current = 0;
         }
 
         rotation.current += velocity.current;
@@ -129,9 +138,11 @@ const useDragTilt = (options?: DragTiltOptions): DragTiltResult => {
             const progress = Math.min(elapsed / springDuration, 1);
             const eased = 1 - Math.pow(1 - progress, 3);
             rotation.current = springFrom.current * (1 - eased);
+            dragTiltX.current = springFromX.current * (1 - eased);
 
             if (progress >= 1) {
                 rotation.current = 0;
+                dragTiltX.current = 0;
                 isSpringBack.current = false;
             }
         }
@@ -152,6 +163,7 @@ const useDragTilt = (options?: DragTiltOptions): DragTiltResult => {
         isDragging.current = true;
         wasDraggedRef.current = false;
         isSpringBack.current = false;
+        dragTiltX.current = 0;
         lastPointerX.current = e.clientX;
         lastMoveTime.current = performance.now();
         swipeVelocity.current = 0;
@@ -186,9 +198,12 @@ const useDragTilt = (options?: DragTiltOptions): DragTiltResult => {
             rotation.current = Math.max(-maxRotation, Math.min(maxRotation, raw));
         }
 
+        const totalDy = -(e.clientY - tapStart.current.y);
+        dragTiltX.current = Math.max(-maxTiltX, Math.min(maxTiltX, totalDy * verticalSensitivity));
+
         lastPointerX.current = e.clientX;
         lastMoveTime.current = now;
-    }, [mode, sensitivity, maxRotation, dragThreshold]);
+    }, [mode, sensitivity, maxRotation, dragThreshold, maxTiltX, verticalSensitivity]);
 
     const onPointerUp = useCallback((e: React.PointerEvent) => {
         if (!isDragging.current) return;
@@ -201,6 +216,7 @@ const useDragTilt = (options?: DragTiltOptions): DragTiltResult => {
         if (dx < dragThreshold && dy < dragThreshold && dt < TAP_THRESHOLD_MS) {
             if (mode === 'tilt') {
                 rotation.current = 0;
+                dragTiltX.current = 0;
                 applyVisualEffects(0);
             }
             onTapRef.current?.();
@@ -212,6 +228,7 @@ const useDragTilt = (options?: DragTiltOptions): DragTiltResult => {
             if (Math.abs(flick) > 0.5) velocity.current = flick;
         } else {
             springFrom.current = rotation.current;
+            springFromX.current = dragTiltX.current;
             springStartTime.current = performance.now();
             isSpringBack.current = true;
         }
@@ -221,6 +238,7 @@ const useDragTilt = (options?: DragTiltOptions): DragTiltResult => {
         isDragging.current = false;
         if (mode === 'tilt') {
             springFrom.current = rotation.current;
+            springFromX.current = dragTiltX.current;
             springStartTime.current = performance.now();
             isSpringBack.current = true;
         }
@@ -230,6 +248,7 @@ const useDragTilt = (options?: DragTiltOptions): DragTiltResult => {
 
     const resetRotation = useCallback(() => {
         rotation.current = 0;
+        dragTiltX.current = 0;
         velocity.current = mode === 'spin' ? baseSpeed : 0;
         isSpringBack.current = false;
         applyVisualEffects(0);
