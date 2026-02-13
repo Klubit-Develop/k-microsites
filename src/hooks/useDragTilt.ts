@@ -1,241 +1,260 @@
-import { useRef, useCallback, useState, useEffect } from 'react';
-import { useDrag } from '@use-gesture/react';
+import { useRef, useCallback, useEffect } from 'react';
+
+const FRICTION = 0.993;
+const SWIPE_SENSITIVITY = 1.0;
+const BASE_SPEED = 0.6;
+const MIN_VELOCITY = 0.2;
+const MAX_VELOCITY = 30;
+const TAP_THRESHOLD_PX = 6;
+const TAP_THRESHOLD_MS = 250;
+
+const EDGE_SLICES = 41;
+const EDGE_DEPTH = 2;
+
+type DragTiltMode = 'tilt' | 'spin';
 
 interface DragTiltOptions {
+    mode?: DragTiltMode;
     maxRotation?: number;
     sensitivity?: number;
     springDuration?: number;
     dragThreshold?: number;
-    axis?: 'horizontal' | 'vertical' | 'both';
-    fullSpin?: boolean;
-    momentumDecay?: number;
+    baseSpeed?: number;
+    friction?: number;
+    maxVelocity?: number;
+    enableShadow?: boolean;
+    enableShimmer?: boolean;
+    enableWobble?: boolean;
+    onTap?: () => void;
 }
 
-const normalizeAngle = (angle: number): number => {
-    return ((angle % 360) + 360) % 360;
-};
+interface DragTiltResult {
+    cardInnerRef: React.RefObject<HTMLDivElement | null>;
+    shimmerFrontRef: React.RefObject<HTMLDivElement | null>;
+    shimmerBackRef: React.RefObject<HTMLDivElement | null>;
+    containerStyle: React.CSSProperties;
+    edgeSlices: number[];
+    handlers: {
+        onPointerDown: (e: React.PointerEvent) => void;
+        onPointerMove: (e: React.PointerEvent) => void;
+        onPointerUp: (e: React.PointerEvent) => void;
+        onPointerCancel: () => void;
+    };
+    wasDragged: () => boolean;
+    resetRotation: () => void;
+}
 
-const clamp = (value: number, min: number, max: number) =>
-    Math.min(Math.max(value, min), max);
+const useDragTilt = (options?: DragTiltOptions): DragTiltResult => {
+    const {
+        mode = 'spin',
+        maxRotation = 18,
+        sensitivity = 0.12,
+        springDuration = 450,
+        dragThreshold = TAP_THRESHOLD_PX,
+        baseSpeed = BASE_SPEED,
+        friction = FRICTION,
+        maxVelocity = MAX_VELOCITY,
+        enableShadow = true,
+        enableShimmer = true,
+        enableWobble = true,
+        onTap,
+    } = options || {};
 
-const useDragTilt = ({
-    maxRotation = 15,
-    sensitivity = 0.15,
-    springDuration = 400,
-    dragThreshold = 6,
-    axis = 'both',
-    fullSpin = false,
-    momentumDecay = 0.92,
-}: DragTiltOptions = {}) => {
-    const elementRef = useRef<HTMLDivElement | null>(null);
+    const cardInnerRef = useRef<HTMLDivElement | null>(null);
+    const shimmerFrontRef = useRef<HTMLDivElement | null>(null);
+    const shimmerBackRef = useRef<HTMLDivElement | null>(null);
+
+    const rotation = useRef(0);
+    const velocity = useRef(mode === 'spin' ? baseSpeed : 0);
+    const isDragging = useRef(false);
+    const lastPointerX = useRef(0);
+    const lastMoveTime = useRef(0);
+    const swipeVelocity = useRef(0);
+    const animFrame = useRef<number>(0);
+    const tapStart = useRef({ x: 0, y: 0, time: 0 });
     const wasDraggedRef = useRef(false);
-    const animationFrame = useRef<number>(0);
-    const baseRotationY = useRef(0);
-    const baseRotationX = useRef(0);
-    const momentumVx = useRef(0);
-    const momentumVy = useRef(0);
-    const [rotationY, setRotationY] = useState(0);
-    const [rotationX, setRotationX] = useState(0);
-    const [isAnimating, setIsAnimating] = useState(false);
+    const onTapRef = useRef(onTap);
+    const isSpringBack = useRef(false);
+    const springStartTime = useRef(0);
+    const springFrom = useRef(0);
 
-    const getSnapTarget = (angle: number): number => {
-        const normalized = normalizeAngle(angle);
-        const fullTurns = Math.round(angle / 360) * 360;
+    onTapRef.current = onTap;
 
-        if (normalized <= 90) return fullTurns;
-        if (normalized <= 270) return fullTurns + 180;
-        return fullTurns + 360;
-    };
+    const edgeSlices = useRef<number[]>(
+        Array.from({ length: EDGE_SLICES }, (_, i) => -EDGE_DEPTH + i * ((EDGE_DEPTH * 2) / (EDGE_SLICES - 1)))
+    ).current;
 
-    const isFront = (yDeg: number, xDeg: number): boolean => {
-        const ny = normalizeAngle(yDeg);
-        const nx = normalizeAngle(xDeg);
-        const yBack = ny > 90 && ny < 270;
-        const xBack = nx > 90 && nx < 270;
-        return !(yBack !== xBack);
-    };
-
-    useEffect(() => {
-        return () => {
-            if (animationFrame.current) {
-                cancelAnimationFrame(animationFrame.current);
-            }
-        };
-    }, []);
-
-    const snapToFace = useCallback(() => {
-        const targetY = (axis === 'horizontal' || axis === 'both')
-            ? getSnapTarget(baseRotationY.current)
-            : 0;
-        const targetX = (axis === 'vertical' || axis === 'both')
-            ? getSnapTarget(baseRotationX.current)
-            : 0;
-
-        baseRotationY.current = targetY;
-        baseRotationX.current = targetX;
-
-        setIsAnimating(true);
-        setRotationY(targetY);
-        setRotationX(targetX);
-    }, [axis]);
-
-    const startMomentum = useCallback(() => {
-        let vx = clamp(momentumVx.current, -15, 15);
-        let vy = clamp(momentumVy.current, -15, 15);
-
-        const tick = () => {
-            if (Math.abs(vx) < 0.3 && Math.abs(vy) < 0.3) {
-                snapToFace();
-                return;
-            }
-
-            vx *= momentumDecay;
-            vy *= momentumDecay;
-
-            if (axis === 'horizontal' || axis === 'both') {
-                baseRotationY.current += vx;
-            }
-            if (axis === 'vertical' || axis === 'both') {
-                baseRotationX.current += vy;
-            }
-
-            setRotationY(baseRotationY.current);
-            setRotationX(baseRotationX.current);
-
-            animationFrame.current = requestAnimationFrame(tick);
-        };
-
-        animationFrame.current = requestAnimationFrame(tick);
-    }, [momentumDecay, axis, snapToFace]);
-
-    const bind = useDrag(
-        ({ movement: [mx, my], velocity: [vx, vy], direction: [dirX, dirY], distance: [distX, distY], active, first, memo }) => {
-            if (first) {
-                if (animationFrame.current) {
-                    cancelAnimationFrame(animationFrame.current);
-                }
-                wasDraggedRef.current = false;
-                setIsAnimating(false);
-                return [baseRotationY.current, baseRotationX.current];
-            }
-
-            const [savedBaseY, savedBaseX] = (memo as [number, number]) ?? [baseRotationY.current, baseRotationX.current];
-            const totalDistance = Math.hypot(distX, distY);
-
-            if (totalDistance > dragThreshold) {
-                wasDraggedRef.current = true;
-            }
-
-            if (active) {
-                if (fullSpin) {
-                    if (axis === 'horizontal' || axis === 'both') {
-                        setRotationY(savedBaseY + mx * sensitivity);
-                    }
-                    if (axis === 'vertical' || axis === 'both') {
-                        setRotationX(savedBaseX + -my * sensitivity);
-                    }
-                } else {
-                    if (axis === 'horizontal' || axis === 'both') {
-                        setRotationY(clamp(mx * sensitivity, -maxRotation, maxRotation));
-                    }
-                    if (axis === 'vertical' || axis === 'both') {
-                        setRotationX(clamp(-my * sensitivity, -maxRotation, maxRotation));
-                    }
-                }
-            } else {
-                if (fullSpin) {
-                    if (axis === 'horizontal' || axis === 'both') {
-                        baseRotationY.current = savedBaseY + mx * sensitivity;
-                    }
-                    if (axis === 'vertical' || axis === 'both') {
-                        baseRotationX.current = savedBaseX + -my * sensitivity;
-                    }
-
-                    momentumVx.current = vx * dirX * sensitivity * 16;
-                    momentumVy.current = -vy * dirY * sensitivity * 16;
-
-                    const hasVelocity = vx > 0.1 || vy > 0.1;
-                    if (hasVelocity) {
-                        startMomentum();
-                    } else {
-                        snapToFace();
-                    }
-                } else {
-                    setIsAnimating(true);
-                    setRotationY(0);
-                    setRotationX(0);
-                }
-            }
-
-            return memo;
-        },
-        {
-            pointer: { capture: true, touch: true },
-            threshold: 0,
-            filterTaps: true,
-        }
-    );
-
-    useEffect(() => {
-        if (!isAnimating) return;
-        const timer = setTimeout(() => setIsAnimating(false), springDuration);
-        return () => clearTimeout(timer);
-    }, [isAnimating, springDuration]);
-
-    useEffect(() => {
-        const el = elementRef.current;
+    const applyVisualEffects = useCallback((deg: number) => {
+        const el = cardInnerRef.current;
         if (!el) return;
 
-        const preventScroll = (e: TouchEvent) => {
-            if (wasDraggedRef.current) {
-                e.preventDefault();
+        const norm = ((deg % 360) + 360) % 360;
+        const rad = (norm / 180) * Math.PI;
+
+        const wobbleX = enableWobble ? 2 + Math.sin(rad * 0.5) * 0.5 : 0;
+        el.style.transform = `rotateY(${deg}deg) rotateX(${wobbleX}deg)`;
+
+        if (enableShadow) {
+            const edgeDir = Math.cos(rad);
+            const shadowX = Math.round(edgeDir * -20);
+            const shadowBlur = 35 + Math.round(Math.abs(Math.sin(rad)) * 15);
+            el.style.boxShadow = `${shadowX}px 25px ${shadowBlur}px -5px rgba(0,0,0,0.55)`;
+        }
+
+        if (enableShimmer) {
+            const shimmerX = ((Math.sin((deg / 180) * Math.PI) + 1) / 2) * 100;
+            const shimmerCSS = `linear-gradient(105deg, transparent ${shimmerX - 25}%, rgba(255,255,255,0.07) ${shimmerX - 5}%, rgba(255,255,255,0.15) ${shimmerX}%, rgba(255,255,255,0.07) ${shimmerX + 5}%, transparent ${shimmerX + 25}%)`;
+            if (shimmerFrontRef.current) shimmerFrontRef.current.style.background = shimmerCSS;
+            if (shimmerBackRef.current) shimmerBackRef.current.style.background = shimmerCSS;
+        }
+    }, [enableShadow, enableShimmer, enableWobble]);
+
+    const animateSpin = useCallback(() => {
+        if (!isDragging.current) {
+            if (Math.abs(velocity.current) > MIN_VELOCITY + 0.05) {
+                velocity.current *= friction;
+            } else {
+                velocity.current += (baseSpeed - velocity.current) * 0.008;
             }
+        }
+
+        rotation.current += velocity.current;
+        applyVisualEffects(rotation.current);
+        animFrame.current = requestAnimationFrame(animateSpin);
+    }, [friction, baseSpeed, applyVisualEffects]);
+
+    const animateTilt = useCallback(() => {
+        if (isSpringBack.current) {
+            const elapsed = performance.now() - springStartTime.current;
+            const progress = Math.min(elapsed / springDuration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            rotation.current = springFrom.current * (1 - eased);
+
+            if (progress >= 1) {
+                rotation.current = 0;
+                isSpringBack.current = false;
+            }
+        }
+
+        applyVisualEffects(rotation.current);
+        animFrame.current = requestAnimationFrame(animateTilt);
+    }, [springDuration, applyVisualEffects]);
+
+    useEffect(() => {
+        const animate = mode === 'spin' ? animateSpin : animateTilt;
+        animFrame.current = requestAnimationFrame(animate);
+        return () => {
+            if (animFrame.current) cancelAnimationFrame(animFrame.current);
         };
+    }, [mode, animateSpin, animateTilt]);
 
-        el.addEventListener('touchmove', preventScroll, { passive: false });
-        return () => el.removeEventListener('touchmove', preventScroll);
-    }, []);
+    const onPointerDown = useCallback((e: React.PointerEvent) => {
+        isDragging.current = true;
+        wasDraggedRef.current = false;
+        isSpringBack.current = false;
+        lastPointerX.current = e.clientX;
+        lastMoveTime.current = performance.now();
+        swipeVelocity.current = 0;
+        tapStart.current = { x: e.clientX, y: e.clientY, time: performance.now() };
 
-    const isFrontFace = isFront(rotationY, rotationX);
+        if (mode === 'spin') {
+            velocity.current *= 0.5;
+        }
 
-    const containerStyle: React.CSSProperties = {
-        perspective: '800px',
-        touchAction: 'none',
-    };
+        e.currentTarget.setPointerCapture(e.pointerId);
+    }, [mode]);
 
-    const sharedTransform = `rotateY(${rotationY}deg) rotateX(${rotationX}deg)`;
-    const sharedTransition = isAnimating
-        ? `transform ${springDuration}ms cubic-bezier(0.34, 1.56, 0.64, 1)`
-        : 'none';
+    const onPointerMove = useCallback((e: React.PointerEvent) => {
+        if (!isDragging.current) return;
 
-    const frontStyle: React.CSSProperties = {
-        transform: sharedTransform,
-        transition: sharedTransition,
-        willChange: 'transform',
-        backfaceVisibility: 'hidden',
-        WebkitBackfaceVisibility: 'hidden',
-    };
+        const now = performance.now();
+        const dx = e.clientX - lastPointerX.current;
+        const dt = Math.max(now - lastMoveTime.current, 1);
 
-    const backStyle: React.CSSProperties = {
-        transform: `${sharedTransform} rotateY(180deg)`,
-        transition: sharedTransition,
-        willChange: 'transform',
-        backfaceVisibility: 'hidden',
-        WebkitBackfaceVisibility: 'hidden',
-        position: 'absolute',
-        inset: 0,
-    };
+        if (Math.abs(e.clientX - tapStart.current.x) > dragThreshold ||
+            Math.abs(e.clientY - tapStart.current.y) > dragThreshold) {
+            wasDraggedRef.current = true;
+        }
+
+        if (mode === 'spin') {
+            swipeVelocity.current = (dx / dt) * 16 * SWIPE_SENSITIVITY;
+            rotation.current += dx * 0.6;
+            velocity.current = dx * 0.6;
+        } else {
+            const totalDx = e.clientX - tapStart.current.x;
+            const raw = totalDx * sensitivity;
+            rotation.current = Math.max(-maxRotation, Math.min(maxRotation, raw));
+        }
+
+        lastPointerX.current = e.clientX;
+        lastMoveTime.current = now;
+    }, [mode, sensitivity, maxRotation, dragThreshold]);
+
+    const onPointerUp = useCallback((e: React.PointerEvent) => {
+        if (!isDragging.current) return;
+        isDragging.current = false;
+
+        const dx = Math.abs(e.clientX - tapStart.current.x);
+        const dy = Math.abs(e.clientY - tapStart.current.y);
+        const dt = performance.now() - tapStart.current.time;
+
+        if (dx < dragThreshold && dy < dragThreshold && dt < TAP_THRESHOLD_MS) {
+            if (mode === 'tilt') {
+                rotation.current = 0;
+                applyVisualEffects(0);
+            }
+            onTapRef.current?.();
+            return;
+        }
+
+        if (mode === 'spin') {
+            const flick = Math.max(-maxVelocity, Math.min(maxVelocity, swipeVelocity.current));
+            if (Math.abs(flick) > 0.5) velocity.current = flick;
+        } else {
+            springFrom.current = rotation.current;
+            springStartTime.current = performance.now();
+            isSpringBack.current = true;
+        }
+    }, [mode, maxVelocity, dragThreshold, applyVisualEffects]);
+
+    const onPointerCancel = useCallback(() => {
+        isDragging.current = false;
+        if (mode === 'tilt') {
+            springFrom.current = rotation.current;
+            springStartTime.current = performance.now();
+            isSpringBack.current = true;
+        }
+    }, [mode]);
 
     const wasDragged = useCallback(() => wasDraggedRef.current, []);
 
+    const resetRotation = useCallback(() => {
+        rotation.current = 0;
+        velocity.current = mode === 'spin' ? baseSpeed : 0;
+        isSpringBack.current = false;
+        applyVisualEffects(0);
+    }, [mode, baseSpeed, applyVisualEffects]);
+
+    const containerStyle: React.CSSProperties = {
+        perspective: 1200,
+        perspectiveOrigin: '50% 40%',
+        touchAction: 'none',
+    };
+
     return {
-        ref: elementRef,
+        cardInnerRef,
+        shimmerFrontRef,
+        shimmerBackRef,
         containerStyle,
-        frontStyle,
-        backStyle,
-        isFrontFace,
-        handlers: bind(),
+        edgeSlices,
+        handlers: {
+            onPointerDown,
+            onPointerMove,
+            onPointerUp,
+            onPointerCancel,
+        },
         wasDragged,
+        resetRotation,
     };
 };
 

@@ -1006,7 +1006,7 @@ const ItemDetailModal = ({ transactionId, itemId, isOpen, onClose, onBack }: Ite
             <div
                 className={`relative w-full max-w-[500px] max-h-[90dvh] bg-[#0a0a0a] border-2 border-[#232323] rounded-t-[32px] overflow-hidden transition-transform duration-300 ease-out ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}
             >
-                <div className="absolute top-0 left-0 right-0 h-[140px] z-20 pointer-events-none rounded-t-[32px]" style={{ background: 'linear-gradient(to bottom, #0a0a0a 0%, #0a0a0a 40%, rgba(10,10,10,0.85) 60%, rgba(10,10,10,0.4) 80%, transparent 100%)' }} />
+                <div className="absolute top-0 left-0 right-0 h-[80px] z-20 pointer-events-none rounded-t-[32px]" style={{ background: 'linear-gradient(to bottom, #0a0a0a 0%, #0a0a0a 40%, rgba(10,10,10,0.85) 60%, rgba(10,10,10,0.4) 80%, transparent 100%)' }} />
 
                 <div className="absolute top-6 left-6 right-6 flex items-center justify-between z-30">
                     <div>
@@ -1035,7 +1035,7 @@ const ItemDetailModal = ({ transactionId, itemId, isOpen, onClose, onBack }: Ite
                     </div>
                 </div>
 
-                <div className="relative flex flex-col overflow-y-auto max-h-[90dvh] scrollbar-hide overscroll-contain touch-pan-y" style={{ paddingBottom: showMostrarKard ? '96px' : '32px' }}>
+                <div className="relative flex flex-col overflow-y-auto max-h-[90dvh] scrollbar-hide overscroll-contain touch-pan-y rounded-t-[32px]" style={{ paddingBottom: showMostrarKard ? '96px' : '32px' }}>
                     <div className="relative w-full h-[300px] shrink-0">
                         {eventData?.flyer && (
                             <img
@@ -1044,8 +1044,8 @@ const ItemDetailModal = ({ transactionId, itemId, isOpen, onClose, onBack }: Ite
                                 className="absolute inset-0 w-full h-full object-cover"
                             />
                         )}
-                        <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(10,10,10,0) 0%, #0a0a0a 40%)' }} />
-                        <div className="absolute inset-0 backdrop-blur-[1.5px]" style={{ background: 'linear-gradient(to bottom, rgba(10,10,10,0) 0%, rgba(10,10,10,0.5) 40%)' }} />
+                        <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(10,10,10,0) 30%, #0a0a0a 85%)' }} />
+                        <div className="absolute inset-0 backdrop-blur-[0.5px]" style={{ background: 'linear-gradient(to bottom, rgba(10,10,10,0) 40%, rgba(10,10,10,0.6) 85%)' }} />
                     </div>
 
                     {isLoading || !transaction || !item ? (

@@ -347,7 +347,7 @@ const TransactionItemsModal = ({ transactionId, isOpen, onClose }: TransactionIt
                     </button>
                 </div>
 
-                <div className="overflow-y-auto max-h-[80vh] scrollbar-hide">
+                <div className="overflow-y-auto max-h-[80vh] scrollbar-hide rounded-t-[32px]">
                     <div className="relative w-full h-[300px] shrink-0">
                         {event?.flyer && (
                             <img

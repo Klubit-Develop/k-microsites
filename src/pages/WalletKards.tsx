@@ -13,7 +13,7 @@ import WalletEventCard, { WalletEventCardSkeleton } from '@/components/WalletEve
 import TransactionItemsModal from '@/components/TransactionItemsModal';
 import WalletEventsListModal from '@/components/WalletEventsListModal';
 import PassbookModal from '@/components/PassbookModal';
-import useCardSpin from '@/hooks/useCardSpin';
+import useDragTilt from '@/hooks/useDragTilt';
 
 type KardLevel = 'MEMBER' | 'BRONZE' | 'SILVER' | 'GOLD';
 type VenueType = 'CLUB' | 'PUB' | 'BAR' | 'LOUNGE' | 'RESTAURANT' | 'PROMOTER' | 'OTHER';
@@ -186,6 +186,8 @@ const formatEventTimeRange = (startDate: string, startTime?: string, endTime?: s
     return `${startFormatted} - ${endFormatted}`;
 };
 
+const NOISE_SVG = `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`;
+
 const QrIcon = () => (
     <svg width="21" height="21" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
         <rect x="2" y="2" width="5.5" height="5.5" rx="1" stroke="white" strokeWidth="1.5" />
@@ -223,17 +225,6 @@ interface KlubKardDetailProps {
     onQrClick: () => void;
 }
 
-/**
- * KlubKardDetail - Updated component with physics-based 3D continuous spin.
- *
- * INTEGRATION:
- * 1. Copy useCardSpin.ts to src/hooks/useCardSpin.ts
- * 2. Replace the existing KlubKardDetail component in src/pages/WalletKards.tsx
- *    with this version.
- * 3. Update the import: replace `useDragTilt` with `useCardSpin` from '@/hooks/useCardSpin'
- * 4. Remove the useDragTilt import if no longer used elsewhere in the file.
- */
-
 const KlubKardDetail = ({ passbook, userName, onQrClick }: KlubKardDetailProps) => {
     const { t } = useTranslation();
     const bgColor = passbook.club.passbookConfig?.backgroundColor || '#033f3e';
@@ -241,34 +232,47 @@ const KlubKardDetail = ({ passbook, userName, onQrClick }: KlubKardDetailProps) 
     const labelColor = passbook.club.passbookConfig?.labelColor || '#939393';
     const venueLabel = getVenueTypeLabel(passbook.club.venueType, t);
 
-    const { cardInnerRef, shimmerFrontRef, shimmerBackRef, handlers, wasDragged } = useCardSpin();
+    const {
+        cardInnerRef,
+        shimmerFrontRef,
+        shimmerBackRef,
+        containerStyle,
+        edgeSlices,
+        handlers,
+        wasDragged,
+    } = useDragTilt({
+        mode: 'spin',
+        enableShadow: true,
+        enableShimmer: true,
+        enableWobble: true,
+    });
 
     const handleQrClick = () => {
         if (wasDragged()) return;
         onQrClick();
     };
 
-    const faceClasses = 'absolute inset-0 flex flex-col p-6 w-full h-full rounded-2xl border-[3px] border-[#232323] overflow-hidden select-none';
+    const faceBase = 'absolute inset-0 flex flex-col w-full h-full rounded-2xl border-[1.5px] border-white/[0.12] overflow-hidden select-none';
 
     return (
         <div
-            style={{ perspective: 1200, touchAction: 'none' }}
+            style={containerStyle}
             className="w-full max-w-[370px] h-[250px] cursor-grab active:cursor-grabbing mb-8"
             {...handlers}
         >
             <div
                 ref={cardInnerRef}
-                className="relative w-full h-full"
+                className="relative w-full h-full rounded-2xl"
                 style={{ transformStyle: 'preserve-3d' }}
             >
                 {/* ══ FRONT ══ */}
                 <div
-                    className={faceClasses}
+                    className={faceBase}
                     style={{
                         background: `linear-gradient(135deg, ${bgColor} 0%, ${bgColor} 50%, #141414 100%)`,
                         backfaceVisibility: 'hidden',
                         WebkitBackfaceVisibility: 'hidden',
-                        boxShadow: `0 20px 60px -12px ${bgColor}33, 0 8px 24px rgba(0,0,0,0.5)`,
+                        transform: 'translateZ(2px)',
                     }}
                 >
                     <div
@@ -277,16 +281,14 @@ const KlubKardDetail = ({ passbook, userName, onQrClick }: KlubKardDetailProps) 
                     />
                     <div
                         className="absolute inset-0 pointer-events-none z-[2] opacity-[0.03]"
-                        style={{
-                            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
-                        }}
+                        style={{ backgroundImage: NOISE_SVG }}
                     />
                     <div
                         className="absolute -top-10 -right-10 w-40 h-40 z-[1]"
                         style={{ background: `radial-gradient(circle, ${bgColor}30 0%, transparent 70%)` }}
                     />
 
-                    <div className="relative z-[2] flex flex-col justify-between h-full">
+                    <div className="relative z-[2] flex flex-col justify-between h-full p-6">
                         <div className="relative w-[50px] h-[50px] rounded-full border-2 border-[#232323] overflow-hidden shadow-[0px_0px_11px_0px_rgba(0,0,0,0.5)]">
                             {passbook.club.logo ? (
                                 <img
@@ -295,9 +297,7 @@ const KlubKardDetail = ({ passbook, userName, onQrClick }: KlubKardDetailProps) 
                                     className="absolute inset-0 w-full h-full object-cover pointer-events-none"
                                 />
                             ) : (
-                                <div
-                                    className="absolute inset-0 flex items-center justify-center bg-[#232323]"
-                                >
+                                <div className="absolute inset-0 flex items-center justify-center bg-[#232323]">
                                     <span className="text-[20px] font-borna font-bold" style={{ color: fgColor }}>
                                         {passbook.club.name.charAt(0)}
                                     </span>
@@ -327,27 +327,46 @@ const KlubKardDetail = ({ passbook, userName, onQrClick }: KlubKardDetailProps) 
                     </button>
                 </div>
 
+                {/* ══ EDGE — dense solid slices form continuous wall ══ */}
+                {edgeSlices.map((z, i) => (
+                    <div
+                        key={i}
+                        className="absolute w-full h-full rounded-2xl"
+                        style={{
+                            background: 'rgba(160,170,195,0.15)',
+                            transform: `translateZ(${z.toFixed(1)}px)`,
+                        }}
+                    />
+                ))}
+
                 {/* ══ BACK ══ */}
                 <div
-                    className={faceClasses}
+                    className={faceBase}
                     style={{
                         background: `linear-gradient(135deg, #141414 0%, ${bgColor} 50%, ${bgColor} 100%)`,
                         backfaceVisibility: 'hidden',
                         WebkitBackfaceVisibility: 'hidden',
-                        boxShadow: `0 20px 60px -12px ${bgColor}33, 0 8px 24px rgba(0,0,0,0.5)`,
-                        transform: 'rotateY(180deg)',
+                        transform: 'rotateY(180deg) translateZ(2px)',
                     }}
                 >
                     <div
                         ref={shimmerBackRef}
-                        className="absolute inset-0 pointer-events-none z-[3]"
+                        className="absolute inset-0 pointer-events-none z-[5]"
                     />
                     <div
-                        className="absolute -bottom-10 -left-10 w-40 h-40 z-[1]"
+                        className="absolute inset-0 pointer-events-none z-[4] opacity-[0.03]"
+                        style={{ backgroundImage: NOISE_SVG }}
+                    />
+                    <div
+                        className="absolute -bottom-10 -left-10 w-[180px] h-[180px] z-[1]"
                         style={{ background: `radial-gradient(circle, ${bgColor}30 0%, transparent 70%)` }}
                     />
+                    <div
+                        className="absolute -top-[30px] -right-[30px] w-[140px] h-[140px] z-[1]"
+                        style={{ background: `radial-gradient(circle, ${bgColor}22 0%, transparent 65%)` }}
+                    />
 
-                    <div className="relative z-[2] flex flex-col justify-center gap-5 h-full pt-2">
+                    <div className="relative z-[2] flex flex-col justify-center gap-5 h-full p-6 pt-8">
                         <div className="flex flex-col gap-0.5">
                             <span
                                 className="text-[11px] font-helvetica font-medium tracking-wider uppercase"
