@@ -257,7 +257,7 @@ const Artist = () => {
 
     return (
         <div className="bg-[#050505] min-h-screen flex justify-center pt-[100px] pb-[100px] md:pt-24 md:pb-24">
-            <div className="flex flex-col gap-[32px] w-full max-w-[500px] px-4 md:px-6">
+            <div className="flex flex-col gap-[32px] w-full max-w-[450px] px-4 md:px-6">
                 <ArtistProfile
                     artisticName={artist?.artisticName || ''}
                     firstName={artist?.firstName || ''}
