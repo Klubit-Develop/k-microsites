@@ -49,7 +49,7 @@ interface UserPassbook {
     serialNumber: string;
     authenticationToken: string;
     kardLevel: KardLevel;
-    qrContent: string;
+    walletAddress: string | null;
     passbookUrl: string;
     googleWalletUrl: string | null;
     createdAt: string;
@@ -632,7 +632,7 @@ const WalletKards = () => {
                 <PassbookModal
                     isOpen={showPassbookModal}
                     onClose={() => setShowPassbookModal(false)}
-                    walletAddress={passbook.qrContent}
+                    walletAddress={passbook.walletAddress || undefined}
                     userId={user?.id || ''}
                     clubId={passbook.clubId}
                     clubName={passbook.club.name}

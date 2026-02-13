@@ -1243,11 +1243,10 @@ const ItemDetailModal = ({ transactionId, itemId, isOpen, onClose, onBack }: Ite
                     </div>
                 )}
 
-                {showPassbookModal && item?.walletAddress && transaction && (
+                {showPassbookModal && transaction && (
                     <PassbookModal
                         isOpen={showPassbookModal}
                         onClose={() => setShowPassbookModal(false)}
-                        walletAddress={item.walletAddress}
                         userId={user?.id || ''}
                         clubId={transaction.club.id}
                         clubName={transaction.club.name}

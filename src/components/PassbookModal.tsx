@@ -23,7 +23,7 @@ const SPRING_MS = 500;
 export interface PassbookModalProps {
     isOpen: boolean;
     onClose: () => void;
-    walletAddress: string;
+    walletAddress?: string;
     userId: string;
     clubId: string;
     clubName: string;
@@ -133,6 +133,7 @@ const PassbookModal = ({ isOpen, onClose, walletAddress, userId, clubId, clubNam
                     kardLevel?: string;
                     passbookUrl?: string;
                     googleWalletUrl?: string | null;
+                    walletAddress?: string | null;
                 } | null;
             }
             return null;
@@ -249,7 +250,7 @@ const PassbookModal = ({ isOpen, onClose, walletAddress, userId, clubId, clubNam
                                         <p style={{ color: lblColor }} className="text-[10px] font-bold font-helvetica uppercase tracking-wider">
                                             {t('passbook.club_name_label', 'NOMBRE KLUB')}
                                         </p>
-                                        <p style={{ color: fgColor }} className="text-[16px] font-bold font-borna leading-tight">
+                                        <p style={{ color: fgColor }} className="text-[16px] font-medium font-borna leading-tight">
                                             {clubName}
                                         </p>
                                     </div>
@@ -264,7 +265,7 @@ const PassbookModal = ({ isOpen, onClose, walletAddress, userId, clubId, clubNam
                                         <p style={{ color: lblColor }} className="text-[10px] font-bold font-helvetica uppercase tracking-wider">
                                             {t('passbook.full_name_label', 'NOMBRE COMPLETO')}
                                         </p>
-                                        <p style={{ color: fgColor }} className="text-[16px] font-bold font-borna leading-tight">
+                                        <p style={{ color: fgColor }} className="text-[16px] font-medium font-borna leading-tight">
                                             {userName}
                                         </p>
                                     </div>
@@ -272,7 +273,7 @@ const PassbookModal = ({ isOpen, onClose, walletAddress, userId, clubId, clubNam
                                         <p style={{ color: lblColor }} className="text-[10px] font-bold font-helvetica uppercase tracking-wider">
                                             {t('passbook.kard_label', 'KARD')}
                                         </p>
-                                        <p style={{ color: fgColor }} className="text-[14px] font-bold font-borna uppercase">
+                                        <p style={{ color: fgColor }} className="text-[14px] font-medium font-borna uppercase">
                                             {kardLevel}
                                         </p>
                                     </div>
@@ -281,7 +282,7 @@ const PassbookModal = ({ isOpen, onClose, walletAddress, userId, clubId, clubNam
                                 <div className="flex items-center justify-center px-4 py-3">
                                     <div className="bg-white p-3 rounded-xl">
                                         <QRCodeSVG
-                                            value={walletAddress}
+                                            value={existingPassbook?.walletAddress || walletAddress || ''}
                                             size={160}
                                             level="H"
                                             bgColor="transparent"
