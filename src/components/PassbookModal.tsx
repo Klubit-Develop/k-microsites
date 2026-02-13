@@ -1,11 +1,10 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { QRCodeSVG } from 'qrcode.react';
 
 import axiosInstance from '@/config/axiosConfig';
-import useDragTilt from '@/hooks/useDragTilt';
 
 const BackIcon = () => (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -17,6 +16,9 @@ const PASSBOOK_STRIP_URL = 'https://klubit.fra1.cdn.digitaloceanspaces.com/strip
 const PASSBOOK_ICON_URL = 'https://klubit.fra1.cdn.digitaloceanspaces.com/icon.png';
 
 const CARD_THICKNESS = 8;
+const MAX_TILT = 18;
+const SENSITIVITY = 0.12;
+const SPRING_MS = 500;
 
 export interface PassbookModalProps {
     isOpen: boolean;
@@ -31,23 +33,57 @@ export interface PassbookModalProps {
     googleWalletUrl?: string | null;
 }
 
+const clamp = (v: number, min: number, max: number) => Math.min(Math.max(v, min), max);
+
 const PassbookModal = ({ isOpen, onClose, walletAddress, userId, clubId, clubName, clubLogo, userName, passbookUrl, googleWalletUrl }: PassbookModalProps) => {
     const { t, i18n } = useTranslation();
     const [isVisible, setIsVisible] = useState(false);
     const [isAnimating, setIsAnimating] = useState(false);
 
-    const {
-        ref: tiltRef,
-        containerStyle,
-        frontStyle,
-        handlers,
-    } = useDragTilt({
-        maxRotation: 18,
-        sensitivity: 0.12,
-        axis: 'both',
-        fullSpin: false,
-        springDuration: 500,
-    });
+    const cardRef = useRef<HTMLDivElement>(null);
+    const [rotX, setRotX] = useState(0);
+    const [rotY, setRotY] = useState(0);
+    const [isSpring, setIsSpring] = useState(false);
+    const isDragging = useRef(false);
+    const startX = useRef(0);
+    const startY = useRef(0);
+
+    const onPointerDown = useCallback((e: React.PointerEvent) => {
+        isDragging.current = true;
+        startX.current = e.clientX;
+        startY.current = e.clientY;
+        setIsSpring(false);
+        (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
+    }, []);
+
+    const onPointerMove = useCallback((e: React.PointerEvent) => {
+        if (!isDragging.current) return;
+        const dx = e.clientX - startX.current;
+        const dy = e.clientY - startY.current;
+        setRotY(clamp(dx * SENSITIVITY, -MAX_TILT, MAX_TILT));
+        setRotX(clamp(-dy * SENSITIVITY, -MAX_TILT, MAX_TILT));
+    }, []);
+
+    const onPointerUp = useCallback(() => {
+        if (!isDragging.current) return;
+        isDragging.current = false;
+        setIsSpring(true);
+        setRotX(0);
+        setRotY(0);
+    }, []);
+
+    const onPointerCancel = useCallback(() => {
+        isDragging.current = false;
+        setIsSpring(true);
+        setRotX(0);
+        setRotY(0);
+    }, []);
+
+    useEffect(() => {
+        if (!isSpring) return;
+        const timer = setTimeout(() => setIsSpring(false), SPRING_MS);
+        return () => clearTimeout(timer);
+    }, [isSpring]);
 
     useEffect(() => {
         if (isOpen) {
@@ -148,6 +184,11 @@ const PassbookModal = ({ isOpen, onClose, walletAddress, userId, clubId, clubNam
 
     if (!isAnimating && !isOpen) return null;
 
+    const cardTransform = `rotateY(${rotY}deg) rotateX(${rotX}deg)`;
+    const cardTransition = isSpring
+        ? `transform ${SPRING_MS}ms cubic-bezier(0.34, 1.56, 0.64, 1)`
+        : 'none';
+
     return createPortal(
         <div
             className={`fixed inset-0 z-[60] flex items-end justify-center transition-all duration-300 ease-out overscroll-none touch-none ${isVisible ? 'bg-black/60 backdrop-blur-sm' : 'bg-transparent'}`}
@@ -168,19 +209,23 @@ const PassbookModal = ({ isOpen, onClose, walletAddress, userId, clubId, clubNam
                     </div>
 
                     <div
-                        ref={tiltRef}
-                        style={containerStyle}
+                        ref={cardRef}
+                        style={{ perspective: 800, touchAction: 'none' }}
                         className="w-full max-w-[342px] cursor-grab active:cursor-grabbing"
-                        {...handlers}
+                        onPointerDown={onPointerDown}
+                        onPointerMove={onPointerMove}
+                        onPointerUp={onPointerUp}
+                        onPointerCancel={onPointerCancel}
                     >
                         <div
                             className="relative w-full"
                             style={{
-                                ...frontStyle,
+                                transform: cardTransform,
+                                transition: cardTransition,
                                 transformStyle: 'preserve-3d',
+                                willChange: 'transform',
                             }}
                         >
-                            {/* ══ FRONT FACE ══ */}
                             <div
                                 className="relative w-full rounded-[14px] overflow-hidden"
                                 style={{
@@ -251,7 +296,7 @@ const PassbookModal = ({ isOpen, onClose, walletAddress, userId, clubId, clubNam
                                 </div>
                             </div>
 
-                            {/* ══ 3D EDGES (thickness) ══ */}
+                            {/* ══ RIGHT EDGE ══ */}
                             <div
                                 className="absolute top-0 right-0 h-full pointer-events-none"
                                 style={{
@@ -262,6 +307,7 @@ const PassbookModal = ({ isOpen, onClose, walletAddress, userId, clubId, clubNam
                                     borderRadius: '0 2px 2px 0',
                                 }}
                             />
+                            {/* ══ LEFT EDGE ══ */}
                             <div
                                 className="absolute top-0 left-0 h-full pointer-events-none"
                                 style={{
@@ -272,6 +318,7 @@ const PassbookModal = ({ isOpen, onClose, walletAddress, userId, clubId, clubNam
                                     borderRadius: '2px 0 0 2px',
                                 }}
                             />
+                            {/* ══ TOP EDGE ══ */}
                             <div
                                 className="absolute top-0 left-0 w-full pointer-events-none"
                                 style={{
@@ -282,6 +329,7 @@ const PassbookModal = ({ isOpen, onClose, walletAddress, userId, clubId, clubNam
                                     borderRadius: '2px 2px 0 0',
                                 }}
                             />
+                            {/* ══ BOTTOM EDGE ══ */}
                             <div
                                 className="absolute bottom-0 left-0 w-full pointer-events-none"
                                 style={{
