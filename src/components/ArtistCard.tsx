@@ -17,6 +17,8 @@ interface ArtistCardProps {
     className?: string;
 }
 
+const BADGE_URL = 'https://klubit.fra1.cdn.digitaloceanspaces.com/badge-artist.png';
+
 const ArtistCard = ({
     artist,
     isLoading = false,
@@ -61,6 +63,11 @@ const ArtistCard = ({
                     src={artist.avatar || '/placeholder-avatar.jpg'}
                     alt={artist.artisticName}
                     className="w-full h-full object-cover rounded-full border-2 border-[#5b6779] shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]"
+                />
+                <img
+                    src={BADGE_URL}
+                    alt=""
+                    className="absolute -right-[2px] -top-[2px] w-[24px] h-[22px]"
                 />
             </div>
             <div className="flex flex-col flex-1">

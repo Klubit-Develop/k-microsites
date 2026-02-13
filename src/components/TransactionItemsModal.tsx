@@ -338,10 +338,6 @@ const TransactionItemsModal = ({ transactionId, isOpen, onClose }: TransactionIt
             <div
                 className={`relative w-full max-w-[500px] max-h-[80vh] bg-[#0a0a0a] border-2 border-[#232323] rounded-t-[32px] overflow-hidden transition-transform duration-300 ease-out ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}
             >
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 pt-[5px] z-20">
-                    <div className="w-9 h-[5px] bg-[#F6F6F6]/50 rounded-full" />
-                </div>
-
                 <div className="absolute top-6 right-6 z-20">
                     <button
                         onClick={handleClose}

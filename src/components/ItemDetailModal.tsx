@@ -1008,10 +1008,6 @@ const ItemDetailModal = ({ transactionId, itemId, isOpen, onClose, onBack }: Ite
             >
                 <div className="absolute top-0 left-0 right-0 h-[140px] z-20 pointer-events-none rounded-t-[32px]" style={{ background: 'linear-gradient(to bottom, #0a0a0a 0%, #0a0a0a 40%, rgba(10,10,10,0.85) 60%, rgba(10,10,10,0.4) 80%, transparent 100%)' }} />
 
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 pt-[5px] opacity-50 z-30">
-                    <div className="w-9 h-[5px] bg-[#F6F6F6]/50 rounded-full" />
-                </div>
-
                 <div className="absolute top-6 left-6 right-6 flex items-center justify-between z-30">
                     <div>
                         {onBack && (
@@ -1023,7 +1019,7 @@ const ItemDetailModal = ({ transactionId, itemId, isOpen, onClose, onBack }: Ite
                             </button>
                         )}
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-[24px]">
                         <button
                             onClick={() => setShowOptionsMenu(!showOptionsMenu)}
                             className="flex items-center justify-center size-9 bg-[#232323]/80 rounded-full shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)] cursor-pointer backdrop-blur-sm"
@@ -1182,7 +1178,7 @@ const ItemDetailModal = ({ transactionId, itemId, isOpen, onClose, onBack }: Ite
                         <div className="absolute bottom-0 left-0 right-0 px-6 pb-6 pointer-events-auto">
                             <button
                                 onClick={() => setShowPassbookModal(true)}
-                                className="w-full h-[48px] bg-[#232323] rounded-full flex items-center justify-center cursor-pointer border-2 border-[#232323] shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)]"
+                                className="w-full h-[48px] bg-[#232323] flex items-center justify-center cursor-pointer rounded-[12px] border-[#232323] shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)]"
                             >
                                 <span className="text-[16px] font-borna font-medium text-[#F6F6F6]">
                                     {t('item_detail.show_kard', 'Mostrar Kard')}
