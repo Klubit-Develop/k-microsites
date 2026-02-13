@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { QRCodeSVG } from 'qrcode.react';
 
 import axiosInstance from '@/config/axiosConfig';
-import useCardSpin from '@/hooks/useCardSpin';
+import useDragTilt from '@/hooks/useDragTilt';
 
 const BackIcon = () => (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -15,6 +15,8 @@ const BackIcon = () => (
 
 const PASSBOOK_STRIP_URL = 'https://klubit.fra1.cdn.digitaloceanspaces.com/strip.png';
 const PASSBOOK_ICON_URL = 'https://klubit.fra1.cdn.digitaloceanspaces.com/icon.png';
+
+const CARD_THICKNESS = 8;
 
 export interface PassbookModalProps {
     isOpen: boolean;
@@ -34,8 +36,17 @@ const PassbookModal = ({ isOpen, onClose, walletAddress, userId, clubId, clubNam
     const [isVisible, setIsVisible] = useState(false);
     const [isAnimating, setIsAnimating] = useState(false);
 
-    const { cardInnerRef, shimmerFrontRef, shimmerBackRef, handlers } = useCardSpin({
-        baseSpeed: 0.4,
+    const {
+        ref: tiltRef,
+        containerStyle,
+        frontStyle,
+        handlers,
+    } = useDragTilt({
+        maxRotation: 18,
+        sensitivity: 0.12,
+        axis: 'both',
+        fullSpin: false,
+        springDuration: 500,
     });
 
     useEffect(() => {
@@ -103,6 +114,14 @@ const PassbookModal = ({ isOpen, onClose, walletAddress, userId, clubId, clubNam
     const resolvedPassbookUrl = passbookUrl || existingPassbook?.passbookUrl;
     const resolvedGoogleWalletUrl = googleWalletUrl || existingPassbook?.googleWalletUrl;
 
+    const edgeColor = useMemo(() => {
+        const hex = bgColor.replace('#', '');
+        const r = Math.max(0, parseInt(hex.substring(0, 2), 16) - 20);
+        const g = Math.max(0, parseInt(hex.substring(2, 4), 16) - 20);
+        const b = Math.max(0, parseInt(hex.substring(4, 6), 16) - 20);
+        return `rgb(${r}, ${g}, ${b})`;
+    }, [bgColor]);
+
     const walletBadge = useMemo(() => {
         const lang = i18n.language === 'en' ? 'en' : 'es';
         const ua = navigator.userAgent;
@@ -129,8 +148,6 @@ const PassbookModal = ({ isOpen, onClose, walletAddress, userId, clubId, clubNam
 
     if (!isAnimating && !isOpen) return null;
 
-    const faceClasses = 'absolute inset-0 flex flex-col w-full h-full rounded-[14px] overflow-hidden select-none';
-
     return createPortal(
         <div
             className={`fixed inset-0 z-[60] flex items-end justify-center transition-all duration-300 ease-out overscroll-none touch-none ${isVisible ? 'bg-black/60 backdrop-blur-sm' : 'bg-transparent'}`}
@@ -151,151 +168,130 @@ const PassbookModal = ({ isOpen, onClose, walletAddress, userId, clubId, clubNam
                     </div>
 
                     <div
-                        style={{ perspective: 1200, touchAction: 'none' }}
-                        className="w-full max-w-[342px] h-[480px] cursor-grab active:cursor-grabbing"
+                        ref={tiltRef}
+                        style={containerStyle}
+                        className="w-full max-w-[342px] cursor-grab active:cursor-grabbing"
                         {...handlers}
                     >
                         <div
-                            ref={cardInnerRef}
-                            className="relative w-full h-full"
-                            style={{ transformStyle: 'preserve-3d' }}
+                            className="relative w-full"
+                            style={{
+                                ...frontStyle,
+                                transformStyle: 'preserve-3d',
+                            }}
                         >
-                            {/* ══ FRONT ══ */}
+                            {/* ══ FRONT FACE ══ */}
                             <div
-                                className={faceClasses}
+                                className="relative w-full rounded-[14px] overflow-hidden"
                                 style={{
                                     backgroundColor: bgColor,
-                                    backfaceVisibility: 'hidden',
-                                    WebkitBackfaceVisibility: 'hidden',
-                                    boxShadow: `0 20px 60px -12px ${bgColor}33, 0 8px 24px rgba(0,0,0,0.5)`,
+                                    boxShadow: `0 20px 60px -12px ${bgColor}44, 0 8px 24px rgba(0,0,0,0.5)`,
                                 }}
                             >
-                                <div
-                                    ref={shimmerFrontRef}
-                                    className="absolute inset-0 pointer-events-none z-[3]"
-                                />
-                                <div
-                                    className="absolute inset-0 pointer-events-none z-[2] opacity-[0.03]"
-                                    style={{
-                                        backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
-                                    }}
-                                />
-
-                                <div className="relative z-[2] flex flex-col h-full">
-                                    <div className="flex items-start justify-between px-4 pt-3 pb-2">
-                                        <div className="relative size-[40px] rounded-full overflow-hidden border border-[#323232]" style={{ backgroundColor: bgColor }}>
-                                            {clubLogo ? (
-                                                <img src={clubLogo} alt={clubName} className="w-full h-full object-cover" />
-                                            ) : (
-                                                <div className="w-full h-full flex items-center justify-center">
-                                                    <span style={{ color: fgColor }} className="text-[14px] font-bold font-borna">
-                                                        {clubName.charAt(0)}
-                                                    </span>
-                                                </div>
-                                            )}
-                                        </div>
-                                        <div className="text-right">
-                                            <p style={{ color: lblColor }} className="text-[10px] font-bold font-helvetica uppercase tracking-wider">
-                                                {t('passbook.club_name_label', 'NOMBRE KLUB')}
-                                            </p>
-                                            <p style={{ color: fgColor }} className="text-[16px] font-bold font-borna leading-tight">
-                                                {clubName}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <div className="relative w-full h-[120px] overflow-hidden">
-                                        <img src={stripUrl} alt="" className="w-full h-full object-cover" />
-                                    </div>
-
-                                    <div className="flex items-start justify-between px-4 pt-3 pb-2">
-                                        <div>
-                                            <p style={{ color: lblColor }} className="text-[10px] font-bold font-helvetica uppercase tracking-wider">
-                                                {t('passbook.full_name_label', 'NOMBRE COMPLETO')}
-                                            </p>
-                                            <p style={{ color: fgColor }} className="text-[16px] font-bold font-borna leading-tight">
-                                                {userName}
-                                            </p>
-                                        </div>
-                                        <div className="text-right">
-                                            <p style={{ color: lblColor }} className="text-[10px] font-bold font-helvetica uppercase tracking-wider">
-                                                {t('passbook.kard_label', 'KARD')}
-                                            </p>
-                                            <p style={{ color: fgColor }} className="text-[14px] font-bold font-borna uppercase">
-                                                {kardLevel}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex-1 flex items-center justify-center px-4 py-3">
-                                        <div className="bg-white p-3 rounded-xl">
-                                            <QRCodeSVG
-                                                value={walletAddress}
-                                                size={160}
-                                                level="H"
-                                                bgColor="transparent"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center px-1.5 pb-1.5">
-                                        <div className="size-5 rounded-[6.44px] overflow-hidden">
-                                            <img src={PASSBOOK_ICON_URL} alt="Klubit" className="w-full h-full object-cover" />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* ══ BACK ══ */}
-                            <div
-                                className={faceClasses}
-                                style={{
-                                    backgroundColor: bgColor,
-                                    backfaceVisibility: 'hidden',
-                                    WebkitBackfaceVisibility: 'hidden',
-                                    transform: 'rotateY(180deg)',
-                                    boxShadow: `0 20px 60px -12px ${bgColor}33, 0 8px 24px rgba(0,0,0,0.5)`,
-                                }}
-                            >
-                                <div
-                                    ref={shimmerBackRef}
-                                    className="absolute inset-0 pointer-events-none z-[3]"
-                                />
-                                <div
-                                    className="absolute inset-0 pointer-events-none z-[2] opacity-[0.03]"
-                                    style={{
-                                        backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
-                                    }}
-                                />
-
-                                <div className="relative z-[2] flex flex-col items-center justify-center h-full px-6">
-                                    <div className="relative size-[80px] rounded-full overflow-hidden border-2 border-[#323232] mb-4" style={{ backgroundColor: bgColor }}>
+                                <div className="flex items-start justify-between px-4 pt-3 pb-2">
+                                    <div className="relative size-[40px] rounded-full overflow-hidden border border-[#323232]" style={{ backgroundColor: bgColor }}>
                                         {clubLogo ? (
                                             <img src={clubLogo} alt={clubName} className="w-full h-full object-cover" />
                                         ) : (
                                             <div className="w-full h-full flex items-center justify-center">
-                                                <span style={{ color: fgColor }} className="text-[28px] font-bold font-borna">
+                                                <span style={{ color: fgColor }} className="text-[14px] font-bold font-borna">
                                                     {clubName.charAt(0)}
                                                 </span>
                                             </div>
                                         )}
                                     </div>
-                                    <p style={{ color: fgColor }} className="text-[20px] font-bold font-borna text-center mb-1">
-                                        {clubName}
-                                    </p>
-                                    <p style={{ color: lblColor }} className="text-[12px] font-bold font-helvetica uppercase tracking-wider mb-6">
-                                        {kardLevel}
-                                    </p>
-                                    <p style={{ color: fgColor }} className="text-[14px] font-helvetica text-center opacity-70">
-                                        {userName}
-                                    </p>
-                                    <div className="absolute bottom-3 left-3">
-                                        <div className="size-5 rounded-[6.44px] overflow-hidden">
-                                            <img src={PASSBOOK_ICON_URL} alt="Klubit" className="w-full h-full object-cover" />
-                                        </div>
+                                    <div className="text-right">
+                                        <p style={{ color: lblColor }} className="text-[10px] font-bold font-helvetica uppercase tracking-wider">
+                                            {t('passbook.club_name_label', 'NOMBRE KLUB')}
+                                        </p>
+                                        <p style={{ color: fgColor }} className="text-[16px] font-bold font-borna leading-tight">
+                                            {clubName}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="relative w-full h-[120px] overflow-hidden">
+                                    <img src={stripUrl} alt="" className="w-full h-full object-cover" />
+                                </div>
+
+                                <div className="flex items-start justify-between px-4 pt-3 pb-2">
+                                    <div>
+                                        <p style={{ color: lblColor }} className="text-[10px] font-bold font-helvetica uppercase tracking-wider">
+                                            {t('passbook.full_name_label', 'NOMBRE COMPLETO')}
+                                        </p>
+                                        <p style={{ color: fgColor }} className="text-[16px] font-bold font-borna leading-tight">
+                                            {userName}
+                                        </p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p style={{ color: lblColor }} className="text-[10px] font-bold font-helvetica uppercase tracking-wider">
+                                            {t('passbook.kard_label', 'KARD')}
+                                        </p>
+                                        <p style={{ color: fgColor }} className="text-[14px] font-bold font-borna uppercase">
+                                            {kardLevel}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center justify-center px-4 py-3">
+                                    <div className="bg-white p-3 rounded-xl">
+                                        <QRCodeSVG
+                                            value={walletAddress}
+                                            size={160}
+                                            level="H"
+                                            bgColor="transparent"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center px-1.5 pb-1.5">
+                                    <div className="size-5 rounded-[6.44px] overflow-hidden">
+                                        <img src={PASSBOOK_ICON_URL} alt="Klubit" className="w-full h-full object-cover" />
                                     </div>
                                 </div>
                             </div>
+
+                            {/* ══ 3D EDGES (thickness) ══ */}
+                            <div
+                                className="absolute top-0 right-0 h-full pointer-events-none"
+                                style={{
+                                    width: `${CARD_THICKNESS}px`,
+                                    background: `linear-gradient(to right, ${edgeColor}, ${bgColor})`,
+                                    transform: `translateX(${CARD_THICKNESS / 2}px) rotateY(90deg)`,
+                                    transformOrigin: 'left center',
+                                    borderRadius: '0 2px 2px 0',
+                                }}
+                            />
+                            <div
+                                className="absolute top-0 left-0 h-full pointer-events-none"
+                                style={{
+                                    width: `${CARD_THICKNESS}px`,
+                                    background: `linear-gradient(to left, ${edgeColor}, ${bgColor})`,
+                                    transform: `translateX(-${CARD_THICKNESS / 2}px) rotateY(-90deg)`,
+                                    transformOrigin: 'right center',
+                                    borderRadius: '2px 0 0 2px',
+                                }}
+                            />
+                            <div
+                                className="absolute top-0 left-0 w-full pointer-events-none"
+                                style={{
+                                    height: `${CARD_THICKNESS}px`,
+                                    background: `linear-gradient(to top, ${edgeColor}, ${bgColor})`,
+                                    transform: `translateY(-${CARD_THICKNESS / 2}px) rotateX(90deg)`,
+                                    transformOrigin: 'center bottom',
+                                    borderRadius: '2px 2px 0 0',
+                                }}
+                            />
+                            <div
+                                className="absolute bottom-0 left-0 w-full pointer-events-none"
+                                style={{
+                                    height: `${CARD_THICKNESS}px`,
+                                    background: `linear-gradient(to bottom, ${edgeColor}, ${bgColor})`,
+                                    transform: `translateY(${CARD_THICKNESS / 2}px) rotateX(-90deg)`,
+                                    transformOrigin: 'center top',
+                                    borderRadius: '0 0 2px 2px',
+                                }}
+                            />
                         </div>
                     </div>
 
