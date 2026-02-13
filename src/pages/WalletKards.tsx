@@ -134,12 +134,12 @@ interface BackendResponse {
 
 const getVenueTypeLabel = (venueType: VenueType, t: (key: string, fallback: string) => string): string => {
     switch (venueType) {
-        case 'CLUB': return t('wallet.venue_club', 'Discoteca');
+        case 'CLUB': return t('wallet.venue_club', 'Club');
         case 'PUB': return t('wallet.venue_pub', 'Pub');
         case 'BAR': return t('wallet.venue_bar', 'Bar');
         case 'LOUNGE': return t('wallet.venue_lounge', 'Lounge');
-        case 'RESTAURANT': return t('wallet.venue_restaurant', 'Restaurante');
-        case 'PROMOTER': return t('wallet.venue_promoter', 'Promotora');
+        case 'RESTAURANT': return t('wallet.venue_restaurant', 'Restaurant');
+        case 'PROMOTER': return t('wallet.venue_promoter', 'Promoter');
         case 'OTHER': return t('wallet.venue_other', 'Venue');
         default: return '';
     }
@@ -282,7 +282,7 @@ const KlubKardDetail = ({ passbook, onQrClick }: KlubKardDetailProps) => {
                                 className="text-[24px] font-borna font-semibold leading-none truncate w-full"
                                 style={{ color: fgColor }}
                             >
-                                {passbook.club.name} Kard
+                                {passbook.club.name}
                             </h2>
                             <span className="text-[14px] font-borna leading-[20px] text-[#c1922e]">
                                 {venueLabel}
