@@ -27,6 +27,8 @@ const LANGUAGES: Language[] = [
     { code: 'en', flag: '🇬🇧' },
 ];
 
+const MOBILE_TOP_BAR = 'flex items-center justify-between h-[76px] px-6 pt-[28px]';
+
 const Header = ({
     user,
     onLanguageChange,
@@ -237,7 +239,7 @@ const Header = ({
                     </div>
                 </div>
 
-                <div className="flex md:hidden items-center justify-between h-[94px] px-6 pt-[42px] pb-[32px] bg-[#141414]">
+                <div className={`md:hidden ${MOBILE_TOP_BAR} bg-[#141414]`}>
                     <Link to="/" className="shrink-0">
                         <LogoIcon
                             width={80}
@@ -264,7 +266,7 @@ const Header = ({
                     />
 
                     <div className="absolute inset-0 bg-[#050505] flex flex-col animate-in slide-in-from-right duration-300">
-                        <div className="flex items-center justify-between px-6 pt-[42px] pb-6">
+                        <div className={MOBILE_TOP_BAR}>
                             <button
                                 type="button"
                                 onClick={() => handleMobileNavigation('/')}
