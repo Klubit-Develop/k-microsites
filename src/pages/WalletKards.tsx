@@ -211,6 +211,7 @@ const KlubKardDetail = ({ passbook, onQrClick }: KlubKardDetailProps) => {
     const { t } = useTranslation();
     const bgColor = passbook.club.passbookConfig?.backgroundColor || '#033f3e';
     const fgColor = passbook.club.passbookConfig?.foregroundColor || '#F6F6F6';
+    const lblColor = passbook.club.passbookConfig?.labelColor || '#c1922e';
     const venueLabel = getVenueTypeLabel(passbook.club.venueType, t);
 
     const {
@@ -284,7 +285,7 @@ const KlubKardDetail = ({ passbook, onQrClick }: KlubKardDetailProps) => {
                             >
                                 {passbook.club.name}
                             </h2>
-                            <span className="text-[14px] font-borna leading-[20px] text-[#c1922e]">
+                            <span className="text-[14px] font-borna leading-[20px]" style={{ color: lblColor }}>
                                 {venueLabel}
                             </span>
                         </div>
@@ -332,7 +333,7 @@ const KlubKardDetail = ({ passbook, onQrClick }: KlubKardDetailProps) => {
 
                         <div className="flex items-end justify-between gap-4 w-full px-6">
                             <div className="flex flex-col min-w-0">
-                                <span className="text-[14px] font-borna leading-[20px] text-[#c1922e] truncate">
+                                <span className="text-[14px] font-borna leading-[20px] truncate" style={{ color: lblColor }}>
                                     {t('passbook.kard_label', 'Kard')}
                                 </span>
                                 <span className="text-[14px] font-borna leading-[20px] truncate" style={{ color: fgColor }}>
