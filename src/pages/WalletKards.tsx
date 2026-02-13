@@ -253,7 +253,7 @@ const KlubKardDetail = ({ passbook, userName, onQrClick }: KlubKardDetailProps) 
     return (
         <div
             style={{ perspective: 1200, touchAction: 'none' }}
-            className="w-full max-w-[370px] h-[250px] cursor-grab active:cursor-grabbing"
+            className="w-full max-w-[370px] h-[250px] cursor-grab active:cursor-grabbing mb-8"
             {...handlers}
         >
             <div
@@ -578,7 +578,7 @@ const WalletKards = () => {
                 />
             </div>
 
-            <div className="relative z-10 flex flex-col gap-8 items-center w-full max-w-[500px] mx-auto px-4 pt-[120px] pb-[40px]">
+            <div className="relative z-10 flex flex-col gap-8 items-center w-full max-w-[500px] mx-auto px-4 pt-[80px] pb-[80px]">
                 {isLoadingPassbooks ? (
                     <KardSkeleton />
                 ) : passbook ? (

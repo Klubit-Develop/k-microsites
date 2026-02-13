@@ -15,7 +15,6 @@ import EmptyUpcomingEvents from '@/components/EmptyUpcomingEvents';
 import WalletEventCard from '@/components/WalletEventCard';
 import WalletEventsListModal from '@/components/WalletEventsListModal';
 import WalletKardsListModal from '@/components/WalletKardsListModal';
-import useDragTilt from '@/hooks/useDragTilt';
 
 interface Transaction {
     id: string;
@@ -423,123 +422,43 @@ const KlubKard = ({
     backgroundColor,
     foregroundColor,
     labelColor,
-    kardLevel,
     onClick,
 }: KlubKardProps) => {
     const { t } = useTranslation();
     const venueLabel = getVenueTypeLabel(venueType, t);
 
-    const { ref, containerStyle, frontStyle, backStyle, handlers, wasDragged } = useDragTilt({
-        fullSpin: true,
-        sensitivity: 0.3,
-        springDuration: 500,
-        momentumDecay: 0.92,
-        axis: 'horizontal',
-    });
-
-    const handleClick = () => {
-        if (wasDragged()) return;
-        onClick();
-    };
-
-    const cardClasses = 'flex flex-col justify-between w-full h-full p-[24px] rounded-[20px] border-[3px] border-[#232323] overflow-hidden select-none';
-
     return (
-        <div
-            ref={ref}
-            style={containerStyle}
-            onClick={handleClick}
-            className="relative w-full h-[210px] cursor-pointer"
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    onClick();
-                }
+        <button
+            onClick={onClick}
+            className="flex flex-col justify-between w-full h-[250px] p-[24px] rounded-[20px] border-[3px] border-[#232323] overflow-hidden select-none cursor-pointer text-left"
+            style={{
+                background: `linear-gradient(to right, ${backgroundColor} 50%, #141414 100%)`,
             }}
-            {...handlers}
         >
             <div
-                className={cardClasses}
-                style={{
-                    background: `linear-gradient(to right, ${backgroundColor} 50%, #141414 100%)`,
-                    ...frontStyle,
-                }}
+                className="relative size-[54px] rounded-full border-[1.5px] border-[#232323] overflow-hidden shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)] shrink-0"
+                style={{ backgroundColor }}
             >
-                <div
-                    className="relative size-[54px] rounded-full border-[1.5px] border-[#232323] overflow-hidden shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)] shrink-0"
-                    style={{ backgroundColor }}
-                >
-                    {clubLogo ? (
-                        <img
-                            src={clubLogo}
-                            alt={clubName}
-                            className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-                        />
-                    ) : (
-                        <div className="absolute inset-0 flex items-center justify-center">
-                            <HomeIcon />
-                        </div>
-                    )}
-                </div>
-
-                <div className="flex flex-col items-start gap-0 w-full min-w-0">
-                    <h3
-                        className="text-[24px] font-borna font-semibold leading-normal truncate w-full text-left"
-                        style={{ color: foregroundColor }}
-                    >
-                        {clubName}
-                    </h3>
-                    {venueLabel && (
-                        <span
-                            className="text-[14px] font-helvetica leading-normal text-left"
-                            style={{ color: labelColor }}
-                        >
-                            {venueLabel}
-                        </span>
-                    )}
-                </div>
-            </div>
-
-            <div
-                className={`${cardClasses} justify-center items-center gap-3`}
-                style={{
-                    background: `linear-gradient(to left, ${backgroundColor} 50%, #141414 100%)`,
-                    ...backStyle,
-                }}
-            >
-                <div className="flex flex-col items-center gap-1">
-                    <span
-                        className="text-[11px] font-helvetica font-medium tracking-wider uppercase"
-                        style={{ color: labelColor }}
-                    >
-                        {t('passbook.club_name_label', 'CLUB NAME')}
-                    </span>
-                    <span
-                        className="text-[18px] font-borna font-semibold leading-none"
-                        style={{ color: foregroundColor }}
-                    >
-                        {clubName}
-                    </span>
-                </div>
-
-                {kardLevel && (
-                    <div className="flex flex-col items-center gap-1">
-                        <span
-                            className="text-[11px] font-helvetica font-medium tracking-wider uppercase"
-                            style={{ color: labelColor }}
-                        >
-                            {t('passbook.kard_label', 'KARD')}
-                        </span>
-                        <span
-                            className="text-[14px] font-borna font-medium leading-none"
-                            style={{ color: foregroundColor }}
-                        >
-                            {kardLevel.charAt(0) + kardLevel.slice(1).toLowerCase()}
-                        </span>
+                {clubLogo ? (
+                    <img
+                        src={clubLogo}
+                        alt={clubName}
+                        className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+                    />
+                ) : (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <HomeIcon />
                     </div>
                 )}
+            </div>
+
+            <div className="flex flex-col items-start gap-0 w-full min-w-0">
+                <h3
+                    className="text-[24px] font-borna font-semibold leading-normal truncate w-full text-left"
+                    style={{ color: foregroundColor }}
+                >
+                    {clubName}
+                </h3>
 
                 {venueLabel && (
                     <span
@@ -550,7 +469,7 @@ const KlubKard = ({
                     </span>
                 )}
             </div>
-        </div>
+        </button>
     );
 };
 
