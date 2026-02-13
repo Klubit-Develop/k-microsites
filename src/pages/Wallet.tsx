@@ -275,7 +275,7 @@ const TicketWallet = ({ transaction, isLive = false, onClick }: TicketWalletProp
     return (
         <button
             onClick={onClick}
-            className="relative flex h-[220px] flex-col w-full rounded-2xl border-2 border-[#232323] overflow-hidden shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)] cursor-pointer"
+            className="relative flex h-[200px] flex-col w-full rounded-2xl border-2 border-[#232323] overflow-hidden shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)] cursor-pointer"
         >
             <div className="absolute inset-0 pointer-events-none rounded-2xl">
                 <img
