@@ -17,6 +17,7 @@ import RRPPIcon from './RRPPIcon';
 import ClientKardIcon from './ClientKardIcon';
 import ArrowLeftIcon from './ArrowLeftIcon';
 import BellIcons from './BellIcons';
+import LogoWhiteIcon from './LogoWhiteIcon'
 
 import GoogleIcon from './GoogleIcon';
 import AppleIcon from './AppleIcon';
@@ -67,6 +68,7 @@ export {
     ClientKardIcon,
     ArrowLeftIcon,
     BellIcons,
+    LogoWhiteIcon,
 
     KlaudiaMenuIcon,
     DashboardMenuIcon,

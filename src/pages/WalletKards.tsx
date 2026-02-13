@@ -8,7 +8,7 @@ import { useParams } from '@tanstack/react-router';
 
 import axiosInstance from '@/config/axiosConfig';
 import { useAuthStore } from '@/stores/authStore';
-import { ChevronRightIcon } from '@/components/icons';
+import { ChevronRightIcon, LogoIcon } from '@/components/icons';
 import WalletEventCard, { WalletEventCardSkeleton } from '@/components/WalletEventCard';
 import TransactionItemsModal from '@/components/TransactionItemsModal';
 import WalletEventsListModal from '@/components/WalletEventsListModal';
@@ -188,23 +188,6 @@ const formatEventTimeRange = (startDate: string, startTime?: string, endTime?: s
 
 const NOISE_SVG = `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`;
 
-const QrIcon = () => (
-    <svg width="21" height="21" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect x="2" y="2" width="5.5" height="5.5" rx="1" stroke="white" strokeWidth="1.5" />
-        <rect x="13.5" y="2" width="5.5" height="5.5" rx="1" stroke="white" strokeWidth="1.5" />
-        <rect x="2" y="13.5" width="5.5" height="5.5" rx="1" stroke="white" strokeWidth="1.5" />
-        <rect x="13.5" y="13.5" width="5.5" height="5.5" rx="1" stroke="white" strokeWidth="1.5" />
-        <rect x="4.25" y="4.25" width="1" height="1" fill="white" />
-        <rect x="15.75" y="4.25" width="1" height="1" fill="white" />
-        <rect x="4.25" y="15.75" width="1" height="1" fill="white" />
-        <rect x="9.5" y="2" width="2" height="2" rx="0.5" fill="white" />
-        <rect x="9.5" y="9.5" width="2" height="2" rx="0.5" fill="white" />
-        <rect x="2" y="9.5" width="2" height="2" rx="0.5" fill="white" />
-        <rect x="9.5" y="17" width="2" height="2" rx="0.5" fill="white" />
-        <rect x="17" y="9.5" width="2" height="2" rx="0.5" fill="white" />
-    </svg>
-);
-
 const BenefitBadgeIcon = () => (
     <svg width="90" height="90" viewBox="0 0 90 90" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="45" cy="45" r="40" stroke="url(#gold_gradient)" strokeWidth="2" />
@@ -221,15 +204,13 @@ const BenefitBadgeIcon = () => (
 
 interface KlubKardDetailProps {
     passbook: UserPassbook;
-    userName: string;
     onQrClick: () => void;
 }
 
-const KlubKardDetail = ({ passbook, userName, onQrClick }: KlubKardDetailProps) => {
+const KlubKardDetail = ({ passbook, onQrClick }: KlubKardDetailProps) => {
     const { t } = useTranslation();
     const bgColor = passbook.club.passbookConfig?.backgroundColor || '#033f3e';
     const fgColor = passbook.club.passbookConfig?.foregroundColor || '#F6F6F6';
-    const labelColor = passbook.club.passbookConfig?.labelColor || '#939393';
     const venueLabel = getVenueTypeLabel(passbook.club.venueType, t);
 
     const {
@@ -239,37 +220,32 @@ const KlubKardDetail = ({ passbook, userName, onQrClick }: KlubKardDetailProps) 
         containerStyle,
         edgeSlices,
         handlers,
-        wasDragged,
     } = useDragTilt({
         mode: 'spin',
         enableShadow: true,
         enableShimmer: true,
         enableWobble: true,
+        onTap: onQrClick,
     });
 
-    const handleQrClick = () => {
-        if (wasDragged()) return;
-        onQrClick();
-    };
-
-    const faceBase = 'absolute inset-0 flex flex-col w-full h-full rounded-2xl border-[1.5px] border-white/[0.12] overflow-hidden select-none';
+    const faceBase = 'absolute inset-0 flex flex-col w-full h-full rounded-[16px] border-[3px] border-[#232323] overflow-hidden select-none';
 
     return (
         <div
             style={containerStyle}
-            className="w-full max-w-[370px] h-[250px] cursor-grab active:cursor-grabbing mb-8"
+            className="w-full max-w-[340px] h-[210px] cursor-grab active:cursor-grabbing mb-8"
             {...handlers}
         >
             <div
                 ref={cardInnerRef}
-                className="relative w-full h-full rounded-2xl"
+                className="relative w-full h-full rounded-[16px]"
                 style={{ transformStyle: 'preserve-3d' }}
             >
                 {/* ══ FRONT ══ */}
                 <div
                     className={faceBase}
                     style={{
-                        background: `linear-gradient(135deg, ${bgColor} 0%, ${bgColor} 50%, #141414 100%)`,
+                        background: `linear-gradient(to right, ${bgColor} 50%, #141414 100%)`,
                         backfaceVisibility: 'hidden',
                         WebkitBackfaceVisibility: 'hidden',
                         transform: 'translateZ(2px)',
@@ -282,10 +258,6 @@ const KlubKardDetail = ({ passbook, userName, onQrClick }: KlubKardDetailProps) 
                     <div
                         className="absolute inset-0 pointer-events-none z-[2] opacity-[0.03]"
                         style={{ backgroundImage: NOISE_SVG }}
-                    />
-                    <div
-                        className="absolute -top-10 -right-10 w-40 h-40 z-[1]"
-                        style={{ background: `radial-gradient(circle, ${bgColor}30 0%, transparent 70%)` }}
                     />
 
                     <div className="relative z-[2] flex flex-col justify-between h-full p-6">
@@ -312,26 +284,18 @@ const KlubKardDetail = ({ passbook, userName, onQrClick }: KlubKardDetailProps) 
                             >
                                 {passbook.club.name} Kard
                             </h2>
-                            <span className="text-[14px] font-borna leading-[20px]" style={{ color: labelColor }}>
+                            <span className="text-[14px] font-borna leading-[20px] text-[#c1922e]">
                                 {venueLabel}
                             </span>
                         </div>
                     </div>
-
-                    <button
-                        onPointerDown={(e) => e.stopPropagation()}
-                        onClick={handleQrClick}
-                        className="absolute top-[15px] right-[14px] z-[4] flex items-center justify-center size-[42px] rounded-full backdrop-blur-[17.5px] bg-[rgba(0,0,0,0.3)] border border-white/10"
-                    >
-                        <QrIcon />
-                    </button>
                 </div>
 
-                {/* ══ EDGE — dense solid slices form continuous wall ══ */}
+                {/* ══ EDGE ══ */}
                 {edgeSlices.map((z, i) => (
                     <div
                         key={i}
-                        className="absolute w-full h-full rounded-2xl"
+                        className="absolute w-full h-full rounded-[16px]"
                         style={{
                             background: 'rgba(160,170,195,0.15)',
                             transform: `translateZ(${z.toFixed(1)}px)`,
@@ -343,7 +307,7 @@ const KlubKardDetail = ({ passbook, userName, onQrClick }: KlubKardDetailProps) 
                 <div
                     className={faceBase}
                     style={{
-                        background: `linear-gradient(135deg, #141414 0%, ${bgColor} 50%, ${bgColor} 100%)`,
+                        background: `linear-gradient(to right, #141414 0%, ${bgColor} 50%)`,
                         backfaceVisibility: 'hidden',
                         WebkitBackfaceVisibility: 'hidden',
                         transform: 'rotateY(180deg) translateZ(2px)',
@@ -357,69 +321,28 @@ const KlubKardDetail = ({ passbook, userName, onQrClick }: KlubKardDetailProps) 
                         className="absolute inset-0 pointer-events-none z-[4] opacity-[0.03]"
                         style={{ backgroundImage: NOISE_SVG }}
                     />
-                    <div
-                        className="absolute -bottom-10 -left-10 w-[180px] h-[180px] z-[1]"
-                        style={{ background: `radial-gradient(circle, ${bgColor}30 0%, transparent 70%)` }}
-                    />
-                    <div
-                        className="absolute -top-[30px] -right-[30px] w-[140px] h-[140px] z-[1]"
-                        style={{ background: `radial-gradient(circle, ${bgColor}22 0%, transparent 65%)` }}
-                    />
 
-                    <div className="relative z-[2] flex flex-col justify-center gap-5 h-full p-6 pt-8">
-                        <div className="flex flex-col gap-0.5">
-                            <span
-                                className="text-[11px] font-helvetica font-medium tracking-wider uppercase"
-                                style={{ color: labelColor }}
-                            >
-                                {t('passbook.club_name_label', 'NOMBRE KLUB')}
-                            </span>
-                            <span
-                                className="text-[20px] font-borna font-semibold leading-tight"
-                                style={{ color: fgColor }}
-                            >
-                                {passbook.club.name}
-                            </span>
-                        </div>
+                    <div className="relative z-[2] flex flex-col justify-between items-center h-full py-6">
+                        <div
+                            className="w-full h-[50px] shrink-0"
+                            style={{
+                                background: 'linear-gradient(to right, #141414 0%, #232323 75%, #141414 100%)',
+                            }}
+                        />
 
-                        <div className="flex flex-col gap-0.5">
-                            <span
-                                className="text-[11px] font-helvetica font-medium tracking-wider uppercase"
-                                style={{ color: labelColor }}
-                            >
-                                {t('passbook.full_name', 'NOMBRE COMPLETO')}
-                            </span>
-                            <span
-                                className="text-[18px] font-borna font-medium leading-tight"
-                                style={{ color: fgColor }}
-                            >
-                                {userName}
-                            </span>
-                        </div>
+                        <div className="flex items-end justify-between gap-4 w-full px-6">
+                            <div className="flex flex-col min-w-0">
+                                <span className="text-[14px] font-borna leading-[20px] text-[#c1922e] truncate">
+                                    {t('passbook.kard_label', 'Kard')}
+                                </span>
+                                <span className="text-[14px] font-borna leading-[20px] truncate" style={{ color: fgColor }}>
+                                    {getKardLevelLabel(passbook.kardLevel)}
+                                </span>
+                            </div>
 
-                        <div className="flex flex-col gap-0.5">
-                            <span
-                                className="text-[11px] font-helvetica font-medium tracking-wider uppercase"
-                                style={{ color: labelColor }}
-                            >
-                                {t('passbook.kard_label', 'KARD')}
-                            </span>
-                            <span
-                                className="text-[16px] font-borna font-medium leading-tight"
-                                style={{ color: fgColor }}
-                            >
-                                {getKardLevelLabel(passbook.kardLevel)}
-                            </span>
+                            <LogoIcon width={71} height={20} color={fgColor} />
                         </div>
                     </div>
-
-                    <button
-                        onPointerDown={(e) => e.stopPropagation()}
-                        onClick={handleQrClick}
-                        className="absolute bottom-[15px] right-[14px] z-[4] flex items-center justify-center size-[42px] rounded-full backdrop-blur-[17.5px] bg-[rgba(0,0,0,0.3)] border border-white/10"
-                    >
-                        <QrIcon />
-                    </button>
                 </div>
             </div>
         </div>
@@ -603,7 +526,6 @@ const WalletKards = () => {
                 ) : passbook ? (
                     <KlubKardDetail
                         passbook={passbook}
-                        userName={userName}
                         onQrClick={() => setShowPassbookModal(true)}
                     />
                 ) : (
