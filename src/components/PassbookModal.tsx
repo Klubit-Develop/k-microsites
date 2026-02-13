@@ -34,7 +34,7 @@ const PassbookModal = ({ isOpen, onClose, walletAddress, userId, clubId, clubNam
     const [isVisible, setIsVisible] = useState(false);
     const [isAnimating, setIsAnimating] = useState(false);
 
-    const { cardInnerRef, shimmerFrontRef, shimmerBackRef, handlers, wasDragged } = useCardSpin({
+    const { cardInnerRef, shimmerFrontRef, shimmerBackRef, handlers } = useCardSpin({
         baseSpeed: 0.4,
     });
 
