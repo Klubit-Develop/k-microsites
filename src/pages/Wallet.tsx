@@ -286,7 +286,7 @@ const TicketWallet = ({ transaction, isLive = false, onClick }: TicketWalletProp
                 <div className="absolute inset-0 bg-gradient-to-t from-[#141414] from-[25%] to-transparent rounded-2xl" />
             </div>
 
-            <div className="relative flex flex-col items-start gap-[42px] pt-[130px] pb-4 px-4 w-full">
+            <div className="relative flex flex-col items-start gap-[42px] pt-[110px] pb-4 px-4 w-full">
                 <div className="absolute top-3.5 left-3.5 right-3.5 flex items-center justify-between">
                     {isLive ? (
                         <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[#141414] rounded-full shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]">
@@ -333,7 +333,7 @@ const TicketWallet = ({ transaction, isLive = false, onClick }: TicketWalletProp
                         </span>
                     </div>
 
-                    <div className="flex items-center gap-1.5 justify-center py-px w-full">
+                    <div className="flex items-center gap-1.5 justify-center w-full">
                         <span className="text-[13px] leading-none pt-0.5">📍</span>
                         <span className="text-[14px] font-borna text-[#939393] leading-5 truncate">
                             {location}
