@@ -11,6 +11,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { ChevronRightIcon } from '@/components/icons';
 import TransactionItemsModal from '@/components/TransactionItemsModal';
 import EmptyUpcomingEvents from '@/components/EmptyUpcomingEvents';
+import ClubBgGlow from '@/components/ClubBgGlow';
 
 import WalletEventCard from '@/components/WalletEventCard';
 import WalletEventsListModal from '@/components/WalletEventsListModal';
@@ -289,42 +290,37 @@ const TicketWallet = ({ transaction, isLive = false, onClick }: TicketWalletProp
             <div className="relative flex flex-col items-start gap-[42px] pt-[110px] pb-4 px-4 w-full">
                 <div className="absolute top-3.5 left-3.5 right-3.5 flex items-center justify-between">
                     {isLive ? (
-                        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[#141414] rounded-full shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]">
-                            <span className="text-[14px] font-borna text-[#F6F6F6]">
-                                {t('wallet.event_live', 'Evento en curso')}
+                        <span className="flex items-center gap-1.5 bg-[#FF336D]/90 backdrop-blur-sm rounded-full px-2.5 py-1">
+                            <span className="size-2 bg-white rounded-full animate-pulse" />
+                            <span className="text-[12px] font-borna font-semibold text-white uppercase tracking-wide">
+                                {t('wallet.live', 'LIVE')}
                             </span>
-                            <span className="relative flex size-2">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FF2323] opacity-75" />
-                                <span className="relative inline-flex rounded-full size-2 bg-[#FF2323]" />
-                            </span>
-                        </div>
+                        </span>
                     ) : showCountdown ? (
-                        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[#141414] rounded-full shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]">
-                            <span className="text-[14px] font-borna text-[#F6F6F6]">
-                                {t('wallet.starts_in_hours', 'Empieza en {{hours}}h').replace('{{hours}}', String(hoursUntil))}
+                        <span className="flex items-center gap-1.5 bg-[#E5FF88]/90 backdrop-blur-sm rounded-full px-2.5 py-1">
+                            <span className="text-[12px] font-borna font-semibold text-[#141414]">
+                                {t('wallet.in_hours', 'En {{hours}}h').replace('{{hours}}', String(hoursUntil))}
                             </span>
-                        </div>
+                        </span>
                     ) : (
-                        <div />
+                        <span />
                     )}
 
-                    <div className="flex items-center gap-1 px-2 py-1 bg-[#232323] border-[1.5px] border-[#232323] rounded-full shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]">
-                        <span className="text-[14px] font-borna text-[#939393]">
+                    <span className="flex items-center gap-1 bg-[#141414]/80 backdrop-blur-sm rounded-full px-2.5 py-1">
+                        <PersonIcon />
+                        <span className="text-[12px] font-borna font-medium text-[#F6F6F6]">
                             {totalQuantity}
                         </span>
-                        <div className="flex items-center justify-center h-4">
-                            <PersonIcon />
-                        </div>
-                    </div>
+                    </span>
                 </div>
 
-                <div className="flex flex-col gap-0.5 items-center justify-end w-full" style={{ textShadow: '0px 0px 30px black' }}>
-                    <h3 className="text-[20px] font-borna font-semibold text-[#F6F6F6] leading-none text-center w-full truncate">
+                <div className="flex flex-col items-start gap-px w-full">
+                    <h3 className="text-[18px] font-borna font-semibold text-[#F6F6F6] leading-tight truncate w-full text-left">
                         {event.name}
                     </h3>
 
-                    <div className="flex items-center gap-1 justify-center w-full">
-                        <span className="text-[14px] font-borna text-[#E5FF88] leading-5 truncate">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="text-[14px] font-borna text-[#E5FF88] leading-5 whitespace-nowrap">
                             {dateLabel}
                         </span>
                         <span className="size-[3px] bg-[#E5FF88] rounded-full shrink-0" />
@@ -510,9 +506,10 @@ interface KardsCarouselProps {
     kards: UserPassbook[];
     onKardClick: (passbook: UserPassbook) => void;
     onHeaderClick?: () => void;
+    onIndexChange?: (index: number) => void;
 }
 
-const KardsCarousel = ({ kards, onKardClick, onHeaderClick }: KardsCarouselProps) => {
+const KardsCarousel = ({ kards, onKardClick, onHeaderClick, onIndexChange }: KardsCarouselProps) => {
     const { t } = useTranslation();
     const scrollRef = useRef<HTMLDivElement>(null);
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -525,12 +522,14 @@ const KardsCarousel = ({ kards, onKardClick, onHeaderClick }: KardsCarouselProps
             const scrollLeft = scrollContainer.scrollLeft;
             const cardWidth = scrollContainer.offsetWidth;
             const newIndex = Math.round(scrollLeft / cardWidth);
-            setCurrentIndex(Math.min(newIndex, kards.length - 1));
+            const clampedIndex = Math.min(newIndex, kards.length - 1);
+            setCurrentIndex(clampedIndex);
+            onIndexChange?.(clampedIndex);
         };
 
         scrollContainer.addEventListener('scroll', handleScroll);
         return () => scrollContainer.removeEventListener('scroll', handleScroll);
-    }, [kards.length]);
+    }, [kards.length, onIndexChange]);
 
     const handleHeaderClick = () => {
         if (kards.length > 3 && onHeaderClick) {
@@ -693,9 +692,9 @@ const Wallet = () => {
 
     const [selectedTransactionId, setSelectedTransactionId] = useState<string | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
-
     const [eventsListVariant, setEventsListVariant] = useState<'upcoming' | 'past' | null>(null);
     const [isKardsListOpen, setIsKardsListOpen] = useState(false);
+    const [currentKardIndex, setCurrentKardIndex] = useState(0);
 
     const { data, isLoading, error } = useQuery({
         queryKey: ['wallet-transactions'],
@@ -717,6 +716,12 @@ const Wallet = () => {
         },
         enabled: !!user?.id,
     });
+
+    const activeKardBgColor = useMemo(() => {
+        if (!kardsData || kardsData.length === 0) return null;
+        const safeIndex = Math.min(currentKardIndex, kardsData.length - 1);
+        return kardsData[safeIndex]?.club.passbookConfig?.backgroundColor || null;
+    }, [kardsData, currentKardIndex]);
 
     const handleKardClick = (passbook: UserPassbook) => {
         navigate({ to: '/wallet/kards/$idKard', params: { idKard: passbook.id } });
@@ -801,108 +806,115 @@ const Wallet = () => {
     }
 
     return (
-        <div className="flex flex-col gap-9 w-full max-w-[450px] mx-auto px-4 pt-[60px] pb-[60px] md:py-8">
-            {featuredTransactions.length > 0 && (
-                <FeaturedCarousel
-                    transactions={featuredTransactions}
-                    isLive={isLive}
-                    onTransactionClick={handleTransactionClick}
-                />
+        <div className="relative min-h-screen bg-[#050505]">
+            {activeKardBgColor && (
+                <ClubBgGlow color={activeKardBgColor} />
             )}
 
-            {kardsData && kardsData.length > 0 && (
-                <KardsCarousel
-                    kards={kardsData}
-                    onKardClick={handleKardClick}
-                    onHeaderClick={() => setIsKardsListOpen(true)}
-                />
-            )}
-
-            {upcomingTransactions.length > 0 && (
-                <div className="flex flex-col gap-3">
-                    <SectionHeader
-                        title={t('wallet.upcoming', 'Próximos')}
-                        onClick={() => setEventsListVariant('upcoming')}
-                        showArrow={upcomingTransactions.length > 5}
+            <div className="relative z-10 flex flex-col gap-9 w-full max-w-[450px] mx-auto px-4 pt-[60px] pb-[60px] md:py-8">
+                {featuredTransactions.length > 0 && (
+                    <FeaturedCarousel
+                        transactions={featuredTransactions}
+                        isLive={isLive}
+                        onTransactionClick={handleTransactionClick}
                     />
-                    {upcomingTransactions.length > 0 ? (
+                )}
+
+                {kardsData && kardsData.length > 0 && (
+                    <KardsCarousel
+                        kards={kardsData}
+                        onKardClick={handleKardClick}
+                        onHeaderClick={() => setIsKardsListOpen(true)}
+                        onIndexChange={setCurrentKardIndex}
+                    />
+                )}
+
+                {upcomingTransactions.length > 0 && (
+                    <div className="flex flex-col gap-3">
+                        <SectionHeader
+                            title={t('wallet.upcoming', 'Próximos')}
+                            onClick={() => setEventsListVariant('upcoming')}
+                            showArrow={upcomingTransactions.length > 5}
+                        />
+                        {upcomingTransactions.length > 0 ? (
+                            <div className="flex flex-col gap-2">
+                                {upcomingTransactions.slice(0, 5).map((transaction) => {
+                                    const cardProps = formatTransactionForCard(transaction);
+                                    return (
+                                        <WalletEventCard
+                                            key={transaction.id}
+                                            title={cardProps.title}
+                                            date={cardProps.date}
+                                            time={cardProps.time}
+                                            location={cardProps.location}
+                                            imageUrl={cardProps.imageUrl}
+                                            variant="upcoming"
+                                            onClick={() => handleTransactionClick(transaction.id)}
+                                        />
+                                    );
+                                })}
+                            </div>
+                        ) : (
+                            <EmptyUpcomingEvents
+                                title={t('wallet.empty_upcoming_title', 'Nada por aquí')}
+                                description={t('wallet.empty_upcoming_subtitle', 'Cuando compres entradas, aparecerán aquí')}
+                            />
+                        )}
+                    </div>
+                )}
+
+                {pastTransactions.length > 0 && (
+                    <div className="flex flex-col gap-3">
+                        <SectionHeader
+                            title={t('wallet.past', 'Pasados')}
+                            onClick={() => setEventsListVariant('past')}
+                            showArrow={pastTransactions.length > 1}
+                        />
                         <div className="flex flex-col gap-2">
-                            {upcomingTransactions.slice(0, 5).map((transaction) => {
-                                const cardProps = formatTransactionForCard(transaction);
+                            {(() => {
+                                const cardProps = formatTransactionForCard(pastTransactions[0]);
                                 return (
                                     <WalletEventCard
-                                        key={transaction.id}
+                                        key={pastTransactions[0].id}
                                         title={cardProps.title}
                                         date={cardProps.date}
                                         time={cardProps.time}
                                         location={cardProps.location}
                                         imageUrl={cardProps.imageUrl}
-                                        variant="upcoming"
-                                        onClick={() => handleTransactionClick(transaction.id)}
+                                        variant="past"
+                                        onClick={() => handleTransactionClick(pastTransactions[0].id)}
                                     />
                                 );
-                            })}
+                            })()}
                         </div>
-                    ) : (
-                        <EmptyUpcomingEvents
-                            title={t('wallet.empty_upcoming_title', 'Nada por aquí')}
-                            description={t('wallet.empty_upcoming_subtitle', 'Cuando compres entradas, aparecerán aquí')}
-                        />
-                    )}
-                </div>
-            )}
-
-            {pastTransactions.length > 0 && (
-                <div className="flex flex-col gap-3">
-                    <SectionHeader
-                        title={t('wallet.past', 'Pasados')}
-                        onClick={() => setEventsListVariant('past')}
-                        showArrow={pastTransactions.length > 1}
-                    />
-                    <div className="flex flex-col gap-2">
-                        {(() => {
-                            const cardProps = formatTransactionForCard(pastTransactions[0]);
-                            return (
-                                <WalletEventCard
-                                    key={pastTransactions[0].id}
-                                    title={cardProps.title}
-                                    date={cardProps.date}
-                                    time={cardProps.time}
-                                    location={cardProps.location}
-                                    imageUrl={cardProps.imageUrl}
-                                    variant="past"
-                                    onClick={() => handleTransactionClick(pastTransactions[0].id)}
-                                />
-                            );
-                        })()}
                     </div>
-                </div>
-            )}
+                )}
 
-            {selectedTransactionId && (
-                <TransactionItemsModal
-                    transactionId={selectedTransactionId}
-                    isOpen={isModalOpen}
-                    onClose={handleModalClose}
+                {selectedTransactionId && (
+                    <TransactionItemsModal
+                        transactionId={selectedTransactionId}
+                        isOpen={isModalOpen}
+                        onClose={handleModalClose}
+                    />
+                )}
+
+                {eventsListVariant && (
+                    <WalletEventsListModal
+                        isOpen={!!eventsListVariant}
+                        onClose={() => setEventsListVariant(null)}
+                        variant={eventsListVariant}
+                    />
+                )}
+
+                <WalletKardsListModal
+                    isOpen={isKardsListOpen}
+                    onClose={() => setIsKardsListOpen(false)}
+                    onKardClick={(passbook) => {
+                        setIsKardsListOpen(false);
+                        navigate({ to: '/wallet/kards/$idKard', params: { idKard: passbook.id } });
+                    }}
                 />
-            )}
-
-            {eventsListVariant && (
-                <WalletEventsListModal
-                    isOpen={!!eventsListVariant}
-                    onClose={() => setEventsListVariant(null)}
-                    variant={eventsListVariant}
-                />
-            )}
-
-            <WalletKardsListModal
-                isOpen={isKardsListOpen}
-                onClose={() => setIsKardsListOpen(false)}
-                onKardClick={(passbook) => {
-                    setIsKardsListOpen(false);
-                    navigate({ to: '/wallet/kards/$idKard', params: { idKard: passbook.id } });
-                }}
-            />
+            </div>
         </div>
     );
 };
