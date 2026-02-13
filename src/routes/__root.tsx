@@ -54,7 +54,7 @@ const RootComponent = () => {
 
       {!isAuthRoute && <Header user={user} />}
 
-      <main className="flex flex-1 flex-col">
+      <main className="flex flex-1 flex-col pt-[94px] md:pt-[68px]">
         <Outlet />
       </main>
 
