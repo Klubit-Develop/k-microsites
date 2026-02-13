@@ -635,7 +635,7 @@ const SectionHeader = ({ title, to, onClick, showArrow = false }: SectionHeaderP
 
 const WalletSkeleton = () => {
     return (
-        <div className="flex flex-col gap-9 w-full max-w-[500px] mx-auto px-4 pt-[120px] pb-[100px] md:py-8 animate-pulse">
+        <div className="flex flex-col gap-9 w-full max-w-[450px] mx-auto px-4 pt-[120px] pb-[100px] md:py-8 animate-pulse">
             <div className="w-full h-[200px] bg-[#232323] rounded-2xl" />
             <div className="flex flex-col gap-3">
                 <div className="w-32 h-7 bg-[#232323] rounded-lg" />

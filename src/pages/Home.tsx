@@ -524,7 +524,7 @@ const Home = () => {
 
             {/* Desktop Layout */}
             <div className="hidden md:flex items-start justify-center w-full px-8 lg:px-16 xl:px-24 2xl:px-96 gap-8 py-20">
-                <div className="flex flex-col gap-9 w-full max-w-[500px]">
+                <div className="flex flex-col gap-9 w-full max-w-[450px]">
                     <div className="flex flex-col gap-6 items-center">
                         <ClubProfile
                             name={club?.name || ''}
@@ -574,7 +574,7 @@ const Home = () => {
                     )}
                 </div>
 
-                <div className="flex flex-col gap-9 w-full max-w-[500px]">
+                <div className="flex flex-col gap-9 w-full max-w-[450px]">
                     {renderEventsContent()}
                 </div>
             </div>

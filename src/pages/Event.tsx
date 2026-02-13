@@ -1675,7 +1675,7 @@ const Event = () => {
 
             {/* Desktop Layout - unchanged */}
             <div className="hidden md:flex items-start justify-center w-full px-8 lg:px-16 xl:px-24 2xl:px-96 gap-8">
-                <div className="flex flex-col gap-9 w-full max-w-[500px]">
+                <div className="flex flex-col gap-9 w-full max-w-[450px]">
                     <EventHeader
                         name={event?.name || ''}
                         flyer={event?.flyer || ''}
@@ -1736,7 +1736,7 @@ const Event = () => {
                     ) : null}
                 </div>
 
-                <div className="flex flex-col gap-9 w-full max-w-[500px]">
+                <div className="flex flex-col gap-9 w-full max-w-[450px]">
                     {renderRightColumn()}
                 </div>
             </div>
