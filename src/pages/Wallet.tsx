@@ -801,7 +801,7 @@ const Wallet = () => {
     }
 
     return (
-        <div className="flex flex-col gap-9 w-full max-w-[450px] mx-auto px-4 pt-[120px] pb-[100px] md:py-8">
+        <div className="flex flex-col gap-9 w-full max-w-[450px] mx-auto px-4 pt-[60px] pb-[60px] md:py-8">
             {featuredTransactions.length > 0 && (
                 <FeaturedCarousel
                     transactions={featuredTransactions}
