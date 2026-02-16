@@ -11,7 +11,6 @@ import { useAuthStore } from '@/stores/authStore';
 import { ChevronRightIcon } from '@/components/icons';
 import TransactionItemsModal from '@/components/TransactionItemsModal';
 import EmptyUpcomingEvents from '@/components/EmptyUpcomingEvents';
-import ClubBgGlow from '@/components/ClubBgGlow';
 
 import WalletEventCard from '@/components/WalletEventCard';
 import WalletEventsListModal from '@/components/WalletEventsListModal';
@@ -694,7 +693,6 @@ const Wallet = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [eventsListVariant, setEventsListVariant] = useState<'upcoming' | 'past' | null>(null);
     const [isKardsListOpen, setIsKardsListOpen] = useState(false);
-    const [currentKardIndex, setCurrentKardIndex] = useState(0);
 
     const { data, isLoading, error } = useQuery({
         queryKey: ['wallet-transactions'],
@@ -716,12 +714,6 @@ const Wallet = () => {
         },
         enabled: !!user?.id,
     });
-
-    const activeKardBgColor = useMemo(() => {
-        if (!kardsData || kardsData.length === 0) return null;
-        const safeIndex = Math.min(currentKardIndex, kardsData.length - 1);
-        return kardsData[safeIndex]?.club.passbookConfig?.backgroundColor || null;
-    }, [kardsData, currentKardIndex]);
 
     const handleKardClick = (passbook: UserPassbook) => {
         navigate({ to: '/wallet/kards/$idKard', params: { idKard: passbook.id } });
@@ -806,12 +798,8 @@ const Wallet = () => {
     }
 
     return (
-        <div className="relative min-h-screen bg-[#050505]">
-            {activeKardBgColor && (
-                <ClubBgGlow color={activeKardBgColor} />
-            )}
-
-            <div className="relative z-10 flex flex-col gap-9 w-full max-w-[450px] mx-auto px-4 pt-[60px] pb-[60px] md:py-8">
+        <div className="min-h-screen bg-[#050505]">
+            <div className="flex flex-col gap-9 w-full max-w-[450px] mx-auto px-4 pt-[60px] pb-[60px] md:py-8">
                 {featuredTransactions.length > 0 && (
                     <FeaturedCarousel
                         transactions={featuredTransactions}
@@ -825,7 +813,6 @@ const Wallet = () => {
                         kards={kardsData}
                         onKardClick={handleKardClick}
                         onHeaderClick={() => setIsKardsListOpen(true)}
-                        onIndexChange={setCurrentKardIndex}
                     />
                 )}
 
