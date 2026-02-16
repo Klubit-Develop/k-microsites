@@ -24,6 +24,7 @@ interface TransactionItem {
     promotion?: { id: string; name: string } | null;
     ticketPrice?: { id: string; name: string } | null;
     guestlistPrice?: { id: string; name: string } | null;
+    _transactionId?: string;
 }
 
 interface Transaction {
@@ -54,7 +55,7 @@ interface BackendResponse {
 }
 
 interface TransactionItemsModalProps {
-    transactionId: string;
+    transactionIds: string[];
     isOpen: boolean;
     onClose: () => void;
 }
@@ -405,7 +406,7 @@ const Grabber = () => (
     </div>
 );
 
-const TransactionItemsModal = ({ transactionId, isOpen, onClose }: TransactionItemsModalProps) => {
+const TransactionItemsModal = ({ transactionIds, isOpen, onClose }: TransactionItemsModalProps) => {
     const { t, i18n } = useTranslation();
     const locale = i18n.language === 'en' ? 'en' : 'es';
 
@@ -416,15 +417,37 @@ const TransactionItemsModal = ({ transactionId, isOpen, onClose }: TransactionIt
     const [selectedGroup, setSelectedGroup] = useState<GroupedRate | null>(null);
 
     const { data: transaction, isLoading } = useQuery({
-        queryKey: ['transaction', transactionId],
+        queryKey: ['transactions-merged', ...transactionIds],
         queryFn: async () => {
-            const response = await axiosInstance.get<BackendResponse>(
-                `/v2/transactions/${transactionId}`
+            const results = await Promise.all(
+                transactionIds.map((id) =>
+                    axiosInstance
+                        .get<BackendResponse>(`/v2/transactions/${id}`)
+                        .then((res) => {
+                            const d = res.data.data;
+                            return (
+                                (d as unknown as { transaction?: Transaction }).transaction || d
+                            ) as Transaction;
+                        })
+                )
             );
-            const data = response.data.data;
-            return (data as unknown as { transaction?: Transaction }).transaction || data;
+
+            const first = results[0];
+            if (!first) return null;
+
+            const allItems: TransactionItem[] = results.flatMap((tx, idx) =>
+                (tx.items || []).map((item) => ({
+                    ...item,
+                    _transactionId: transactionIds[idx],
+                }))
+            );
+
+            return {
+                ...first,
+                items: allItems,
+            } as Transaction;
         },
-        enabled: isOpen && !!transactionId,
+        enabled: isOpen && transactionIds.length > 0,
     });
 
     useEffect(() => {
@@ -552,9 +575,11 @@ const TransactionItemsModal = ({ transactionId, isOpen, onClose }: TransactionIt
 
     if (showItemDetail && selectedItemId) {
         const hasMultipleItems = (transaction?.items?.length ?? 0) > 1;
+        const selectedItem = transaction?.items?.find((i) => i.id === selectedItemId);
+        const itemTransactionId = selectedItem?._transactionId || transactionIds[0];
         return (
             <ItemDetailModal
-                transactionId={transactionId}
+                transactionId={itemTransactionId}
                 itemId={selectedItemId}
                 isOpen={true}
                 onClose={handleItemDetailClose}

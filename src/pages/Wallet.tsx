@@ -16,6 +16,7 @@ import WalletEventsListModal from '@/components/WalletEventsListModal';
 import WalletKardsListModal from '@/components/WalletKardsListModal';
 
 import WalletEventCard, { WalletEventCardSkeleton } from '@/components/WalletEventCard';
+import { groupTransactionsByEvent, type GroupedTransaction } from '@/utils/groupTransactionsByEvent';
 
 interface Transaction {
     id: string;
@@ -342,9 +343,9 @@ const TicketWallet = ({ transaction, isLive = false, onClick }: TicketWalletProp
 };
 
 interface FeaturedCarouselProps {
-    transactions: Transaction[];
+    transactions: GroupedTransaction<Transaction>[];
     isLive: boolean;
-    onTransactionClick: (transactionId: string) => void;
+    onTransactionClick: (transactionIds: string[]) => void;
 }
 
 const FeaturedCarousel = ({ transactions, isLive, onTransactionClick }: FeaturedCarouselProps) => {
@@ -371,7 +372,7 @@ const FeaturedCarousel = ({ transactions, isLive, onTransactionClick }: Featured
             <TicketWallet
                 transaction={transactions[0]}
                 isLive={isLive}
-                onClick={() => onTransactionClick(transactions[0].id)}
+                onClick={() => onTransactionClick(transactions[0].transactionIds)}
             />
         );
     }
@@ -383,12 +384,13 @@ const FeaturedCarousel = ({ transactions, isLive, onTransactionClick }: Featured
                     ref={scrollRef}
                     className="flex gap-3 overflow-x-auto px-4 snap-x snap-mandatory [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
                 >
-                    {transactions.map((transaction, index) => (
+                    {transactions.map((transaction) => (
                         <div key={transaction.id} className="shrink-0 w-full snap-center">
                             <TicketWallet
+                                key={transaction.id}
                                 transaction={transaction}
-                                isLive={index === 0 && isLive}
-                                onClick={() => onTransactionClick(transaction.id)}
+                                isLive={isLive}
+                                onClick={() => onTransactionClick(transaction.transactionIds)}
                             />
                         </div>
                     ))}
@@ -705,7 +707,7 @@ const Wallet = () => {
     const { user } = useAuthStore();
     const navigate = useNavigate();
 
-    const [selectedTransactionId, setSelectedTransactionId] = useState<string | null>(null);
+    const [selectedTransactionIds, setSelectedTransactionIds] = useState<string[] | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [eventsListVariant, setEventsListVariant] = useState<'upcoming' | 'past' | null>(null);
     const [isKardsListOpen, setIsKardsListOpen] = useState(false);
@@ -770,9 +772,9 @@ const Wallet = () => {
         past.sort((a, b) => dayjs(b.event.startDate).diff(dayjs(a.event.startDate)));
 
         return {
-            featuredTransactions: featured,
-            upcomingTransactions: upcoming,
-            pastTransactions: past,
+            featuredTransactions: groupTransactionsByEvent(featured),
+            upcomingTransactions: groupTransactionsByEvent(upcoming),
+            pastTransactions: groupTransactionsByEvent(past),
             isLive: live,
         };
     }, [data]);
@@ -785,14 +787,14 @@ const Wallet = () => {
         imageUrl: transaction.event.flyer,
     });
 
-    const handleTransactionClick = (transactionId: string) => {
-        setSelectedTransactionId(transactionId);
+    const handleTransactionClick = (transactionIds: string[]) => {
+        setSelectedTransactionIds(transactionIds);
         setIsModalOpen(true);
     };
 
     const handleModalClose = () => {
         setIsModalOpen(false);
-        setSelectedTransactionId(null);
+        setSelectedTransactionIds(null);
     };
 
     if (isLoading) {
@@ -852,7 +854,7 @@ const Wallet = () => {
                                             location={cardProps.location}
                                             imageUrl={cardProps.imageUrl}
                                             variant="upcoming"
-                                            onClick={() => handleTransactionClick(transaction.id)}
+                                            onClick={() => handleTransactionClick(transaction.transactionIds)}
                                         />
                                     );
                                 })}
@@ -885,7 +887,7 @@ const Wallet = () => {
                                         location={cardProps.location}
                                         imageUrl={cardProps.imageUrl}
                                         variant="past"
-                                        onClick={() => handleTransactionClick(pastTransactions[0].id)}
+                                        onClick={() => handleTransactionClick(pastTransactions[0].transactionIds)}
                                     />
                                 );
                             })()}
@@ -893,9 +895,9 @@ const Wallet = () => {
                     </div>
                 )}
 
-                {selectedTransactionId && (
+                {selectedTransactionIds && (
                     <TransactionItemsModal
-                        transactionId={selectedTransactionId}
+                        transactionIds={selectedTransactionIds}
                         isOpen={isModalOpen}
                         onClose={handleModalClose}
                     />

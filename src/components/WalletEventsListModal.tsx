@@ -9,6 +9,7 @@ import { useQuery } from '@tanstack/react-query';
 import axiosInstance from '@/config/axiosConfig';
 import WalletEventCard from '@/components/WalletEventCard';
 import TransactionItemsModal from '@/components/TransactionItemsModal';
+import { groupTransactionsByEvent } from '@/utils/groupTransactionsByEvent';
 
 interface Transaction {
     id: string;
@@ -131,7 +132,7 @@ const WalletEventsListModal = ({ isOpen, onClose, variant }: WalletEventsListMod
     const [isVisible, setIsVisible] = useState(false);
     const [isAnimating, setIsAnimating] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
-    const [selectedTransactionId, setSelectedTransactionId] = useState<string | null>(null);
+    const [selectedTransactionIds, setSelectedTransactionIds] = useState<string[] | null>(null);
     const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
 
     const apiQuery = searchQuery.trim().length >= 2 ? searchQuery.trim() : undefined;
@@ -159,11 +160,12 @@ const WalletEventsListModal = ({ isOpen, onClose, variant }: WalletEventsListMod
 
         const filterFn = variant === 'upcoming' ? isEventUpcoming : isEventPast;
         const filtered = transactions.filter((tx) => filterFn(tx.event.startDate));
+        const grouped = groupTransactionsByEvent(filtered);
 
         if (variant === 'upcoming') {
-            return filtered.sort((a, b) => dayjs(a.event.startDate).diff(dayjs(b.event.startDate)));
+            return grouped.sort((a, b) => dayjs(a.event.startDate).diff(dayjs(b.event.startDate)));
         }
-        return filtered.sort((a, b) => dayjs(b.event.startDate).diff(dayjs(a.event.startDate)));
+        return grouped.sort((a, b) => dayjs(b.event.startDate).diff(dayjs(a.event.startDate)));
     }, [transactions, variant]);
 
     useEffect(() => {
@@ -200,14 +202,14 @@ const WalletEventsListModal = ({ isOpen, onClose, variant }: WalletEventsListMod
         if (e.target === e.currentTarget) handleClose();
     };
 
-    const handleTransactionClick = (transactionId: string) => {
-        setSelectedTransactionId(transactionId);
+    const handleTransactionClick = (transactionIds: string[]) => {
+        setSelectedTransactionIds(transactionIds);
         setIsTransactionModalOpen(true);
     };
 
     const handleTransactionModalClose = () => {
         setIsTransactionModalOpen(false);
-        setSelectedTransactionId(null);
+        setSelectedTransactionIds(null);
     };
 
     if (!isAnimating && !isOpen) return null;
@@ -280,7 +282,7 @@ const WalletEventsListModal = ({ isOpen, onClose, variant }: WalletEventsListMod
                                         location={transaction.club.address || transaction.club.name}
                                         imageUrl={transaction.event.flyer}
                                         variant={variant}
-                                        onClick={() => handleTransactionClick(transaction.id)}
+                                        onClick={() => handleTransactionClick(transaction.transactionIds)}
                                     />
                                 ))}
                             </div>
@@ -289,9 +291,9 @@ const WalletEventsListModal = ({ isOpen, onClose, variant }: WalletEventsListMod
                 </div>
             </div>
 
-            {selectedTransactionId && (
+            {selectedTransactionIds && (
                 <TransactionItemsModal
-                    transactionId={selectedTransactionId}
+                    transactionIds={selectedTransactionIds}
                     isOpen={isTransactionModalOpen}
                     onClose={handleTransactionModalClose}
                 />

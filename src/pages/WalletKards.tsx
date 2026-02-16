@@ -10,6 +10,7 @@ import axiosInstance from '@/config/axiosConfig';
 import { useAuthStore } from '@/stores/authStore';
 import { ChevronRightIcon, LogoIcon } from '@/components/icons';
 import WalletEventCard, { WalletEventCardSkeleton } from '@/components/WalletEventCard';
+import { groupTransactionsByEvent } from '@/utils/groupTransactionsByEvent';
 import TransactionItemsModal from '@/components/TransactionItemsModal';
 import WalletEventsListModal from '@/components/WalletEventsListModal';
 import PassbookModal from '@/components/PassbookModal';
@@ -437,7 +438,7 @@ const WalletKards = () => {
     const { user } = useAuthStore();
     const { idKard } = useParams({ from: '/_authenticated/wallet/kards/$idKard' });
 
-    const [selectedTransactionId, setSelectedTransactionId] = useState<string | null>(null);
+    const [selectedTransactionIds, setSelectedTransactionIds] = useState<string[] | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [eventsListVariant, setEventsListVariant] = useState<'upcoming' | 'past' | null>(null);
     const [showPassbookModal, setShowPassbookModal] = useState(false);
@@ -492,7 +493,10 @@ const WalletKards = () => {
         upcoming.sort((a, b) => dayjs(a.event.startDate).diff(dayjs(b.event.startDate)));
         past.sort((a, b) => dayjs(b.event.startDate).diff(dayjs(a.event.startDate)));
 
-        return { upcomingTransactions: upcoming, pastTransactions: past };
+        return {
+            upcomingTransactions: groupTransactionsByEvent(upcoming),
+            pastTransactions: groupTransactionsByEvent(past),
+        };
     }, [transactions, clubId]);
 
     const benefits = passbook?.benefits || [];
@@ -506,14 +510,14 @@ const WalletKards = () => {
         imageUrl: transaction.event.flyer,
     });
 
-    const handleTransactionClick = (transactionId: string) => {
-        setSelectedTransactionId(transactionId);
+    const handleTransactionClick = (transactionIds: string[]) => {
+        setSelectedTransactionIds(transactionIds);
         setIsModalOpen(true);
     };
 
     const handleModalClose = () => {
         setIsModalOpen(false);
-        setSelectedTransactionId(null);
+        setSelectedTransactionIds(null);
     };
 
     return (
@@ -582,7 +586,7 @@ const WalletKards = () => {
                                                     location={cardProps.location}
                                                     imageUrl={cardProps.imageUrl}
                                                     variant="upcoming"
-                                                    onClick={() => handleTransactionClick(transaction.id)}
+                                                    onClick={() => handleTransactionClick(transaction.transactionIds)}
                                                 />
                                             );
                                         })}
@@ -610,7 +614,7 @@ const WalletKards = () => {
                                                 location={cardProps.location}
                                                 imageUrl={cardProps.imageUrl}
                                                 variant="past"
-                                                onClick={() => handleTransactionClick(pastTransactions[0].id)}
+                                                onClick={() => handleTransactionClick(pastTransactions[0].transactionIds)}
                                             />
                                         );
                                     })()}
@@ -627,9 +631,9 @@ const WalletKards = () => {
                 )}
             </div>
 
-            {selectedTransactionId && (
+            {selectedTransactionIds && (
                 <TransactionItemsModal
-                    transactionId={selectedTransactionId}
+                    transactionIds={selectedTransactionIds}
                     isOpen={isModalOpen}
                     onClose={handleModalClose}
                 />
