@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import dayjs from 'dayjs';
 import 'dayjs/locale/es';
 import 'dayjs/locale/en';
@@ -16,6 +16,7 @@ interface TransactionItem {
     unitPrice: number;
     subtotal: number;
     isForMe: boolean;
+    validatedAt?: string | null;
     ticket?: { id: string; name: string } | null;
     guestlist?: { id: string; name: string } | null;
     reservation?: { id: string; name: string; partySize?: number } | null;
@@ -58,26 +59,36 @@ interface TransactionItemsModalProps {
     onClose: () => void;
 }
 
+type ItemType = TransactionItem['itemType'];
+
+interface GroupedRate {
+    rateName: string;
+    itemType: ItemType;
+    items: TransactionItem[];
+    totalCapacity: number;
+    usedCapacity: number;
+    isFullyConsumed: boolean;
+    hasPartialConsumption: boolean;
+}
+
 const isEventToday = (startDate: string): boolean => {
     return dayjs(startDate).isSame(dayjs(), 'day');
 };
 
 const formatEventDate = (dateString: string, locale: string): string => {
     const date = dayjs(dateString).locale(locale);
-    return date.format('ddd, D MMMM');
+    return date.format('ddd., D MMMM');
 };
 
 const formatEventTimeRange = (startTime?: string, endTime?: string): string => {
-    if (startTime && endTime) {
-        return `${startTime} - ${endTime}`;
-    }
+    if (startTime && endTime) return `${startTime} - ${endTime}`;
     return '';
 };
 
-const getItemName = (item: TransactionItem): string => {
+const getRateName = (item: TransactionItem): string => {
     if (item.ticket?.name) return item.ticket.name;
     if (item.guestlist?.name) return item.guestlist.name;
-    if (item.reservation?.name) return `${item.reservation.name}:`;
+    if (item.reservation?.name) return item.reservation.name;
     if (item.product?.name) return item.product.name;
     if (item.promotion?.name) return item.promotion.name;
     if (item.ticketPrice?.name) return item.ticketPrice.name;
@@ -85,79 +96,47 @@ const getItemName = (item: TransactionItem): string => {
     return 'Item';
 };
 
-const getItemTypeDotColor = (itemType: string): string => {
+const getItemTypeDotColor = (itemType: ItemType): string => {
     switch (itemType) {
-        case 'TICKET':
-            return '#D591FF';
-        case 'GUESTLIST':
-            return '#FFCE1F';
-        case 'RESERVATION':
-            return '#3FE8E8';
-        case 'PROMOTION':
-            return '#FF336D';
-        case 'PRODUCT':
-            return '#00D1FF';
-        default:
-            return '#939393';
+        case 'TICKET': return '#D591FF';
+        case 'GUESTLIST': return '#FFCE1F';
+        case 'RESERVATION': return '#3FE8E8';
+        case 'PROMOTION': return '#FF336D';
+        case 'PRODUCT': return '#00D1FF';
+        default: return '#939393';
     }
 };
 
-const TicketIcon = () => (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-        <path d="M2 9V7C2 5.89543 2.89543 5 4 5H20C21.1046 5 22 5.89543 22 7V9C20.8954 9 20 9.89543 20 11C20 12.1046 20.8954 13 22 13V15C22 16.1046 21.1046 17 20 17H4C2.89543 17 2 16.1046 2 15V13C3.10457 13 4 12.1046 4 11C4 9.89543 3.10457 9 2 9Z" stroke="#939393" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-);
+const isAccessType = (itemType: ItemType): boolean =>
+    itemType === 'TICKET' || itemType === 'GUESTLIST' || itemType === 'RESERVATION';
 
-const GuestlistIcon = () => (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-        <path d="M9 5H7C5.89543 5 5 5.89543 5 7V19C5 20.1046 5.89543 21 7 21H17C18.1046 21 19 20.1046 19 19V7C19 5.89543 18.1046 5 17 5H15" stroke="#939393" strokeWidth="1.5" strokeLinecap="round" />
-        <path d="M9 5C9 3.89543 9.89543 3 11 3H13C14.1046 3 15 3.89543 15 5C15 6.10457 14.1046 7 13 7H11C9.89543 7 9 6.10457 9 5Z" stroke="#939393" strokeWidth="1.5" />
-        <path d="M9 12H15" stroke="#939393" strokeWidth="1.5" strokeLinecap="round" />
-        <path d="M9 16H12" stroke="#939393" strokeWidth="1.5" strokeLinecap="round" />
-    </svg>
-);
+const isProductType = (itemType: ItemType): boolean =>
+    itemType === 'PRODUCT' || itemType === 'PROMOTION';
 
-const ReservationIcon = () => (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-        <path d="M12 3V21M12 3C7.02944 3 3 7.02944 3 12H12V3ZM12 3C16.9706 3 21 7.02944 21 12H12V3Z" stroke="#939393" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-);
-
-const ProductIcon = () => (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-        <path d="M8 21H6C4.89543 21 4 20.1046 4 19V5C4 3.89543 4.89543 3 6 3H18C19.1046 3 20 3.89543 20 5V19C20 20.1046 19.1046 21 18 21H16" stroke="#939393" strokeWidth="1.5" strokeLinecap="round" />
-        <path d="M12 21V11" stroke="#939393" strokeWidth="1.5" strokeLinecap="round" />
-        <path d="M8 11H16" stroke="#939393" strokeWidth="1.5" strokeLinecap="round" />
-    </svg>
-);
-
-const PromoIcon = () => (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-        <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" stroke="#939393" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-);
-
-const getItemIcon = (itemType: string) => {
-    switch (itemType) {
-        case 'TICKET':
-            return <TicketIcon />;
-        case 'GUESTLIST':
-            return <GuestlistIcon />;
-        case 'RESERVATION':
-            return <ReservationIcon />;
-        case 'PRODUCT':
-            return <ProductIcon />;
-        case 'PROMOTION':
-            return <PromoIcon />;
-        default:
-            return <TicketIcon />;
-    }
+const getItemCapacity = (item: TransactionItem): number => {
+    if (item.reservation?.partySize) return item.reservation.partySize;
+    return item.quantity;
 };
 
-const PersonIcon = () => (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-        <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="rgba(246,246,246,0.5)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z" stroke="rgba(246,246,246,0.5)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+const isItemConsumed = (item: TransactionItem): boolean =>
+    item.status === 'VALIDATED' || !!item.validatedAt;
+
+const PersonXsIcon = () => (
+    <svg width="12" height="13" viewBox="0 0 12 13" fill="none" style={{ width: '11.441px', height: '12.722px' }}>
+        <path
+            d="M10.441 12.222V11.055C10.441 10.432 10.1935 9.834 9.7529 9.39341C9.31231 8.95282 8.71452 8.70532 8.09153 8.70532H3.39135C2.76836 8.70532 2.17058 8.95282 1.72999 9.39341C1.2894 9.834 1.0419 10.432 1.0419 11.055V12.222"
+            stroke="rgba(246,246,246,0.5)" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"
+        />
+        <path
+            d="M5.74109 6.35563C7.03908 6.35563 8.09119 5.30352 8.09119 4.00553C8.09119 2.70754 7.03908 1.65543 5.74109 1.65543C4.4431 1.65543 3.39099 2.70754 3.39099 4.00553C3.39099 5.30352 4.4431 6.35563 5.74109 6.35563Z"
+            stroke="rgba(246,246,246,0.5)" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"
+        />
+    </svg>
+);
+
+const ChevronRightIcon = ({ color = '#939393' }: { color?: string }) => (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="shrink-0">
+        <path d="M7.5 15L12.5 10L7.5 5" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
 );
 
@@ -167,65 +146,262 @@ const CloseIcon = () => (
     </svg>
 );
 
-interface ItemRowProps {
-    item: TransactionItem;
-    onClick: () => void;
+const BackIcon = () => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <path d="M15 18L9 12L15 6" stroke="#F6F6F6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+);
+
+const GroupGuestlistIcon = () => (
+    <svg width="90" height="90" viewBox="0 0 90 90" fill="none">
+        <rect x="18" y="10" width="54" height="70" rx="8" stroke="#939393" strokeWidth="2.5" />
+        <path d="M34 10V6C34 3.79086 35.7909 2 38 2H52C54.2091 2 56 3.79086 56 6V10" stroke="#939393" strokeWidth="2.5" />
+        <path d="M33 34L41 42L57 26" stroke="#50DD77" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M33 58L41 66L57 50" stroke="#50DD77" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+);
+
+const GroupTicketIcon = () => (
+    <svg width="90" height="90" viewBox="0 0 90 90" fill="none">
+        <path d="M8 34V26C8 21.5817 11.5817 18 16 18H74C78.4183 18 82 21.5817 82 26V34C77.5817 34 74 37.5817 74 42C74 46.4183 77.5817 50 82 50V58C82 62.4183 78.4183 66 74 66H16C11.5817 66 8 62.4183 8 58V50C12.4183 50 16 46.4183 16 42C16 37.5817 12.4183 34 8 34Z" stroke="#939393" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M34 30V54" stroke="#939393" strokeWidth="2" strokeLinecap="round" strokeDasharray="3 6" />
+    </svg>
+);
+
+const GroupReservationIcon = () => (
+    <svg width="90" height="90" viewBox="0 0 90 90" fill="none">
+        <circle cx="45" cy="45" r="34" stroke="#939393" strokeWidth="2.5" />
+        <path d="M45 22V45L60 53" stroke="#939393" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+);
+
+const getGroupIcon = (itemType: ItemType) => {
+    switch (itemType) {
+        case 'GUESTLIST': return <GroupGuestlistIcon />;
+        case 'TICKET': return <GroupTicketIcon />;
+        case 'RESERVATION': return <GroupReservationIcon />;
+        default: return <GroupGuestlistIcon />;
+    }
+};
+
+interface CapacityPillProps {
+    used: number;
+    total: number;
+    showUsed: boolean;
+    showPerson?: boolean;
 }
 
-const ItemRow = ({ item, onClick }: ItemRowProps) => {
-    const dotColor = getItemTypeDotColor(item.itemType);
-    const itemName = getItemName(item);
-    const isReservation = item.itemType === 'RESERVATION';
-    const partySize = item.reservation?.partySize;
+const CapacityPill = ({ used, total, showUsed, showPerson = true }: CapacityPillProps) => (
+    <div className="flex gap-[4px] items-center justify-center bg-[#232323] border-[1.5px] border-solid border-[#232323] rounded-[25px] px-[8px] py-[4px] min-w-[29px] shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)] shrink-0 relative">
+        <div className="flex gap-[2px] items-center shrink-0 relative">
+            <div className="flex flex-col font-borna justify-center leading-[0] shrink-0 text-[#939393] text-[14px] text-center whitespace-nowrap relative">
+                <p className="leading-[20px]">{showUsed ? `${used}/${total}` : total}</p>
+            </div>
+        </div>
+        {showPerson && (
+            <div className="flex flex-col h-[16px] items-center justify-center shrink-0 relative">
+                <PersonXsIcon />
+            </div>
+        )}
+    </div>
+);
+
+interface RateGroupCardProps {
+    group: GroupedRate;
+    onClick: () => void;
+    isBenefit?: boolean;
+}
+
+const RateGroupCard = ({ group, onClick, isBenefit = false }: RateGroupCardProps) => {
+    const { t } = useTranslation();
+    const dotColor = getItemTypeDotColor(group.itemType);
+    const isGrouped = group.items.length > 1;
+    const showUsedCapacity = group.hasPartialConsumption || group.isFullyConsumed;
+    const isProduct = isProductType(group.itemType);
+    const chevronColor = (showUsedCapacity && !group.isFullyConsumed) ? '#FF336D' : '#939393';
+
+    const getSubtitle = (): string | null => {
+        if (!isGrouped) return null;
+        const count = group.items.length;
+        if (group.itemType === 'GUESTLIST') return `${count} ${t('transaction.lists', 'listas')}`;
+        if (group.itemType === 'TICKET') return `${count} ${t('transaction.tickets_count', 'entradas')}`;
+        if (group.itemType === 'RESERVATION') return `${count} ${t('transaction.reservations_count', 'reservas')}`;
+        return `${count} ${t('transaction.items_count', 'items')}`;
+    };
+
+    const subtitle = getSubtitle();
 
     return (
         <button
             onClick={onClick}
-            className="flex items-center gap-3 w-full p-3 bg-[#141414] border-2 border-[#232323] rounded-2xl shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)] cursor-pointer"
+            className={`flex gap-[8px] items-center w-full pl-[16px] pr-[12px] py-[12px] bg-[#141414] border-2 border-solid border-[#232323] rounded-[16px] shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)] cursor-pointer text-left transition-opacity ${group.isFullyConsumed ? 'opacity-50' : 'opacity-100'}`}
         >
-            <div className="flex items-center justify-center size-12 bg-[rgba(35,35,35,0.5)] border-[1.5px] border-[#232323] rounded-[4px] shrink-0">
-                {getItemIcon(item.itemType)}
-            </div>
-
-            <div className="flex flex-1 items-center gap-1 py-2">
-                <span
-                    className="size-1.5 rounded-full shrink-0"
-                    style={{ backgroundColor: dotColor }}
-                />
-                <span className="text-[16px] font-helvetica font-medium text-[#F6F6F6]">
-                    {itemName}
-                </span>
-                <span className="text-[16px] font-helvetica font-bold text-[#F6F6F6]">
-                    x{item.quantity}
-                </span>
-            </div>
-
-            {isReservation && partySize && (
-                <div className="flex items-center gap-1 px-2.5 py-1 bg-[#232323] rounded-full shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)]">
-                    <span className="text-[16px] font-helvetica font-medium text-[rgba(246,246,246,0.5)]">
-                        {partySize}
-                    </span>
-                    <PersonIcon />
+            <div className="flex flex-[1_0_0] flex-col items-start justify-center min-h-px min-w-px relative">
+                <div className="flex gap-[4px] items-center shrink-0 w-full relative">
+                    <div
+                        className="relative shrink-0 size-[6px] rounded-full"
+                        style={{ backgroundColor: dotColor }}
+                    />
+                    {isBenefit ? (
+                        <div
+                            className="flex flex-[1_0_0] flex-col font-borna font-medium justify-center leading-[0] min-h-px min-w-px overflow-hidden relative text-[16px] text-ellipsis whitespace-nowrap"
+                            style={{
+                                backgroundImage: 'linear-gradient(180deg, #978061 25%, #7F6649 100%)',
+                                WebkitBackgroundClip: 'text',
+                                WebkitTextFillColor: 'transparent',
+                                backgroundClip: 'text',
+                            }}
+                        >
+                            <p className="leading-[24px] overflow-hidden">{group.rateName}</p>
+                        </div>
+                    ) : (
+                        <div className="flex flex-[1_0_0] flex-col font-borna font-medium justify-center leading-[0] min-h-px min-w-px overflow-hidden relative text-[#F6F6F6] text-[16px] text-ellipsis whitespace-nowrap">
+                            <p className="leading-[24px] overflow-hidden">{group.rateName}</p>
+                        </div>
+                    )}
                 </div>
-            )}
+                {subtitle && (
+                    <div className="flex flex-col font-borna justify-center leading-[0] relative shrink-0 text-[#939393] text-[14px] text-justify w-full">
+                        <p className="leading-[20px] whitespace-pre-wrap">{subtitle}</p>
+                    </div>
+                )}
+            </div>
+
+            <CapacityPill
+                used={group.usedCapacity}
+                total={group.totalCapacity}
+                showUsed={showUsedCapacity}
+                showPerson={!isProduct}
+            />
+
+            <ChevronRightIcon color={chevronColor} />
         </button>
     );
 };
 
-const ModalSkeleton = () => (
-    <div className="flex flex-col gap-8 px-6 -mt-20 relative z-10 pb-8">
-        <div className="flex flex-col items-center gap-2 pt-4 animate-pulse">
-            <div className="h-7 w-48 bg-[#232323] rounded" />
-            <div className="h-4 w-32 bg-[#232323] rounded" />
-            <div className="h-4 w-24 bg-[#232323] rounded" />
-        </div>
-        <div className="flex flex-col gap-4 animate-pulse">
-            <div className="h-6 w-40 bg-[#232323] rounded" />
-            <div className="flex flex-col gap-2">
-                <div className="h-[72px] w-full bg-[#232323] rounded-2xl" />
-                <div className="h-[72px] w-full bg-[#232323] rounded-2xl" />
+interface IndividualItemCardProps {
+    item: TransactionItem;
+    index: number;
+    totalInGroup: number;
+    onClick: () => void;
+}
+
+const IndividualItemCard = ({ item, index, totalInGroup, onClick }: IndividualItemCardProps) => {
+    const dotColor = getItemTypeDotColor(item.itemType);
+    const rateName = getRateName(item);
+    const capacity = getItemCapacity(item);
+    const consumed = isItemConsumed(item);
+    const displayName = totalInGroup > 1 ? `${rateName} #${index + 1}` : rateName;
+    const chevronColor = consumed ? '#FF336D' : '#939393';
+
+    return (
+        <button
+            onClick={onClick}
+            className={`flex gap-[8px] items-center w-full pl-[16px] pr-[12px] py-[12px] bg-[#141414] border-2 border-solid border-[#232323] rounded-[16px] shadow-[0px_4px_12px_0px_rgba(0,0,0,0.5)] cursor-pointer text-left transition-opacity ${consumed ? 'opacity-50' : 'opacity-100'}`}
+        >
+            <div className="flex flex-[1_0_0] flex-col items-start justify-center min-h-px min-w-px relative">
+                <div className="flex gap-[4px] items-center shrink-0 w-full relative">
+                    <div
+                        className="relative shrink-0 size-[6px] rounded-full"
+                        style={{ backgroundColor: dotColor }}
+                    />
+                    <div className="flex flex-[1_0_0] flex-col font-borna font-medium justify-center leading-[0] min-h-px min-w-px overflow-hidden relative text-[#F6F6F6] text-[16px] text-ellipsis whitespace-nowrap">
+                        <p className="leading-[24px] overflow-hidden">{displayName}</p>
+                    </div>
+                </div>
+            </div>
+
+            <CapacityPill
+                used={consumed ? 0 : capacity}
+                total={capacity}
+                showUsed={consumed}
+            />
+
+            <ChevronRightIcon color={chevronColor} />
+        </button>
+    );
+};
+
+interface RateDetailViewProps {
+    group: GroupedRate;
+    onBack: () => void;
+    onClose: () => void;
+    onItemClick: (itemId: string) => void;
+}
+
+const RateDetailView = ({ group, onBack, onClose, onItemClick }: RateDetailViewProps) => {
+    const sortedItems = useMemo(() => {
+        return [...group.items].sort((a, b) => {
+            const aConsumed = isItemConsumed(a);
+            const bConsumed = isItemConsumed(b);
+            if (aConsumed && !bConsumed) return 1;
+            if (!aConsumed && bConsumed) return -1;
+            return 0;
+        });
+    }, [group.items]);
+
+    return (
+        <div className="flex flex-col items-center w-full pt-[24px] pb-[32px] px-[24px]">
+            <div className="flex items-start justify-between w-full h-[36px]">
+                <button
+                    onClick={onBack}
+                    className="flex items-center justify-center size-[36px] bg-[#232323] rounded-[36px] shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)] cursor-pointer"
+                >
+                    <BackIcon />
+                </button>
+                <button
+                    onClick={onClose}
+                    className="flex items-center justify-center size-[36px] bg-[#232323] rounded-[36px] shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)] cursor-pointer"
+                >
+                    <CloseIcon />
+                </button>
+            </div>
+
+            <div className="flex flex-col items-center gap-[16px] pt-[52px] pb-[24px] w-full">
+                <div className="flex items-center justify-center size-[90px]">
+                    {getGroupIcon(group.itemType)}
+                </div>
+                <h2 className="font-borna font-semibold text-[24px] text-[#F6F6F6] text-center leading-normal">
+                    {group.rateName}
+                </h2>
+            </div>
+
+            <div className="flex flex-col gap-[8px] w-full">
+                {sortedItems.map((item, index) => (
+                    <IndividualItemCard
+                        key={item.id}
+                        item={item}
+                        index={index}
+                        totalInGroup={group.items.length}
+                        onClick={() => onItemClick(item.id)}
+                    />
+                ))}
             </div>
         </div>
+    );
+};
+
+const ModalSkeleton = () => (
+    <div className="flex flex-col gap-[32px] relative z-10 pb-[32px]" style={{ width: '342px', margin: '0 auto' }}>
+        <div className="flex flex-col items-center gap-[2px] pt-[16px] animate-pulse">
+            <div className="h-[28px] w-[200px] bg-[#232323] rounded" />
+            <div className="h-[20px] w-[140px] bg-[#232323] rounded mt-[2px]" />
+            <div className="h-[20px] w-[180px] bg-[#232323] rounded mt-[2px]" />
+        </div>
+        <div className="flex flex-col gap-[16px] animate-pulse">
+            <div className="h-[24px] w-[80px] bg-[#232323] rounded ml-[6px]" />
+            <div className="flex flex-col gap-[8px]">
+                <div className="h-[52px] w-full bg-[#141414] border-2 border-[#232323] rounded-[16px]" />
+                <div className="h-[52px] w-full bg-[#141414] border-2 border-[#232323] rounded-[16px]" />
+                <div className="h-[52px] w-full bg-[#141414] border-2 border-[#232323] rounded-[16px]" />
+            </div>
+        </div>
+    </div>
+);
+
+const Grabber = () => (
+    <div className="absolute left-1/2 -translate-x-1/2 top-[-2px] flex flex-col items-start h-[16px] pt-[5px] opacity-50">
+        <div className="w-[36px] h-[5px] bg-[#333] rounded-[100px] mix-blend-plus-lighter" />
     </div>
 );
 
@@ -237,6 +413,7 @@ const TransactionItemsModal = ({ transactionId, isOpen, onClose }: TransactionIt
     const [isAnimating, setIsAnimating] = useState(false);
     const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
     const [showItemDetail, setShowItemDetail] = useState(false);
+    const [selectedGroup, setSelectedGroup] = useState<GroupedRate | null>(null);
 
     const { data: transaction, isLoading } = useQuery({
         queryKey: ['transaction', transactionId],
@@ -268,18 +445,80 @@ const TransactionItemsModal = ({ transactionId, isOpen, onClose }: TransactionIt
             setIsAnimating(false);
             setShowItemDetail(false);
             setSelectedItemId(null);
+            setSelectedGroup(null);
             document.body.style.overflow = '';
             onClose();
         }, 300);
     };
 
+    const { accessGroups, productGroups } = useMemo(() => {
+        const items = transaction?.items || [];
+        const accessItems = items.filter((item) => isAccessType(item.itemType));
+        const productItems = items.filter((item) => isProductType(item.itemType));
+
+        const groupByRate = (itemsList: TransactionItem[]): GroupedRate[] => {
+            const map = new Map<string, TransactionItem[]>();
+            for (const item of itemsList) {
+                const key = `${item.itemType}::${getRateName(item)}`;
+                const existing = map.get(key);
+                if (existing) {
+                    existing.push(item);
+                } else {
+                    map.set(key, [item]);
+                }
+            }
+
+            const groups: GroupedRate[] = [];
+            for (const [, groupItems] of map) {
+                const firstItem = groupItems[0];
+                const totalCapacity = groupItems.reduce((sum, item) => sum + getItemCapacity(item), 0);
+                const usedCapacity = groupItems.reduce((sum, item) => {
+                    if (isItemConsumed(item)) return sum + getItemCapacity(item);
+                    return sum;
+                }, 0);
+                const allConsumed = groupItems.every((item) => isItemConsumed(item));
+                const someConsumed = groupItems.some((item) => isItemConsumed(item));
+
+                groups.push({
+                    rateName: getRateName(firstItem),
+                    itemType: firstItem.itemType,
+                    items: groupItems,
+                    totalCapacity,
+                    usedCapacity,
+                    isFullyConsumed: allConsumed,
+                    hasPartialConsumption: someConsumed && !allConsumed,
+                });
+            }
+
+            return groups.sort((a, b) => {
+                if (a.isFullyConsumed && !b.isFullyConsumed) return 1;
+                if (!a.isFullyConsumed && b.isFullyConsumed) return -1;
+                return 0;
+            });
+        };
+
+        return {
+            accessGroups: groupByRate(accessItems),
+            productGroups: groupByRate(productItems),
+        };
+    }, [transaction]);
+
     useEffect(() => {
-        if (transaction && transaction.items?.length === 1 && !showItemDetail) {
+        if (transaction && transaction.items?.length === 1 && !showItemDetail && !selectedGroup) {
             const singleItem = transaction.items[0];
             setSelectedItemId(singleItem.id);
             setShowItemDetail(true);
         }
-    }, [transaction, showItemDetail]);
+    }, [transaction, showItemDetail, selectedGroup]);
+
+    const handleGroupClick = (group: GroupedRate) => {
+        if (group.items.length === 1) {
+            setSelectedItemId(group.items[0].id);
+            setShowItemDetail(true);
+        } else {
+            setSelectedGroup(group);
+        }
+    };
 
     const handleItemClick = (itemId: string) => {
         setSelectedItemId(itemId);
@@ -291,28 +530,35 @@ const TransactionItemsModal = ({ transactionId, isOpen, onClose }: TransactionIt
     };
 
     const handleItemDetailBack = () => {
-        if (transaction && transaction.items?.length > 1) {
+        if (selectedGroup) {
             setShowItemDetail(false);
             setSelectedItemId(null);
+        } else if (transaction && transaction.items?.length > 1) {
+            setShowItemDetail(false);
+            setSelectedItemId(null);
+            setSelectedGroup(null);
         } else {
             handleClose();
         }
     };
 
+    const handleGroupBack = () => {
+        setSelectedGroup(null);
+    };
+
     const handleBackdropClick = (e: React.MouseEvent) => {
-        if (e.target === e.currentTarget) {
-            handleClose();
-        }
+        if (e.target === e.currentTarget) handleClose();
     };
 
     if (showItemDetail && selectedItemId) {
+        const hasMultipleItems = (transaction?.items?.length ?? 0) > 1;
         return (
             <ItemDetailModal
                 transactionId={transactionId}
                 itemId={selectedItemId}
                 isOpen={true}
                 onClose={handleItemDetailClose}
-                onBack={transaction && transaction.items?.length > 1 ? handleItemDetailBack : undefined}
+                onBack={hasMultipleItems ? handleItemDetailBack : undefined}
             />
         );
     }
@@ -320,15 +566,37 @@ const TransactionItemsModal = ({ transactionId, isOpen, onClose }: TransactionIt
     if (!isAnimating && !isOpen) return null;
 
     const event = transaction?.event;
-    const items = transaction?.items || [];
     const club = transaction?.club;
-
     const dateDisplay = event
         ? isEventToday(event.startDate)
             ? t('wallet.today', 'Hoy')
             : formatEventDate(event.startDate, locale)
         : '';
     const timeDisplay = event ? formatEventTimeRange(event.startTime, event.endTime) : '';
+    const hasMultipleItems = (transaction?.items?.length ?? 0) > 1;
+
+    if (selectedGroup) {
+        return (
+            <div
+                className={`fixed inset-0 z-50 flex items-end justify-center transition-all duration-300 ease-out ${isVisible ? 'bg-black/60 backdrop-blur-sm' : 'bg-transparent'}`}
+                onClick={handleBackdropClick}
+            >
+                <div
+                    className={`relative w-full max-w-[500px] max-h-[80dvh] bg-[#0a0a0a] border-2 border-solid border-[#232323] rounded-t-[32px] overflow-hidden transition-transform duration-300 ease-out ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}
+                >
+                    <Grabber />
+                    <div className="overflow-y-auto max-h-[calc(80dvh-2px)] scrollbar-hide">
+                        <RateDetailView
+                            group={selectedGroup}
+                            onBack={handleGroupBack}
+                            onClose={handleClose}
+                            onItemClick={handleItemClick}
+                        />
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div
@@ -336,84 +604,137 @@ const TransactionItemsModal = ({ transactionId, isOpen, onClose }: TransactionIt
             onClick={handleBackdropClick}
         >
             <div
-                className={`relative w-full max-w-[500px] max-h-[80vh] bg-[#0a0a0a] border-2 border-[#232323] rounded-t-[32px] overflow-hidden transition-transform duration-300 ease-out ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}
+                className={`relative w-full max-w-[500px] max-h-[80dvh] bg-[#0a0a0a] border-2 border-solid border-[#232323] rounded-t-[32px] overflow-clip transition-transform duration-300 ease-out ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}
             >
-                <div className="absolute top-6 right-6 z-20">
-                    <button
-                        onClick={handleClose}
-                        className="flex items-center justify-center size-9 bg-[#232323] rounded-full shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)] cursor-pointer"
-                    >
-                        <CloseIcon />
-                    </button>
-                </div>
+                <Grabber />
 
-                <div className="overflow-y-auto max-h-[80vh] scrollbar-hide rounded-t-[32px]">
-                    <div className="relative w-full h-[300px] shrink-0">
-                        {event?.flyer && (
-                            <img
-                                src={event.flyer}
-                                alt={event.name}
-                                className="absolute inset-0 w-full h-full object-cover"
+                <div className="overflow-y-auto max-h-[80dvh] scrollbar-hide">
+                    <div className="relative pt-[24px] px-[24px]">
+                        {/* bg: flyer + gradients */}
+                        <div className="absolute left-1/2 -translate-x-1/2 top-[-2px] w-full h-[489px] overflow-hidden">
+                            {event?.flyer && (
+                                <img
+                                    src={event.flyer}
+                                    alt=""
+                                    className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+                                />
+                            )}
+                            <div
+                                className="absolute inset-0"
+                                style={{ background: 'linear-gradient(180deg, rgba(10,10,10,0) 0%, #0a0a0a 40%)' }}
                             />
-                        )}
-                        <div
-                            className="absolute inset-0"
-                            style={{ background: 'linear-gradient(to bottom, rgba(10,10,10,0) 0%, #0a0a0a 40%)' }}
-                        />
-                        <div
-                            className="absolute inset-0 backdrop-blur-[1.5px]"
-                            style={{ background: 'linear-gradient(to bottom, rgba(10,10,10,0) 0%, rgba(10,10,10,0.5) 40%)' }}
-                        />
-                    </div>
+                            <div
+                                className="absolute inset-0 backdrop-blur-[1.5px]"
+                                style={{ background: 'linear-gradient(180deg, rgba(10,10,10,0) 0%, rgba(10,10,10,0.5) 40%)' }}
+                            />
+                        </div>
 
-                    {isLoading || !transaction ? (
-                        <ModalSkeleton />
-                    ) : (
-                        <div className="flex flex-col gap-8 px-6 -mt-20 relative z-10 pb-8">
-                            <div className="flex flex-col items-center gap-[2px] pt-4">
-                                <h2 className="text-[24px] font-borna font-semibold text-[#F6F6F6] text-center leading-tight w-full">
-                                    {event?.name}
-                                </h2>
-                                <div className="flex items-center gap-1">
-                                    <span className="text-[14px] font-borna text-[#E5FF88]">
-                                        {dateDisplay}
-                                    </span>
-                                    {timeDisplay && (
-                                        <>
-                                            <span className="size-[3px] bg-[#E5FF88] rounded-full" />
-                                            <span className="text-[14px] font-borna text-[#E5FF88]">
-                                                {timeDisplay}
-                                            </span>
-                                        </>
-                                    )}
-                                </div>
-                                <div className="flex items-center gap-1.5 py-px">
-                                    <span className="text-[13px]">📍</span>
-                                    <span className="text-[14px] font-helvetica text-[#939393]">
-                                        {club?.address || club?.name}
-                                    </span>
-                                </div>
-                            </div>
-
-                            <div className="flex flex-col gap-4">
-                                <div className="px-1.5">
-                                    <h3 className="text-[24px] font-borna font-semibold text-[#FF336D]">
-                                        {t('wallet.for_this_event', 'Para este evento')}
-                                    </h3>
-                                </div>
-
-                                <div className="flex flex-col gap-2">
-                                    {items.map((item) => (
-                                        <ItemRow
-                                            key={item.id}
-                                            item={item}
-                                            onClick={() => handleItemClick(item.id)}
-                                        />
-                                    ))}
-                                </div>
+                        {/* navigation-buttons */}
+                        <div className="relative flex items-start justify-between h-[36px]">
+                            <div className="flex flex-[1_0_0] flex-col items-end justify-center min-h-px min-w-px">
+                                <button
+                                    onClick={handleClose}
+                                    className="flex items-center justify-center size-[36px] bg-[#232323] rounded-[36px] shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)] cursor-pointer shrink-0"
+                                >
+                                    <CloseIcon />
+                                </button>
                             </div>
                         </div>
-                    )}
+
+                        {/* content */}
+                        {isLoading || !transaction ? (
+                            <div className="relative pt-[90px]">
+                                <ModalSkeleton />
+                            </div>
+                        ) : (
+                            <div className="relative flex flex-col gap-[32px] items-start pt-[90px] pb-[32px]" style={{ width: '342px', margin: '0 auto' }}>
+                                {/* title-event */}
+                                <div className="flex flex-col gap-[2px] items-center justify-end pt-[16px] w-full">
+                                    <p className="font-borna font-semibold text-[24px] text-[#F6F6F6] text-center leading-normal w-full">
+                                        {event?.name}
+                                    </p>
+                                    <div className="flex gap-[4px] items-center justify-center w-full">
+                                        <span className="font-borna text-[14px] text-[#E5FF88] leading-[20px] whitespace-nowrap overflow-hidden text-ellipsis">
+                                            {dateDisplay}
+                                        </span>
+                                        {timeDisplay && (
+                                            <>
+                                                <span className="size-[3px] bg-[#E5FF88] rounded-full shrink-0" />
+                                                <span className="font-borna text-[14px] text-[#E5FF88] leading-[20px] whitespace-nowrap overflow-hidden text-ellipsis">
+                                                    {timeDisplay}
+                                                </span>
+                                            </>
+                                        )}
+                                    </div>
+                                    <div className="flex gap-[6px] items-center justify-center py-px w-full">
+                                        <span className="flex items-center justify-center pt-[2px] w-[4px]">
+                                            <span className="font-helvetica font-medium text-[13px] text-[#F6F6F6] leading-normal overflow-hidden whitespace-nowrap text-ellipsis">📍</span>
+                                        </span>
+                                        <span className="font-borna text-[14px] text-[#939393] leading-[20px] overflow-hidden whitespace-nowrap text-ellipsis">
+                                            {club?.address || club?.name}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {/* description text */}
+                                {hasMultipleItems && (
+                                    <div className="flex gap-[2px] items-center px-[6px] w-full">
+                                        <span className="flex-[1_0_0] min-h-px min-w-px font-borna font-medium text-[16px] text-[#939393] leading-[24px]">
+                                            {t('transaction.passbook_description', 'Todo en un mismo Passbook: accesos y consumos.')}
+                                        </span>
+                                    </div>
+                                )}
+
+                                {/* contenido: sections */}
+                                <div className="flex flex-col gap-[24px] items-start w-full">
+                                    {/* Accesos section */}
+                                    {accessGroups.length > 0 && (
+                                        <div className="flex flex-col gap-[16px] items-start w-full">
+                                            <div className="flex items-end justify-between px-[6px] w-full">
+                                                <div className="flex flex-[1_0_0] items-center min-h-px min-w-px">
+                                                    <span className="font-borna font-semibold text-[20px] text-[#FF336D] leading-normal overflow-hidden whitespace-nowrap text-ellipsis">
+                                                        {t('transaction.accesses', 'Accesos')}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div className="flex flex-col gap-[8px] items-start w-full">
+                                                {accessGroups.map((group) => (
+                                                    <RateGroupCard
+                                                        key={`${group.itemType}-${group.rateName}`}
+                                                        group={group}
+                                                        onClick={() => handleGroupClick(group)}
+                                                    />
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Productos section */}
+                                    {productGroups.length > 0 && (
+                                        <div className="flex flex-col gap-[16px] items-start w-full">
+                                            <div className="flex items-end justify-between px-[6px] w-full">
+                                                <div className="flex flex-[1_0_0] items-center min-h-px min-w-px">
+                                                    <span className="font-borna font-semibold text-[20px] text-[#FF336D] leading-normal overflow-hidden whitespace-nowrap text-ellipsis">
+                                                        {t('transaction.products', 'Productos')}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div className="flex flex-col gap-[8px] items-start w-full">
+                                                {productGroups.map((group) => (
+                                                    <RateGroupCard
+                                                        key={`${group.itemType}-${group.rateName}`}
+                                                        group={group}
+                                                        onClick={() => handleGroupClick(group)}
+                                                        isBenefit={group.itemType === 'PROMOTION'}
+                                                    />
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>

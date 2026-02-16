@@ -367,7 +367,14 @@
         "read_terms": "Read rate purchase terms",
         "passbook_error": "Error generating pass",
         "add_to_apple_wallet": "Add to Apple Wallet",
-        "add_to_google_wallet": "Add to Google Wallet"
+        "add_to_google_wallet": "Add to Google Wallet",
+        "accesses": "Accesses",
+        "products": "Products",
+        "lists": "lists",
+        "tickets_count": "tickets",
+        "reservations_count": "reservations",
+        "items_count": "items",
+        "passbook_description": "Everything in one Passbook: access and consumption."
     },
     "policies": {
         "terms_and_conditions": "Terms and Conditions",
