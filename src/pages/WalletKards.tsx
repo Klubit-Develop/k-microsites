@@ -420,6 +420,16 @@ const BenefitsSkeleton = () => (
     </div>
 );
 
+const TransactionsSkeleton = () => (
+    <div className="flex flex-col gap-3 items-start w-full">
+        <div className="h-[24px] w-[120px] bg-[#232323] rounded-lg animate-pulse ml-1.5" />
+        <div className="flex flex-col gap-2 w-full">
+            <WalletEventCardSkeleton />
+            <WalletEventCardSkeleton />
+        </div>
+    </div>
+);
+
 const WalletKards = () => {
     const { t, i18n } = useTranslation();
     const locale = i18n.language === 'en' ? 'en' : 'es';
@@ -449,7 +459,7 @@ const WalletKards = () => {
     }, [passbooks, idKard]);
 
     const clubId = passbook?.clubId;
-    const backgroundColor = passbook?.club.passbookConfig?.backgroundColor || '#033f3e';
+    const backgroundColor = passbook?.club.passbookConfig?.backgroundColor || null;
 
     const { data: transactions, isLoading: isLoadingTransactions } = useQuery({
         queryKey: ['wallet-transactions'],
@@ -508,107 +518,111 @@ const WalletKards = () => {
 
     return (
         <div className="relative min-h-screen bg-[#050505]">
-            <div className="absolute top-0 left-0 right-0 h-[504px] z-0">
-                <div
-                    className="absolute inset-0"
-                    style={{ backgroundColor }}
-                />
-                <div
-                    className="absolute inset-0"
-                    style={{
-                        background: 'linear-gradient(to bottom, rgba(5,5,5,0) 0%, #050505 40%)',
-                    }}
-                />
-            </div>
+            {backgroundColor && (
+                <div className="absolute top-0 left-0 right-0 h-[504px] z-0">
+                    <div
+                        className="absolute inset-0"
+                        style={{ backgroundColor }}
+                    />
+                    <div
+                        className="absolute inset-0"
+                        style={{
+                            background: 'linear-gradient(to bottom, rgba(5,5,5,0) 0%, #050505 40%)',
+                        }}
+                    />
+                </div>
+            )}
 
             <div className="relative z-10 flex flex-col gap-8 items-center w-full max-w-[450px] mx-auto px-4 pt-[60px] pb-[60px]">
-                {isLoadingPassbooks ? (
-                    <KardSkeleton />
+                {(isLoadingPassbooks || !passbooks) ? (
+                    <>
+                        <KardSkeleton />
+                        <BenefitsSkeleton />
+                        <TransactionsSkeleton />
+                    </>
                 ) : passbook ? (
-                    <KlubKardDetail
-                        passbook={passbook}
-                        onQrClick={() => setShowPassbookModal(true)}
-                    />
+                    <>
+                        <KlubKardDetail
+                            passbook={passbook}
+                            onQrClick={() => setShowPassbookModal(true)}
+                        />
+
+                        {benefits.length > 0 && (
+                            <div className="flex flex-col gap-3 items-start w-full">
+                                <SectionHeader title={t('wallet.your_benefits', 'Tus beneficios')} />
+                                <div className="flex flex-col gap-2 w-full">
+                                    {benefits.map((benefit) => (
+                                        <BenefitCardRow key={benefit.id} benefit={benefit} />
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {(isLoadingTransactions || upcomingTransactions.length > 0) && (
+                            <div className="flex flex-col gap-3 items-start w-full">
+                                <SectionHeader
+                                    title={t('wallet.upcoming', 'Próximos')}
+                                    onClick={() => setEventsListVariant('upcoming')}
+                                    showArrow={upcomingTransactions.length > 3}
+                                />
+                                {isLoadingTransactions ? (
+                                    <div className="flex flex-col gap-2 w-full">
+                                        <WalletEventCardSkeleton />
+                                    </div>
+                                ) : (
+                                    <div className="flex flex-col gap-2 w-full">
+                                        {upcomingTransactions.slice(0, 3).map((transaction) => {
+                                            const cardProps = formatTransactionForCard(transaction);
+                                            return (
+                                                <WalletEventCard
+                                                    key={transaction.id}
+                                                    title={cardProps.title}
+                                                    date={cardProps.date}
+                                                    time={cardProps.time}
+                                                    location={cardProps.location}
+                                                    imageUrl={cardProps.imageUrl}
+                                                    variant="upcoming"
+                                                    onClick={() => handleTransactionClick(transaction.id)}
+                                                />
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {pastTransactions.length > 0 && (
+                            <div className="flex flex-col gap-3 items-start w-full">
+                                <SectionHeader
+                                    title={t('wallet.past', 'Pasados')}
+                                    onClick={() => setEventsListVariant('past')}
+                                    showArrow={pastTransactions.length > 1}
+                                />
+                                <div className="flex flex-col gap-2 w-full">
+                                    {(() => {
+                                        const cardProps = formatTransactionForCard(pastTransactions[0]);
+                                        return (
+                                            <WalletEventCard
+                                                key={pastTransactions[0].id}
+                                                title={cardProps.title}
+                                                date={cardProps.date}
+                                                time={cardProps.time}
+                                                location={cardProps.location}
+                                                imageUrl={cardProps.imageUrl}
+                                                variant="past"
+                                                onClick={() => handleTransactionClick(pastTransactions[0].id)}
+                                            />
+                                        );
+                                    })()}
+                                </div>
+                            </div>
+                        )}
+                    </>
                 ) : (
                     <div className="flex items-center justify-center py-8">
                         <span className="text-[14px] font-helvetica text-[#939393]">
                             {t('wallet.kard_not_found', 'Kard no encontrada')}
                         </span>
-                    </div>
-                )}
-
-                {isLoadingPassbooks && !passbook && (
-                    <BenefitsSkeleton />
-                )}
-
-                {benefits.length > 0 && (
-                    <div className="flex flex-col gap-3 items-start w-full">
-                        <SectionHeader title={t('wallet.your_benefits', 'Tus beneficios')} />
-                        <div className="flex flex-col gap-2 w-full">
-                            {benefits.map((benefit) => (
-                                <BenefitCardRow key={benefit.id} benefit={benefit} />
-                            ))}
-                        </div>
-                    </div>
-                )}
-
-                {(isLoadingTransactions || upcomingTransactions.length > 0) && (
-                    <div className="flex flex-col gap-3 items-start w-full">
-                        <SectionHeader
-                            title={t('wallet.upcoming', 'Próximos')}
-                            onClick={() => setEventsListVariant('upcoming')}
-                            showArrow={upcomingTransactions.length > 3}
-                        />
-                        {isLoadingTransactions ? (
-                            <div className="flex flex-col gap-2 w-full">
-                                <WalletEventCardSkeleton />
-                            </div>
-                        ) : (
-                            <div className="flex flex-col gap-2 w-full">
-                                {upcomingTransactions.slice(0, 3).map((transaction) => {
-                                    const cardProps = formatTransactionForCard(transaction);
-                                    return (
-                                        <WalletEventCard
-                                            key={transaction.id}
-                                            title={cardProps.title}
-                                            date={cardProps.date}
-                                            time={cardProps.time}
-                                            location={cardProps.location}
-                                            imageUrl={cardProps.imageUrl}
-                                            variant="upcoming"
-                                            onClick={() => handleTransactionClick(transaction.id)}
-                                        />
-                                    );
-                                })}
-                            </div>
-                        )}
-                    </div>
-                )}
-
-                {pastTransactions.length > 0 && (
-                    <div className="flex flex-col gap-3 items-start w-full">
-                        <SectionHeader
-                            title={t('wallet.past', 'Pasados')}
-                            onClick={() => setEventsListVariant('past')}
-                            showArrow={pastTransactions.length > 1}
-                        />
-                        <div className="flex flex-col gap-2 w-full">
-                            {(() => {
-                                const cardProps = formatTransactionForCard(pastTransactions[0]);
-                                return (
-                                    <WalletEventCard
-                                        key={pastTransactions[0].id}
-                                        title={cardProps.title}
-                                        date={cardProps.date}
-                                        time={cardProps.time}
-                                        location={cardProps.location}
-                                        imageUrl={cardProps.imageUrl}
-                                        variant="past"
-                                        onClick={() => handleTransactionClick(pastTransactions[0].id)}
-                                    />
-                                );
-                            })()}
-                        </div>
                     </div>
                 )}
             </div>

@@ -12,9 +12,10 @@ import { ChevronRightIcon } from '@/components/icons';
 import TransactionItemsModal from '@/components/TransactionItemsModal';
 import EmptyUpcomingEvents from '@/components/EmptyUpcomingEvents';
 
-import WalletEventCard from '@/components/WalletEventCard';
 import WalletEventsListModal from '@/components/WalletEventsListModal';
 import WalletKardsListModal from '@/components/WalletKardsListModal';
+
+import WalletEventCard, { WalletEventCardSkeleton } from '@/components/WalletEventCard';
 
 interface Transaction {
     id: string;
@@ -631,16 +632,31 @@ const SectionHeader = ({ title, to, onClick, showArrow = false }: SectionHeaderP
     );
 };
 
+// ──────────────────────────────────────────────
+// REEMPLAZAR el WalletSkeleton existente con esto:
+// ──────────────────────────────────────────────
+
 const WalletSkeleton = () => {
     return (
-        <div className="flex flex-col gap-9 w-full max-w-[450px] mx-auto px-4 pt-[120px] pb-[100px] md:py-8 animate-pulse">
-            <div className="w-full h-[200px] bg-[#232323] rounded-2xl" />
-            <div className="flex flex-col gap-3">
-                <div className="w-32 h-7 bg-[#232323] rounded-lg" />
-                <div className="flex flex-col gap-2">
-                    {[1, 2, 3].map((i) => (
-                        <div key={i} className="h-[88px] bg-[#232323] rounded-2xl" />
-                    ))}
+        <div className="min-h-screen bg-[#050505]">
+            <div className="flex flex-col gap-9 w-full max-w-[450px] mx-auto px-4 pt-[60px] pb-[60px] md:py-8 animate-pulse">
+                {/* Featured ticket card */}
+                <div className="w-full h-[200px] bg-[#232323] rounded-2xl" />
+
+                {/* Kards section */}
+                <div className="flex flex-col gap-4 w-full">
+                    <div className="h-[24px] w-[100px] bg-[#232323] rounded-lg ml-1.5" />
+                    <div className="w-full h-[250px] bg-[#232323] rounded-[20px]" />
+                </div>
+
+                {/* Upcoming section */}
+                <div className="flex flex-col gap-3 w-full">
+                    <div className="h-[24px] w-[140px] bg-[#232323] rounded-lg ml-1.5" />
+                    <div className="flex flex-col gap-2">
+                        <WalletEventCardSkeleton />
+                        <WalletEventCardSkeleton />
+                        <WalletEventCardSkeleton />
+                    </div>
                 </div>
             </div>
         </div>
