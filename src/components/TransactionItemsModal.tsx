@@ -153,15 +153,6 @@ const BackIcon = () => (
     </svg>
 );
 
-const GroupGuestlistIcon = () => (
-    <svg width="90" height="90" viewBox="0 0 90 90" fill="none">
-        <rect x="18" y="10" width="54" height="70" rx="8" stroke="#939393" strokeWidth="2.5" />
-        <path d="M34 10V6C34 3.79086 35.7909 2 38 2H52C54.2091 2 56 3.79086 56 6V10" stroke="#939393" strokeWidth="2.5" />
-        <path d="M33 34L41 42L57 26" stroke="#50DD77" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M33 58L41 66L57 50" stroke="#50DD77" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-);
-
 const GroupTicketIcon = () => (
     <svg width="90" height="90" viewBox="0 0 90 90" fill="none">
         <path d="M8 34V26C8 21.5817 11.5817 18 16 18H74C78.4183 18 82 21.5817 82 26V34C77.5817 34 74 37.5817 74 42C74 46.4183 77.5817 50 82 50V58C82 62.4183 78.4183 66 74 66H16C11.5817 66 8 62.4183 8 58V50C12.4183 50 16 46.4183 16 42C16 37.5817 12.4183 34 8 34Z" stroke="#939393" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -176,12 +167,21 @@ const GroupReservationIcon = () => (
     </svg>
 );
 
+const ICON_GUESTLIST_URL = 'https://klubit.fra1.cdn.digitaloceanspaces.com/icon-guestlist.png';
+const ICON_PRODUCT_URL = 'https://klubit.fra1.cdn.digitaloceanspaces.com/icon-product.png';
+const ICON_PROMOTION_URL = 'https://klubit.fra1.cdn.digitaloceanspaces.com/icon-promotion.png';
+
 const getGroupIcon = (itemType: ItemType) => {
     switch (itemType) {
-        case 'GUESTLIST': return <GroupGuestlistIcon />;
+        case 'GUESTLIST':
+            return <img src={ICON_GUESTLIST_URL} alt="" className="w-[76px] h-[76px] object-contain" />;
+        case 'PRODUCT':
+            return <img src={ICON_PRODUCT_URL} alt="" className="w-[76px] h-[76px] object-contain" />;
+        case 'PROMOTION':
+            return <img src={ICON_PROMOTION_URL} alt="" className="w-[76px] h-[76px] object-contain" />;
         case 'TICKET': return <GroupTicketIcon />;
         case 'RESERVATION': return <GroupReservationIcon />;
-        default: return <GroupGuestlistIcon />;
+        default: return <img src={ICON_GUESTLIST_URL} alt="" className="w-[76px] h-[76px] object-contain" />;
     }
 };
 
@@ -214,23 +214,10 @@ interface RateGroupCardProps {
 }
 
 const RateGroupCard = ({ group, onClick, isBenefit = false }: RateGroupCardProps) => {
-    const { t } = useTranslation();
     const dotColor = getItemTypeDotColor(group.itemType);
-    const isGrouped = group.items.length > 1;
     const showUsedCapacity = group.hasPartialConsumption || group.isFullyConsumed;
     const isProduct = isProductType(group.itemType);
     const chevronColor = (showUsedCapacity && !group.isFullyConsumed) ? '#FF336D' : '#939393';
-
-    const getSubtitle = (): string | null => {
-        if (!isGrouped) return null;
-        const count = group.items.length;
-        if (group.itemType === 'GUESTLIST') return `${count} ${t('transaction.lists', 'listas')}`;
-        if (group.itemType === 'TICKET') return `${count} ${t('transaction.tickets_count', 'entradas')}`;
-        if (group.itemType === 'RESERVATION') return `${count} ${t('transaction.reservations_count', 'reservas')}`;
-        return `${count} ${t('transaction.items_count', 'items')}`;
-    };
-
-    const subtitle = getSubtitle();
 
     return (
         <button
@@ -261,11 +248,6 @@ const RateGroupCard = ({ group, onClick, isBenefit = false }: RateGroupCardProps
                         </div>
                     )}
                 </div>
-                {subtitle && (
-                    <div className="flex flex-col font-borna justify-center leading-[0] relative shrink-0 text-[#939393] text-[14px] text-justify w-full">
-                        <p className="leading-[20px] whitespace-pre-wrap">{subtitle}</p>
-                    </div>
-                )}
             </div>
 
             <CapacityPill
@@ -342,8 +324,8 @@ const RateDetailView = ({ group, onBack, onClose, onItemClick }: RateDetailViewP
     }, [group.items]);
 
     return (
-        <div className="flex flex-col items-center w-full pt-[24px] pb-[32px] px-[24px]">
-            <div className="flex items-start justify-between w-full h-[36px]">
+        <div className="flex flex-col items-center w-full pt-[24px] pb-[32px] px-[16px]">
+            <div className="flex items-start justify-between w-full h-[36px] px-[8px]">
                 <button
                     onClick={onBack}
                     className="flex items-center justify-center size-[36px] bg-[#232323] rounded-[36px] shadow-[0px_0px_12px_0px_rgba(0,0,0,0.5)] cursor-pointer"
@@ -358,7 +340,7 @@ const RateDetailView = ({ group, onBack, onClose, onItemClick }: RateDetailViewP
                 </button>
             </div>
 
-            <div className="flex flex-col items-center gap-[16px] pt-[52px] pb-[24px] w-full">
+            <div className="flex flex-col items-center gap-[16px] pt-[24px] pb-[24px] w-full">
                 <div className="flex items-center justify-center size-[90px]">
                     {getGroupIcon(group.itemType)}
                 </div>
@@ -415,6 +397,7 @@ const TransactionItemsModal = ({ transactionIds, isOpen, onClose }: TransactionI
     const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
     const [showItemDetail, setShowItemDetail] = useState(false);
     const [selectedGroup, setSelectedGroup] = useState<GroupedRate | null>(null);
+    const [isDetailVisible, setIsDetailVisible] = useState(false);
 
     const { data: transaction, isLoading } = useQuery({
         queryKey: ['transactions-merged', ...transactionIds],
@@ -464,6 +447,7 @@ const TransactionItemsModal = ({ transactionIds, isOpen, onClose }: TransactionI
 
     const handleClose = () => {
         setIsVisible(false);
+        setIsDetailVisible(false);
         setTimeout(() => {
             setIsAnimating(false);
             setShowItemDetail(false);
@@ -540,6 +524,11 @@ const TransactionItemsModal = ({ transactionIds, isOpen, onClose }: TransactionI
             setShowItemDetail(true);
         } else {
             setSelectedGroup(group);
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    setIsDetailVisible(true);
+                });
+            });
         }
     };
 
@@ -566,7 +555,10 @@ const TransactionItemsModal = ({ transactionIds, isOpen, onClose }: TransactionI
     };
 
     const handleGroupBack = () => {
-        setSelectedGroup(null);
+        setIsDetailVisible(false);
+        setTimeout(() => {
+            setSelectedGroup(null);
+        }, 300);
     };
 
     const handleBackdropClick = (e: React.MouseEvent) => {
@@ -603,11 +595,11 @@ const TransactionItemsModal = ({ transactionIds, isOpen, onClose }: TransactionI
     if (selectedGroup) {
         return (
             <div
-                className={`fixed inset-0 z-50 flex items-end justify-center transition-all duration-300 ease-out ${isVisible ? 'bg-black/60 backdrop-blur-sm' : 'bg-transparent'}`}
+                className={`fixed inset-0 z-50 flex items-end justify-center transition-all duration-300 ease-out ${isDetailVisible ? 'bg-black/60 backdrop-blur-sm' : 'bg-transparent'}`}
                 onClick={handleBackdropClick}
             >
                 <div
-                    className={`relative w-full max-w-[500px] max-h-[80dvh] bg-[#0a0a0a] border-2 border-solid border-[#232323] rounded-t-[32px] overflow-hidden transition-transform duration-300 ease-out ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}
+                    className={`relative w-full max-w-[500px] max-h-[80dvh] bg-[#0a0a0a] border-2 border-solid border-[#232323] rounded-t-[32px] overflow-hidden transition-transform duration-300 ease-out ${isDetailVisible ? 'translate-y-0' : 'translate-y-full'}`}
                 >
                     <Grabber />
                     <div className="overflow-y-auto max-h-[calc(80dvh-2px)] scrollbar-hide">
@@ -635,8 +627,7 @@ const TransactionItemsModal = ({ transactionIds, isOpen, onClose }: TransactionI
 
                 <div className="overflow-y-auto max-h-[80dvh] scrollbar-hide">
                     <div className="relative pt-[24px] px-[24px]">
-                        {/* bg: flyer + gradients */}
-                        <div className="absolute left-1/2 -translate-x-1/2 top-[-2px] w-full h-[489px] overflow-hidden">
+                        <div className="absolute left-0 right-0 top-[-24px] h-[350px] overflow-hidden">
                             {event?.flyer && (
                                 <img
                                     src={event.flyer}
@@ -646,15 +637,14 @@ const TransactionItemsModal = ({ transactionIds, isOpen, onClose }: TransactionI
                             )}
                             <div
                                 className="absolute inset-0"
-                                style={{ background: 'linear-gradient(180deg, rgba(10,10,10,0) 0%, #0a0a0a 40%)' }}
+                                style={{ background: 'linear-gradient(180deg, rgba(10,10,10,0) 0%, #0a0a0a 70%)' }}
                             />
                             <div
                                 className="absolute inset-0 backdrop-blur-[1.5px]"
-                                style={{ background: 'linear-gradient(180deg, rgba(10,10,10,0) 0%, rgba(10,10,10,0.5) 40%)' }}
+                                style={{ background: 'linear-gradient(180deg, rgba(10,10,10,0) 0%, rgba(10,10,10,0.5) 60%)' }}
                             />
                         </div>
 
-                        {/* navigation-buttons */}
                         <div className="relative flex items-start justify-between h-[36px]">
                             <div className="flex flex-[1_0_0] flex-col items-end justify-center min-h-px min-w-px">
                                 <button
@@ -672,7 +662,7 @@ const TransactionItemsModal = ({ transactionIds, isOpen, onClose }: TransactionI
                                 <ModalSkeleton />
                             </div>
                         ) : (
-                            <div className="relative flex flex-col gap-[32px] items-start pt-[90px] pb-[32px]" style={{ width: '342px', margin: '0 auto' }}>
+                            <div className="relative flex flex-col gap-[32px] items-start pt-[90px] pb-[32px]" style={{ margin: '0 auto' }}>
                                 {/* title-event */}
                                 <div className="flex flex-col gap-[2px] items-center justify-end pt-[16px] w-full">
                                     <p className="font-borna font-semibold text-[24px] text-[#F6F6F6] text-center leading-normal w-full">
@@ -696,15 +686,15 @@ const TransactionItemsModal = ({ transactionIds, isOpen, onClose }: TransactionI
                                             <span className="font-helvetica font-medium text-[13px] text-[#F6F6F6] leading-normal overflow-hidden whitespace-nowrap text-ellipsis">📍</span>
                                         </span>
                                         <span className="font-borna text-[14px] text-[#939393] leading-[20px] overflow-hidden whitespace-nowrap text-ellipsis">
-                                            {club?.address || club?.name}
+                                            📍 {club?.address || club?.name}
                                         </span>
                                     </div>
                                 </div>
 
                                 {/* description text */}
                                 {hasMultipleItems && (
-                                    <div className="flex gap-[2px] items-center px-[6px] w-full">
-                                        <span className="flex-[1_0_0] min-h-px min-w-px font-borna font-medium text-[16px] text-[#939393] leading-[24px]">
+                                    <div className="flex gap-[2px] items-center text-center px-[6px] w-full">
+                                        <span className="flex-[1_0_0] min-h-px min-w-px font-borna font-normal text-[14px] text-[#939393] leading-[24px]">
                                             {t('transaction.passbook_description', 'Todo en un mismo Passbook: accesos y consumos.')}
                                         </span>
                                     </div>
